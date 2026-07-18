@@ -1,0 +1,143 @@
+@extends('admin.layouts.app')
+@section('title','Debit Note Details')
+@section('page-title','GST / Accounts')
+@section('content')
+<style>
+.crud-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:15px;}
+.crud-title h2{font-size:22px;font-weight:800;color:#0F172A;margin-bottom:4px;}
+.crud-title p{font-size:13.5px;color:#64748B;}
+.card-box{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:30px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 20px rgba(0,0,0,0.05);max-width:900px;margin:0 auto;}
+.dn-hero{display:flex;align-items:flex-start;gap:18px;padding-bottom:22px;margin-bottom:22px;border-bottom:1px solid #E2E8F0;flex-wrap:wrap;}
+.dn-icon{width:58px;height:58px;border-radius:12px;background:rgba(239,68,68,0.08);border:2px solid rgba(239,68,68,0.2);display:flex;align-items:center;justify-content:center;font-size:24px;color:#EF4444;flex-shrink:0;}
+.dn-hero-info h3{font-size:19px;font-weight:800;color:#0F172A;margin-bottom:5px;}
+.dn-hero-info p{font-size:13.5px;color:#64748B;margin-bottom:8px;}
+.hero-badges{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.dn-badge{display:inline-block;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;}
+.dn-approved{background:rgba(16,185,129,0.1);color:#065F46;}
+.dn-pending{background:rgba(245,158,11,0.1);color:#92400E;}
+.dn-rejected{background:rgba(239,68,68,0.1);color:#991B1B;}
+.section-title{font-size:12px;font-weight:700;color:#EF4444;text-transform:uppercase;letter-spacing:1px;margin:20px 0 14px;padding-bottom:8px;border-bottom:1px solid #E2E8F0;display:flex;align-items:center;gap:8px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:576px){.detail-grid{grid-template-columns:1fr;}}
+.detail-item{padding:13px 15px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;transition:all .18s;}
+.detail-item:hover{border-color:#FECACA;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.04);}
+.detail-label{font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.detail-label i{color:#EF4444;font-size:11px;}
+.detail-value{font-size:14px;font-weight:600;color:#0F172A;}
+.detail-value.empty{color:#CBD5E1;font-weight:400;font-style:italic;}
+.gst-summary{background:linear-gradient(135deg,rgba(239,68,68,0.04),rgba(239,68,68,0.01));border:1px solid rgba(239,68,68,0.15);border-radius:12px;padding:18px 20px;}
+.gst-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(239,68,68,0.08);font-size:13.5px;}
+.gst-row:last-child{border-bottom:none;padding-top:10px;margin-top:4px;}
+.meta-info{margin-top:20px;padding-top:16px;border-top:1px solid #E2E8F0;display:flex;gap:20px;flex-wrap:wrap;}
+.meta-item{font-size:12px;color:#64748B;display:flex;align-items:center;gap:6px;}
+.meta-item i{color:#EF4444;}
+.form-actions{display:flex;align-items:center;gap:14px;margin-top:22px;padding-top:20px;border-top:1px solid #E2E8F0;}
+.btn-red{background:linear-gradient(135deg,#EF4444,#DC2626);color:#FFF;padding:11px 22px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:all .22s;box-shadow:0 2px 8px rgba(239,68,68,0.3);}
+.btn-red:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(239,68,68,0.4);}
+.btn-outline{border:1px solid #E2E8F0;background:transparent;color:#64748B;padding:11px 22px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:all .18s;}
+.btn-outline:hover{border-color:#EF4444;color:#EF4444;}
+.btn-danger{border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.05);color:#DC2626;padding:11px 20px;border-radius:8px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:all .18s;font-family:inherit;margin-left:auto;}
+.btn-danger:hover{background:rgba(239,68,68,0.1);}
+</style>
+
+<div class="crud-header">
+    <div class="crud-title"><h2>Debit Note Details</h2><p>Full record of this debit adjustment.</p></div>
+</div>
+
+<div class="card-box">
+    @php $badge = match($debitNote->status){'Approved'=>'dn-approved','Rejected'=>'dn-rejected',default=>'dn-pending'}; @endphp
+    <div class="dn-hero">
+        <div class="dn-icon"><i class="fa-solid fa-circle-minus"></i></div>
+        <div class="dn-hero-info">
+            <h3>{{ $debitNote->debit_note_no ?? 'Debit Note #'.$debitNote->id }}</h3>
+            <p>{{ \Carbon\Carbon::parse($debitNote->debit_note_date)->format('d M Y') }}
+               @if($debitNote->vendor) &nbsp;·&nbsp; {{ $debitNote->vendor->name }} @endif</p>
+            <div class="hero-badges">
+                <span style="font-size:21px;font-weight:800;color:#DC2626;">₹{{ number_format($debitNote->debit_amount,2) }}</span>
+                <span class="dn-badge {{ $badge }}">{{ $debitNote->status }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title"><i class="fa-solid fa-circle-info"></i> Debit Note Information</div>
+    <div class="detail-grid">
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-hashtag"></i> Debit Note No</div>
+            <div class="detail-value">{{ $debitNote->debit_note_no ?? '—' }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-regular fa-calendar"></i> Date</div>
+            <div class="detail-value">{{ \Carbon\Carbon::parse($debitNote->debit_note_date)->format('d M Y') }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-truck-field"></i> Vendor / Supplier</div>
+            @if($debitNote->vendor)
+                <div class="detail-value">{{ $debitNote->vendor->name }}</div>
+            @else
+                <div class="detail-value empty">Not linked</div>
+            @endif
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-file-invoice"></i> Related Bill No</div>
+            <div class="detail-value">{{ $debitNote->related_bill_no ?? '—' }}</div>
+        </div>
+        @if($debitNote->reason)
+        <div class="detail-item" style="grid-column:1/-1;">
+            <div class="detail-label"><i class="fa-solid fa-comment"></i> Reason</div>
+            <div class="detail-value" style="font-weight:400;line-height:1.6;">{{ $debitNote->reason }}</div>
+        </div>
+        @endif
+    </div>
+
+    <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> GST & Amount Summary</div>
+    <div class="gst-summary">
+        <div class="gst-row">
+            <span style="color:#64748B;">Taxable Amount</span>
+            <span style="font-weight:700;">₹{{ number_format($debitNote->taxable_amount,2) }}</span>
+        </div>
+        <div class="gst-row">
+            <span style="color:#0EA5E9;">CGST {{ $debitNote->cgst_rate ? '('.$debitNote->cgst_rate.'%)' : '' }}</span>
+            <span style="font-weight:700;color:#0EA5E9;">₹{{ number_format($debitNote->cgst_amount,2) }}</span>
+        </div>
+        <div class="gst-row">
+            <span style="color:#14B8A6;">SGST {{ $debitNote->sgst_rate ? '('.$debitNote->sgst_rate.'%)' : '' }}</span>
+            <span style="font-weight:700;color:#14B8A6;">₹{{ number_format($debitNote->sgst_amount,2) }}</span>
+        </div>
+        <div class="gst-row">
+            <span style="color:#8B5CF6;">IGST {{ $debitNote->igst_rate ? '('.$debitNote->igst_rate.'%)' : '' }}</span>
+            <span style="font-weight:700;color:#8B5CF6;">₹{{ number_format($debitNote->igst_amount,2) }}</span>
+        </div>
+        <div class="gst-row">
+            <span style="color:#EF4444;font-weight:600;">Total GST</span>
+            <span style="font-weight:700;color:#EF4444;">₹{{ number_format($debitNote->total_gst,2) }}</span>
+        </div>
+        <div class="gst-row" style="border-bottom:none;">
+            <span style="font-size:15px;font-weight:800;color:#0F172A;">Debit Amount (Grand Total)</span>
+            <span style="font-size:18px;font-weight:800;color:#DC2626;">₹{{ number_format($debitNote->debit_amount,2) }}</span>
+        </div>
+    </div>
+
+    @if($debitNote->notes)
+        <div class="section-title"><i class="fa-solid fa-note-sticky"></i> Notes</div>
+        <div class="detail-item"><div class="detail-value" style="font-weight:400;line-height:1.7;">{{ $debitNote->notes }}</div></div>
+    @endif
+
+    <div class="meta-info">
+        <div class="meta-item"><i class="fa-regular fa-calendar-plus"></i> Created: {{ $debitNote->created_at->format('d M Y, h:i A') }}</div>
+        <div class="meta-item"><i class="fa-regular fa-calendar-check"></i> Updated: {{ $debitNote->updated_at->format('d M Y, h:i A') }}</div>
+    </div>
+
+    <div class="form-actions">
+        <a href="{{ route('debit-notes.edit', $debitNote->id) }}" class="btn-red"><i class="fa-regular fa-pen-to-square"></i> Edit</a>
+        <a href="{{ route('debit-notes.index') }}" class="btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to List</a>
+        <form action="{{ route('debit-notes.destroy', $debitNote->id) }}" method="POST" id="del-dn-show">
+            @csrf @method('DELETE')
+            <button type="button" class="btn-danger"
+                onclick="Swal.fire({title:'Delete?',html:'Delete <strong>{{ addslashes($debitNote->debit_note_no ?? 'this note') }}</strong>?',icon:'warning',showCancelButton:true,confirmButtonColor:'#EF4444',cancelButtonColor:'#64748B',confirmButtonText:'Yes, Delete'}).then(r=>{if(r.isConfirmed)document.getElementById('del-dn-show').submit();})">
+                <i class="fa-regular fa-trash-can"></i> Delete
+            </button>
+        </form>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@endsection
