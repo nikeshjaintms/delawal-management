@@ -55,6 +55,7 @@
         {{-- Section 1: Expense Info --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-circle-info"></i> Expense Information</div>
+            @include('admin.components.firm-select', ['model' => $expense])
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="expense_title">Expense Title <span>*</span></label>

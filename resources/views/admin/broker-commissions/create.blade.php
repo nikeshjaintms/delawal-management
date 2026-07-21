@@ -161,6 +161,8 @@
     <form method="POST" action="{{ route('broker-commissions.store') }}" id="commissionForm">
         @csrf
 
+        @include('admin.components.firm-select')
+
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="broker_id">Broker <span>*</span></label>

@@ -31,6 +31,7 @@
 <div class="card-box">
     <form method="POST" action="{{ route('stock-inwards.update', $stockInward->id) }}">
         @csrf @method('PUT')
+        @include('admin.components.firm-select', ['model' => $stockInward])
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-arrow-down-to-bracket"></i> Inward Details</div>
             <div class="form-row">
@@ -44,7 +45,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="inward_date">Inward Date <span>*</span></label>
-                    <input type="date" name="inward_date" id="inward_date" value="{{ old('inward_date',$stockInward- class="@error('inward_date') is-invalid @enderror">inward_date?\Carbon\Carbon::parse($stockInward->inward_date)->format('Y-m-d'):'') }}" class="form-control">
+                    <input type="date" name="inward_date" id="inward_date" value="{{ old('inward_date', $stockInward->inward_date ? \Carbon\Carbon::parse($stockInward->inward_date)->format('Y-m-d') : '') }}" class="form-control @error('inward_date') is-invalid @enderror">
                     @error('inward_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
@@ -63,12 +64,12 @@
             <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label" for="quantity">Quantity <span>*</span></label>
-                    <input type="number" step="0.001" name="quantity" id="quantity" value="{{ old('quantity',$stockInward- class="@error('quantity') is-invalid @enderror">quantity) }}" class="form-control" oninput="calcTotal()">
+                    <input type="number" step="0.001" name="quantity" id="quantity" value="{{ old('quantity', $stockInward->quantity) }}" class="form-control @error('quantity') is-invalid @enderror" oninput="calcTotal()">
                     @error('quantity')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="rate">Rate per Unit (₹)</label>
-                    <input type="number" step="0.01" name="rate" id="rate" value="{{ old('rate',$stockInward- class="@error('rate') is-invalid @enderror">rate) }}" class="form-control" oninput="calcTotal()">
+                    <input type="number" step="0.01" name="rate" id="rate" value="{{ old('rate', $stockInward->rate) }}" class="form-control @error('rate') is-invalid @enderror" oninput="calcTotal()">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Total Amount (₹)</label>
@@ -82,11 +83,11 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="supplier_name">Supplier Name</label>
-                    <input type="text" name="supplier_name" id="supplier_name" value="{{ old('supplier_name',$stockInward- class="@error('supplier_name') is-invalid @enderror">supplier_name) }}" class="form-control" autocomplete="off">
+                    <input type="text" name="supplier_name" id="supplier_name" value="{{ old('supplier_name', $stockInward->supplier_name) }}" class="form-control @error('supplier_name') is-invalid @enderror" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="bill_no">Bill / Invoice No</label>
-                    <input type="text" name="bill_no" id="bill_no" value="{{ old('bill_no',$stockInward- class="@error('bill_no') is-invalid @enderror">bill_no) }}" class="form-control" autocomplete="off">
+                    <input type="text" name="bill_no" id="bill_no" value="{{ old('bill_no', $stockInward->bill_no) }}" class="form-control @error('bill_no') is-invalid @enderror" autocomplete="off">
                 </div>
             </div>
             <div class="form-group">

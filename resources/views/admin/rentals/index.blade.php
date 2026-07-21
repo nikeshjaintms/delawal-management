@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Rental Management')
 @section('page-title', 'Rental Management')
@@ -68,10 +68,20 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('rentals.index') }}" class="search-form">
+            @if(auth()->user() && auth()->user()->isAdmin())
+                <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width: 180px;">
+                    <option value="">All Firms</option>
+                    @foreach($firms as $firm)
+                        <option value="{{ $firm->id }}" {{ request('firm_id') == $firm->id ? 'selected' : '' }}>
+                            {{ $firm->firm_name }}
+                        </option>
+                    @endforeach
+                </select>
+            @endif
             <input type="text" name="search" value="{{ request('search') }}"
-                   placeholder="Search by tenant, property, status..." class="search-input @error('search') is-invalid @enderror">
+                   placeholder="Search by tenant, property, firm, status..." class="search-input @error('search') is-invalid @enderror">
             <button type="submit" class="btn-search">Search</button>
-            @if(request('search'))
+            @if(request('search') || request('firm_id'))
                 <a href="{{ route('rentals.index') }}" class="btn-reset">Reset</a>
             @endif
         </form>
@@ -82,6 +92,9 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        <th>Firm</th>
+                    @endif
                     <th>Property</th>
                     <th>Tenant</th>
                     <th>Rent Amount</th>
@@ -98,6 +111,9 @@
                 @forelse($rentals as $key => $rental)
                     <tr>
                         <td>{{ $rentals->firstItem() + $key }}</td>
+                        @if(auth()->user() && auth()->user()->isAdmin())
+                            <td><strong>{{ $rental->firm->firm_name ?? '-' }}</strong></td>
+                        @endif
                         <td>
                             <div style="font-weight:600;">{{ $rental->property->property_name ?? '-' }}</div>
                             @if($rental->property?->property_code)

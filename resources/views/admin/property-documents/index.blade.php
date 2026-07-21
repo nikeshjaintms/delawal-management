@@ -54,6 +54,19 @@
 
 <div class="card-box">
     <form method="GET" action="{{ route('property-documents.index') }}" class="filter-bar">
+        @if(auth()->user() && auth()->user()->isAdmin())
+            <div class="filter-group">
+                <span class="filter-label">Firm</span>
+                <select name="firm_id" class="filter-control @error('firm_id') is-invalid @enderror" onchange="this.form.submit()">
+                    <option value="">All Firms</option>
+                    @foreach(\App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get() as $firm)
+                        <option value="{{ $firm->id }}" {{ request('firm_id') == $firm->id ? 'selected' : '' }}>
+                            {{ $firm->firm_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        @endif
         <div class="filter-group">
             <span class="filter-label">Search</span>
             <input type="text" name="search" value="{{ request('search') }}" class="search-input @error('search') is-invalid @enderror" placeholder="Title, number, type…">
@@ -87,7 +100,7 @@
             </select>
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','property_id','document_type','status']))
+        @if(request()->hasAny(['search','property_id','document_type','status','firm_id']))
             <a href="{{ route('property-documents.index') }}" class="btn-reset"><i class="fa-solid fa-xmark"></i> Reset</a>
         @endif
     </form>
@@ -97,6 +110,9 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        <th>Firm</th>
+                    @endif
                     <th>Property</th>
                     <th>Document Type</th>
                     <th>Document Title</th>
@@ -111,6 +127,9 @@
             @forelse($documents as $i => $doc)
                 <tr>
                     <td>{{ $documents->firstItem() + $i }}</td>
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        <td><strong>{{ $doc->firm->firm_name ?? 'N/A' }}</strong></td>
+                    @endif
                     <td><strong>{{ $doc->property->property_name ?? '—' }}</strong></td>
                     <td><span class="doc-type-chip">{{ $doc->document_type }}</span></td>
                     <td>{{ $doc->document_title }}</td>
@@ -155,7 +174,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" style="text-align:center;padding:32px;color:var(--text-secondary)">
+                    <td colspan="10" style="text-align:center;padding:32px;color:var(--text-secondary)">
                         No documents found. <a href="{{ route('property-documents.create') }}" style="color:var(--blue)">Add one</a>.
                     </td>
                 </tr>

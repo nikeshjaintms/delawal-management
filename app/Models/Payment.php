@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Payment extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'firm_id',
         'property_sale_id',

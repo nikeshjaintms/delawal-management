@@ -38,15 +38,20 @@ class MaterialRequest extends FormRequest
                 }
             }
         }
-        $firmId = auth()->check() ? auth()->user()->firm_id : 0;
+        $user = auth()->user();
+        $firmId = $user ? $user->firm_id : 0;
 
         $rules = [
             'material_category_id' => 'required|exists:material_categories,id',
-            'name' => 'required|string|max:255',
+            'material_name' => 'required|string|max:255',
             'unit' => 'required|string|max:50',
             'description' => 'nullable|string|max:1000',
             'status' => 'required|in:active,inactive',
         ];
+
+        if ($user && $user->isAdmin()) {
+            $rules['firm_id'] = 'required|exists:firms,id';
+        }
 
         // Replace placeholders in unique rules dynamically
         foreach ($rules as $field => $rule) {
@@ -81,10 +86,11 @@ class MaterialRequest extends FormRequest
     {
         return [
             'material_category_id' => 'Material Category',
-            'name' => 'Material Name',
+            'material_name' => 'Material Name',
             'unit' => 'Unit of Measure',
             'description' => 'Description',
             'status' => 'Status',
+            'firm_id' => 'Firm',
         ];
     }
 

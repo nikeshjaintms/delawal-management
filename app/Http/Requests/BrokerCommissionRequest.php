@@ -41,6 +41,7 @@ class BrokerCommissionRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
+            'firm_id' => 'required|exists:firms,id',
             'broker_id' => 'required|exists:brokers,id',
             'property_id' => 'required|exists:properties,id',
             'customer_id' => 'nullable|exists:customers,id',
@@ -86,6 +87,7 @@ class BrokerCommissionRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'firm_id' => 'Firm',
             'broker_id' => 'Broker',
             'property_id' => 'Property',
             'customer_id' => 'Customer',

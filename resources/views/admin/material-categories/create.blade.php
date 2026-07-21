@@ -26,6 +26,7 @@
 <div class="card-box">
     <form method="POST" action="{{ route('material-categories.store') }}">
         @csrf
+        @include('admin.components.firm-select')
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="category_name">Category Name <span>*</span></label>

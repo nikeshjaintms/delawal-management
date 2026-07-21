@@ -84,6 +84,13 @@
     <div class="section-title"><i class="fa-solid fa-handshake"></i> Sale Parties</div>
     <div class="detail-grid">
         <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-building-user"></i> Firm</div>
+            <div class="detail-value">{{ $propertySale->firm->firm_name ?? 'Not set' }}</div>
+            @if($propertySale->firm?->city)
+                <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">{{ $propertySale->firm->city }}</div>
+            @endif
+        </div>
+        <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-building"></i> Property</div>
             @if($propertySale->property)
                 <div class="detail-value">

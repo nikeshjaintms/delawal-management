@@ -36,6 +36,10 @@
 <div class="card-box">
     <div class="detail-grid">
         <div class="detail-item">
+            <div class="detail-label">Firm</div>
+            <div class="detail-value">{{ $booking->firm->firm_name ?? '-' }}</div>
+        </div>
+        <div class="detail-item">
             <div class="detail-label">Property</div>
             <div class="detail-value">{{ $booking->property->property_name ?? '-' }}</div>
         </div>

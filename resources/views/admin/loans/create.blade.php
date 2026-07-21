@@ -43,6 +43,7 @@
         {{-- Section 1: Loan Info --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-landmark"></i> Loan Information</div>
+            @include('admin.components.firm-select')
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Bank Name <span class="req">*</span></label>

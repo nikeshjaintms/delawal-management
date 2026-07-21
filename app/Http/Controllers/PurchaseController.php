@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PurchaseRequest;
-
 use App\Models\Purchase;
 use App\Models\Vendor;
+use App\Models\Firm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,17 +13,40 @@ class PurchaseController extends Controller
 {
     const PAYMENT_MODES = ['Cash', 'Bank Transfer', 'UPI', 'Cheque', 'Other'];
 
-    private function dropdowns(): array
+    private function authorise(Purchase $purchase): void
     {
+        if (!Auth::user()->isAdmin() && $purchase->firm_id != Auth::user()->firm_id) {
+            abort(403);
+        }
+    }
+
+    private function dropdowns($selectedFirmId = null): array
+    {
+        $user   = Auth::user();
+        $firmId = $selectedFirmId ?? ($user ? $user->firm_id : session('firm_id'));
+
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        $vendorQuery = Vendor::where('status', 'active')->orderBy('name');
+        if ($firmId && (!$user || !$user->isAdmin())) {
+            $vendorQuery->where('firm_id', $firmId);
+        }
+
         return [
-            'vendors' => Vendor::where('firm_id', Auth::user()->firm_id)
-                ->where('status', 'active')->orderBy('name')->get(),
+            'firms'   => $firms,
+            'vendors' => $vendorQuery->get(),
         ];
     }
 
     public function index(Request $request)
     {
-        $query = Purchase::with('vendor')->where('firm_id', Auth::user()->firm_id);
+        $query = Purchase::with(['firm', 'vendor']);
+
+        if (!Auth::user()->isAdmin()) {
+            $query->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -31,7 +54,8 @@ class PurchaseController extends Controller
                 $q->where('item_name', 'like', "%{$s}%")
                   ->orWhere('reference_no', 'like', "%{$s}%")
                   ->orWhere('payment_status', 'like', "%{$s}%")
-                  ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"));
+                  ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"))
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
         }
 
@@ -40,9 +64,10 @@ class PurchaseController extends Controller
         }
 
         $totalAmount = (clone $query)->sum('purchase_amount');
-        $purchases   = $query->orderBy('purchase_date', 'desc')->paginate(15);
+        $purchases   = $query->orderBy('purchase_date', 'desc')->paginate(15)->withQueryString();
+        $firms       = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.purchases.index', compact('purchases', 'totalAmount'));
+        return view('admin.purchases.index', compact('purchases', 'firms', 'totalAmount'));
     }
 
     public function create()
@@ -52,10 +77,10 @@ class PurchaseController extends Controller
 
     public function store(PurchaseRequest $request)
     {
-        
+        $firmId = $request->firm_id ?? Auth::user()->firm_id;
 
         Purchase::create([
-            'firm_id'         => Auth::user()->firm_id,
+            'firm_id'         => $firmId,
             'vendor_id'       => $request->vendor_id ?: null,
             'item_name'       => $request->item_name,
             'purchase_date'   => $request->purchase_date,
@@ -73,24 +98,25 @@ class PurchaseController extends Controller
 
     public function show(Purchase $purchase)
     {
-        if ($purchase->firm_id != Auth::user()->firm_id) abort(403);
-        $purchase->load('vendor');
+        $this->authorise($purchase);
+        $purchase->load(['firm', 'vendor']);
         return view('admin.purchases.show', compact('purchase'));
     }
 
     public function edit(Purchase $purchase)
     {
-        if ($purchase->firm_id != Auth::user()->firm_id) abort(403);
-        return view('admin.purchases.edit', array_merge(['purchase' => $purchase], $this->dropdowns()));
+        $this->authorise($purchase);
+        return view('admin.purchases.edit', array_merge(['purchase' => $purchase], $this->dropdowns($purchase->firm_id)));
     }
 
     public function update(PurchaseRequest $request, Purchase $purchase)
     {
-        if ($purchase->firm_id != Auth::user()->firm_id) abort(403);
+        $this->authorise($purchase);
 
-        
+        $firmId = $request->firm_id ?? $purchase->firm_id ?? Auth::user()->firm_id;
 
         $purchase->update([
+            'firm_id'         => $firmId,
             'vendor_id'       => $request->vendor_id ?: null,
             'item_name'       => $request->item_name,
             'purchase_date'   => $request->purchase_date,
@@ -108,7 +134,7 @@ class PurchaseController extends Controller
 
     public function destroy(Purchase $purchase)
     {
-        if ($purchase->firm_id != Auth::user()->firm_id) abort(403);
+        $this->authorise($purchase);
         $purchase->delete();
         return redirect()->route('purchases.index')->with('success', 'Purchase record deleted successfully.');
     }

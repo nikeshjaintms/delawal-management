@@ -18,10 +18,13 @@ class ExpenseReportController extends Controller
     // ------------------------------------------------------------------
     private function getReportData(Request $request)
     {
-        $firmId = Auth::user()->firm_id;
+        $query = Expense::with(['firm', 'property', 'expenseCategory']);
 
-        $query = Expense::with(['property', 'expenseCategory'])
-            ->where('firm_id', $firmId);
+        if (!Auth::user()->isAdmin()) {
+            $query->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
 
         if ($request->filled('from_date')) {
             $query->where('expense_date', '>=', $request->from_date);
@@ -89,29 +92,44 @@ class ExpenseReportController extends Controller
     // ------------------------------------------------------------------
     public function index(Request $request)
     {
-        $firmId = Auth::user()->firm_id;
         $expenses = $this->getReportData($request);
 
         $totalAmount = $expenses->sum('amount');
         $paidAmount = $expenses->where('approval_status', 'Approved')->sum('amount');
         $pendingAmount = $expenses->where('approval_status', 'Pending')->sum('amount');
-        
-        $todayAmount = Expense::where('firm_id', $firmId)
-            ->whereDate('expense_date', today())
-            ->sum('amount');
+
+        $todayQuery = Expense::whereDate('expense_date', today());
+        if (!Auth::user()->isAdmin()) {
+            $todayQuery->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $todayQuery->where('firm_id', $request->firm_id);
+        }
+        $todayAmount = $todayQuery->sum('amount');
 
         $summaries = $this->buildSummaries($expenses);
 
-        $properties = Property::where('firm_id', $firmId)
-            ->orderBy('property_name')->get();
+        $firms = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        $categories = ExpenseCategory::where('firm_id', $firmId)
-            ->where('status', 'active')->orderBy('name')->get();
+        $propQuery = Property::orderBy('property_name');
+        $catQuery  = ExpenseCategory::where('status', 'active')->orderBy('name');
+        $venQuery  = \App\Models\Vendor::orderBy('name');
 
-        $vendors = \App\Models\Vendor::where('firm_id', $firmId)->orderBy('name')->get();
+        if (!Auth::user()->isAdmin()) {
+            $propQuery->where('firm_id', Auth::user()->firm_id);
+            $catQuery->where('firm_id', Auth::user()->firm_id);
+            $venQuery->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $propQuery->where('firm_id', $request->firm_id);
+            $catQuery->where('firm_id', $request->firm_id);
+            $venQuery->where('firm_id', $request->firm_id);
+        }
+
+        $properties = $propQuery->get();
+        $categories = $catQuery->get();
+        $vendors    = $venQuery->get();
 
         return view('admin.expense-report.index', array_merge(
-            compact('expenses', 'properties', 'categories', 'vendors', 'totalAmount', 'paidAmount', 'pendingAmount', 'todayAmount'),
+            compact('expenses', 'firms', 'properties', 'categories', 'vendors', 'totalAmount', 'paidAmount', 'pendingAmount', 'todayAmount'),
             $summaries
         ));
     }

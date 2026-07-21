@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Income extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'firm_id', 'income_date', 'income_type', 'amount',
         'payment_mode_id', 'received_from', 'reference_no',

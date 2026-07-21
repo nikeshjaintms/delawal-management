@@ -55,6 +55,7 @@
         {{-- Select Booking --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-file-contract"></i> Select Booking</div>
+            @include('admin.components.firm-select')
             <div class="form-group">
                 <label class="form-label" for="property_sale_id">Property Booking / Sale <span>*</span></label>
                 <select name="property_sale_id" id="property_sale_id" class="form-control @error('property_sale_id') is-invalid @enderror" onchange="loadBookingInfo(this.value)">

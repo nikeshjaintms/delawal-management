@@ -12,7 +12,15 @@ class MaterialCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = MaterialCategory::where('firm_id', Auth::user()->firm_id);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $query = MaterialCategory::query();
+
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $query->where('firm_id', $firmId);
+        }
+
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where('category_name', 'like', '%'.$request->search.'%')
@@ -30,9 +38,11 @@ class MaterialCategoryController extends Controller
 
     public function store(MaterialCategoryRequest $request)
     {
-        
+        $user = Auth::user();
+        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+
         MaterialCategory::create([
-            'firm_id'       => Auth::user()->firm_id,
+            'firm_id'       => $firmId,
             'category_name' => $request->category_name,
             'description'   => $request->description,
             'status'        => $request->status,
@@ -42,19 +52,31 @@ class MaterialCategoryController extends Controller
 
     public function show(MaterialCategory $materialCategory)
     {
-        if ($materialCategory->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $materialCategory->firm_id != $firmId) abort(403);
         return view('admin.material-categories.show', compact('materialCategory'));
     }
 
     public function edit(MaterialCategory $materialCategory)
     {
-        if ($materialCategory->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $materialCategory->firm_id != $firmId) abort(403);
         return view('admin.material-categories.edit', compact('materialCategory'));
     }
 
     public function update(MaterialCategoryRequest $request, MaterialCategory $materialCategory)
     {
-        if ($materialCategory->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $materialCategory->firm_id != $firmId) abort(403);
         
         $materialCategory->update([
             'category_name' => $request->category_name,
@@ -66,7 +88,11 @@ class MaterialCategoryController extends Controller
 
     public function destroy(MaterialCategory $materialCategory)
     {
-        if ($materialCategory->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $materialCategory->firm_id != $firmId) abort(403);
         $materialCategory->delete();
         return redirect()->route('material-categories.index')->with('success', 'Material category deleted successfully.');
     }

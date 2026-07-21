@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title','Debit Notes')
 @section('page-title','GST / Accounts')
 @section('content')
@@ -66,6 +66,17 @@
 
 <div class="card-box">
     <form method="GET" action="{{ route('debit-notes.index') }}" class="filter-bar">
+        @if(auth()->user() && auth()->user()->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id')==$f->id?'selected':'' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
         <div class="filter-group">
             <span class="filter-label">Search</span>
             <input type="text" name="search" value="{{ request('search') }}" class="search-input @error('search') is-invalid @enderror" placeholder="Note no, bill no, reason...">
@@ -97,7 +108,7 @@
             <input type="date" name="to_date" value="{{ request('to_date') }}" class="filter-ctrl @error('to_date') is-invalid @enderror">
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_vendor','filter_status','from_date','to_date']))
+        @if(request()->hasAny(['search','firm_id','filter_vendor','filter_status','from_date','to_date']))
             <a href="{{ route('debit-notes.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
@@ -112,7 +123,7 @@
         <table class="premium-table">
             <thead>
                 <tr>
-                    <th>#</th><th>Debit Note No</th><th>Date</th><th>Vendor / Supplier</th>
+                    <th>#</th><th>Firm</th><th>Debit Note No</th><th>Date</th><th>Vendor / Supplier</th>
                     <th>Related Bill</th><th>Reason</th>
                     <th style="text-align:right;">Taxable</th>
                     <th style="text-align:right;">Total GST</th>
@@ -126,6 +137,7 @@
                 @php $badge = match($dn->status) {'Approved'=>'dn-approved','Rejected'=>'dn-rejected',default=>'dn-pending'}; @endphp
                 <tr>
                     <td style="color:#94A3B8;font-size:12px;">{{ $debitNotes->firstItem() + $key }}</td>
+                    <td style="font-weight:600;font-size:13px;">{{ $dn->firm->firm_name ?? '—' }}</td>
                     <td style="font-weight:700;">{{ $dn->debit_note_no ?? '—' }}</td>
                     <td style="white-space:nowrap;font-size:13px;">{{ \Carbon\Carbon::parse($dn->debit_note_date)->format('d M Y') }}</td>
                     <td>

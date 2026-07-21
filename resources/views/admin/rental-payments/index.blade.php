@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Rental Payment History')
 @section('page-title', 'Rental Management')
@@ -91,6 +91,7 @@
     <div class="summary-info">
         <h3>{{ $rental->tenant_name }} <span style="font-size:13px;font-weight:400;color:var(--text-secondary);">— {{ $rental->tenant_mobile }}</span></h3>
         <p>
+            Firm: <strong>{{ $rental->firm->firm_name ?? '-' }}</strong> &nbsp;·&nbsp;
             {{ $rental->property->property_name ?? '' }}
             @if($rental->property?->property_code) ({{ $rental->property->property_code }}) @endif
             @if($rental->property?->unit_no) &nbsp;·&nbsp; Unit {{ $rental->property->unit_no }} @endif

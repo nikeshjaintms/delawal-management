@@ -162,6 +162,8 @@
         @csrf
         @method('PUT')
 
+        @include('admin.components.firm-select', ['model' => $commission])
+
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="broker_id">Broker <span>*</span></label>

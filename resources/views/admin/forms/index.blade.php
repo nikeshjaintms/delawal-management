@@ -352,9 +352,19 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('forms.index') }}" class="search-form">
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, type..." class="search-input @error('search') is-invalid @enderror">
+            @if(auth()->user() && auth()->user()->isAdmin())
+                <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width: 180px;">
+                    <option value="">All Firms</option>
+                    @foreach($firms as $firm)
+                        <option value="{{ $firm->id }}" {{ request('firm_id') == $firm->id ? 'selected' : '' }}>
+                            {{ $firm->firm_name }}
+                        </option>
+                    @endforeach
+                </select>
+            @endif
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, type, firm..." class="search-input @error('search') is-invalid @enderror">
             <button type="submit" class="btn-search">Search</button>
-            @if(request('search'))
+            @if(request('search') || request('firm_id'))
                 <a href="{{ route('forms.index') }}" class="btn-reset">Reset</a>
             @endif
         </form>
@@ -365,6 +375,9 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        <th>Firm</th>
+                    @endif
                     <th>Form Name</th>
                     <th>Form Type</th>
                     <th>Description</th>
@@ -376,6 +389,9 @@
                 @forelse($forms as $key => $form)
                     <tr>
                         <td>{{ $forms->firstItem() + $key }}</td>
+                        @if(auth()->user() && auth()->user()->isAdmin())
+                            <td><strong>{{ $form->firm->firm_name ?? '-' }}</strong></td>
+                        @endif
                         <td><strong>{{ $form->form_name }}</strong></td>
                         <td>{{ $form->form_type }}</td>
                         <td>{{ \Illuminate\Support\Str::limit($form->description, 60) ?: '-' }}</td>
@@ -443,6 +459,7 @@
         <form method="POST" action="{{ route('forms.store') }}" id="modal-form-builder">
             @csrf
             <input type="hidden" name="_modal" value="add_form" class="@error('_modal') is-invalid @enderror">
+            @include('admin.components.firm-select')
 
             <div class="form-row">
                 <div class="form-group">

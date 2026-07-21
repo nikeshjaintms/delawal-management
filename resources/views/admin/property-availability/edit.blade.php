@@ -36,6 +36,8 @@ textarea.form-control{resize:vertical;min-height:90px}
 <form method="POST" action="{{ route('property-availability.update', $record) }}">
 @csrf @method('PUT')
 
+@include('admin.components.firm-select', ['model' => $record])
+
 <div class="form-card">
     <div class="section-heading"><i class="fa-solid fa-circle-check"></i> Status Information</div>
 

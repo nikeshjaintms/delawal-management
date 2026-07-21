@@ -40,6 +40,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
 
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-circle-info"></i> Debit Note Information</div>
+            @include('admin.components.firm-select')
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Debit Note No <span class="opt">(optional)</span></label>

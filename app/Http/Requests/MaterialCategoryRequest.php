@@ -38,13 +38,18 @@ class MaterialCategoryRequest extends FormRequest
                 }
             }
         }
-        $firmId = auth()->check() ? auth()->user()->firm_id : 0;
+        $user = auth()->user();
+        $firmId = $user ? $user->firm_id : 0;
 
         $rules = [
-            'name' => 'required|string|max:255',
+            'category_name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'status' => 'required|in:active,inactive',
         ];
+
+        if ($user && $user->isAdmin()) {
+            $rules['firm_id'] = 'required|exists:firms,id';
+        }
 
         // Replace placeholders in unique rules dynamically
         foreach ($rules as $field => $rule) {
@@ -78,9 +83,10 @@ class MaterialCategoryRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => 'Category Name',
+            'category_name' => 'Category Name',
             'description' => 'Description',
             'status' => 'Status',
+            'firm_id' => 'Firm',
         ];
     }
 

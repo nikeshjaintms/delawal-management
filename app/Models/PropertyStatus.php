@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class PropertyStatus extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
+        'firm_id',
         'property_id',
         'status',
         'status_date',
@@ -19,6 +22,11 @@ class PropertyStatus extends Model
     ];
 
     /* ── Relationships ── */
+    public function firm()
+    {
+        return $this->belongsTo(Firm::class);
+    }
+
     public function property()
     {
         return $this->belongsTo(Property::class);

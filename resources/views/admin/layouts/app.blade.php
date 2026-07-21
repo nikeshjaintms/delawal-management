@@ -13,20 +13,23 @@
        DESIGN TOKENS
     ================================================================ */
     :root {
-        --sidebar-bg:    #E6EFF9;
-        --sidebar-hover: rgba(30, 58, 138, 0.05);
-        --sidebar-active:#2563EB;
-        --sidebar-border:rgba(0, 0, 0, 0.06);
-        --topbar-bg:     #1F2937;
-        --main-bg:       #F1F5F9;
+        --sidebar-bg:    #16181A;
+        --sidebar-hover: rgba(255, 255, 255, 0.08);
+        --sidebar-active:#C5A87E;
+        --sidebar-border:rgba(255, 255, 255, 0.06);
+        --topbar-bg:     #16181A;
+        --main-bg:       #FFFFFF;
         --card-bg:       #FFFFFF;
         --text-primary:  #0F172A;
-        --text-secondary:#64748B;
+        --text-secondary:#475569;
         --text-muted:    #94A3B8;
         --border-color:  #E2E8F0;
-        --blue:          #3B82F6;
-        --blue-light:    rgba(59,130,246,0.12);
-        --blue-glow:     rgba(59,130,246,0.25);
+        --blue:          #C5A87E;
+        --blue-light:    rgba(197, 168, 126, 0.12);
+        --blue-glow:     rgba(197, 168, 126, 0.25);
+        --gold:          #C5A87E;
+        --gold-light:    rgba(197, 168, 126, 0.12);
+        --gold-glow:     rgba(197, 168, 126, 0.25);
         --green:         #10B981;
         --green-light:   rgba(16,185,129,0.1);
         --purple:        #8B5CF6;
@@ -131,7 +134,7 @@
         flex-shrink: 0;
     }
     .logo-text { display: flex; flex-direction: column; }
-    .logo-title  { font-weight: 700; font-size: 14.5px; color: #0F172A; letter-spacing: 0.3px; text-transform: uppercase; }
+    .logo-title  { font-weight: 700; font-size: 14.5px; color: #FFFFFF; letter-spacing: 0.3px; text-transform: uppercase; }
     .logo-subtitle { font-size: 9.5px; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-top: 1px; }
 
     /* Sidebar Menu — scrolls independently */
@@ -866,6 +869,104 @@
         overflow-x: hidden;
         text-overflow: ellipsis;
     }
+
+    /* --- Custom Dark Palette Global Overrides --- */
+    body {
+        background-color: var(--main-bg) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* White Card Scoping */
+    .card-box, .card, .modal-box, .crud-box, .stat-card, .kpi-card {
+        background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        border-color: #E2E8F0 !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12) !important;
+        
+        /* Scope variables to dark text inside white cards */
+        --text-primary:  #0F172A;
+        --text-secondary:#475569;
+        --text-muted:    #94A3B8;
+        --border-color:  #E2E8F0;
+        color: var(--text-primary) !important;
+    }
+    
+    .premium-table th {
+        background-color: #F9FAFB !important;
+        color: var(--text-secondary) !important;
+        border-bottom-color: var(--border-color) !important;
+    }
+    .premium-table td {
+        color: var(--text-primary) !important;
+        border-bottom-color: #F1F5F9 !important;
+    }
+    .premium-table tbody tr:hover {
+        background-color: #F9FAFB !important;
+    }
+    
+    .form-control, .search-input, select.form-control, input.form-control, select, input, textarea {
+        background-color: #FFFFFF !important;
+        color: #0F172A !important;
+        border-color: #D1D5DB !important;
+    }
+    .form-control:focus, .search-input:focus, select:focus, input:focus, textarea:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px rgba(248, 169, 17, 0.25) !important;
+    }
+    
+    .form-label, label {
+        color: var(--text-primary) !important;
+    }
+    
+    .badge {
+        background-color: #F1F5F9 !important;
+        color: #475569 !important;
+    }
+    .badge-active, .badge-status-active, .badge-success {
+        background-color: rgba(34, 197, 94, 0.15) !important;
+        color: #166534 !important;
+    }
+    .badge-inactive, .badge-status-inactive, .badge-danger {
+        background-color: rgba(239, 68, 68, 0.15) !important;
+        color: #991B1B !important;
+    }
+    
+    .menu-link {
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+    .menu-link:hover {
+        color: #FFFFFF !important;
+        background: rgba(248, 169, 17, 0.08) !important;
+    }
+    .menu-link:hover i {
+        color: var(--blue) !important;
+    }
+    .menu-link.active, .menu-link.parent-active {
+        color: var(--blue) !important;
+        background: rgba(197, 168, 126, 0.12) !important;
+        box-shadow: 0 0 0 1px rgba(197, 168, 126, 0.18) inset !important;
+    }
+    .menu-link.active i, .menu-link.parent-active i {
+        color: var(--blue) !important;
+    }
+    .submenu-link {
+        color: rgba(255, 255, 255, 0.55) !important;
+    }
+    .submenu-link:hover {
+        color: #FFFFFF !important;
+        background: rgba(197, 168, 126, 0.06) !important;
+    }
+    .submenu-link:hover i {
+        color: var(--blue) !important;
+    }
+    .submenu-link.active {
+        color: var(--blue) !important;
+        background: rgba(197, 168, 126, 0.10) !important;
+        box-shadow: 0 0 0 1px rgba(197, 168, 126, 0.15) inset !important;
+    }
+    .submenu-link.active i {
+        color: var(--blue) !important;
+    }
     </style>
 </head>
 <body>
@@ -878,7 +979,9 @@
 ================================================================ -->
 <div class="sidebar" id="sidebar">
     <div class="logo-container">
-        @if(file_exists(public_path('images/logo.png')))
+        @if(file_exists(public_path('assets/logos/logo 1.png')))
+            <img src="{{ asset('assets/logos/logo 1.png') }}" alt="Delawala Properties" class="logo-img">
+        @elseif(file_exists(public_path('images/logo.png')))
             <img src="{{ asset('images/logo.png') }}?v={{ filemtime(public_path('images/logo.png')) }}" alt="Delawala Properties" class="logo-img">
         @elseif(file_exists(public_path('images/logo.jpg')))
             <img src="{{ asset('images/logo.jpg') }}?v={{ filemtime(public_path('images/logo.jpg')) }}" alt="Delawala Properties" class="logo-img">

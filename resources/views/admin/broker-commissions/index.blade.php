@@ -374,6 +374,18 @@
 <div class="card-box">
     {{-- Search and Filter Form --}}
     <form method="GET" action="{{ route('broker-commissions.index') }}" class="filter-bar">
+        @if(auth()->user() && auth()->user()->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-control" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id') == $f->id ? 'selected' : '' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
+
         <div class="filter-group" style="flex: 1.5; min-width: 200px;">
             <span class="filter-label">Search</span>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Broker, property, or customer name..." class="search-input @error('search') is-invalid @enderror">
@@ -420,7 +432,7 @@
         </div>
 
         <button type="submit" class="btn-search">Filter</button>
-        @if(request()->hasAny(['search', 'filter_broker', 'filter_property', 'filter_payment_status', 'from_date', 'to_date']))
+        @if(request()->hasAny(['search', 'filter_broker', 'filter_property', 'filter_payment_status', 'from_date', 'to_date', 'firm_id']))
             <a href="{{ route('broker-commissions.index') }}" class="btn-reset">Reset</a>
         @endif
     </form>
@@ -430,6 +442,7 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    <th>Firm</th>
                     <th>Broker</th>
                     <th>Property</th>
                     <th>Customer</th>
@@ -445,6 +458,7 @@
                 @forelse($commissions as $key => $c)
                     <tr>
                         <td>{{ $commissions->firstItem() + $key }}</td>
+                        <td><strong style="color:#0F172A;">{{ $c->firm->firm_name ?? '—' }}</strong></td>
                         <td><strong>{{ $c->broker->name ?? '-' }}</strong></td>
                         <td>{{ $c->property->property_name ?? '-' }}</td>
                         <td>{{ $c->customer->name ?? '-' }}</td>

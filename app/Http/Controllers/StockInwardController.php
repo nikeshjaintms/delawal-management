@@ -14,16 +14,29 @@ class StockInwardController extends Controller
 {
     private function dropdowns()
     {
-        $firmId     = Auth::user()->firm_id;
-        $materials  = Material::where('firm_id', $firmId)->where('status', 'active')->orderBy('material_name')->get();
-        $properties = Property::where('firm_id', $firmId)->orderBy('property_name')->get();
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        if ($isAdmin) {
+            $materials  = Material::where('status', 'active')->orderBy('material_name')->get();
+            $properties = Property::orderBy('property_name')->get();
+        } else {
+            $firmId     = $user ? $user->firm_id : session('firm_id');
+            $materials  = Material::where('firm_id', $firmId)->where('status', 'active')->orderBy('material_name')->get();
+            $properties = Property::where('firm_id', $firmId)->orderBy('property_name')->get();
+        }
         return compact('materials', 'properties');
     }
 
     public function index(Request $request)
     {
-        $query = StockInward::with(['material.materialCategory', 'property'])
-            ->where('firm_id', Auth::user()->firm_id);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $query = StockInward::with(['material.materialCategory', 'property']);
+
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $query->where('firm_id', $firmId);
+        }
 
         if ($request->search) {
             $s = $request->search;
@@ -39,8 +52,15 @@ class StockInwardController extends Controller
         if ($request->filter_date)      $query->where('inward_date', $request->filter_date);
 
         $inwards    = $query->orderBy('inward_date', 'desc')->paginate(15);
-        $materials  = Material::where('firm_id', Auth::user()->firm_id)->where('status', 'active')->get();
-        $properties = Property::where('firm_id', Auth::user()->firm_id)->get();
+
+        if ($isAdmin) {
+            $materials  = Material::where('status', 'active')->get();
+            $properties = Property::get();
+        } else {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $materials  = Material::where('firm_id', $firmId)->where('status', 'active')->get();
+            $properties = Property::where('firm_id', $firmId)->get();
+        }
 
         return view('admin.stock-inwards.index', compact('inwards', 'materials', 'properties'));
     }
@@ -52,14 +72,14 @@ class StockInwardController extends Controller
 
     public function store(StockInwardRequest $request)
     {
-        
-
+        $user = Auth::user();
+        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
         $qty   = (float) $request->quantity;
         $rate  = (float) ($request->rate ?? 0);
         $total = $qty * $rate;
 
         $inward = StockInward::create([
-            'firm_id'       => Auth::user()->firm_id,
+            'firm_id'       => $firmId,
             'material_id'   => $request->material_id,
             'property_id'   => $request->property_id ?: null,
             'inward_date'   => $request->inward_date,
@@ -73,7 +93,7 @@ class StockInwardController extends Controller
 
         // Increase material current_stock
         $material = Material::find($request->material_id);
-        if ($material && $material->firm_id == Auth::user()->firm_id) {
+        if ($material) {
             $material->increment('current_stock', $qty);
         }
 
@@ -82,14 +102,22 @@ class StockInwardController extends Controller
 
     public function show(StockInward $stockInward)
     {
-        if ($stockInward->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $stockInward->firm_id != $firmId) abort(403);
         $stockInward->load(['material.materialCategory', 'property']);
         return view('admin.stock-inwards.show', compact('stockInward'));
     }
 
     public function edit(StockInward $stockInward)
     {
-        if ($stockInward->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $stockInward->firm_id != $firmId) abort(403);
         return view('admin.stock-inwards.edit', array_merge(
             ['stockInward' => $stockInward], $this->dropdowns()
         ));
@@ -97,9 +125,11 @@ class StockInwardController extends Controller
 
     public function update(StockInwardRequest $request, StockInward $stockInward)
     {
-        if ($stockInward->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
 
-        
+        if (!$isAdmin && $stockInward->firm_id != $firmId) abort(403);
 
         $oldQty = (float) $stockInward->quantity;
         $newQty = (float) $request->quantity;
@@ -107,7 +137,7 @@ class StockInwardController extends Controller
 
         // Reverse old, add new to current_stock
         $material = Material::find($stockInward->material_id);
-        if ($material && $material->firm_id == Auth::user()->firm_id) {
+        if ($material) {
             $material->decrement('current_stock', $oldQty);
             $material->increment('current_stock', $newQty);
         }
@@ -129,11 +159,15 @@ class StockInwardController extends Controller
 
     public function destroy(StockInward $stockInward)
     {
-        if ($stockInward->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $stockInward->firm_id != $firmId) abort(403);
 
         // Reverse the stock
         $material = Material::find($stockInward->material_id);
-        if ($material && $material->firm_id == Auth::user()->firm_id) {
+        if ($material) {
             $material->decrement('current_stock', (float) $stockInward->quantity);
         }
 

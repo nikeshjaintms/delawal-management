@@ -25,4 +25,109 @@ class Firm extends Model
     {
         return $this->hasMany(FinancialYear::class);
     }
+
+    public function salesAgreements()
+    {
+        return $this->hasMany(PropertySale::class, 'firm_id');
+    }
+
+    public function propertySales()
+    {
+        return $this->hasMany(PropertySale::class, 'firm_id');
+    }
+
+    public function paymentCollections()
+    {
+        return $this->hasMany(Payment::class, 'firm_id');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'firm_id');
+    }
+
+    public function creditNotes()
+    {
+        return $this->hasMany(CreditNote::class, 'firm_id');
+    }
+
+    public function debitNotes()
+    {
+        return $this->hasMany(DebitNote::class, 'firm_id');
+    }
+
+    public function customers()
+    {
+        return $this->hasMany(Customer::class, 'firm_id');
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'firm_id');
+    }
+
+    public function forms()
+    {
+        return $this->hasMany(Form::class, 'firm_id');
+    }
+
+    public function formSubmissions()
+    {
+        return $this->hasMany(FormSubmission::class, 'firm_id');
+    }
+
+    public function inquiries()
+    {
+        return $this->hasMany(Form::class, 'firm_id');
+    }
+
+    public function tenants()
+    {
+        return $this->hasMany(Tenant::class, 'firm_id');
+    }
+
+    public function rentals()
+    {
+        return $this->hasMany(Rental::class, 'firm_id');
+    }
+
+    public function rentalPayments()
+    {
+        return $this->hasMany(RentalPayment::class, 'firm_id');
+    }
+
+    public function incomes()
+    {
+        return $this->hasMany(Income::class, 'firm_id');
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'firm_id');
+    }
+
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class, 'firm_id');
+    }
+
+    public function receipts()
+    {
+        return $this->hasMany(Receipt::class, 'firm_id');
+    }
+
+    public function loans()
+    {
+        return $this->hasMany(Loan::class, 'firm_id');
+    }
+
+    public function loanEmiSchedules()
+    {
+        return $this->hasMany(LoanEmiSchedule::class, 'firm_id');
+    }
+
+    public function brokerCommissions()
+    {
+        return $this->hasMany(BrokerCommission::class, 'firm_id');
+    }
 }

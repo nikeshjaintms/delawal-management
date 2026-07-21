@@ -12,8 +12,13 @@ class LoanReportController extends Controller
 {
     private function getReportData(Request $request)
     {
-        $firmId = Auth::user()->firm_id;
-        $query  = Loan::with(['property', 'customer'])->where('firm_id', $firmId);
+        $query = Loan::with(['firm', 'property', 'customer']);
+
+        if (!Auth::user()->isAdmin()) {
+            $query->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
 
         if ($request->filled('filter_status'))    $query->where('loan_status', $request->filter_status);
         if ($request->filled('filter_property'))  $query->where('property_id', $request->filter_property);
@@ -53,27 +58,52 @@ class LoanReportController extends Controller
 
     public function index(Request $request)
     {
-        $loans      = $this->getReportData($request);
-        $summaries  = $this->buildSummaries($loans);
+        $loans     = $this->getReportData($request);
+        $summaries = $this->buildSummaries($loans);
 
-        $properties = Property::where('firm_id', Auth::user()->firm_id)->orderBy('property_name')->get();
-        $customers  = Customer::where('firm_id', Auth::user()->firm_id)->orderBy('name')->get();
+        $firms     = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $propQuery = Property::orderBy('property_name');
+        $custQuery = Customer::where('status', 'active')->orderBy('name');
+
+        if (!Auth::user()->isAdmin()) {
+            $propQuery->where('firm_id', Auth::user()->firm_id);
+            $custQuery->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $propQuery->where('firm_id', $request->firm_id);
+            $custQuery->where('firm_id', $request->firm_id);
+        }
+
+        $properties = $propQuery->get();
+        $customers  = $custQuery->get();
 
         return view('admin.loan-report.index', array_merge(
-            compact('loans', 'properties', 'customers'),
+            compact('loans', 'firms', 'properties', 'customers'),
             $summaries
         ));
     }
 
     public function exportPdf(Request $request)
     {
-        $loans      = $this->getReportData($request);
-        $summaries  = $this->buildSummaries($loans);
-        $properties = Property::where('firm_id', Auth::user()->firm_id)->orderBy('property_name')->get();
-        $customers  = Customer::where('firm_id', Auth::user()->firm_id)->orderBy('name')->get();
+        $loans     = $this->getReportData($request);
+        $summaries = $this->buildSummaries($loans);
+        $firms     = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        $propQuery = Property::orderBy('property_name');
+        $custQuery = Customer::orderBy('name');
+
+        if (!Auth::user()->isAdmin()) {
+            $propQuery->where('firm_id', Auth::user()->firm_id);
+            $custQuery->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $propQuery->where('firm_id', $request->firm_id);
+            $custQuery->where('firm_id', $request->firm_id);
+        }
+
+        $properties = $propQuery->get();
+        $customers  = $custQuery->get();
 
         return view('admin.loan-report.pdf', array_merge(
-            compact('loans', 'properties', 'customers'),
+            compact('loans', 'firms', 'properties', 'customers'),
             $summaries
         ));
     }

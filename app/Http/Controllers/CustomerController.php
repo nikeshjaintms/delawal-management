@@ -12,10 +12,14 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Customer::query();
+        $query = Customer::with('firm');
 
-        if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $query->where('firm_id', $firmId);
         } elseif ($request->filled('firm_id')) {
             $query->where('firm_id', $request->firm_id);
         }
@@ -25,13 +29,15 @@ class CustomerController extends Controller
                 $q->where('name', 'like', '%' . $request->search . '%')
                     ->orWhere('mobile', 'like', '%' . $request->search . '%')
                     ->orWhere('email', 'like', '%' . $request->search . '%')
-                    ->orWhere('city', 'like', '%' . $request->search . '%');
+                    ->orWhere('city', 'like', '%' . $request->search . '%')
+                    ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', '%' . $request->search . '%'));
             });
         }
 
         $customers = $query->latest()->paginate(10)->withQueryString();
+        $firms = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.customers.index', compact('customers'));
+        return view('admin.customers.index', compact('customers', 'firms'));
     }
 
     public function create()
@@ -41,8 +47,11 @@ class CustomerController extends Controller
 
     public function store(CustomerRequest $request)
     {
+        $user = Auth::user();
+        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+
         Customer::create([
-            'firm_id' => $request->firm_id ?? Auth::user()->firm_id,
+            'firm_id' => $firmId,
             'name' => $request->name,
             'mobile' => $request->mobile,
             'email' => $request->email,
@@ -57,7 +66,11 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
-        if (!Auth::user()->isAdmin() && $customer->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $customer->firm_id != $firmId) {
             abort(403);
         }
 
@@ -66,7 +79,11 @@ class CustomerController extends Controller
 
     public function edit(Customer $customer)
     {
-        if (!Auth::user()->isAdmin() && $customer->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $customer->firm_id != $firmId) {
             abort(403);
         }
 
@@ -75,7 +92,11 @@ class CustomerController extends Controller
 
     public function update(CustomerRequest $request, Customer $customer)
     {
-        if (!Auth::user()->isAdmin() && $customer->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $customer->firm_id != $firmId) {
             abort(403);
         }
 
@@ -95,7 +116,11 @@ class CustomerController extends Controller
 
     public function destroy(Customer $customer)
     {
-        if (!Auth::user()->isAdmin() && $customer->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $customer->firm_id != $firmId) {
             abort(403);
         }
 

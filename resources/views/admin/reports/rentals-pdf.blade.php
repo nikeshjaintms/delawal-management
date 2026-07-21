@@ -91,6 +91,7 @@
     <thead>
         <tr>
             <th>#</th>
+            <th>Firm</th>
             <th>Payment Date</th>
             <th>Month/Year</th>
             <th>Tenant</th>
@@ -111,6 +112,7 @@
         @endphp
         <tr>
             <td style="color:#9CA3AF;">{{ $i+1 }}</td>
+            <td><strong>{{ $r->firm->firm_name ?? $r->rental?->firm?->firm_name ?? '—' }}</strong></td>
             <td style="white-space:nowrap;">{{ $r->payment_date ? \Carbon\Carbon::parse($r->payment_date)->format('d M Y') : '—' }}</td>
             <td><span style="background:rgba(20,184,166,.1);color:#0F766E;padding:2px 7px;border-radius:4px;font-weight:700;font-size:10px;">{{ $monthName }} {{ $r->payment_year }}</span></td>
             <td><strong>{{ $r->rental?->tenant_name ?? '—' }}</strong></td>
@@ -122,13 +124,13 @@
             <td class="c"><span class="badge {{ $badgeClass }}">{{ ucfirst($r->payment_status ?? 'Pending') }}</span></td>
         </tr>
         @empty
-        <tr><td colspan="10" style="text-align:center;padding:20px;color:#64748B;">No records found.</td></tr>
+        <tr><td colspan="11" style="text-align:center;padding:20px;color:#64748B;">No records found.</td></tr>
         @endforelse
     </tbody>
     @if($records->count() > 0)
     <tfoot>
         <tr>
-            <td colspan="6" style="font-size:11px;">Total ({{ $records->count() }} payments)</td>
+            <td colspan="7" style="font-size:11px;">Total ({{ $records->count() }} payments)</td>
             <td class="r" style="color:#0F766E;">₹{{ number_format($totalRentAmt, 2) }}</td>
             <td class="r" style="color:#059669;">₹{{ number_format($totalReceived, 2) }}</td>
             <td class="r" style="color:#D97706;">₹{{ number_format($totalPending, 2) }}</td>

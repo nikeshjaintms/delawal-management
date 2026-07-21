@@ -1279,11 +1279,24 @@ class ReportsController extends Controller
     // ---------------------------------------------------------------
     private function getRentalsData(Request $request)
     {
-        $firmId = $this->firmId();
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
 
-        // Base: rental_payments joined with rental → property
-        $query = \App\Models\RentalPayment::with(['rental.property'])
-            ->whereHas('rental', fn($q) => $q->where('firm_id', $firmId));
+        $query = \App\Models\RentalPayment::with(['rental.property', 'firm', 'rental.firm']);
+
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $query->where(function($q) use ($firmId) {
+                $q->where('firm_id', $firmId)
+                  ->orWhereHas('rental', fn($r) => $r->where('firm_id', $firmId));
+            });
+        } elseif ($request->filled('firm_id')) {
+            $firmId = $request->firm_id;
+            $query->where(function($q) use ($firmId) {
+                $q->where('firm_id', $firmId)
+                  ->orWhereHas('rental', fn($r) => $r->where('firm_id', $firmId));
+            });
+        }
 
         if ($request->filled('from_date'))
             $query->whereDate('payment_date', '>=', $request->from_date);
@@ -1312,21 +1325,34 @@ class ReportsController extends Controller
 
     public function rentals(Request $request)
     {
-        $firmId = $this->firmId();
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
 
         $records      = $this->getRentalsData($request);
 
         $totalRentAmt = $records->sum('rent_amount');
         $totalReceived= $records->sum('paid_amount');
         $totalPending = $records->sum('pending_amount');
-        $totalActive  = \App\Models\Rental::where('firm_id', $firmId)
-            ->where('rental_status', 'active')->count();
 
-        $properties = \App\Models\Property::where('firm_id', $firmId)->orderBy('property_name')->get();
+        $activeQuery  = \App\Models\Rental::where('rental_status', 'active');
+        $propQuery    = \App\Models\Property::orderBy('property_name');
+
+        if (!$isAdmin) {
+            $activeQuery->where('firm_id', $firmId);
+            $propQuery->where('firm_id', $firmId);
+        } elseif ($request->filled('firm_id')) {
+            $activeQuery->where('firm_id', $request->firm_id);
+            $propQuery->where('firm_id', $request->firm_id);
+        }
+
+        $totalActive = $activeQuery->count();
+        $properties  = $propQuery->get();
+        $firms       = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
 
         return view('admin.reports.rentals', compact(
             'records', 'totalRentAmt', 'totalReceived',
-            'totalPending', 'totalActive', 'properties'
+            'totalPending', 'totalActive', 'properties', 'firms'
         ));
     }
 
@@ -1379,7 +1405,7 @@ class ReportsController extends Controller
 
             // Data Header
             fputcsv($h, [
-                'Sr', 'Payment Date', 'Month/Year', 'Tenant Name',
+                'Sr', 'Firm', 'Payment Date', 'Month/Year', 'Tenant Name',
                 'Tenant Mobile', 'Property', 'Monthly Rent',
                 'Paid Amount', 'Pending Amount', 'Payment Mode', 'Status',
             ]);
@@ -1388,6 +1414,7 @@ class ReportsController extends Controller
             foreach ($records as $i => $rp) {
                 fputcsv($h, [
                     $i + 1,
+                    $rp->firm->firm_name ?? $rp->rental?->firm?->firm_name ?? '-',
                     $rp->payment_date
                         ? \Carbon\Carbon::parse($rp->payment_date)->format('d M Y')
                         : '-',

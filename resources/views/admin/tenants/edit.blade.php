@@ -178,6 +178,7 @@
     <form method="POST" action="{{ route('tenants.update', $tenant->id) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
+        @include('admin.components.firm-select', ['model' => $tenant])
 
         <div class="form-row">
             <div class="form-group">

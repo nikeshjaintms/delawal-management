@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RentalPaymentRequest;
-
 use App\Models\Rental;
 use App\Models\RentalPayment;
+use App\Models\Firm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,7 +13,11 @@ class RentalPaymentController extends Controller
 {
     private function firmCheck(Rental $rental)
     {
-        if ($rental->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $rental->firm_id != $firmId) {
             abort(403);
         }
     }
@@ -22,31 +26,34 @@ class RentalPaymentController extends Controller
     {
         $this->firmCheck($rental);
 
-        $rental->load('property');
+        $rental->load(['property', 'firm']);
 
-        $payments = RentalPayment::where('rental_id', $rental->id)
+        $payments = RentalPayment::with('firm')
+            ->where('rental_id', $rental->id)
             ->orderByDesc('payment_year')
             ->orderByDesc('payment_month')
             ->orderByDesc('id')
             ->paginate(12);
 
-        return view('admin.rental-payments.index', compact('rental', 'payments'));
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        return view('admin.rental-payments.index', compact('rental', 'payments', 'firms'));
     }
 
     public function create(Rental $rental)
     {
         $this->firmCheck($rental);
 
-        $rental->load('property');
+        $rental->load(['property', 'firm']);
 
-        return view('admin.rental-payments.create', compact('rental'));
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        return view('admin.rental-payments.create', compact('rental', 'firms'));
     }
 
     public function store(RentalPaymentRequest $request, Rental $rental)
     {
         $this->firmCheck($rental);
-
-        
 
         $rentAmt  = (float) $request->rent_amount;
         $paidAmt  = (float) $request->paid_amount;
@@ -60,7 +67,10 @@ class RentalPaymentController extends Controller
             $status = 'partial';
         }
 
+        $firmId = $request->firm_id ?? ($rental->firm_id ?: Auth::user()->firm_id);
+
         RentalPayment::create([
+            'firm_id'        => $firmId,
             'rental_id'      => $rental->id,
             'payment_month'  => $request->payment_month,
             'payment_year'   => $request->payment_year,
@@ -73,7 +83,6 @@ class RentalPaymentController extends Controller
             'remarks'        => $request->remarks,
         ]);
 
-        // Update main rental payment_status with latest entry's status
         $rental->update(['payment_status' => $status]);
 
         return redirect()
@@ -91,7 +100,6 @@ class RentalPaymentController extends Controller
 
         $rentalPayment->delete();
 
-        // Recalculate rental payment_status from latest remaining entry
         $latest = RentalPayment::where('rental_id', $rental->id)->latest('id')->first();
         $rental->update([
             'payment_status' => $latest ? $latest->payment_status : 'pending',

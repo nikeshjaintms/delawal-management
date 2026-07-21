@@ -72,8 +72,15 @@
     </div>
 
     {{-- Booking Reference --}}
-    <div class="section-title"><i class="fa-solid fa-file-contract"></i> Booking Reference</div>
+    <div class="section-title"><i class="fa-solid fa-file-contract"></i> Booking & Firm Reference</div>
     <div class="detail-grid">
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-building-user"></i> Firm</div>
+            <div class="detail-value">{{ $payment->firm->firm_name ?? 'Not set' }}</div>
+            @if($payment->firm?->city)
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">{{ $payment->firm->city }}</div>
+            @endif
+        </div>
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-building"></i> Property</div>
             <div class="detail-value">

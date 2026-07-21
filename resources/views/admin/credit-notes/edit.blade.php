@@ -43,6 +43,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
 
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-circle-info"></i> Credit Note Information</div>
+            @include('admin.components.firm-select', ['model' => $creditNote])
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Credit Note No</label>

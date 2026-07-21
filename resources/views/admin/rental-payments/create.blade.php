@@ -65,6 +65,7 @@
 <div class="card-box">
     <form method="POST" action="{{ route('rental-payments.store', $rental->id) }}">
         @csrf
+        @include('admin.components.firm-select', ['model' => $rental])
 
         {{-- Period --}}
         <div class="form-section">

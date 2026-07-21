@@ -32,6 +32,7 @@
 <div class="card-box">
     <form method="POST" action="{{ route('bookings.update', $booking->id) }}">
         @csrf @method('PUT')
+        @include('admin.components.firm-select', ['model' => $booking])
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label">Property <span>*</span></label>

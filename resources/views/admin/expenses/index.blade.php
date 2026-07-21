@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title', 'Expenses')
 @section('page-title', 'Expense Management')
 @section('content')
@@ -69,6 +69,17 @@
 <div class="card-box">
     {{-- Filters --}}
     <form method="GET" action="{{ route('expenses.index') }}" class="filter-bar">
+        @if(auth()->user() && auth()->user()->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-control" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id') == $f->id ? 'selected' : '' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
         <div class="filter-group">
             <span class="filter-label">Search</span>
             <input type="text" name="search" value="{{ request('search') }}"
@@ -119,7 +130,7 @@
             <input type="date" name="filter_date" value="{{ request('filter_date') }}" class="filter-control @error('filter_date') is-invalid @enderror">
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_property','filter_category','filter_mode','filter_status','filter_date']))
+        @if(request()->hasAny(['search','filter_property','filter_category','filter_mode','filter_status','filter_date','firm_id']))
             <a href="{{ route('expenses.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
@@ -142,6 +153,7 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>Firm</th>
                     <th>Date</th>
                     <th>Title</th>
                     <th>Category</th>
@@ -158,6 +170,7 @@
                 @forelse($expenses as $key => $expense)
                 <tr>
                     <td>{{ $expenses->firstItem() + $key }}</td>
+                    <td><strong style="color:#0F172A;">{{ $expense->firm->firm_name ?? '—' }}</strong></td>
                     <td style="white-space:nowrap;">{{ \Carbon\Carbon::parse($expense->expense_date)->format('d M Y') }}</td>
                     <td>
                         <div class="expense-title">{{ $expense->expense_title }}</div>

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PropertyStatusRequest;
-
 use App\Models\Property;
 use App\Models\PropertyStatus;
 use App\Models\PropertyType;
@@ -13,22 +12,42 @@ use Illuminate\Support\Facades\DB;
 
 class PropertyStatusController extends Controller
 {
-    private function firmProperties()
+    private function firmProperties($firmId = null)
     {
-        return Property::where('firm_id', Auth::user()->firm_id);
+        if (!$firmId) {
+            $isAdmin = auth()->user() && auth()->user()->isAdmin();
+            $firmId = $isAdmin ? null : (auth()->user() ? auth()->user()->firm_id : session('firm_id'));
+        }
+
+        if ($firmId) {
+            return Property::where('firm_id', $firmId);
+        }
+
+        return Property::query();
     }
 
     /* ── INDEX ─────────────────────────────────────────────────────── */
     public function index(Request $request)
     {
-        $firmId = Auth::user()->firm_id;
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
 
-        $propertyTypes = PropertyType::where('firm_id', $firmId)->orderBy('name')->get();
-        $properties    = $this->firmProperties()->orderBy('property_name')->get();
-        $statuses      = PropertyStatus::statuses();
-
-        $query = PropertyStatus::with(['property.propertyType'])
-            ->whereHas('property', fn($q) => $q->where('firm_id', $firmId));
+        if ($isAdmin) {
+            $propertyTypes = PropertyType::orderBy('name')->get();
+            $properties    = Property::orderBy('property_name')->get();
+            $statuses      = PropertyStatus::statuses();
+            $query         = PropertyStatus::with(['property.propertyType', 'firm']);
+            
+            if ($request->filled('firm_id')) {
+                $query->where('firm_id', $request->firm_id);
+            }
+        } else {
+            $firmId        = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+            $propertyTypes = PropertyType::where('firm_id', $firmId)->orderBy('name')->get();
+            $properties    = $this->firmProperties($firmId)->orderBy('property_name')->get();
+            $statuses      = PropertyStatus::statuses();
+            $query         = PropertyStatus::with(['property.propertyType', 'firm'])
+                                ->where('firm_id', $firmId);
+        }
 
         if ($request->filled('property_id')) {
             $query->where('property_id', $request->property_id);
@@ -60,9 +79,15 @@ class PropertyStatusController extends Controller
     /* ── CREATE ─────────────────────────────────────────────────────── */
     public function create()
     {
-        $firmId = Auth::user()->firm_id;
-        $properties = $this->firmProperties()->with('propertyType')->orderBy('property_name')->get();
-        $statuses   = PropertyStatus::statuses();
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+
+        if ($isAdmin) {
+            $properties = Property::with('propertyType')->orderBy('property_name')->get();
+        } else {
+            $properties = $this->firmProperties($firmId)->with('propertyType')->orderBy('property_name')->get();
+        }
+        $statuses = PropertyStatus::statuses();
 
         return view('admin.property-availability.create', compact('properties', 'statuses'));
     }
@@ -70,19 +95,21 @@ class PropertyStatusController extends Controller
     /* ── STORE ──────────────────────────────────────────────────────── */
     public function store(PropertyStatusRequest $request)
     {
-        
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        $firmId = $isAdmin ? $request->firm_id : (auth()->user() ? auth()->user()->firm_id : session('firm_id'));
 
         // Authorise
         $property = Property::findOrFail($request->property_id);
-        if ($property->firm_id !== Auth::user()->firm_id) abort(403);
+        if ($property->firm_id != $firmId) abort(403);
 
-        // Create log record
+        // Create status record
         $record = PropertyStatus::create([
+            'firm_id'     => $firmId,
             'property_id' => $request->property_id,
             'status'      => $request->status,
             'status_date' => $request->status_date,
             'remarks'     => $request->remarks,
-            'updated_by'  => Auth::id(),
+            'updated_by'  => auth()->id(),
         ]);
 
         // Also sync the status on the Property master
@@ -111,8 +138,14 @@ class PropertyStatusController extends Controller
     public function edit(PropertyStatus $propertyAvailability)
     {
         $this->authorise($propertyAvailability);
-        $properties = $this->firmProperties()->with('propertyType')->orderBy('property_name')->get();
-        $statuses   = PropertyStatus::statuses();
+
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        if ($isAdmin) {
+            $properties = Property::with('propertyType')->orderBy('property_name')->get();
+        } else {
+            $properties = $this->firmProperties($propertyAvailability->firm_id)->with('propertyType')->orderBy('property_name')->get();
+        }
+        $statuses = PropertyStatus::statuses();
 
         return view('admin.property-availability.edit',
             ['record' => $propertyAvailability, 'properties' => $properties, 'statuses' => $statuses]);
@@ -123,17 +156,19 @@ class PropertyStatusController extends Controller
     {
         $this->authorise($propertyAvailability);
 
-        
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        $firmId = $isAdmin ? $request->firm_id : $propertyAvailability->firm_id;
 
         $property = Property::findOrFail($request->property_id);
-        if ($property->firm_id !== Auth::user()->firm_id) abort(403);
+        if ($property->firm_id != $firmId) abort(403);
 
         $propertyAvailability->update([
+            'firm_id'     => $firmId,
             'property_id' => $request->property_id,
             'status'      => $request->status,
             'status_date' => $request->status_date,
             'remarks'     => $request->remarks,
-            'updated_by'  => Auth::id(),
+            'updated_by'  => auth()->id(),
         ]);
 
         // Sync latest status to Property master
@@ -178,6 +213,10 @@ class PropertyStatusController extends Controller
 
     private function authorise(PropertyStatus $record): void
     {
-        if ($record->property->firm_id !== Auth::user()->firm_id) abort(403);
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        if (!$isAdmin) {
+            $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+            if ($record->firm_id != $firmId) abort(403);
+        }
     }
 }

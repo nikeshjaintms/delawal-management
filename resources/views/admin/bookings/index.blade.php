@@ -63,9 +63,20 @@
 
 <div class="card-box">
     <form method="GET" action="{{ route('bookings.index') }}" class="filter-bar">
+        @if(auth()->user() && auth()->user()->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-control" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id')==$f->id?'selected':'' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
         <div class="filter-group">
             <span class="filter-label">Search</span>
-            <input type="text" name="search" value="{{ request('search') }}" class="search-input @error('search') is-invalid @enderror" placeholder="Property, customer, status...">
+            <input type="text" name="search" value="{{ request('search') }}" class="search-input @error('search') is-invalid @enderror" placeholder="Property, customer, firm, status...">
         </div>
         <div class="filter-group">
             <span class="filter-label">Status</span>
@@ -77,7 +88,7 @@
             </select>
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_status']))
+        @if(request()->hasAny(['search','firm_id','filter_status']))
             <a href="{{ route('bookings.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
@@ -86,7 +97,7 @@
         <table class="premium-table">
             <thead>
                 <tr>
-                    <th>#</th><th>Booking Date</th><th>Property</th><th>Customer</th><th>Broker</th>
+                    <th>#</th><th>Firm</th><th>Booking Date</th><th>Property</th><th>Customer</th><th>Broker</th>
                     <th>Booking Amount</th><th>Status</th><th>Payment</th><th style="width:160px;">Action</th>
                 </tr>
             </thead>
@@ -94,6 +105,7 @@
                 @forelse($bookings as $key => $booking)
                 <tr>
                     <td>{{ $bookings->firstItem() + $key }}</td>
+                    <td><strong>{{ $booking->firm->firm_name ?? '-' }}</strong></td>
                     <td>{{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') : '-' }}</td>
                     <td><strong>{{ $booking->property->property_name ?? '-' }}</strong></td>
                     <td>{{ $booking->customer->name ?? '-' }}</td>

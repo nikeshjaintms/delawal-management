@@ -6,8 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class LoanEmiSchedule extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
-        'loan_id', 'emi_month', 'emi_year', 'emi_date',
+        'firm_id', 'loan_id', 'emi_month', 'emi_year', 'emi_date',
         'emi_amount', 'paid_amount', 'pending_amount',
         'payment_date', 'payment_mode', 'emi_status', 'remarks',
     ];
@@ -15,5 +17,10 @@ class LoanEmiSchedule extends Model
     public function loan()
     {
         return $this->belongsTo(Loan::class);
+    }
+
+    public function firm()
+    {
+        return $this->belongsTo(Firm::class);
     }
 }

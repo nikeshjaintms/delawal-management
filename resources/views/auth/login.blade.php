@@ -103,9 +103,9 @@
             height: 2px;
             background: linear-gradient(90deg,
                 transparent 0%,
-                rgba(59,130,246,0.5) 20%,
-                #3B82F6 50%,
-                rgba(59,130,246,0.5) 80%,
+                rgba(197,168,126,0.5) 20%,
+                #C5A87E 50%,
+                rgba(197,168,126,0.5) 80%,
                 transparent 100%
             );
             border-radius: 0 0 4px 4px;
@@ -219,13 +219,13 @@
             color: rgba(255, 255, 255, 0.85);
         }
 
-        /* ACTIVE tab — blue */
+        /* ACTIVE tab — gold */
         .toggle-btn.tab-active {
-            background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 55%, #3B82F6 100%);
+            background: linear-gradient(135deg, #A88959 0%, #C5A87E 55%, #E5CBA2 100%);
             color: #FFFFFF;
             box-shadow:
-                0 4px 16px rgba(37, 99, 235, 0.52),
-                0 1px 4px rgba(37, 99, 235, 0.28),
+                0 4px 16px rgba(197, 168, 126, 0.45),
+                0 1px 4px rgba(197, 168, 126, 0.25),
                 inset 0 1px 0 rgba(255, 255, 255, 0.16);
             transform: translateY(-1px);
         }
@@ -363,7 +363,7 @@
         .btn-login {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 55%, #3B82F6 100%);
+            background: linear-gradient(135deg, #A88959 0%, #C5A87E 55%, #E5CBA2 100%);
             color: #FFFFFF;
             font-size: 15px; font-weight: 700;
             font-family: 'Inter', sans-serif;
@@ -372,15 +372,15 @@
             position: relative; overflow: hidden;
             transition: transform 0.2s, box-shadow 0.2s;
             box-shadow:
-                0 4px 20px rgba(37,99,235,0.52),
-                0 1px 6px rgba(37,99,235,0.30);
+                0 4px 20px rgba(197, 168, 126, 0.45),
+                0 1px 6px rgba(197, 168, 126, 0.25);
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         .btn-login:hover {
             transform: translateY(-2px);
             box-shadow:
-                0 10px 34px rgba(37,99,235,0.60),
-                0 2px 8px rgba(37,99,235,0.35);
+                0 10px 34px rgba(197, 168, 126, 0.55),
+                0 2px 8px rgba(197, 168, 126, 0.30);
         }
         .btn-login:active { transform: translateY(0); }
         /* Shimmer sweep */

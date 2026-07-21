@@ -40,6 +40,7 @@
 <div class="card-box">
     <form method="POST" action="{{ route('rentals.store') }}">
         @csrf
+        @include('admin.components.firm-select')
 
         {{-- Property --}}
         <div class="form-section">

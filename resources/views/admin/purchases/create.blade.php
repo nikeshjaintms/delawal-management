@@ -39,6 +39,7 @@
 
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-box-open"></i> Purchase Details</div>
+            @include('admin.components.firm-select')
 
             <div class="form-row">
                 <div class="form-group">

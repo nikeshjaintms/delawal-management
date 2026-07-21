@@ -37,6 +37,11 @@
     <div class="detail-grid">
 
         <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
+            <div class="detail-value">{{ $income->firm->firm_name ?? '—' }}</div>
+        </div>
+
+        <div class="detail-item">
             <div class="detail-label"><i class="fa-regular fa-calendar"></i> Income Date</div>
             <div class="detail-value">{{ \Carbon\Carbon::parse($income->income_date)->format('d M Y') }}</div>
         </div>

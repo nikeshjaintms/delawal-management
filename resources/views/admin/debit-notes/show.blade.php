@@ -59,8 +59,12 @@
         </div>
     </div>
 
-    <div class="section-title"><i class="fa-solid fa-circle-info"></i> Debit Note Information</div>
+    <div class="section-title"><i class="fa-solid fa-circle-info"></i> Debit Note & Firm Information</div>
     <div class="detail-grid">
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-building-user"></i> Firm</div>
+            <div class="detail-value">{{ $debitNote->firm->firm_name ?? 'Not set' }}</div>
+        </div>
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-hashtag"></i> Debit Note No</div>
             <div class="detail-value">{{ $debitNote->debit_note_no ?? '—' }}</div>

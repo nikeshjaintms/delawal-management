@@ -38,6 +38,8 @@ textarea.form-control{resize:vertical;min-height:80px}
 <form method="POST" action="{{ route('property-documents.store') }}" enctype="multipart/form-data">
 @csrf
 
+@include('admin.components.firm-select')
+
 <div class="form-card">
     <div class="section-heading"><i class="fa-solid fa-file-lines"></i> Document Information</div>
     <div class="form-grid" style="margin-bottom:18px">

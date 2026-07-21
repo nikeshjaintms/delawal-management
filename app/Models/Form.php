@@ -6,7 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Form extends Model
 {
-    protected $fillable = ['form_name', 'form_type', 'description', 'status'];
+    use \App\Traits\HasFirms;
+
+    protected $fillable = ['firm_id', 'form_name', 'form_type', 'description', 'status'];
+
+    public function firm()
+    {
+        return $this->belongsTo(Firm::class);
+    }
 
     public function fields()
     {

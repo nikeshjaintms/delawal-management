@@ -1,4 +1,4 @@
-@if(auth()->user()->isAdmin())
+@if(auth()->user() && auth()->user()->isAdmin())
     <div class="form-group">
         <label class="form-label" for="firm_id">Firm <span>*</span></label>
         <select name="firm_id" id="firm_id" class="form-control @error('firm_id') is-invalid @enderror" required>
@@ -12,5 +12,5 @@
         @error('firm_id') <div class="text-error">{{ $message }}</div> @enderror
     </div>
 @else
-    <input type="hidden" name="firm_id" value="{{ old('firm_id', $selected_firm_id ?? ($model->firm_id ?? auth()->user()->firm_id)) }}">
+    <input type="hidden" name="firm_id" value="{{ old('firm_id', $selected_firm_id ?? ($model->firm_id ?? (auth()->user() ? auth()->user()->firm_id : session('firm_id')))) }}">
 @endif

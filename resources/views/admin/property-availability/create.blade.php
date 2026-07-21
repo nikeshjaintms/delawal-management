@@ -48,6 +48,8 @@ textarea.form-control{resize:vertical;min-height:90px}
 <form method="POST" action="{{ route('property-availability.store') }}">
 @csrf
 
+@include('admin.components.firm-select')
+
 <div class="form-card">
     <div class="section-heading"><i class="fa-solid fa-circle-check"></i> Status Information</div>
 

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class BrokerCommission extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'firm_id',
         'broker_id',

@@ -37,6 +37,11 @@
     <div class="detail-grid">
 
         <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
+            <div class="detail-value">{{ $receipt->firm->firm_name ?? '—' }}</div>
+        </div>
+
+        <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-hashtag"></i> Receipt No</div>
             <div class="detail-value">{{ $receipt->receipt_no ?? '—' }}</div>
         </div>

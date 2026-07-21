@@ -278,7 +278,7 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('customers.index') }}" class="search-form">
-            @if(auth()->user()->isAdmin())
+            @if(auth()->user() && auth()->user()->isAdmin())
                 <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width: 180px;">
                     <option value="">All Firms</option>
                     @foreach(\App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get() as $firm)
@@ -301,7 +301,7 @@
             <thead>
                 <tr>
                     <th>No</th>
-                    @if(auth()->user()->isAdmin())
+                    @if(auth()->user() && auth()->user()->isAdmin())
                         <th>Firm</th>
                     @endif
                     <th>Name</th>
@@ -317,7 +317,7 @@
                 @forelse($customers as $key => $customer)
                     <tr>
                         <td>{{ $customers->firstItem() + $key }}</td>
-                        @if(auth()->user()->isAdmin())
+                        @if(auth()->user() && auth()->user()->isAdmin())
                             <td><span class="badge" style="background:#E6EFF9; color:var(--sidebar-active); font-weight:600;">{{ $customer->firm->firm_name ?? '-' }}</span></td>
                         @endif
                         <td><strong>{{ $customer->name }}</strong></td>

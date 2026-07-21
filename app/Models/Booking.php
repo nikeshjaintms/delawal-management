@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'firm_id', 'property_id', 'customer_id', 'broker_id',
         'booking_date', 'booking_amount', 'agreement_date',

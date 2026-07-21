@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class RentalPayment extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
+        'firm_id',
         'rental_id',
         'payment_month',
         'payment_year',
@@ -18,6 +21,11 @@ class RentalPayment extends Model
         'payment_status',
         'remarks',
     ];
+
+    public function firm()
+    {
+        return $this->belongsTo(Firm::class);
+    }
 
     public function rental()
     {

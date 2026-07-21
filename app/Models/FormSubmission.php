@@ -6,7 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class FormSubmission extends Model
 {
-    protected $fillable = ['form_id', 'submitted_data'];
+    use \App\Traits\HasFirms;
+
+    protected $fillable = ['firm_id', 'form_id', 'submitted_data'];
+
+    public function firm()
+    {
+        return $this->belongsTo(Firm::class);
+    }
 
     protected $casts = [
         'submitted_data' => 'array',

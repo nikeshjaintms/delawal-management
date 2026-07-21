@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Loan extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'firm_id', 'bank_name', 'loan_type', 'property_id', 'customer_id',
         'loan_amount', 'interest_rate', 'emi_amount',

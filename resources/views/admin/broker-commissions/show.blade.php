@@ -148,6 +148,10 @@
 <div class="card-box">
     <table class="details-table">
         <tr>
+            <th>Firm</th>
+            <td><strong>{{ $commission->firm->firm_name ?? '-' }}</strong></td>
+        </tr>
+        <tr>
             <th>Broker Name</th>
             <td><strong>{{ $commission->broker->name ?? '-' }}</strong></td>
         </tr>

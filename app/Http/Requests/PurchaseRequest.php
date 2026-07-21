@@ -41,6 +41,7 @@ class PurchaseRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
+            'firm_id'         => 'required|exists:firms,id',
             'vendor_id'       => 'nullable|exists:vendors,id',
             'item_name'       => 'required|string|max:255',
             'purchase_date'   => 'required|date',
@@ -85,6 +86,7 @@ class PurchaseRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'firm_id'         => 'Firm',
             'vendor_id'       => 'Vendor',
             'item_name'       => 'Item Name',
             'purchase_date'   => 'Purchase Date',

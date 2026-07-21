@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class PropertyDocument extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
+        'firm_id',
         'property_id',
         'document_type',
         'document_title',
@@ -23,6 +26,11 @@ class PropertyDocument extends Model
     ];
 
     /* ── Relationships ── */
+    public function firm()
+    {
+        return $this->belongsTo(Firm::class);
+    }
+
     public function property()
     {
         return $this->belongsTo(Property::class);

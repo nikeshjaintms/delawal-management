@@ -101,6 +101,8 @@
     <form method="POST" action="{{ route('properties.store') }}" enctype="multipart/form-data">
         @csrf
 
+        @include('admin.components.firm-select')
+
         {{-- Basic Info --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-circle-info"></i> Basic Information</div>

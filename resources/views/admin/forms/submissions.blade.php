@@ -208,6 +208,16 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('form-submissions.index') }}" class="search-form">
+            @if(auth()->user() && auth()->user()->isAdmin())
+                <select name="firm_id" class="search-select" onchange="this.form.submit()" style="max-width: 180px;">
+                    <option value="">All Firms</option>
+                    @foreach($firms as $firm)
+                        <option value="{{ $firm->id }}" {{ request('firm_id') == $firm->id ? 'selected' : '' }}>
+                            {{ $firm->firm_name }}
+                        </option>
+                    @endforeach
+                </select>
+            @endif
             <select name="form_id" class="search-select @error('form_id') is-invalid @enderror">
                 <option value="">Filter by Form Type</option>
                 @foreach($forms as $form)
@@ -215,7 +225,7 @@
                 @endforeach
             </select>
             <button type="submit" class="btn-search">Filter</button>
-            @if(request('form_id'))
+            @if(request('form_id') || request('firm_id'))
                 <a href="{{ route('form-submissions.index') }}" class="btn-reset">Reset</a>
             @endif
         </form>
@@ -226,6 +236,9 @@
             <thead>
                 <tr>
                     <th style="width: 80px;">No</th>
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        <th>Firm</th>
+                    @endif
                     <th>Form Name</th>
                     <th>Form Type</th>
                     <th>Submission Date &amp; Time</th>
@@ -236,6 +249,9 @@
                 @forelse($submissions as $key => $sub)
                     <tr>
                         <td>{{ $submissions->firstItem() + $key }}</td>
+                        @if(auth()->user() && auth()->user()->isAdmin())
+                            <td><strong>{{ $sub->firm->firm_name ?? '-' }}</strong></td>
+                        @endif
                         <td><strong>{{ $sub->form->form_name ?? 'Deleted Form' }}</strong></td>
                         <td>{{ $sub->form->form_type ?? '-' }}</td>
                         <td>{{ $sub->created_at ? $sub->created_at->format('d M Y, h:i A') : '-' }}</td>

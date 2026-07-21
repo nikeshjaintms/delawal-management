@@ -40,6 +40,11 @@
     <div class="detail-grid">
 
         <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
+            <div class="detail-value">{{ $purchase->firm->firm_name ?? '—' }}</div>
+        </div>
+
+        <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-box-open"></i> Item Name</div>
             <div class="detail-value">{{ $purchase->item_name }}</div>
         </div>

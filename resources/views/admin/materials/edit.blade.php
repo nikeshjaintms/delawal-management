@@ -31,12 +31,13 @@
 <div class="card-box">
     <form method="POST" action="{{ route('materials.update', $material->id) }}">
         @csrf @method('PUT')
+        @include('admin.components.firm-select', ['model' => $material])
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-boxes-stacked"></i> Material Details</div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="material_name">Material Name <span>*</span></label>
-                    <input type="text" name="material_name" id="material_name" value="{{ old('material_name',$material- class="@error('material_name') is-invalid @enderror">material_name) }}" class="form-control" autocomplete="off">
+                    <input type="text" name="material_name" id="material_name" value="{{ old('material_name', $material->material_name) }}" class="form-control @error('material_name') is-invalid @enderror" autocomplete="off">
                     @error('material_name')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
@@ -52,7 +53,7 @@
             <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label" for="unit">Unit</label>
-                    <input type="text" name="unit" id="unit" value="{{ old('unit',$material- class="@error('unit') is-invalid @enderror">unit) }}" class="form-control" autocomplete="off" placeholder="e.g. Bag, Kg, Pcs">
+                    <input type="text" name="unit" id="unit" value="{{ old('unit', $material->unit) }}" class="form-control @error('unit') is-invalid @enderror" autocomplete="off" placeholder="e.g. Bag, Kg, Pcs">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Current Stock</label>

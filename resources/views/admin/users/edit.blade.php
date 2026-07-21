@@ -160,13 +160,13 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="name">Full Name <span>*</span></label>
-                <input type="text" name="name" id="name" value="{{ old('name', $user- class="@error('name') is-invalid @enderror">name) }}" class="form-control" placeholder="Enter full name" required>
+                <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" class="form-control @error('name') is-invalid @enderror" placeholder="Enter full name" required>
                 @error('name') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="email">Email Address <span>*</span></label>
-                <input type="email" name="email" id="email" value="{{ old('email', $user- class="@error('email') is-invalid @enderror">email) }}" class="form-control" placeholder="Enter email address" required>
+                <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" class="form-control @error('email') is-invalid @enderror" placeholder="Enter email address" required>
                 @error('email') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>

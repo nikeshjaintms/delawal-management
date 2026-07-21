@@ -16,6 +16,9 @@ class FormRequest extends BaseFormRequest
     protected function prepareForValidation()
     {
         $inputs = $this->all();
+        if (empty($inputs['firm_id'])) {
+            $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
+        }
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
                 $inputs[$key] = trim($value);
@@ -41,6 +44,7 @@ class FormRequest extends BaseFormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
+            'firm_id'   => 'required|exists:firms,id',
             'form_name' => 'required|string|max:255',
             'form_type' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',

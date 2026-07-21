@@ -3,14 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoanRequest;
-
 use App\Models\Loan;
 use App\Models\LoanEmiSchedule;
 use App\Models\Property;
 use App\Models\Customer;
+use App\Models\Firm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class LoanController extends Controller
@@ -19,29 +18,37 @@ class LoanController extends Controller
     const LOAN_STATUSES = ['Active', 'Completed', 'Closed', 'Cancelled'];
     const PAY_MODES     = ['Cash', 'Bank Transfer', 'UPI', 'Cheque', 'Other'];
 
-    // ----------------------------------------------------------------
-    // Shared dropdown data
-    // ----------------------------------------------------------------
-    private function dropdowns(): array
+    private function authorise(Loan $loan): void
     {
-        $firmId = Auth::user()->firm_id;
+        if (!Auth::user()->isAdmin() && $loan->firm_id !== Auth::user()->firm_id) {
+            abort(403);
+        }
+    }
+
+    private function dropdowns($selectedFirmId = null): array
+    {
+        $user   = Auth::user();
+        $firmId = $selectedFirmId ?? ($user ? $user->firm_id : session('firm_id'));
+
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        $propQuery = Property::orderBy('property_name');
+        $custQuery = Customer::where('status', 'active')->orderBy('name');
+
+        if ($firmId && (!$user || !$user->isAdmin())) {
+            $propQuery->where('firm_id', $firmId);
+            $custQuery->where('firm_id', $firmId);
+        }
+
         return [
-            'properties' => Property::where('firm_id', $firmId)->orderBy('property_name')->get(),
-            'customers'  => Customer::where('firm_id', $firmId)->where('status', 'active')->orderBy('name')->get(),
+            'firms'      => $firms,
+            'properties' => $propQuery->get(),
+            'customers'  => $custQuery->get(),
         ];
     }
 
-    private function authorise(Loan $loan): void
-    {
-        if ($loan->firm_id !== Auth::user()->firm_id) abort(403);
-    }
-
-    // ----------------------------------------------------------------
-    // Generate month-wise EMI schedule
-    // ----------------------------------------------------------------
     private function generateEmiSchedule(Loan $loan): void
     {
-        // Remove any existing schedule first
         $loan->emiSchedules()->delete();
 
         $schedules = [];
@@ -50,6 +57,7 @@ class LoanController extends Controller
         for ($i = 0; $i < $loan->total_emi_months; $i++) {
             $emiDate = $date->copy()->addMonths($i);
             $schedules[] = [
+                'firm_id'        => $loan->firm_id,
                 'loan_id'        => $loan->id,
                 'emi_month'      => (int) $emiDate->format('n'),
                 'emi_year'       => (int) $emiDate->format('Y'),
@@ -69,9 +77,6 @@ class LoanController extends Controller
         LoanEmiSchedule::insert($schedules);
     }
 
-    // ----------------------------------------------------------------
-    // Recalculate loan paid/pending from EMI data
-    // ----------------------------------------------------------------
     private function recalculateLoan(Loan $loan): void
     {
         $loan->refresh();
@@ -90,13 +95,15 @@ class LoanController extends Controller
         ]);
     }
 
-    // ----------------------------------------------------------------
-    // INDEX
-    // ----------------------------------------------------------------
     public function index(Request $request)
     {
-        $firmId = Auth::user()->firm_id;
-        $query  = Loan::with(['property', 'customer'])->where('firm_id', $firmId);
+        $query = Loan::with(['firm', 'property', 'customer']);
+
+        if (!Auth::user()->isAdmin()) {
+            $query->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -104,7 +111,8 @@ class LoanController extends Controller
                 $q->where('bank_name', 'like', "%{$s}%")
                   ->orWhere('loan_type', 'like', "%{$s}%")
                   ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%{$s}%"))
-                  ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"));
+                  ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
         }
         if ($request->filled('filter_status')) {
@@ -117,19 +125,17 @@ class LoanController extends Controller
             $query->where('customer_id', $request->filter_customer);
         }
 
-        $loans      = $query->orderBy('created_at', 'desc')->paginate(15);
+        $loans      = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
         $totalLoan  = (clone $query)->sum('loan_amount');
         $totalPaid  = (clone $query)->sum('paid_amount');
+        $firms      = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
         return view('admin.loans.index', array_merge(
-            $this->dropdowns(),
-            compact('loans', 'totalLoan', 'totalPaid')
+            $this->dropdowns($request->firm_id),
+            compact('loans', 'firms', 'totalLoan', 'totalPaid')
         ));
     }
 
-    // ----------------------------------------------------------------
-    // CREATE / STORE
-    // ----------------------------------------------------------------
     public function create()
     {
         return view('admin.loans.create', $this->dropdowns());
@@ -137,10 +143,10 @@ class LoanController extends Controller
 
     public function store(LoanRequest $request)
     {
-        
+        $firmId = $request->firm_id ?? Auth::user()->firm_id;
 
         $loan = Loan::create([
-            'firm_id'         => Auth::user()->firm_id,
+            'firm_id'         => $firmId,
             'bank_name'       => $request->bank_name,
             'loan_type'       => $request->loan_type,
             'property_id'     => $request->property_id ?: null,
@@ -163,35 +169,28 @@ class LoanController extends Controller
             ->with('success', 'Loan added and EMI schedule generated successfully.');
     }
 
-    // ----------------------------------------------------------------
-    // SHOW
-    // ----------------------------------------------------------------
     public function show(Loan $loan)
     {
         $this->authorise($loan);
-        $loan->load(['property', 'customer', 'emiSchedules']);
+        $loan->load(['firm', 'property', 'customer', 'emiSchedules.firm']);
 
-        // Auto-update overdue EMIs
         $today = now()->toDateString();
         foreach ($loan->emiSchedules as $emi) {
             if ($emi->emi_status === 'Pending' && $emi->emi_date < $today) {
                 $emi->update(['emi_status' => 'Overdue']);
             }
         }
-        $loan->refresh()->load('emiSchedules');
+        $loan->refresh()->load('emiSchedules.firm');
 
         return view('admin.loans.show', compact('loan'));
     }
 
-    // ----------------------------------------------------------------
-    // EDIT / UPDATE
-    // ----------------------------------------------------------------
     public function edit(Loan $loan)
     {
         $this->authorise($loan);
         return view('admin.loans.edit', array_merge(
             ['loan' => $loan],
-            $this->dropdowns()
+            $this->dropdowns($loan->firm_id)
         ));
     }
 
@@ -199,9 +198,10 @@ class LoanController extends Controller
     {
         $this->authorise($loan);
 
-        
+        $firmId = $request->firm_id ?? $loan->firm_id ?? Auth::user()->firm_id;
 
         $loan->update([
+            'firm_id'         => $firmId,
             'bank_name'       => $request->bank_name,
             'loan_type'       => $request->loan_type,
             'property_id'     => $request->property_id ?: null,
@@ -216,7 +216,6 @@ class LoanController extends Controller
             'remarks'         => $request->remarks,
         ]);
 
-        // Regenerate EMI schedule if key financial fields changed
         if ($request->boolean('regenerate_emi')) {
             $this->generateEmiSchedule($loan);
             $loan->update(['paid_amount' => 0, 'pending_amount' => $request->loan_amount]);
@@ -226,9 +225,6 @@ class LoanController extends Controller
             ->with('success', 'Loan updated successfully.');
     }
 
-    // ----------------------------------------------------------------
-    // DESTROY
-    // ----------------------------------------------------------------
     public function destroy(Loan $loan)
     {
         $this->authorise($loan);
@@ -239,34 +235,25 @@ class LoanController extends Controller
             ->with('success', 'Loan deleted successfully.');
     }
 
-    // ----------------------------------------------------------------
-    // EMI SCHEDULE page (list + payment form per EMI)
-    // ----------------------------------------------------------------
     public function emiSchedule(Loan $loan)
     {
         $this->authorise($loan);
-        $loan->load(['property', 'customer', 'emiSchedules']);
+        $loan->load(['firm', 'property', 'customer', 'emiSchedules.firm']);
 
-        // Auto-update overdue
         $today = now()->toDateString();
         foreach ($loan->emiSchedules as $emi) {
             if ($emi->emi_status === 'Pending' && $emi->emi_date < $today) {
                 $emi->update(['emi_status' => 'Overdue']);
             }
         }
-        $loan->refresh()->load('emiSchedules');
+        $loan->refresh()->load('emiSchedules.firm');
 
         return view('admin.loans.emi-schedule', compact('loan'));
     }
 
-    // ----------------------------------------------------------------
-    // EMI PAYMENT (POST)
-    // ----------------------------------------------------------------
     public function emiPay(Request $request, Loan $loan, LoanEmiSchedule $emi)
     {
         $this->authorise($loan);
-
-        
 
         $paid    = (float) $request->paid_amount;
         $pending = round($emi->emi_amount - $paid, 2);

@@ -33,6 +33,7 @@
 <div class="card-box">
     <form method="POST" action="{{ route('bookings.store') }}">
         @csrf
+        @include('admin.components.firm-select')
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label">Property <span>*</span></label>

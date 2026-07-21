@@ -42,6 +42,7 @@
 
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-landmark"></i> Loan Information</div>
+            @include('admin.components.firm-select', ['model' => $loan])
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Bank Name <span class="req">*</span></label>

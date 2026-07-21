@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Tenants')
 @section('page-title', 'Tenant Master')
@@ -273,9 +273,19 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('tenants.index') }}" class="search-form">
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, mobile, email, city, identity no." class="search-input @error('search') is-invalid @enderror">
+            @if(auth()->user() && auth()->user()->isAdmin())
+                <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width: 180px;">
+                    <option value="">All Firms</option>
+                    @foreach($firms as $firm)
+                        <option value="{{ $firm->id }}" {{ request('firm_id') == $firm->id ? 'selected' : '' }}>
+                            {{ $firm->firm_name }}
+                        </option>
+                    @endforeach
+                </select>
+            @endif
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, mobile, email, city, firm, identity no." class="search-input @error('search') is-invalid @enderror">
             <button type="submit" class="btn-search">Search</button>
-            @if(request('search'))
+            @if(request('search') || request('firm_id'))
                 <a href="{{ route('tenants.index') }}" class="btn-reset">Reset</a>
             @endif
         </form>
@@ -286,6 +296,9 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        <th>Firm</th>
+                    @endif
                     <th>Name</th>
                     <th>Mobile</th>
                     <th>Email</th>
@@ -300,6 +313,9 @@
                 @forelse($tenants as $key => $tenant)
                     <tr>
                         <td>{{ $tenants->firstItem() + $key }}</td>
+                        @if(auth()->user() && auth()->user()->isAdmin())
+                            <td><strong>{{ $tenant->firm->firm_name ?? '-' }}</strong></td>
+                        @endif
                         <td><strong>{{ $tenant->name }}</strong></td>
                         <td>{{ $tenant->mobile }}</td>
                         <td>{{ $tenant->email ?? '-' }}</td>

@@ -111,10 +111,20 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('property-availability.index') }}" class="search-form">
+            @if(auth()->user() && auth()->user()->isAdmin())
+                <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width: 180px;">
+                    <option value="">All Firms</option>
+                    @foreach(\App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get() as $firm)
+                        <option value="{{ $firm->id }}" {{ request('firm_id') == $firm->id ? 'selected' : '' }}>
+                            {{ $firm->firm_name }}
+                        </option>
+                    @endforeach
+                </select>
+            @endif
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="Search by property name, unit no, status..." class="search-input @error('search') is-invalid @enderror">
             <button type="submit" class="btn-search">Search</button>
-            @if(request('search'))
+            @if(request('search') || request('firm_id'))
                 <a href="{{ route('property-availability.index') }}" class="btn-reset">Reset</a>
             @endif
         </form>
@@ -126,6 +136,9 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        <th>Firm</th>
+                    @endif
                     <th>Property Name</th>
                     <th>Property Type</th>
                     <th>Unit / Plot / Flat No</th>
@@ -139,6 +152,9 @@
             @forelse($records as $i => $rec)
                 <tr>
                     <td>{{ $records->firstItem() + $i }}</td>
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        <td><strong>{{ $rec->firm->firm_name ?? 'N/A' }}</strong></td>
+                    @endif
                     <td>
                         <strong>{{ $rec->property->property_name ?? '—' }}</strong>
                         @if($rec->property->property_code)
@@ -187,7 +203,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" style="text-align:center;padding:32px;color:var(--text-secondary)">
+                    <td colspan="9" style="text-align:center;padding:32px;color:var(--text-secondary)">
                         No status records found.
                         <a href="{{ route('property-availability.create') }}" style="color:var(--blue);font-weight:600">Add one</a>.
                     </td>

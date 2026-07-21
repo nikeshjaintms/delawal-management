@@ -41,6 +41,7 @@ class ReceiptRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
+            'firm_id'         => 'required|exists:firms,id',
             'receipt_no'      => 'nullable|string|max:255',
             'receipt_date'    => 'required|date',
             'received_from'   => 'required|string|max:255',
@@ -83,6 +84,7 @@ class ReceiptRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'firm_id'         => 'Firm',
             'receipt_no'      => 'Receipt Number',
             'receipt_date'    => 'Receipt Date',
             'received_from'   => 'Received From',

@@ -6,31 +6,35 @@ use App\Models\PropertySale;
 use App\Models\Property;
 use App\Models\Customer;
 use App\Models\Broker;
+use App\Models\Firm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class PropertySaleController extends Controller
 {
-    private function getDropdownData()
+    private function getDropdownData($selectedFirmId = null)
     {
-        $firmId = Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $selectedFirmId ?? ($user ? $user->firm_id : session('firm_id'));
 
-        $properties = Property::where('firm_id', $firmId)
-            ->orderBy('property_name')
-            ->get();
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        $customers = Customer::where('firm_id', $firmId)
-            ->where('status', 'active')
-            ->orderBy('name')
-            ->get();
+        $propertiesQuery = Property::orderBy('property_name');
+        $customersQuery  = Customer::where('status', 'active')->orderBy('name');
+        $brokersQuery    = Broker::where('status', 'active')->orderBy('name');
 
-        $brokers = Broker::where('firm_id', $firmId)
-            ->where('status', 'active')
-            ->orderBy('name')
-            ->get();
+        if ($firmId && (!$user || !$user->isAdmin())) {
+            $propertiesQuery->where('firm_id', $firmId);
+            $customersQuery->where('firm_id', $firmId);
+            $brokersQuery->where('firm_id', $firmId);
+        }
 
-        return compact('properties', 'customers', 'brokers');
+        $properties = $propertiesQuery->get();
+        $customers  = $customersQuery->get();
+        $brokers    = $brokersQuery->get();
+
+        return compact('firms', 'properties', 'customers', 'brokers');
     }
 
     private function updatePropertyStatus(PropertySale $sale)
@@ -51,8 +55,13 @@ class PropertySaleController extends Controller
 
     public function index(Request $request)
     {
-        $query = PropertySale::with(['property', 'customer', 'broker'])
-            ->where('firm_id', Auth::user()->firm_id);
+        $query = PropertySale::with(['firm', 'property', 'customer', 'broker']);
+
+        if (!Auth::user()->isAdmin()) {
+            $query->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
 
         if ($request->search) {
             $search = $request->search;
@@ -67,14 +76,18 @@ class PropertySaleController extends Controller
                 ->orWhereHas('broker', function ($b) use ($search) {
                     $b->where('name', 'like', "%{$search}%");
                 })
+                ->orWhereHas('firm', function ($f) use ($search) {
+                    $f->where('firm_name', 'like', "%{$search}%");
+                })
                 ->orWhere('payment_status', 'like', "%{$search}%")
                 ->orWhere('sale_status', 'like', "%{$search}%");
             });
         }
 
-        $propertySales = $query->latest()->paginate(10);
+        $propertySales = $query->latest()->paginate(10)->withQueryString();
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.property-sales.index', compact('propertySales'));
+        return view('admin.property-sales.index', compact('propertySales', 'firms'));
     }
 
     public function create()
@@ -84,10 +97,16 @@ class PropertySaleController extends Controller
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+        if (!$request->filled('firm_id')) {
+            $request->merge(['firm_id' => $user ? $user->firm_id : session('firm_id')]);
+        }
+
         $request->validate([
-            'property_id'      => 'required',
-            'customer_id'      => 'required',
-            'broker_id'        => 'nullable',
+            'firm_id'          => 'required|exists:firms,id',
+            'property_id'      => 'required|exists:properties,id',
+            'customer_id'      => 'required|exists:customers,id',
+            'broker_id'        => 'nullable|exists:brokers,id',
             'sale_date'        => 'nullable|date',
             'sale_amount'      => 'nullable|numeric',
             'booking_amount'   => 'nullable|numeric',
@@ -104,7 +123,7 @@ class PropertySaleController extends Controller
         }
 
         $sale = PropertySale::create([
-            'firm_id'          => Auth::user()->firm_id,
+            'firm_id'          => $request->firm_id,
             'property_id'      => $request->property_id,
             'customer_id'      => $request->customer_id,
             'broker_id'        => $request->broker_id ?: null,
@@ -120,42 +139,47 @@ class PropertySaleController extends Controller
 
         $this->updatePropertyStatus($sale);
 
-        return redirect()->route('property-sales.index')->with('success', 'Property sale added successfully.');
+        return redirect()->route('property-sales.index')->with('success', 'Sales agreement added successfully.');
     }
 
     public function show(PropertySale $propertySale)
     {
-        if ($propertySale->firm_id != Auth::user()->firm_id) {
+        if (!Auth::user()->isAdmin() && $propertySale->firm_id != Auth::user()->firm_id) {
             abort(403);
         }
 
-        $propertySale->load(['property.propertyType', 'customer', 'broker']);
+        $propertySale->load(['firm', 'property.propertyType', 'customer', 'broker']);
 
         return view('admin.property-sales.show', compact('propertySale'));
     }
 
     public function edit(PropertySale $propertySale)
     {
-        if ($propertySale->firm_id != Auth::user()->firm_id) {
+        if (!Auth::user()->isAdmin() && $propertySale->firm_id != Auth::user()->firm_id) {
             abort(403);
         }
 
         return view('admin.property-sales.edit', array_merge(
             ['propertySale' => $propertySale],
-            $this->getDropdownData()
+            $this->getDropdownData($propertySale->firm_id)
         ));
     }
 
     public function update(Request $request, PropertySale $propertySale)
     {
-        if ($propertySale->firm_id != Auth::user()->firm_id) {
+        if (!Auth::user()->isAdmin() && $propertySale->firm_id != Auth::user()->firm_id) {
             abort(403);
         }
 
+        if (!$request->filled('firm_id')) {
+            $request->merge(['firm_id' => $propertySale->firm_id]);
+        }
+
         $request->validate([
-            'property_id'      => 'required',
-            'customer_id'      => 'required',
-            'broker_id'        => 'nullable',
+            'firm_id'          => 'required|exists:firms,id',
+            'property_id'      => 'required|exists:properties,id',
+            'customer_id'      => 'required|exists:customers,id',
+            'broker_id'        => 'nullable|exists:brokers,id',
             'sale_date'        => 'nullable|date',
             'sale_amount'      => 'nullable|numeric',
             'booking_amount'   => 'nullable|numeric',
@@ -175,6 +199,7 @@ class PropertySaleController extends Controller
         }
 
         $propertySale->update([
+            'firm_id'          => $request->firm_id,
             'property_id'      => $request->property_id,
             'customer_id'      => $request->customer_id,
             'broker_id'        => $request->broker_id ?: null,
@@ -190,12 +215,12 @@ class PropertySaleController extends Controller
 
         $this->updatePropertyStatus($propertySale);
 
-        return redirect()->route('property-sales.index')->with('success', 'Property sale updated successfully.');
+        return redirect()->route('property-sales.index')->with('success', 'Sales agreement updated successfully.');
     }
 
     public function destroy(PropertySale $propertySale)
     {
-        if ($propertySale->firm_id != Auth::user()->firm_id) {
+        if (!Auth::user()->isAdmin() && $propertySale->firm_id != Auth::user()->firm_id) {
             abort(403);
         }
 

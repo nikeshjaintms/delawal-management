@@ -16,6 +16,9 @@ class CreditNoteRequest extends FormRequest
     protected function prepareForValidation()
     {
         $inputs = $this->all();
+        if (empty($inputs['firm_id'])) {
+            $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
+        }
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
                 $inputs[$key] = trim($value);
@@ -41,6 +44,7 @@ class CreditNoteRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
+            'firm_id'            => 'required|exists:firms,id',
             'credit_note_no'     => 'nullable|string|max:100',
             'credit_note_date'   => 'required|date',
             'customer_id'        => 'nullable|exists:customers,id',

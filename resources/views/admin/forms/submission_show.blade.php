@@ -120,6 +120,10 @@
 
 <div class="card-box">
     <div class="detail-grid">
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-building-user"></i> Firm</div>
+            <div class="detail-value">{{ $submission->firm->firm_name ?? 'Not set' }}</div>
+        </div>
         @php
             $submitted = $submission->submitted_data ?? [];
             // Map fields by field_name for quick label lookups

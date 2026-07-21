@@ -45,6 +45,7 @@
         {{-- Parties --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-handshake"></i> Sale Parties</div>
+            @include('admin.components.firm-select')
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="property_id">Property <span>*</span></label>

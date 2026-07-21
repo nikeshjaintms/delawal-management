@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RentalRequest;
-
 use App\Models\Rental;
 use App\Models\Property;
+use App\Models\Firm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -25,42 +25,62 @@ class RentalController extends Controller
 
     public function index(Request $request)
     {
-        $query = Rental::with('property')
-            ->where('firm_id', Auth::user()->firm_id);
+        $query = Rental::with(['firm', 'property']);
+
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+
+        if (!$isAdmin) {
+            $query->where('firm_id', $user ? $user->firm_id : session('firm_id'));
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
 
         if ($request->search) {
-            $query->where(function ($q) use ($request) {
-                $q->where('tenant_name', 'like', '%' . $request->search . '%')
-                  ->orWhere('tenant_mobile', 'like', '%' . $request->search . '%')
-                  ->orWhere('payment_status', 'like', '%' . $request->search . '%')
-                  ->orWhere('rental_status', 'like', '%' . $request->search . '%')
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('tenant_name', 'like', "%{$search}%")
+                  ->orWhere('tenant_mobile', 'like', "%{$search}%")
+                  ->orWhere('payment_status', 'like', "%{$search}%")
+                  ->orWhere('rental_status', 'like', "%{$search}%")
                   ->orWhereHas('property', fn($p) =>
-                      $p->where('property_name', 'like', '%' . $request->search . '%')
-                        ->orWhere('property_code', 'like', '%' . $request->search . '%')
-                  );
+                      $p->where('property_name', 'like', "%{$search}%")
+                        ->orWhere('property_code', 'like', "%{$search}%")
+                  )
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$search}%"));
             });
         }
 
-        $rentals = $query->latest()->paginate(10);
+        $rentals = $query->latest()->paginate(10)->withQueryString();
+        $firms   = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.rentals.index', compact('rentals'));
+        return view('admin.rentals.index', compact('rentals', 'firms'));
     }
 
     public function create()
     {
-        $properties = Property::where('firm_id', Auth::user()->firm_id)
-            ->orderBy('property_name')
-            ->get();
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
 
-        return view('admin.rentals.create', compact('properties'));
+        $propQuery = Property::orderBy('property_name');
+        if (!$isAdmin) {
+            $propQuery->where('firm_id', $firmId);
+        }
+        $properties = $propQuery->get();
+
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        return view('admin.rentals.create', compact('properties', 'firms'));
     }
 
     public function store(RentalRequest $request)
     {
-        
+        $user = Auth::user();
+        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
 
         $rental = Rental::create([
-            'firm_id'          => Auth::user()->firm_id,
+            'firm_id'          => $firmId,
             'property_id'      => $request->property_id,
             'tenant_name'      => $request->tenant_name,
             'tenant_mobile'    => $request->tenant_mobile,
@@ -82,37 +102,52 @@ class RentalController extends Controller
 
     public function show(Rental $rental)
     {
-        if ($rental->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $rental->firm_id != $firmId) {
             abort(403);
         }
 
-        $rental->load('property.propertyType');
+        $rental->load(['firm', 'property.propertyType']);
 
         return view('admin.rentals.show', compact('rental'));
     }
 
     public function edit(Rental $rental)
     {
-        if ($rental->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $rental->firm_id != $firmId) {
             abort(403);
         }
 
-        $properties = Property::where('firm_id', Auth::user()->firm_id)
-            ->orderBy('property_name')
-            ->get();
+        $propQuery = Property::orderBy('property_name');
+        if (!$isAdmin) {
+            $propQuery->where('firm_id', $rental->firm_id ?: $firmId);
+        }
+        $properties = $propQuery->get();
 
-        return view('admin.rentals.edit', compact('rental', 'properties'));
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        return view('admin.rentals.edit', compact('rental', 'properties', 'firms'));
     }
 
     public function update(RentalRequest $request, Rental $rental)
     {
-        if ($rental->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $rental->firm_id != $firmId) {
             abort(403);
         }
 
-        
-
         $rental->update([
+            'firm_id'          => $request->firm_id ?? $rental->firm_id,
             'property_id'      => $request->property_id,
             'tenant_name'      => $request->tenant_name,
             'tenant_mobile'    => $request->tenant_mobile,
@@ -134,11 +169,14 @@ class RentalController extends Controller
 
     public function destroy(Rental $rental)
     {
-        if ($rental->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $rental->firm_id != $firmId) {
             abort(403);
         }
 
-        // Restore property to available on delete
         $property = Property::find($rental->property_id);
         if ($property && $property->status === 'rented') {
             $property->update(['status' => 'available']);

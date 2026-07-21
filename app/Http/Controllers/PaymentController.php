@@ -6,6 +6,7 @@ use App\Http\Requests\PaymentRequest;
 
 use App\Models\Payment;
 use App\Models\PropertySale;
+use App\Models\Firm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,9 +17,11 @@ class PaymentController extends Controller
      */
     public function getBookingInfo($id)
     {
-        $sale = PropertySale::with(['customer', 'property'])
-            ->where('firm_id', Auth::user()->firm_id)
-            ->findOrFail($id);
+        $query = PropertySale::with(['customer', 'property']);
+        if (!Auth::user()->isAdmin()) {
+            $query->where('firm_id', Auth::user()->firm_id);
+        }
+        $sale = $query->findOrFail($id);
 
         // Total paid so far from all payment entries
         $totalPaidSoFar = Payment::where('property_sale_id', $sale->id)->sum('payment_amount');
@@ -37,8 +40,13 @@ class PaymentController extends Controller
 
     public function index(Request $request)
     {
-        $query = Payment::with(['propertySale', 'customer', 'property'])
-            ->where('firm_id', Auth::user()->firm_id);
+        $query = Payment::with(['firm', 'propertySale', 'customer', 'property']);
+
+        if (!Auth::user()->isAdmin()) {
+            $query->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
 
         if ($request->search) {
             $search = $request->search;
@@ -48,34 +56,43 @@ class PaymentController extends Controller
                         $p->where('property_name', 'like', "%{$search}%")
                           ->orWhere('property_code', 'like', "%{$search}%")
                   )
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$search}%"))
                   ->orWhere('payment_mode', 'like', "%{$search}%")
                   ->orWhere('status', 'like', "%{$search}%")
                   ->orWhere('transaction_ref', 'like', "%{$search}%");
             });
         }
 
-        $payments = $query->latest()->paginate(10);
+        $payments = $query->latest()->paginate(10)->withQueryString();
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.payments.index', compact('payments'));
+        return view('admin.payments.index', compact('payments', 'firms'));
     }
 
     public function create()
     {
-        $bookings = PropertySale::with(['customer', 'property'])
-            ->where('firm_id', Auth::user()->firm_id)
-            ->whereIn('sale_status', ['booked', 'sold'])
-            ->latest()
-            ->get();
+        $bookingsQuery = PropertySale::with(['customer', 'property', 'firm'])
+            ->whereIn('sale_status', ['booked', 'sold']);
 
-        return view('admin.payments.create', compact('bookings'));
+        if (!Auth::user()->isAdmin()) {
+            $bookingsQuery->where('firm_id', Auth::user()->firm_id);
+        }
+
+        $bookings = $bookingsQuery->latest()->get();
+        $firms    = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        return view('admin.payments.create', compact('bookings', 'firms'));
     }
 
     public function store(PaymentRequest $request)
     {
-        
+        $saleQuery = PropertySale::query();
+        if (!Auth::user()->isAdmin()) {
+            $saleQuery->where('firm_id', Auth::user()->firm_id);
+        }
+        $sale = $saleQuery->findOrFail($request->property_sale_id);
 
-        $sale = PropertySale::where('firm_id', Auth::user()->firm_id)
-            ->findOrFail($request->property_sale_id);
+        $firmId = $request->firm_id ?? $sale->firm_id;
 
         // Calculate totals
         $totalPaidSoFar  = Payment::where('property_sale_id', $sale->id)->sum('payment_amount');
@@ -94,7 +111,7 @@ class PaymentController extends Controller
 
         // Save payment entry
         Payment::create([
-            'firm_id'          => Auth::user()->firm_id,
+            'firm_id'          => $firmId,
             'property_sale_id' => $sale->id,
             'customer_id'      => $sale->customer_id,
             'property_id'      => $sale->property_id,
@@ -116,45 +133,52 @@ class PaymentController extends Controller
             'payment_status'   => $paymentStatus,
         ]);
 
-        return redirect()->route('payments.index')->with('success', 'Payment recorded successfully.');
+        return redirect()->route('payments.index')->with('success', 'Payment collection recorded successfully.');
     }
 
     public function show(Payment $payment)
     {
-        if ($payment->firm_id != Auth::user()->firm_id) {
+        if (!Auth::user()->isAdmin() && $payment->firm_id != Auth::user()->firm_id) {
             abort(403);
         }
 
-        $payment->load(['propertySale.property', 'propertySale.customer', 'customer', 'property']);
+        $payment->load(['firm', 'propertySale.property', 'propertySale.customer', 'customer', 'property']);
 
         return view('admin.payments.show', compact('payment'));
     }
 
     public function edit(Payment $payment)
     {
-        if ($payment->firm_id != Auth::user()->firm_id) {
+        if (!Auth::user()->isAdmin() && $payment->firm_id != Auth::user()->firm_id) {
             abort(403);
         }
 
-        $bookings = PropertySale::with(['customer', 'property'])
-            ->where('firm_id', Auth::user()->firm_id)
-            ->whereIn('sale_status', ['booked', 'sold'])
-            ->latest()
-            ->get();
+        $bookingsQuery = PropertySale::with(['customer', 'property', 'firm'])
+            ->whereIn('sale_status', ['booked', 'sold']);
 
-        return view('admin.payments.edit', compact('payment', 'bookings'));
+        if (!Auth::user()->isAdmin()) {
+            $bookingsQuery->where('firm_id', Auth::user()->firm_id);
+        }
+
+        $bookings = $bookingsQuery->latest()->get();
+        $firms    = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        return view('admin.payments.edit', compact('payment', 'bookings', 'firms'));
     }
 
     public function update(PaymentRequest $request, Payment $payment)
     {
-        if ($payment->firm_id != Auth::user()->firm_id) {
+        if (!Auth::user()->isAdmin() && $payment->firm_id != Auth::user()->firm_id) {
             abort(403);
         }
 
-        
+        $saleQuery = PropertySale::query();
+        if (!Auth::user()->isAdmin()) {
+            $saleQuery->where('firm_id', Auth::user()->firm_id);
+        }
+        $sale = $saleQuery->findOrFail($request->property_sale_id);
 
-        $sale = PropertySale::where('firm_id', Auth::user()->firm_id)
-            ->findOrFail($request->property_sale_id);
+        $firmId = $request->firm_id ?? $sale->firm_id;
 
         // Recalculate: sum all OTHER payments for this booking + this new amount
         $totalPaidSoFar = Payment::where('property_sale_id', $sale->id)
@@ -174,6 +198,7 @@ class PaymentController extends Controller
         }
 
         $payment->update([
+            'firm_id'          => $firmId,
             'property_sale_id' => $sale->id,
             'customer_id'      => $sale->customer_id,
             'property_id'      => $sale->property_id,
@@ -194,12 +219,12 @@ class PaymentController extends Controller
             'payment_status'   => $paymentStatus,
         ]);
 
-        return redirect()->route('payments.index')->with('success', 'Payment updated successfully.');
+        return redirect()->route('payments.index')->with('success', 'Payment collection updated successfully.');
     }
 
     public function destroy(Payment $payment)
     {
-        if ($payment->firm_id != Auth::user()->firm_id) {
+        if (!Auth::user()->isAdmin() && $payment->firm_id != Auth::user()->firm_id) {
             abort(403);
         }
 
@@ -229,6 +254,6 @@ class PaymentController extends Controller
             ]);
         }
 
-        return redirect()->route('payments.index')->with('success', 'Payment deleted successfully.');
+        return redirect()->route('payments.index')->with('success', 'Payment collection deleted successfully.');
     }
 }

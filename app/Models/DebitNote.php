@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class DebitNote extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'firm_id',
         'debit_note_no',

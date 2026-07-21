@@ -78,8 +78,12 @@
     </div>
 
     {{-- Property --}}
-    <div class="section-title"><i class="fa-solid fa-building"></i> Property Details</div>
+    <div class="section-title"><i class="fa-solid fa-building"></i> Property & Firm Details</div>
     <div class="detail-grid">
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-building-user"></i> Firm</div>
+            <div class="detail-value">{{ $rental->firm->firm_name ?? '-' }}</div>
+        </div>
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-building"></i> Property Name</div>
             <div class="detail-value">

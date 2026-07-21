@@ -41,6 +41,7 @@ class LoanRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
+            'firm_id'          => 'required|exists:firms,id',
             'bank_name'        => 'required|string|max:255',
             'loan_type'        => 'required|string|max:255',
             'property_id'      => 'nullable|exists:properties,id',
@@ -87,6 +88,7 @@ class LoanRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'firm_id'          => 'Firm',
             'bank_name'        => 'Bank Name',
             'loan_type'        => 'Loan Type',
             'property_id'      => 'Property',

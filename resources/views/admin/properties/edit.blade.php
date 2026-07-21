@@ -126,6 +126,8 @@
         @csrf
         @method('PUT')
 
+        @include('admin.components.firm-select', ['model' => $property])
+
         {{-- Basic Info --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-circle-info"></i> Basic Information</div>

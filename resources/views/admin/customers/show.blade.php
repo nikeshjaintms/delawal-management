@@ -280,6 +280,15 @@
 
     <!-- Detail Fields Grid -->
     <div class="detail-grid">
+        <!-- Firm -->
+        <div class="detail-item">
+            <div class="detail-label">
+                <i class="fa-solid fa-building-user"></i>
+                Firm
+            </div>
+            <div class="detail-value">{{ $customer->firm->firm_name ?? 'Not set' }}</div>
+        </div>
+
         <!-- Name -->
         <div class="detail-item">
             <div class="detail-label">

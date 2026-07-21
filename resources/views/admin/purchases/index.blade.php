@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title', 'Purchases')
 @section('page-title', 'Purchase Management')
 @section('content')
@@ -68,6 +68,17 @@
 <div class="card-box">
     {{-- Filters --}}
     <form method="GET" action="{{ route('purchases.index') }}" class="filter-bar">
+        @if(auth()->user() && auth()->user()->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-control" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id') == $f->id ? 'selected' : '' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
         <div class="filter-group">
             <span class="filter-label">Search</span>
             <input type="text" name="search" value="{{ request('search') }}"
@@ -75,17 +86,17 @@
         </div>
         <div class="filter-group">
             <span class="filter-label">Payment Status</span>
-            <select name="filter_payment_status" class="filter-control @error('filter_payment_status') is-invalid @enderror">
+            <select name="filter_status" class="filter-control @error('filter_status') is-invalid @enderror">
                 <option value="">All Status</option>
                 @foreach(['unpaid','partial','paid'] as $ps)
-                    <option value="{{ $ps }}" {{ request('filter_payment_status') == $ps ? 'selected' : '' }}>
+                    <option value="{{ $ps }}" {{ request('filter_status') == $ps ? 'selected' : '' }}>
                         {{ ucfirst($ps) }}
                     </option>
                 @endforeach
             </select>
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_payment_status']))
+        @if(request()->hasAny(['search','filter_status','firm_id']))
             <a href="{{ route('purchases.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
@@ -108,6 +119,7 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>Firm</th>
                     <th>Date</th>
                     <th>Item Name</th>
                     <th>Vendor</th>
@@ -123,6 +135,7 @@
                 @forelse($purchases as $key => $purchase)
                 <tr>
                     <td>{{ $purchases->firstItem() + $key }}</td>
+                    <td><strong style="color:#0F172A;">{{ $purchase->firm->firm_name ?? '—' }}</strong></td>
                     <td style="white-space:nowrap;">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d M Y') }}</td>
                     <td style="font-weight:700;">{{ $purchase->item_name }}</td>
                     <td>{{ $purchase->vendor ? $purchase->vendor->name : '—' }}</td>

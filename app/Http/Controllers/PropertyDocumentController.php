@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PropertyDocumentRequest;
-
 use App\Models\Property;
 use App\Models\PropertyDocument;
 use Illuminate\Http\Request;
@@ -15,12 +14,20 @@ class PropertyDocumentController extends Controller
     /* ── INDEX ─────────────────────────────────────────────────────── */
     public function index(Request $request)
     {
-        $firmId = Auth::user()->firm_id;
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
 
-        $properties = Property::where('firm_id', $firmId)->orderBy('property_name')->get();
-
-        $query = PropertyDocument::with('property')
-            ->whereHas('property', fn($q) => $q->where('firm_id', $firmId));
+        if ($isAdmin) {
+            $properties = Property::orderBy('property_name')->get();
+            $query = PropertyDocument::with(['property', 'firm']);
+            if ($request->filled('firm_id')) {
+                $query->where('firm_id', $request->firm_id);
+            }
+        } else {
+            $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+            $properties = Property::where('firm_id', $firmId)->orderBy('property_name')->get();
+            $query = PropertyDocument::with(['property', 'firm'])
+                ->where('firm_id', $firmId);
+        }
 
         if ($request->filled('property_id')) {
             $query->where('property_id', $request->property_id);
@@ -50,8 +57,14 @@ class PropertyDocumentController extends Controller
     /* ── CREATE ─────────────────────────────────────────────────────── */
     public function create()
     {
-        $properties    = Property::where('firm_id', Auth::user()->firm_id)
-                            ->orderBy('property_name')->get();
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+
+        if ($isAdmin) {
+            $properties = Property::orderBy('property_name')->get();
+        } else {
+            $properties = Property::where('firm_id', $firmId)->orderBy('property_name')->get();
+        }
         $documentTypes = PropertyDocument::documentTypes();
 
         return view('admin.property-documents.create',
@@ -61,11 +74,12 @@ class PropertyDocumentController extends Controller
     /* ── STORE ──────────────────────────────────────────────────────── */
     public function store(PropertyDocumentRequest $request)
     {
-        
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        $firmId = $isAdmin ? $request->firm_id : (auth()->user() ? auth()->user()->firm_id : session('firm_id'));
 
-        // Authorise: property must belong to logged-in firm
+        // Authorise: property must belong to the selected firm
         $property = Property::findOrFail($request->property_id);
-        if ($property->firm_id !== Auth::user()->firm_id) {
+        if ($property->firm_id != $firmId) {
             abort(403);
         }
 
@@ -73,6 +87,7 @@ class PropertyDocumentController extends Controller
             ->store('property-documents', 'public');
 
         $doc = PropertyDocument::create([
+            'firm_id'         => $firmId,
             'property_id'     => $request->property_id,
             'document_type'   => $request->document_type,
             'document_title'  => $request->document_title,
@@ -81,7 +96,7 @@ class PropertyDocumentController extends Controller
             'expiry_date'     => $request->expiry_date ?: null,
             'remarks'         => $request->remarks,
             'status'          => $request->status,
-            'created_by'      => Auth::id(),
+            'created_by'      => auth()->id(),
         ]);
 
         \App\Models\AuditLog::log(
@@ -109,8 +124,12 @@ class PropertyDocumentController extends Controller
     {
         $this->authorise($propertyDocument);
 
-        $properties    = Property::where('firm_id', Auth::user()->firm_id)
-                            ->orderBy('property_name')->get();
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        if ($isAdmin) {
+            $properties = Property::orderBy('property_name')->get();
+        } else {
+            $properties = Property::where('firm_id', $propertyDocument->firm_id)->orderBy('property_name')->get();
+        }
         $documentTypes = PropertyDocument::documentTypes();
 
         return view('admin.property-documents.edit',
@@ -122,7 +141,14 @@ class PropertyDocumentController extends Controller
     {
         $this->authorise($propertyDocument);
 
-        
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        $firmId = $isAdmin ? $request->firm_id : $propertyDocument->firm_id;
+
+        // Authorise: property must belong to the selected firm
+        $property = Property::findOrFail($request->property_id);
+        if ($property->firm_id != $firmId) {
+            abort(403);
+        }
 
         $filePath = $propertyDocument->document_file;
 
@@ -133,6 +159,7 @@ class PropertyDocumentController extends Controller
         }
 
         $propertyDocument->update([
+            'firm_id'         => $firmId,
             'property_id'     => $request->property_id,
             'document_type'   => $request->document_type,
             'document_title'  => $request->document_title,
@@ -159,7 +186,9 @@ class PropertyDocumentController extends Controller
         $this->authorise($propertyDocument);
 
         $title = $propertyDocument->document_title;
-        Storage::disk('public')->delete($propertyDocument->document_file);
+        if ($propertyDocument->document_file) {
+            Storage::disk('public')->delete($propertyDocument->document_file);
+        }
         $propertyDocument->delete();
 
         \App\Models\AuditLog::log(
@@ -175,8 +204,12 @@ class PropertyDocumentController extends Controller
     /* ── Helper ─────────────────────────────────────────────────────── */
     private function authorise(PropertyDocument $doc): void
     {
-        if ($doc->property->firm_id !== Auth::user()->firm_id) {
-            abort(403);
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        if (!$isAdmin) {
+            $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+            if ($doc->firm_id != $firmId) {
+                abort(403);
+            }
         }
     }
 }

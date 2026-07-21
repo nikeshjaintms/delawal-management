@@ -30,6 +30,7 @@
 <div class="card-box">
     <form method="POST" action="{{ route('materials.store') }}">
         @csrf
+        @include('admin.components.firm-select')
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-boxes-stacked"></i> Material Details</div>
             <div class="form-row">

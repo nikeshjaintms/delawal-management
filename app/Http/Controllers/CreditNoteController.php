@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreditNoteRequest;
-
 use App\Models\CreditNote;
 use App\Models\Customer;
 use App\Models\PropertySale;
+use App\Models\Firm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,27 +16,40 @@ class CreditNoteController extends Controller
 
     private function authorise(CreditNote $note): void
     {
-        if ($note->firm_id !== Auth::user()->firm_id) abort(403);
+        if (!Auth::user()->isAdmin() && $note->firm_id !== Auth::user()->firm_id) abort(403);
     }
 
-    private function dropdowns(): array
+    private function dropdowns($selectedFirmId = null): array
     {
-        $firmId = Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $selectedFirmId ?? ($user ? $user->firm_id : session('firm_id'));
+
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        $custQuery = Customer::where('status', 'active')->orderBy('name');
+        $saleQuery = PropertySale::with('property')->orderBy('sale_date', 'desc');
+
+        if ($firmId && (!$user || !$user->isAdmin())) {
+            $custQuery->where('firm_id', $firmId);
+            $saleQuery->where('firm_id', $firmId);
+        }
+
         return [
-            'customers' => Customer::where('firm_id', $firmId)
-                ->where('status', 'active')->orderBy('name')->get(),
-            'propertySales' => PropertySale::with('property')
-                ->where('firm_id', $firmId)->orderBy('sale_date', 'desc')->get(),
+            'firms'         => $firms,
+            'customers'     => $custQuery->get(),
+            'propertySales' => $saleQuery->get(),
         ];
     }
 
-    // ----------------------------------------------------------------
-    // INDEX
-    // ----------------------------------------------------------------
     public function index(Request $request)
     {
-        $firmId = Auth::user()->firm_id;
-        $query  = CreditNote::with('customer')->where('firm_id', $firmId);
+        $query = CreditNote::with(['firm', 'customer']);
+
+        if (!Auth::user()->isAdmin()) {
+            $query->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -44,7 +57,8 @@ class CreditNoteController extends Controller
                 $q->where('credit_note_no', 'like', "%{$s}%")
                   ->orWhere('related_invoice_no', 'like', "%{$s}%")
                   ->orWhere('reason', 'like', "%{$s}%")
-                  ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%{$s}%"));
+                  ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%{$s}%"))
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
         }
         if ($request->filled('filter_customer')) $query->where('customer_id', $request->filter_customer);
@@ -53,16 +67,18 @@ class CreditNoteController extends Controller
         if ($request->filled('to_date'))          $query->whereDate('credit_note_date', '<=', $request->to_date);
 
         $totalCredit  = (clone $query)->sum('credit_amount');
-        $creditNotes  = $query->orderBy('credit_note_date', 'desc')->paginate(15);
+        $creditNotes  = $query->orderBy('credit_note_date', 'desc')->paginate(15)->withQueryString();
 
-        $customers = Customer::where('firm_id', $firmId)->orderBy('name')->get();
+        $custQuery = Customer::orderBy('name');
+        if (!Auth::user()->isAdmin()) {
+            $custQuery->where('firm_id', Auth::user()->firm_id);
+        }
+        $customers = $custQuery->get();
+        $firms     = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.credit-notes.index', compact('creditNotes', 'customers', 'totalCredit'));
+        return view('admin.credit-notes.index', compact('creditNotes', 'customers', 'firms', 'totalCredit'));
     }
 
-    // ----------------------------------------------------------------
-    // CREATE / STORE
-    // ----------------------------------------------------------------
     public function create()
     {
         return view('admin.credit-notes.create', $this->dropdowns());
@@ -70,7 +86,7 @@ class CreditNoteController extends Controller
 
     public function store(CreditNoteRequest $request)
     {
-        
+        $firmId = $request->firm_id ?? Auth::user()->firm_id;
 
         $cgst   = (float) ($request->cgst_amount ?? 0);
         $sgst   = (float) ($request->sgst_amount ?? 0);
@@ -79,7 +95,7 @@ class CreditNoteController extends Controller
         $credit = (float) $request->taxable_amount + $totGst;
 
         CreditNote::create([
-            'firm_id'            => Auth::user()->firm_id,
+            'firm_id'            => $firmId,
             'credit_note_no'     => $request->credit_note_no,
             'credit_note_date'   => $request->credit_note_date,
             'customer_id'        => $request->customer_id   ?: null,
@@ -103,25 +119,19 @@ class CreditNoteController extends Controller
             ->with('success', 'Credit note added successfully.');
     }
 
-    // ----------------------------------------------------------------
-    // SHOW
-    // ----------------------------------------------------------------
     public function show(CreditNote $creditNote)
     {
         $this->authorise($creditNote);
-        $creditNote->load(['customer', 'propertySale.property']);
+        $creditNote->load(['firm', 'customer', 'propertySale.property']);
         return view('admin.credit-notes.show', compact('creditNote'));
     }
 
-    // ----------------------------------------------------------------
-    // EDIT / UPDATE
-    // ----------------------------------------------------------------
     public function edit(CreditNote $creditNote)
     {
         $this->authorise($creditNote);
         return view('admin.credit-notes.edit', array_merge(
             ['creditNote' => $creditNote],
-            $this->dropdowns()
+            $this->dropdowns($creditNote->firm_id)
         ));
     }
 
@@ -129,7 +139,7 @@ class CreditNoteController extends Controller
     {
         $this->authorise($creditNote);
 
-        
+        $firmId = $request->firm_id ?? $creditNote->firm_id;
 
         $cgst   = (float) ($request->cgst_amount ?? 0);
         $sgst   = (float) ($request->sgst_amount ?? 0);
@@ -138,6 +148,7 @@ class CreditNoteController extends Controller
         $credit = (float) $request->taxable_amount + $totGst;
 
         $creditNote->update([
+            'firm_id'            => $firmId,
             'credit_note_no'     => $request->credit_note_no,
             'credit_note_date'   => $request->credit_note_date,
             'customer_id'        => $request->customer_id   ?: null,
@@ -161,13 +172,11 @@ class CreditNoteController extends Controller
             ->with('success', 'Credit note updated successfully.');
     }
 
-    // ----------------------------------------------------------------
-    // DESTROY
-    // ----------------------------------------------------------------
     public function destroy(CreditNote $creditNote)
     {
         $this->authorise($creditNote);
         $creditNote->delete();
+
         return redirect()->route('credit-notes.index')
             ->with('success', 'Credit note deleted successfully.');
     }

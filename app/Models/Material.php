@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Material extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'firm_id', 'material_category_id', 'material_name',
         'unit', 'opening_stock', 'current_stock', 'minimum_stock', 'status',

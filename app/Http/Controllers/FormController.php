@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\FormRequest;
-
 use App\Models\Form;
 use App\Models\FormField;
 use App\Models\FormSubmission;
+use App\Models\Firm;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -15,28 +16,43 @@ class FormController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Form::query();
+        $query = Form::with('firm');
 
-        if ($request->search) {
-            $query->where('form_name', 'like', '%' . $request->search . '%')
-                ->orWhere('form_type', 'like', '%' . $request->search . '%');
+        if (!Auth::user()->isAdmin()) {
+            $query->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
         }
 
-        $forms = $query->latest()->paginate(10);
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('form_name', 'like', "%{$search}%")
+                  ->orWhere('form_type', 'like', "%{$search}%")
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$search}%"));
+            });
+        }
 
-        return view('admin.forms.index', compact('forms'));
+        $forms = $query->latest()->paginate(10)->withQueryString();
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        return view('admin.forms.index', compact('forms', 'firms'));
     }
 
     public function create()
     {
-        return view('admin.forms.create');
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        return view('admin.forms.create', compact('firms'));
     }
 
     public function store(FormRequest $request)
     {
         return DB::transaction(function () use ($request) {
             try {
+                $firmId = $request->firm_id ?? Auth::user()->firm_id;
+
                 $form = Form::create([
+                    'firm_id'     => $firmId,
                     'form_name'   => $request->form_name,
                     'form_type'   => $request->form_type,
                     'description' => $request->description,
@@ -80,41 +96,69 @@ class FormController extends Controller
 
     public function show(Form $form)
     {
+        if (!Auth::user()->isAdmin() && $form->firm_id != Auth::user()->firm_id) abort(403);
+
         $fields = $form->fields()->where('status', 'active')->orderBy('sort_order', 'asc')->get();
         return view('admin.forms.show', compact('form', 'fields'));
     }
 
     public function edit(Form $form)
     {
+        if (!Auth::user()->isAdmin() && $form->firm_id != Auth::user()->firm_id) abort(403);
+
         $fields = $form->fields()->orderBy('sort_order', 'asc')->get();
-        return view('admin.forms.edit', compact('form', 'fields'));
+        $firms  = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        return view('admin.forms.edit', compact('form', 'fields', 'firms'));
     }
 
     public function update(FormRequest $request, Form $form)
     {
+        if (!Auth::user()->isAdmin() && $form->firm_id != Auth::user()->firm_id) abort(403);
+
         return DB::transaction(function () use ($request, $form) {
             try {
+                $firmId = $request->firm_id ?? $form->firm_id;
+
                 $form->update([
+                    'firm_id'     => $firmId,
                     'form_name'   => $request->form_name,
                     'form_type'   => $request->form_type,
                     'description' => $request->description,
                     'status'      => $request->status,
                 ]);
 
-                $form->fields()->delete();
-
                 if ($request->has('fields') && is_array($request->fields)) {
+                    // Sync fields
+                    $existingIds = [];
                     foreach ($request->fields as $fieldData) {
-                        $form->fields()->create([
-                            'label'       => $fieldData['label'],
-                            'field_name'  => strtolower(str_replace(' ', '_', $fieldData['field_name'])),
-                            'field_type'  => $fieldData['field_type'],
-                            'is_required' => isset($fieldData['is_required']) && $fieldData['is_required'] ? true : false,
-                            'options'     => $fieldData['options'] ?? null,
-                            'sort_order'  => $fieldData['sort_order'],
-                            'status'      => $fieldData['status'],
-                        ]);
+                        if (isset($fieldData['id']) && $fieldData['id']) {
+                            $field = FormField::find($fieldData['id']);
+                            if ($field) {
+                                $field->update([
+                                    'label'       => $fieldData['label'],
+                                    'field_name'  => strtolower(str_replace(' ', '_', $fieldData['field_name'])),
+                                    'field_type'  => $fieldData['field_type'],
+                                    'is_required' => isset($fieldData['is_required']) && $fieldData['is_required'] ? true : false,
+                                    'options'     => $fieldData['options'] ?? null,
+                                    'sort_order'  => $fieldData['sort_order'],
+                                    'status'      => $fieldData['status'],
+                                ]);
+                                $existingIds[] = $field->id;
+                            }
+                        } else {
+                            $newField = $form->fields()->create([
+                                'label'       => $fieldData['label'],
+                                'field_name'  => strtolower(str_replace(' ', '_', $fieldData['field_name'])),
+                                'field_type'  => $fieldData['field_type'],
+                                'is_required' => isset($fieldData['is_required']) && $fieldData['is_required'] ? true : false,
+                                'options'     => $fieldData['options'] ?? null,
+                                'sort_order'  => $fieldData['sort_order'],
+                                'status'      => $fieldData['status'],
+                            ]);
+                            $existingIds[] = $newField->id;
+                        }
                     }
+                    $form->fields()->whereNotIn('id', $existingIds)->delete();
                 }
 
                 if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
@@ -138,75 +182,35 @@ class FormController extends Controller
         });
     }
 
+    public function destroy(Form $form)
+    {
+        if (!Auth::user()->isAdmin() && $form->firm_id != Auth::user()->firm_id) abort(403);
+
+        $form->delete();
+
+        return redirect()->route('forms.index')->with('success', 'Form deleted successfully.');
+    }
+
     public function toggleStatus(Form $form)
     {
-        $form->update([
-            'status' => $form->status === 'active' ? 'inactive' : 'active',
-        ]);
+        if (!Auth::user()->isAdmin() && $form->firm_id != Auth::user()->firm_id) abort(403);
+
+        $form->status = $form->status === 'active' ? 'inactive' : 'active';
+        $form->save();
 
         return redirect()->route('forms.index')->with('success', 'Form status updated successfully.');
     }
 
     public function submit(Request $request, Form $form)
     {
-        $fields = $form->fields()->where('status', 'active')->orderBy('sort_order', 'asc')->get();
-
-        $rules    = [];
-        $messages = [];
-
-        foreach ($fields as $field) {
-            $rule = [];
-            if ($field->is_required) {
-                $rule[]     = 'required';
-                $messages[$field->field_name . '.required'] = "The {$field->label} field is required.";
-            } else {
-                $rule[] = 'nullable';
-            }
-
-            if ($field->field_type === 'email') {
-                $rule[]     = 'email';
-                $messages[$field->field_name . '.email'] = "The {$field->label} must be a valid email address.";
-            } elseif ($field->field_type === 'number') {
-                $rule[]     = 'numeric';
-                $messages[$field->field_name . '.numeric'] = "The {$field->label} must be a number.";
-            } elseif ($field->field_type === 'file') {
-                $rule[]     = 'file|max:10240';
-                $messages[$field->field_name . '.max'] = "The {$field->label} must not be greater than 10MB.";
-            }
-
-            $rules[$field->field_name] = implode('|', $rule);
-        }
-        
-
-        $submissionData = [];
-        foreach ($fields as $field) {
-            $fieldName = $field->field_name;
-            if ($field->field_type === 'file' && $request->hasFile($fieldName)) {
-                $path = $request->file($fieldName)->store('form-submissions', 'public');
-                $submissionData[$fieldName] = [
-                    'type'          => 'file',
-                    'value'         => $path,
-                    'original_name' => $request->file($fieldName)->getClientOriginalName(),
-                ];
-            } elseif ($field->field_type === 'checkbox') {
-                $submissionData[$fieldName] = $request->input($fieldName, []);
-            } else {
-                $submissionData[$fieldName] = $request->input($fieldName);
-            }
-        }
+        $firmId = $form->firm_id ?: Auth::user()->firm_id;
 
         FormSubmission::create([
+            'firm_id'        => $firmId,
             'form_id'        => $form->id,
-            'submitted_data' => $submissionData,
+            'submitted_data' => $request->except(['_token', 'firm_id']),
         ]);
 
-        return redirect()->route('forms.show', $form->id)->with('success', 'Form submitted successfully.');
-    }
-
-    public function destroy(Form $form)
-    {
-        $form->fields()->delete();
-        $form->delete();
-        return redirect()->route('forms.index')->with('success', 'Form deleted successfully.');
+        return redirect()->back()->with('success', 'Form submitted successfully.');
     }
 }

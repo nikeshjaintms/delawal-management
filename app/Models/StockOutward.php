@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockOutward extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'firm_id', 'material_id', 'property_id',
         'outward_date', 'quantity', 'used_for', 'remarks',

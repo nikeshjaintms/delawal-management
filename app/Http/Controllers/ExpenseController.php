@@ -3,47 +3,58 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ExpenseRequest;
-
 use App\Models\Expense;
 use App\Models\Property;
 use App\Models\ExpenseCategory;
+use App\Models\Firm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class ExpenseController extends Controller
 {
-    const PAYMENT_MODES    = ['Cash', 'Bank Transfer', 'UPI', 'Cheque', 'Other'];
+    const PAYMENT_MODES     = ['Cash', 'Bank Transfer', 'UPI', 'Cheque', 'Other'];
     const APPROVAL_STATUSES = ['Pending', 'Approved', 'Rejected'];
 
-    // ---------------------------------------------------------------
-    // Shared dropdown data
-    // ---------------------------------------------------------------
-    private function dropdowns()
+    private function authorise(Expense $expense): void
     {
-        $firmId = Auth::user()->firm_id;
-
-        $properties = Property::where('firm_id', $firmId)
-            ->orderBy('property_name')->get();
-
-        $categories = ExpenseCategory::where('firm_id', $firmId)
-            ->where('status', 'active')
-            ->orderBy('name')->get();
-
-        return compact('properties', 'categories');
+        if (!Auth::user()->isAdmin() && $expense->firm_id !== Auth::user()->firm_id) {
+            abort(403);
+        }
     }
 
-    // ---------------------------------------------------------------
-    // INDEX
-    // ---------------------------------------------------------------
+    private function dropdowns($selectedFirmId = null)
+    {
+        $user   = Auth::user();
+        $firmId = $selectedFirmId ?? ($user ? $user->firm_id : session('firm_id'));
+
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        $propQuery = Property::orderBy('property_name');
+        $catQuery  = ExpenseCategory::where('status', 'active')->orderBy('name');
+
+        if ($firmId && (!$user || !$user->isAdmin())) {
+            $propQuery->where('firm_id', $firmId);
+            $catQuery->where('firm_id', $firmId);
+        }
+
+        return [
+            'firms'      => $firms,
+            'properties' => $propQuery->get(),
+            'categories' => $catQuery->get(),
+        ];
+    }
+
     public function index(Request $request)
     {
-        $firmId = Auth::user()->firm_id;
+        $query = Expense::with(['firm', 'property', 'expenseCategory']);
 
-        $query = Expense::with(['property', 'expenseCategory'])
-            ->where('firm_id', $firmId);
+        if (!Auth::user()->isAdmin()) {
+            $query->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
 
-        // --- Filters ---
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
@@ -51,9 +62,8 @@ class ExpenseController extends Controller
                   ->orWhere('expense_category', 'like', "%{$s}%")
                   ->orWhere('paid_to', 'like', "%{$s}%")
                   ->orWhere('bill_no', 'like', "%{$s}%")
-                  ->orWhereHas('property', fn($p) =>
-                      $p->where('property_name', 'like', "%{$s}%")
-                  );
+                  ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
         }
 
@@ -77,22 +87,19 @@ class ExpenseController extends Controller
             $query->where('expense_date', $request->filter_date);
         }
 
-        // Total for current filter (before pagination)
         $totalAmount = (clone $query)->sum('amount');
+        $expenses    = $query->orderBy('expense_date', 'desc')->paginate(15)->withQueryString();
 
-        $expenses = $query->orderBy('expense_date', 'desc')->paginate(15);
-
-        $properties = Property::where('firm_id', $firmId)->orderBy('property_name')->get();
-        $categories = ExpenseCategory::where('firm_id', $firmId)->where('status', 'active')->orderBy('name')->get();
+        $firmsData  = $this->dropdowns($request->firm_id);
+        $firms      = $firmsData['firms'];
+        $properties = $firmsData['properties'];
+        $categories = $firmsData['categories'];
 
         return view('admin.expenses.index', compact(
-            'expenses', 'properties', 'categories', 'totalAmount'
+            'expenses', 'firms', 'properties', 'categories', 'totalAmount'
         ));
     }
 
-    // ---------------------------------------------------------------
-    // CREATE / STORE
-    // ---------------------------------------------------------------
     public function create()
     {
         return view('admin.expenses.create', $this->dropdowns());
@@ -100,16 +107,14 @@ class ExpenseController extends Controller
 
     public function store(ExpenseRequest $request)
     {
-        
+        $firmId = $request->firm_id ?? Auth::user()->firm_id;
 
-        // Resolve category name from ID
         $categoryName = null;
         if ($request->expense_category_id) {
             $cat = ExpenseCategory::find($request->expense_category_id);
             $categoryName = $cat?->name;
         }
 
-        // Handle bill file upload
         $billFilePath = null;
         if ($request->hasFile('bill_file')) {
             $billFilePath = $request->file('bill_file')
@@ -117,7 +122,7 @@ class ExpenseController extends Controller
         }
 
         Expense::create([
-            'firm_id'             => Auth::user()->firm_id,
+            'firm_id'             => $firmId,
             'property_id'         => $request->property_id ?: null,
             'expense_date'        => $request->expense_date,
             'expense_category_id' => $request->expense_category_id ?: null,
@@ -136,25 +141,19 @@ class ExpenseController extends Controller
             ->with('success', 'Expense added successfully.');
     }
 
-    // ---------------------------------------------------------------
-    // SHOW
-    // ---------------------------------------------------------------
     public function show(Expense $expense)
     {
         $this->authorise($expense);
-        $expense->load(['property.propertyType', 'expenseCategory']);
+        $expense->load(['firm', 'property.propertyType', 'expenseCategory']);
         return view('admin.expenses.show', compact('expense'));
     }
 
-    // ---------------------------------------------------------------
-    // EDIT / UPDATE
-    // ---------------------------------------------------------------
     public function edit(Expense $expense)
     {
         $this->authorise($expense);
         return view('admin.expenses.edit', array_merge(
             ['expense' => $expense],
-            $this->dropdowns()
+            $this->dropdowns($expense->firm_id)
         ));
     }
 
@@ -162,7 +161,7 @@ class ExpenseController extends Controller
     {
         $this->authorise($expense);
 
-        
+        $firmId = $request->firm_id ?? $expense->firm_id ?? Auth::user()->firm_id;
 
         $categoryName = $expense->expense_category;
         if ($request->expense_category_id) {
@@ -172,10 +171,8 @@ class ExpenseController extends Controller
             $categoryName = null;
         }
 
-        // Handle bill file upload — replace if new file provided
         $billFilePath = $expense->bill_file;
         if ($request->hasFile('bill_file')) {
-            // Delete old file
             if ($expense->bill_file) {
                 Storage::disk('public')->delete($expense->bill_file);
             }
@@ -184,6 +181,7 @@ class ExpenseController extends Controller
         }
 
         $expense->update([
+            'firm_id'             => $firmId,
             'property_id'         => $request->property_id ?: null,
             'expense_date'        => $request->expense_date,
             'expense_category_id' => $request->expense_category_id ?: null,
@@ -202,14 +200,10 @@ class ExpenseController extends Controller
             ->with('success', 'Expense updated successfully.');
     }
 
-    // ---------------------------------------------------------------
-    // DESTROY
-    // ---------------------------------------------------------------
     public function destroy(Expense $expense)
     {
         $this->authorise($expense);
 
-        // Delete attached bill file
         if ($expense->bill_file) {
             Storage::disk('public')->delete($expense->bill_file);
         }
@@ -218,15 +212,5 @@ class ExpenseController extends Controller
 
         return redirect()->route('expenses.index')
             ->with('success', 'Expense deleted successfully.');
-    }
-
-    // ---------------------------------------------------------------
-    // Helper
-    // ---------------------------------------------------------------
-    private function authorise(Expense $expense): void
-    {
-        if ($expense->firm_id !== Auth::user()->firm_id) {
-            abort(403);
-        }
     }
 }

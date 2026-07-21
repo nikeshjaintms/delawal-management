@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Payments')
 @section('page-title', 'Payment Management')
@@ -65,10 +65,20 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('payments.index') }}" class="search-form">
+            @if(auth()->user() && auth()->user()->isAdmin())
+                <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width:200px;">
+                    <option value="">-- All Firms --</option>
+                    @foreach($firms as $firm)
+                        <option value="{{ $firm->id }}" {{ request('firm_id') == $firm->id ? 'selected' : '' }}>
+                            {{ $firm->firm_name }}
+                        </option>
+                    @endforeach
+                </select>
+            @endif
             <input type="text" name="search" value="{{ request('search') }}"
-                   placeholder="Search by customer, property, mode, status..." class="search-input @error('search') is-invalid @enderror">
+                   placeholder="Search by customer, property, firm, mode, status..." class="search-input @error('search') is-invalid @enderror">
             <button type="submit" class="btn-search">Search</button>
-            @if(request('search'))
+            @if(request('search') || request('firm_id'))
                 <a href="{{ route('payments.index') }}" class="btn-reset">Reset</a>
             @endif
         </form>
@@ -79,6 +89,7 @@
             <thead>
                 <tr>
                     <th>Pay ID</th>
+                    <th>Firm</th>
                     <th>Customer</th>
                     <th>Property / Unit</th>
                     <th>Booking ID</th>
@@ -95,6 +106,9 @@
                 @forelse($payments as $payment)
                     <tr>
                         <td><span class="pay-id">#{{ $payment->id }}</span></td>
+                        <td>
+                            <strong style="color:var(--text-primary);">{{ $payment->firm->firm_name ?? '-' }}</strong>
+                        </td>
                         <td>
                             <strong>{{ $payment->customer->name ?? '-' }}</strong>
                             @if($payment->customer?->mobile)

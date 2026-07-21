@@ -16,6 +16,9 @@ class PaymentRequest extends FormRequest
     protected function prepareForValidation()
     {
         $inputs = $this->all();
+        if (empty($inputs['firm_id'])) {
+            $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
+        }
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
                 $inputs[$key] = trim($value);
@@ -41,6 +44,7 @@ class PaymentRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
+            'firm_id'          => 'required|exists:firms,id',
             'property_sale_id' => 'required|exists:property_sales,id',
             'payment_date'     => 'required|date',
             'payment_amount'   => 'required|numeric|min:0.01',

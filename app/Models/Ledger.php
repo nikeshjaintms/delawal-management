@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Ledger extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'firm_id',
         'ledger_date',

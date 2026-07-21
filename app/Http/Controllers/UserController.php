@@ -15,7 +15,15 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with(['role', 'firm'])->where('firm_id', Auth::user()->firm_id);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+
+        $query = User::with(['role', 'firm']);
+
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $query->where('firm_id', $firmId);
+        }
 
         if ($request->search) {
             $query->where(function ($q) use ($request) {
@@ -41,8 +49,6 @@ class UserController extends Controller
 
     public function store(UserRequest $request)
     {
-        
-
         $role = Role::find($request->role_id);
 
         User::create([
@@ -61,7 +67,11 @@ class UserController extends Controller
 
     public function toggleStatus(User $user)
     {
-        if ($user->firm_id != Auth::user()->firm_id) {
+        $authUser = Auth::user();
+        $isAdmin = $authUser && $authUser->isAdmin();
+        $authFirmId = $authUser ? $authUser->firm_id : session('firm_id');
+
+        if (!$isAdmin && $user->firm_id != $authFirmId) {
             abort(403);
         }
 
@@ -78,7 +88,11 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        if ($user->firm_id != Auth::user()->firm_id) {
+        $authUser = Auth::user();
+        $isAdmin = $authUser && $authUser->isAdmin();
+        $authFirmId = $authUser ? $authUser->firm_id : session('firm_id');
+
+        if (!$isAdmin && $user->firm_id != $authFirmId) {
             abort(403);
         }
         return view('admin.users.show', compact('user'));
@@ -86,7 +100,11 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        if ($user->firm_id != Auth::user()->firm_id) {
+        $authUser = Auth::user();
+        $isAdmin = $authUser && $authUser->isAdmin();
+        $authFirmId = $authUser ? $authUser->firm_id : session('firm_id');
+
+        if (!$isAdmin && $user->firm_id != $authFirmId) {
             abort(403);
         }
         $roles = Role::all();
@@ -96,11 +114,13 @@ class UserController extends Controller
 
     public function update(UserRequest $request, User $user)
     {
-        if ($user->firm_id != Auth::user()->firm_id) {
+        $authUser = Auth::user();
+        $isAdmin = $authUser && $authUser->isAdmin();
+        $authFirmId = $authUser ? $authUser->firm_id : session('firm_id');
+
+        if (!$isAdmin && $user->firm_id != $authFirmId) {
             abort(403);
         }
-
-        
 
         $role = Role::find($request->role_id);
 
@@ -125,7 +145,11 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        if ($user->firm_id != Auth::user()->firm_id) {
+        $authUser = Auth::user();
+        $isAdmin = $authUser && $authUser->isAdmin();
+        $authFirmId = $authUser ? $authUser->firm_id : session('firm_id');
+
+        if (!$isAdmin && $user->firm_id != $authFirmId) {
             abort(403);
         }
 

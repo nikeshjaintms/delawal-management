@@ -17,8 +17,17 @@ class PropertyController extends Controller
     // ----------------------------------------------------------------
     public function index(Request $request)
     {
-        $query = Property::with('propertyType')
-            ->where('firm_id', Auth::user()->firm_id);
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        $query = Property::with(['propertyType', 'firm']);
+
+        if ($isAdmin) {
+            if ($request->filled('firm_id')) {
+                $query->where('firm_id', $request->firm_id);
+            }
+        } else {
+            $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+            $query->where('firm_id', $firmId);
+        }
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -41,8 +50,14 @@ class PropertyController extends Controller
     // ----------------------------------------------------------------
     public function create()
     {
-        $propertyTypes = PropertyType::where('firm_id', Auth::user()->firm_id)
-            ->orderBy('name')->get();
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+
+        if ($isAdmin) {
+            $propertyTypes = PropertyType::orderBy('name')->get();
+        } else {
+            $propertyTypes = PropertyType::where('firm_id', $firmId)->orderBy('name')->get();
+        }
 
         return view('admin.properties.create', compact('propertyTypes'));
     }
@@ -52,7 +67,8 @@ class PropertyController extends Controller
     // ----------------------------------------------------------------
     public function store(PropertyRequest $request)
     {
-        
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        $firmId = $isAdmin ? $request->firm_id : (auth()->user() ? auth()->user()->firm_id : session('firm_id'));
 
         $mainImagePath  = null;
         $documentPath   = null;
@@ -68,7 +84,7 @@ class PropertyController extends Controller
         }
 
         Property::create([
-            'firm_id'          => Auth::user()->firm_id,
+            'firm_id'          => $firmId,
             'property_type_id' => $request->property_type_id ?: null,
             'property_name'    => $request->property_name,
             'property_code'    => $request->property_code,
@@ -109,8 +125,12 @@ class PropertyController extends Controller
     {
         $this->authorise($property);
 
-        $propertyTypes = PropertyType::where('firm_id', Auth::user()->firm_id)
-            ->orderBy('name')->get();
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        if ($isAdmin) {
+            $propertyTypes = PropertyType::orderBy('name')->get();
+        } else {
+            $propertyTypes = PropertyType::where('firm_id', $property->firm_id)->orderBy('name')->get();
+        }
 
         return view('admin.properties.edit', compact('property', 'propertyTypes'));
     }
@@ -122,7 +142,8 @@ class PropertyController extends Controller
     {
         $this->authorise($property);
 
-        
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        $firmId = $isAdmin ? $request->firm_id : $property->firm_id;
 
         $mainImagePath = $property->main_image;
         $documentPath  = $property->document_file;
@@ -144,6 +165,7 @@ class PropertyController extends Controller
         }
 
         $property->update([
+            'firm_id'          => $firmId,
             'property_type_id' => $request->property_type_id ?: null,
             'property_name'    => $request->property_name,
             'property_code'    => $request->property_code,
@@ -191,8 +213,12 @@ class PropertyController extends Controller
     // ----------------------------------------------------------------
     private function authorise(Property $property): void
     {
-        if ($property->firm_id !== Auth::user()->firm_id) {
-            abort(403);
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        if (!$isAdmin) {
+            $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+            if ($property->firm_id != $firmId) {
+                abort(403);
+            }
         }
     }
 }

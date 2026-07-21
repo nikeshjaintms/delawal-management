@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Property Sales')
 @section('page-title', 'Property Sales')
@@ -66,10 +66,20 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('property-sales.index') }}" class="search-form">
+            @if(auth()->user() && auth()->user()->isAdmin())
+                <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width:200px;">
+                    <option value="">-- All Firms --</option>
+                    @foreach($firms as $firm)
+                        <option value="{{ $firm->id }}" {{ request('firm_id') == $firm->id ? 'selected' : '' }}>
+                            {{ $firm->firm_name }}
+                        </option>
+                    @endforeach
+                </select>
+            @endif
             <input type="text" name="search" value="{{ request('search') }}"
-                   placeholder="Search by property, customer, broker, status..." class="search-input @error('search') is-invalid @enderror">
+                   placeholder="Search by property, customer, broker, firm, status..." class="search-input @error('search') is-invalid @enderror">
             <button type="submit" class="btn-search">Search</button>
-            @if(request('search'))
+            @if(request('search') || request('firm_id'))
                 <a href="{{ route('property-sales.index') }}" class="btn-reset">Reset</a>
             @endif
         </form>
@@ -80,6 +90,7 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    <th>Firm</th>
                     <th>Property</th>
                     <th>Customer</th>
                     <th>Broker</th>
@@ -96,6 +107,9 @@
                 @forelse($propertySales as $key => $sale)
                     <tr>
                         <td>{{ $propertySales->firstItem() + $key }}</td>
+                        <td>
+                            <div class="prop-name">{{ $sale->firm->firm_name ?? '-' }}</div>
+                        </td>
                         <td>
                             <div class="prop-name">{{ $sale->property->property_name ?? '-' }}</div>
                             @if($sale->property?->property_code)

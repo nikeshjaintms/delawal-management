@@ -89,6 +89,10 @@
     <div class="section-title"><i class="fa-solid fa-circle-info"></i> Expense Information</div>
     <div class="detail-grid">
         <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
+            <div class="detail-value">{{ $expense->firm->firm_name ?? '—' }}</div>
+        </div>
+        <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-tag"></i> Expense Title</div>
             <div class="detail-value">{{ $expense->expense_title }}</div>
         </div>

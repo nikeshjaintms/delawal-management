@@ -31,6 +31,7 @@
 <div class="card-box">
     <form method="POST" action="{{ route('stock-inwards.store') }}">
         @csrf
+        @include('admin.components.firm-select')
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-arrow-down-to-bracket"></i> Inward Details</div>
             <div class="form-row">

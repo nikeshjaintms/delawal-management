@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title', 'Receipts')
 @section('page-title', 'Receipt Management')
 @section('content')
@@ -67,6 +67,17 @@
 <div class="card-box">
     {{-- Filters --}}
     <form method="GET" action="{{ route('receipts.index') }}" class="filter-bar">
+        @if(auth()->user() && auth()->user()->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-control" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id') == $f->id ? 'selected' : '' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
         <div class="filter-group">
             <span class="filter-label">Search</span>
             <input type="text" name="search" value="{{ request('search') }}"
@@ -81,7 +92,7 @@
             </select>
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_status']))
+        @if(request()->hasAny(['search','filter_status','firm_id']))
             <a href="{{ route('receipts.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
@@ -104,6 +115,7 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>Firm</th>
                     <th>Receipt No</th>
                     <th>Date</th>
                     <th>Received From</th>
@@ -118,6 +130,7 @@
                 @forelse($receipts as $key => $receipt)
                 <tr>
                     <td>{{ $receipts->firstItem() + $key }}</td>
+                    <td><strong style="color:#0F172A;">{{ $receipt->firm->firm_name ?? '—' }}</strong></td>
                     <td>
                         <span class="receipt-no-chip">{{ $receipt->receipt_no ?? '—' }}</span>
                     </td>

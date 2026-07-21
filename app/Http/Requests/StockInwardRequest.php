@@ -38,16 +38,23 @@ class StockInwardRequest extends FormRequest
                 }
             }
         }
-        $firmId = auth()->check() ? auth()->user()->firm_id : 0;
+        $user = auth()->user();
+        $firmId = $user ? $user->firm_id : 0;
 
         $rules = [
             'material_id' => 'required|exists:materials,id',
-            'vendor_id' => 'nullable|exists:vendors,id',
-            'quantity' => 'required|numeric|min:0.01',
-            'unit_price' => 'required|numeric|min:0',
+            'property_id' => 'nullable|exists:properties,id',
+            'quantity' => 'required|numeric|min:0.001',
+            'rate' => 'nullable|numeric|min:0',
             'inward_date' => 'required|date',
+            'supplier_name' => 'nullable|string|max:255',
+            'bill_no' => 'nullable|string|max:255',
             'remarks' => 'nullable|string|max:1000',
         ];
+
+        if ($user && $user->isAdmin()) {
+            $rules['firm_id'] = 'required|exists:firms,id';
+        }
 
         // Replace placeholders in unique rules dynamically
         foreach ($rules as $field => $rule) {
@@ -82,11 +89,14 @@ class StockInwardRequest extends FormRequest
     {
         return [
             'material_id' => 'Material',
-            'vendor_id' => 'Vendor',
+            'property_id' => 'Property',
             'quantity' => 'Quantity',
-            'unit_price' => 'Unit Price',
+            'rate' => 'Rate per Unit',
             'inward_date' => 'Inward Date',
+            'supplier_name' => 'Supplier Name',
+            'bill_no' => 'Bill/Invoice No',
             'remarks' => 'Remarks',
+            'firm_id' => 'Firm',
         ];
     }
 

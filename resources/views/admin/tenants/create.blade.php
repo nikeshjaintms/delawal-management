@@ -161,6 +161,7 @@
 <div class="card-box">
     <form method="POST" action="{{ route('tenants.store') }}" enctype="multipart/form-data">
         @csrf
+        @include('admin.components.firm-select')
 
         <div class="form-row">
             <div class="form-group">

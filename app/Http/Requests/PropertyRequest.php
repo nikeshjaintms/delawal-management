@@ -38,9 +38,10 @@ class PropertyRequest extends FormRequest
                 }
             }
         }
-        $firmId = auth()->check() ? auth()->user()->firm_id : 0;
+        $firmId = $this->get('firm_id') ?: (auth()->check() && auth()->user() ? auth()->user()->firm_id : session('firm_id'));
 
         $rules = [
+            'firm_id' => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
             'property_name' => 'required|string|max:255',
             'property_type_id' => 'required|exists:property_types,id',
             'property_code' => 'required|string|max:100|unique:properties,property_code,{ID},id,firm_id,{FIRM_ID}',

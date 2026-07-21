@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockInward extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'firm_id', 'material_id', 'property_id',
         'inward_date', 'quantity', 'rate', 'total_amount',

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Purchase extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'firm_id', 'vendor_id', 'item_name', 'purchase_date',
         'purchase_amount', 'quantity', 'payment_mode',

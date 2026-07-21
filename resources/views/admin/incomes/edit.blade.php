@@ -40,6 +40,7 @@
 
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-arrow-trend-up"></i> Income Details</div>
+            @include('admin.components.firm-select', ['model' => $income])
 
             <div class="form-row">
                 <div class="form-group">

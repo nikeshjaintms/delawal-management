@@ -38,9 +38,10 @@ class PropertyStatusRequest extends FormRequest
                 }
             }
         }
-        $firmId = auth()->check() ? auth()->user()->firm_id : 0;
+        $firmId = $this->get('firm_id') ?: (auth()->check() && auth()->user() ? auth()->user()->firm_id : session('firm_id'));
 
         $rules = [
+            'firm_id' => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
             'property_id' => 'required|exists:properties,id',
             'status' => 'required|in:available,booked,sold,rented',
             'status_date' => 'required|date',

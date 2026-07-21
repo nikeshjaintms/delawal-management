@@ -177,6 +177,7 @@
     @method('PUT')
 
     <div class="card-box">
+        @include('admin.components.firm-select', ['model' => $form])
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="form_name">Form Name <span>*</span></label>

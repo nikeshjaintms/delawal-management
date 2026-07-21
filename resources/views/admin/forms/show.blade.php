@@ -169,7 +169,7 @@
 <div class="crud-header">
     <div class="crud-title">
         <h2>{{ $form->form_name }}</h2>
-        <p>Type: {{ $form->form_type }} | Preview and fill in details below.</p>
+        <p>Firm: <strong>{{ $form->firm->firm_name ?? 'N/A' }}</strong> | Type: {{ $form->form_type }} | Preview and fill in details below.</p>
     </div>
 </div>
 

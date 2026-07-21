@@ -41,6 +41,7 @@
     <form method="POST" action="{{ route('rentals.update', $rental->id) }}">
         @csrf
         @method('PUT')
+        @include('admin.components.firm-select', ['model' => $rental])
 
         {{-- Property --}}
         <div class="form-section">

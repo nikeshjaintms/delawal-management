@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Properties')
 @section('page-title', 'Property Master')
@@ -169,10 +169,20 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('properties.index') }}" class="search-form">
+            @if(auth()->user() && auth()->user()->isAdmin())
+                <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width: 180px;">
+                    <option value="">All Firms</option>
+                    @foreach(\App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get() as $firm)
+                        <option value="{{ $firm->id }}" {{ request('firm_id') == $firm->id ? 'selected' : '' }}>
+                            {{ $firm->firm_name }}
+                        </option>
+                    @endforeach
+                </select>
+            @endif
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="Search by name, code, location, city, status..." class="search-input @error('search') is-invalid @enderror">
             <button type="submit" class="btn-search">Search</button>
-            @if(request('search'))
+            @if(request('search') || request('firm_id'))
                 <a href="{{ route('properties.index') }}" class="btn-reset">Reset</a>
             @endif
         </form>
@@ -183,6 +193,9 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        <th>Firm</th>
+                    @endif
                     <th>Image</th>
                     <th>Code</th>
                     <th>Property Name</th>
@@ -198,6 +211,9 @@
                 @forelse($properties as $key => $property)
                     <tr>
                         <td>{{ $properties->firstItem() + $key }}</td>
+                        @if(auth()->user() && auth()->user()->isAdmin())
+                            <td><strong>{{ $property->firm->firm_name ?? 'N/A' }}</strong></td>
+                        @endif
                         <td>
                             @if($property->main_image)
                                 <img src="{{ asset('storage/' . $property->main_image) }}"
@@ -253,7 +269,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="10" align="center" style="padding: 30px; color: var(--text-secondary);">
+                        <td colspan="11" align="center" style="padding: 30px; color: var(--text-secondary);">
                             No properties found for this firm.
                         </td>
                     </tr>

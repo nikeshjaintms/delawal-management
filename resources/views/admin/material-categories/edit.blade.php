@@ -26,10 +26,11 @@
 <div class="card-box">
     <form method="POST" action="{{ route('material-categories.update', $materialCategory->id) }}">
         @csrf @method('PUT')
+        @include('admin.components.firm-select', ['model' => $materialCategory])
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="category_name">Category Name <span>*</span></label>
-                <input type="text" name="category_name" id="category_name" value="{{ old('category_name',$materialCategory- class="@error('category_name') is-invalid @enderror">category_name) }}" class="form-control" autocomplete="off">
+                <input type="text" name="category_name" id="category_name" value="{{ old('category_name', $materialCategory->category_name) }}" class="form-control @error('category_name') is-invalid @enderror" autocomplete="off">
                 @error('category_name')<div class="text-error">{{ $message }}</div>@enderror
             </div>
             <div class="form-group">

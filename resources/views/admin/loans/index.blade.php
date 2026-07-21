@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title','Loan Management')
 @section('page-title','Loan Management')
 @section('content')
@@ -93,6 +93,17 @@
 
 <div class="card-box">
     <form method="GET" action="{{ route('loans.index') }}" class="filter-bar">
+        @if(auth()->user() && auth()->user()->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-control" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id') == $f->id ? 'selected' : '' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
         <div class="filter-group">
             <span class="filter-label">Search</span>
             <input type="text" name="search" value="{{ request('search') }}" class="search-input @error('search') is-invalid @enderror" placeholder="Bank, type, customer, property...">
@@ -125,7 +136,7 @@
             </select>
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_customer','filter_property','filter_status']))
+        @if(request()->hasAny(['search','filter_customer','filter_property','filter_status','firm_id']))
             <a href="{{ route('loans.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
@@ -135,6 +146,7 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>Firm</th>
                     <th>Bank / Loan</th>
                     <th>Customer</th>
                     <th>Property</th>
@@ -155,6 +167,7 @@
                 @endphp
                 <tr>
                     <td>{{ $loans->firstItem() + $key }}</td>
+                    <td><strong style="color:#0F172A;">{{ $loan->firm->firm_name ?? '—' }}</strong></td>
                     <td>
                         <div style="font-weight:700;">{{ $loan->bank_name }}</div>
                         <div style="font-size:11.5px;color:var(--text-secondary);">{{ $loan->loan_type }}</div>

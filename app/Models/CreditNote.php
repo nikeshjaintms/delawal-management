@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class CreditNote extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'firm_id',
         'credit_note_no',

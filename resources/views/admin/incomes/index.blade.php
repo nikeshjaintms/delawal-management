@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title', 'Incomes')
 @section('page-title', 'Income Management')
 @section('content')
@@ -71,6 +71,17 @@
 <div class="card-box">
     {{-- Filters --}}
     <form method="GET" action="{{ route('incomes.index') }}" class="filter-bar">
+        @if(auth()->user() && auth()->user()->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-control" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id') == $f->id ? 'selected' : '' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
         <div class="filter-group">
             <span class="filter-label">Search</span>
             <input type="text" name="search" value="{{ request('search') }}"
@@ -94,7 +105,7 @@
             </select>
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_type','filter_status']))
+        @if(request()->hasAny(['search','filter_type','filter_status','firm_id']))
             <a href="{{ route('incomes.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
@@ -108,15 +119,17 @@
         </div>
         <div class="rec-count">
             <i class="fa-solid fa-list-ul" style="color:var(--text-secondary);"></i>
-            {{ $incomes->total() }} record{{ $incomes->total() != 1 ? 's' : '' }} found
+            <span>{{ $incomes->total() }} Records</span>
         </div>
     </div>
 
+    {{-- Table --}}
     <div class="table-container">
         <table class="premium-table">
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>Firm</th>
                     <th>Date</th>
                     <th>Income Type</th>
                     <th>Received From</th>
@@ -133,6 +146,7 @@
                 @endphp
                 <tr>
                     <td>{{ $incomes->firstItem() + $key }}</td>
+                    <td><strong style="color:#0F172A;">{{ $income->firm->firm_name ?? '—' }}</strong></td>
                     <td style="white-space:nowrap;">{{ \Carbon\Carbon::parse($income->income_date)->format('d M Y') }}</td>
                     <td>
                         <span class="type-chip type-{{ $typeSlug }}">{{ $income->income_type ?? '—' }}</span>

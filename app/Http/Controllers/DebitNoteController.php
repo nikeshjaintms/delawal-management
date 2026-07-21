@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DebitNoteRequest;
-
 use App\Models\DebitNote;
 use App\Models\Vendor;
+use App\Models\Firm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,25 +15,36 @@ class DebitNoteController extends Controller
 
     private function authorise(DebitNote $note): void
     {
-        if ($note->firm_id !== Auth::user()->firm_id) abort(403);
+        if (!Auth::user()->isAdmin() && $note->firm_id !== Auth::user()->firm_id) abort(403);
     }
 
-    private function dropdowns(): array
+    private function dropdowns($selectedFirmId = null): array
     {
-        $firmId = Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $selectedFirmId ?? ($user ? $user->firm_id : session('firm_id'));
+
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        $vendorQuery = Vendor::where('status', 'active')->orderBy('name');
+        if ($firmId && (!$user || !$user->isAdmin())) {
+            $vendorQuery->where('firm_id', $firmId);
+        }
+
         return [
-            'vendors' => Vendor::where('firm_id', $firmId)
-                ->where('status', 'active')->orderBy('name')->get(),
+            'firms'   => $firms,
+            'vendors' => $vendorQuery->get(),
         ];
     }
 
-    // ----------------------------------------------------------------
-    // INDEX
-    // ----------------------------------------------------------------
     public function index(Request $request)
     {
-        $firmId = Auth::user()->firm_id;
-        $query  = DebitNote::with('vendor')->where('firm_id', $firmId);
+        $query = DebitNote::with(['firm', 'vendor']);
+
+        if (!Auth::user()->isAdmin()) {
+            $query->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -41,7 +52,8 @@ class DebitNoteController extends Controller
                 $q->where('debit_note_no', 'like', "%{$s}%")
                   ->orWhere('related_bill_no', 'like', "%{$s}%")
                   ->orWhere('reason', 'like', "%{$s}%")
-                  ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"));
+                  ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"))
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
         }
         if ($request->filled('filter_vendor'))  $query->where('vendor_id', $request->filter_vendor);
@@ -50,16 +62,18 @@ class DebitNoteController extends Controller
         if ($request->filled('to_date'))         $query->whereDate('debit_note_date', '<=', $request->to_date);
 
         $totalDebit  = (clone $query)->sum('debit_amount');
-        $debitNotes  = $query->orderBy('debit_note_date', 'desc')->paginate(15);
+        $debitNotes  = $query->orderBy('debit_note_date', 'desc')->paginate(15)->withQueryString();
 
-        $vendors = Vendor::where('firm_id', $firmId)->orderBy('name')->get();
+        $vendorQuery = Vendor::orderBy('name');
+        if (!Auth::user()->isAdmin()) {
+            $vendorQuery->where('firm_id', Auth::user()->firm_id);
+        }
+        $vendors = $vendorQuery->get();
+        $firms   = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.debit-notes.index', compact('debitNotes', 'vendors', 'totalDebit'));
+        return view('admin.debit-notes.index', compact('debitNotes', 'vendors', 'firms', 'totalDebit'));
     }
 
-    // ----------------------------------------------------------------
-    // CREATE / STORE
-    // ----------------------------------------------------------------
     public function create()
     {
         return view('admin.debit-notes.create', $this->dropdowns());
@@ -67,7 +81,7 @@ class DebitNoteController extends Controller
 
     public function store(DebitNoteRequest $request)
     {
-        
+        $firmId = $request->firm_id ?? Auth::user()->firm_id;
 
         $cgst   = (float) ($request->cgst_amount ?? 0);
         $sgst   = (float) ($request->sgst_amount ?? 0);
@@ -76,7 +90,7 @@ class DebitNoteController extends Controller
         $debit  = (float) $request->taxable_amount + $totGst;
 
         DebitNote::create([
-            'firm_id'          => Auth::user()->firm_id,
+            'firm_id'          => $firmId,
             'debit_note_no'    => $request->debit_note_no,
             'debit_note_date'  => $request->debit_note_date,
             'vendor_id'        => $request->vendor_id ?: null,
@@ -99,25 +113,19 @@ class DebitNoteController extends Controller
             ->with('success', 'Debit note added successfully.');
     }
 
-    // ----------------------------------------------------------------
-    // SHOW
-    // ----------------------------------------------------------------
     public function show(DebitNote $debitNote)
     {
         $this->authorise($debitNote);
-        $debitNote->load('vendor');
+        $debitNote->load(['firm', 'vendor']);
         return view('admin.debit-notes.show', compact('debitNote'));
     }
 
-    // ----------------------------------------------------------------
-    // EDIT / UPDATE
-    // ----------------------------------------------------------------
     public function edit(DebitNote $debitNote)
     {
         $this->authorise($debitNote);
         return view('admin.debit-notes.edit', array_merge(
             ['debitNote' => $debitNote],
-            $this->dropdowns()
+            $this->dropdowns($debitNote->firm_id)
         ));
     }
 
@@ -125,7 +133,7 @@ class DebitNoteController extends Controller
     {
         $this->authorise($debitNote);
 
-        
+        $firmId = $request->firm_id ?? $debitNote->firm_id;
 
         $cgst   = (float) ($request->cgst_amount ?? 0);
         $sgst   = (float) ($request->sgst_amount ?? 0);
@@ -134,6 +142,7 @@ class DebitNoteController extends Controller
         $debit  = (float) $request->taxable_amount + $totGst;
 
         $debitNote->update([
+            'firm_id'          => $firmId,
             'debit_note_no'    => $request->debit_note_no,
             'debit_note_date'  => $request->debit_note_date,
             'vendor_id'        => $request->vendor_id ?: null,
@@ -156,13 +165,11 @@ class DebitNoteController extends Controller
             ->with('success', 'Debit note updated successfully.');
     }
 
-    // ----------------------------------------------------------------
-    // DESTROY
-    // ----------------------------------------------------------------
     public function destroy(DebitNote $debitNote)
     {
         $this->authorise($debitNote);
         $debitNote->delete();
+
         return redirect()->route('debit-notes.index')
             ->with('success', 'Debit note deleted successfully.');
     }

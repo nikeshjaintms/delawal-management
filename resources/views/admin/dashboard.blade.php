@@ -6,12 +6,12 @@
     /* --- Welcome Banner --- */
     .dash-welcome {
         position: relative;
-        background: linear-gradient(135deg, #10233F 0%, #1e3a5fff 50%, #2f6fe4ff 100%);
+        background: linear-gradient(135deg, #000000 0%, #000000 45%, #C5A87E 100%);
         border-radius: 22px; padding: 34px 38px; margin-bottom: 28px; overflow: hidden;
-        box-shadow: 0 4px 24px rgba(47, 111, 228, 0.25), 0 1px 4px rgba(0, 0, 0, 0.10);
+        box-shadow: 0 4px 24px rgba(197, 168, 126, 0.22), 0 1px 4px rgba(0, 0, 0, 0.10);
         transition: box-shadow 0.3s ease;
     }
-    .dash-welcome:hover { box-shadow: 0 8px 36px rgba(47, 111, 228, 0.35), 0 2px 8px rgba(0, 0, 0, 0.12); }
+    .dash-welcome:hover { box-shadow: 0 8px 36px rgba(197, 168, 126, 0.32), 0 2px 8px rgba(0, 0, 0, 0.12); }
     .dash-welcome-inner { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 22px; }
     .dash-welcome-tag {
         display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.10);
@@ -30,7 +30,7 @@
         font-family: inherit; cursor: pointer; backdrop-filter: blur(4px);
     }
     .dqa-btn i { font-size: 13px; transition: transform 0.2s ease; }
-    .dqa-btn:hover { background: rgba(47, 111, 228, 0.25); border-color: rgba(47, 111, 228, 0.45); color: #fff; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(47, 111, 228, 0.3); }
+    .dqa-btn:hover { background: rgba(197, 168, 126, 0.20); border-color: rgba(197, 168, 126, 0.40); color: #fff; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(197, 168, 126, 0.25); }
     .dqa-btn:hover i { transform: scale(1.15); }
 
     /* --- KPI Section Header --- */

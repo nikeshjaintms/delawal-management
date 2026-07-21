@@ -207,6 +207,17 @@
 {{-- ── Filter Bar ── --}}
 <div class="card-box filter-card">
     <form method="GET" action="{{ route('reports.rentals') }}" class="filter-bar">
+        @if(auth()->user() && auth()->user()->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id')==$f->id?'selected':'' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
         <div class="filter-group">
             <span class="filter-label">From Date</span>
             <input type="date" name="from_date" value="{{ request('from_date') }}" class="filter-ctrl @error('from_date') is-invalid @enderror">
@@ -252,7 +263,7 @@
         <button type="submit" class="btn-filter">
             <i class="fa-solid fa-magnifying-glass"></i> Search
         </button>
-        @if(request()->hasAny(['from_date','to_date','filter_tenant','filter_property','filter_status','filter_mode']))
+        @if(request()->hasAny(['from_date','to_date','firm_id','filter_tenant','filter_property','filter_status','filter_mode']))
             <a href="{{ route('reports.rentals') }}" class="btn-reset">
                 <i class="fa-solid fa-rotate-left"></i> Reset
             </a>
@@ -270,7 +281,7 @@
                 {{ $records->count() }} record{{ $records->count()!=1?'s':'' }}
             </span>
         </div>
-        @if(request()->hasAny(['from_date','to_date','filter_tenant','filter_property','filter_status','filter_mode']))
+        @if(request()->hasAny(['from_date','to_date','firm_id','filter_tenant','filter_property','filter_status','filter_mode']))
             <span style="font-size:12px;color:#64748B;display:flex;align-items:center;gap:5px;">
                 <i class="fa-solid fa-filter" style="color:#14B8A6;"></i> Filtered results
             </span>
@@ -282,6 +293,9 @@
             <thead>
                 <tr>
                     <th style="width:36px;">#</th>
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        <th>Firm</th>
+                    @endif
                     <th>Rent Date</th>
                     <th>Month / Year</th>
                     <th>Tenant Name</th>
@@ -306,6 +320,9 @@
                 @endphp
                 <tr>
                     <td style="color:#94A3B8;font-size:12px;">{{ $i + 1 }}</td>
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                        <td style="font-weight:600;font-size:13px;">{{ $rp->firm->firm_name ?? $rp->rental?->firm?->firm_name ?? '—' }}</td>
+                    @endif
                     <td style="white-space:nowrap;font-weight:600;font-size:13px;">
                         {{ $rp->payment_date
                             ? \Carbon\Carbon::parse($rp->payment_date)->format('d M Y')

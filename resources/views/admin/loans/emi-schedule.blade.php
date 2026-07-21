@@ -65,6 +65,10 @@
 {{-- Loan Summary Bar --}}
 <div class="loan-info-bar">
     <div class="info-item">
+        <div class="info-label">Firm</div>
+        <div class="info-value" style="color:#0F172A;">{{ $loan->firm->firm_name ?? '—' }}</div>
+    </div>
+    <div class="info-item">
         <div class="info-label">Loan Amount</div>
         <div class="info-value gold">₹{{ number_format($loan->loan_amount,2) }}</div>
     </div>
