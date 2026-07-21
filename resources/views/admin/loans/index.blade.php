@@ -167,7 +167,7 @@
                 @endphp
                 <tr>
                     <td>{{ $loans->firstItem() + $key }}</td>
-                    <td><strong style="color:#0F172A;">{{ $loan->firm->firm_name ?? '—' }}</strong></td>
+                    <td><strong style="color:#0F172A;">{{ $loan->firm_names }}</strong></td>
                     <td>
                         <div style="font-weight:700;">{{ $loan->bank_name }}</div>
                         <div style="font-size:11.5px;color:var(--text-secondary);">{{ $loan->loan_type }}</div>

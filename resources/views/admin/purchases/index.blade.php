@@ -135,7 +135,7 @@
                 @forelse($purchases as $key => $purchase)
                 <tr>
                     <td>{{ $purchases->firstItem() + $key }}</td>
-                    <td><strong style="color:#0F172A;">{{ $purchase->firm->firm_name ?? '—' }}</strong></td>
+                    <td><strong style="color:#0F172A;">{{ $purchase->firm_names }}</strong></td>
                     <td style="white-space:nowrap;">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d M Y') }}</td>
                     <td style="font-weight:700;">{{ $purchase->item_name }}</td>
                     <td>{{ $purchase->vendor ? $purchase->vendor->name : '—' }}</td>

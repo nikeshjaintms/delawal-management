@@ -130,4 +130,12 @@ class Firm extends Model
     {
         return $this->hasMany(BrokerCommission::class, 'firm_id');
     }
+
+    // MorphToMany inverse relationships
+    public function multiIncomes()          { return $this->morphedByMany(Income::class, 'firmable', 'firmables'); }
+    public function multiExpenses()         { return $this->morphedByMany(Expense::class, 'firmable', 'firmables'); }
+    public function multiPurchases()        { return $this->morphedByMany(Purchase::class, 'firmable', 'firmables'); }
+    public function multiReceipts()         { return $this->morphedByMany(Receipt::class, 'firmable', 'firmables'); }
+    public function multiLoans()            { return $this->morphedByMany(Loan::class, 'firmable', 'firmables'); }
+    public function multiBrokerCommissions(){ return $this->morphedByMany(BrokerCommission::class, 'firmable', 'firmables'); }
 }

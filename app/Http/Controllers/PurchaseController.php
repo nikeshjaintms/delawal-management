@@ -15,8 +15,12 @@ class PurchaseController extends Controller
 
     private function authorise(Purchase $purchase): void
     {
-        if (!Auth::user()->isAdmin() && $purchase->firm_id != Auth::user()->firm_id) {
-            abort(403);
+        $user = Auth::user();
+        if ($user && !$user->isAdmin()) {
+            $userFirmId = $user->firm_id;
+            if ($purchase->firm_id != $userFirmId && !$purchase->firms->contains($userFirmId)) {
+                abort(403);
+            }
         }
     }
 
@@ -40,12 +44,13 @@ class PurchaseController extends Controller
 
     public function index(Request $request)
     {
-        $query = Purchase::with(['firm', 'vendor']);
+        $query = Purchase::with(['firms', 'firm', 'vendor']);
 
         if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
-        } elseif ($request->filled('firm_id')) {
-            $query->where('firm_id', $request->firm_id);
+            $query->forFirms([Auth::user()->firm_id]);
+        } elseif ($request->filled('firm_ids') || $request->filled('firm_id')) {
+            $firmIds = $request->input('firm_ids', (array)$request->firm_id);
+            $query->forFirms($firmIds);
         }
 
         if ($request->filled('search')) {
@@ -55,6 +60,7 @@ class PurchaseController extends Controller
                   ->orWhere('reference_no', 'like', "%{$s}%")
                   ->orWhere('payment_status', 'like', "%{$s}%")
                   ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"))
+                  ->orWhereHas('firms', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
         }
@@ -77,10 +83,11 @@ class PurchaseController extends Controller
 
     public function store(PurchaseRequest $request)
     {
-        $firmId = $request->firm_id ?? Auth::user()->firm_id;
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? Auth::user()->firm_id));
+        $primaryFirmId = reset($firmIds) ?: Auth::user()->firm_id;
 
-        Purchase::create([
-            'firm_id'         => $firmId,
+        $purchase = Purchase::create([
+            'firm_id'         => $primaryFirmId,
             'vendor_id'       => $request->vendor_id ?: null,
             'item_name'       => $request->item_name,
             'purchase_date'   => $request->purchase_date,
@@ -92,31 +99,36 @@ class PurchaseController extends Controller
             'remarks'         => $request->remarks,
             'status'          => $request->status,
         ]);
+
+        $purchase->syncFirms($firmIds);
 
         return redirect()->route('purchases.index')->with('success', 'Purchase record added successfully.');
     }
 
     public function show(Purchase $purchase)
     {
+        $purchase->load(['firms', 'firm', 'vendor']);
         $this->authorise($purchase);
-        $purchase->load(['firm', 'vendor']);
         return view('admin.purchases.show', compact('purchase'));
     }
 
     public function edit(Purchase $purchase)
     {
+        $purchase->load(['firms', 'firm']);
         $this->authorise($purchase);
         return view('admin.purchases.edit', array_merge(['purchase' => $purchase], $this->dropdowns($purchase->firm_id)));
     }
 
     public function update(PurchaseRequest $request, Purchase $purchase)
     {
+        $purchase->load(['firms', 'firm']);
         $this->authorise($purchase);
 
-        $firmId = $request->firm_id ?? $purchase->firm_id ?? Auth::user()->firm_id;
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $purchase->firm_id ?? Auth::user()->firm_id));
+        $primaryFirmId = reset($firmIds) ?: $purchase->firm_id;
 
         $purchase->update([
-            'firm_id'         => $firmId,
+            'firm_id'         => $primaryFirmId,
             'vendor_id'       => $request->vendor_id ?: null,
             'item_name'       => $request->item_name,
             'purchase_date'   => $request->purchase_date,
@@ -128,6 +140,8 @@ class PurchaseController extends Controller
             'remarks'         => $request->remarks,
             'status'          => $request->status,
         ]);
+
+        $purchase->syncFirms($firmIds);
 
         return redirect()->route('purchases.index')->with('success', 'Purchase record updated successfully.');
     }

@@ -458,7 +458,7 @@
                 @forelse($commissions as $key => $c)
                     <tr>
                         <td>{{ $commissions->firstItem() + $key }}</td>
-                        <td><strong style="color:#0F172A;">{{ $c->firm->firm_name ?? '—' }}</strong></td>
+                        <td><strong style="color:#0F172A;">{{ $c->firm_names }}</strong></td>
                         <td><strong>{{ $c->broker->name ?? '-' }}</strong></td>
                         <td>{{ $c->property->property_name ?? '-' }}</td>
                         <td>{{ $c->customer->name ?? '-' }}</td>

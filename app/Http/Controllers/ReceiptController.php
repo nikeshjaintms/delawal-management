@@ -13,8 +13,12 @@ class ReceiptController extends Controller
 {
     private function authorise(Receipt $receipt): void
     {
-        if (!Auth::user()->isAdmin() && $receipt->firm_id != Auth::user()->firm_id) {
-            abort(403);
+        $user = Auth::user();
+        if ($user && !$user->isAdmin()) {
+            $userFirmId = $user->firm_id;
+            if ($receipt->firm_id != $userFirmId && !$receipt->firms->contains($userFirmId)) {
+                abort(403);
+            }
         }
     }
 
@@ -45,12 +49,13 @@ class ReceiptController extends Controller
 
     public function index(Request $request)
     {
-        $query = Receipt::with(['firm', 'paymentMode']);
+        $query = Receipt::with(['firms', 'firm', 'paymentMode']);
 
         if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
-        } elseif ($request->filled('firm_id')) {
-            $query->where('firm_id', $request->firm_id);
+            $query->forFirms([Auth::user()->firm_id]);
+        } elseif ($request->filled('firm_ids') || $request->filled('firm_id')) {
+            $firmIds = $request->input('firm_ids', (array)$request->firm_id);
+            $query->forFirms($firmIds);
         }
 
         if ($request->filled('search')) {
@@ -59,6 +64,7 @@ class ReceiptController extends Controller
                 $q->where('receipt_no', 'like', "%{$s}%")
                   ->orWhere('received_from', 'like', "%{$s}%")
                   ->orWhere('reference_no', 'like', "%{$s}%")
+                  ->orWhereHas('firms', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
         }
@@ -82,11 +88,12 @@ class ReceiptController extends Controller
 
     public function store(ReceiptRequest $request)
     {
-        $firmId = $request->firm_id ?? Auth::user()->firm_id;
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? Auth::user()->firm_id));
+        $primaryFirmId = reset($firmIds) ?: Auth::user()->firm_id;
 
-        Receipt::create([
-            'firm_id'         => $firmId,
-            'receipt_no'      => $request->receipt_no ?: $this->generateReceiptNo($firmId),
+        $receipt = Receipt::create([
+            'firm_id'         => $primaryFirmId,
+            'receipt_no'      => $request->receipt_no ?: $this->generateReceiptNo($primaryFirmId),
             'receipt_date'    => $request->receipt_date,
             'received_from'   => $request->received_from,
             'amount'          => $request->amount,
@@ -95,31 +102,36 @@ class ReceiptController extends Controller
             'remarks'         => $request->remarks,
             'status'          => $request->status,
         ]);
+
+        $receipt->syncFirms($firmIds);
 
         return redirect()->route('receipts.index')->with('success', 'Receipt created successfully.');
     }
 
     public function show(Receipt $receipt)
     {
+        $receipt->load(['firms', 'firm', 'paymentMode']);
         $this->authorise($receipt);
-        $receipt->load(['firm', 'paymentMode']);
         return view('admin.receipts.show', compact('receipt'));
     }
 
     public function edit(Receipt $receipt)
     {
+        $receipt->load(['firms', 'firm']);
         $this->authorise($receipt);
         return view('admin.receipts.edit', array_merge(['receipt' => $receipt], $this->dropdowns($receipt->firm_id)));
     }
 
     public function update(ReceiptRequest $request, Receipt $receipt)
     {
+        $receipt->load(['firms', 'firm']);
         $this->authorise($receipt);
 
-        $firmId = $request->firm_id ?? $receipt->firm_id ?? Auth::user()->firm_id;
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $receipt->firm_id ?? Auth::user()->firm_id));
+        $primaryFirmId = reset($firmIds) ?: $receipt->firm_id;
 
         $receipt->update([
-            'firm_id'         => $firmId,
+            'firm_id'         => $primaryFirmId,
             'receipt_date'    => $request->receipt_date,
             'received_from'   => $request->received_from,
             'amount'          => $request->amount,
@@ -128,6 +140,8 @@ class ReceiptController extends Controller
             'remarks'         => $request->remarks,
             'status'          => $request->status,
         ]);
+
+        $receipt->syncFirms($firmIds);
 
         return redirect()->route('receipts.index')->with('success', 'Receipt updated successfully.');
     }

@@ -90,7 +90,7 @@
     <div class="detail-grid">
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
-            <div class="detail-value">{{ $expense->firm->firm_name ?? '—' }}</div>
+            <div class="detail-value">{{ $expense->firm_names }}</div>
         </div>
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-tag"></i> Expense Title</div>

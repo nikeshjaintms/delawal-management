@@ -69,7 +69,7 @@
     <div class="detail-grid">
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
-            <div class="detail-value">{{ $loan->firm->firm_name ?? '—' }}</div>
+            <div class="detail-value">{{ $loan->firm_names }}</div>
         </div>
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-landmark"></i> Bank Name</div>

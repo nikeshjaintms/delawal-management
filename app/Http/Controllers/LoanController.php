@@ -20,8 +20,12 @@ class LoanController extends Controller
 
     private function authorise(Loan $loan): void
     {
-        if (!Auth::user()->isAdmin() && $loan->firm_id !== Auth::user()->firm_id) {
-            abort(403);
+        $user = Auth::user();
+        if ($user && !$user->isAdmin()) {
+            $userFirmId = $user->firm_id;
+            if ($loan->firm_id != $userFirmId && !$loan->firms->contains($userFirmId)) {
+                abort(403);
+            }
         }
     }
 
@@ -47,17 +51,18 @@ class LoanController extends Controller
         ];
     }
 
-    private function generateEmiSchedule(Loan $loan): void
+    private function generateEmiSchedule(Loan $loan, array $firmIds = []): void
     {
         $loan->emiSchedules()->delete();
 
         $schedules = [];
         $date = Carbon::parse($loan->loan_start_date)->startOfMonth();
+        $primaryFirmId = reset($firmIds) ?: $loan->firm_id;
 
         for ($i = 0; $i < $loan->total_emi_months; $i++) {
             $emiDate = $date->copy()->addMonths($i);
             $schedules[] = [
-                'firm_id'        => $loan->firm_id,
+                'firm_id'        => $primaryFirmId,
                 'loan_id'        => $loan->id,
                 'emi_month'      => (int) $emiDate->format('n'),
                 'emi_year'       => (int) $emiDate->format('Y'),
@@ -75,6 +80,11 @@ class LoanController extends Controller
         }
 
         LoanEmiSchedule::insert($schedules);
+
+        $inserted = LoanEmiSchedule::where('loan_id', $loan->id)->get();
+        foreach ($inserted as $scheduleItem) {
+            $scheduleItem->syncFirms(!empty($firmIds) ? $firmIds : [$primaryFirmId]);
+        }
     }
 
     private function recalculateLoan(Loan $loan): void
@@ -97,12 +107,13 @@ class LoanController extends Controller
 
     public function index(Request $request)
     {
-        $query = Loan::with(['firm', 'property', 'customer']);
+        $query = Loan::with(['firms', 'firm', 'property', 'customer']);
 
         if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
-        } elseif ($request->filled('firm_id')) {
-            $query->where('firm_id', $request->firm_id);
+            $query->forFirms([Auth::user()->firm_id]);
+        } elseif ($request->filled('firm_ids') || $request->filled('firm_id')) {
+            $firmIds = $request->input('firm_ids', (array)$request->firm_id);
+            $query->forFirms($firmIds);
         }
 
         if ($request->filled('search')) {
@@ -112,6 +123,7 @@ class LoanController extends Controller
                   ->orWhere('loan_type', 'like', "%{$s}%")
                   ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%{$s}%"))
                   ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
+                  ->orWhereHas('firms', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
         }
@@ -143,10 +155,11 @@ class LoanController extends Controller
 
     public function store(LoanRequest $request)
     {
-        $firmId = $request->firm_id ?? Auth::user()->firm_id;
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? Auth::user()->firm_id));
+        $primaryFirmId = reset($firmIds) ?: Auth::user()->firm_id;
 
         $loan = Loan::create([
-            'firm_id'         => $firmId,
+            'firm_id'         => $primaryFirmId,
             'bank_name'       => $request->bank_name,
             'loan_type'       => $request->loan_type,
             'property_id'     => $request->property_id ?: null,
@@ -163,7 +176,8 @@ class LoanController extends Controller
             'remarks'         => $request->remarks,
         ]);
 
-        $this->generateEmiSchedule($loan);
+        $loan->syncFirms($firmIds);
+        $this->generateEmiSchedule($loan, $firmIds);
 
         return redirect()->route('loans.show', $loan->id)
             ->with('success', 'Loan added and EMI schedule generated successfully.');
@@ -171,8 +185,8 @@ class LoanController extends Controller
 
     public function show(Loan $loan)
     {
+        $loan->load(['firms', 'firm', 'property', 'customer', 'emiSchedules.firms', 'emiSchedules.firm']);
         $this->authorise($loan);
-        $loan->load(['firm', 'property', 'customer', 'emiSchedules.firm']);
 
         $today = now()->toDateString();
         foreach ($loan->emiSchedules as $emi) {
@@ -180,13 +194,14 @@ class LoanController extends Controller
                 $emi->update(['emi_status' => 'Overdue']);
             }
         }
-        $loan->refresh()->load('emiSchedules.firm');
+        $loan->refresh()->load(['firms', 'firm', 'emiSchedules.firms', 'emiSchedules.firm']);
 
         return view('admin.loans.show', compact('loan'));
     }
 
     public function edit(Loan $loan)
     {
+        $loan->load(['firms', 'firm']);
         $this->authorise($loan);
         return view('admin.loans.edit', array_merge(
             ['loan' => $loan],
@@ -196,12 +211,14 @@ class LoanController extends Controller
 
     public function update(LoanRequest $request, Loan $loan)
     {
+        $loan->load(['firms', 'firm']);
         $this->authorise($loan);
 
-        $firmId = $request->firm_id ?? $loan->firm_id ?? Auth::user()->firm_id;
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $loan->firm_id ?? Auth::user()->firm_id));
+        $primaryFirmId = reset($firmIds) ?: $loan->firm_id;
 
         $loan->update([
-            'firm_id'         => $firmId,
+            'firm_id'         => $primaryFirmId,
             'bank_name'       => $request->bank_name,
             'loan_type'       => $request->loan_type,
             'property_id'     => $request->property_id ?: null,
@@ -216,8 +233,10 @@ class LoanController extends Controller
             'remarks'         => $request->remarks,
         ]);
 
+        $loan->syncFirms($firmIds);
+
         if ($request->boolean('regenerate_emi')) {
-            $this->generateEmiSchedule($loan);
+            $this->generateEmiSchedule($loan, $firmIds);
             $loan->update(['paid_amount' => 0, 'pending_amount' => $request->loan_amount]);
         }
 
@@ -237,8 +256,8 @@ class LoanController extends Controller
 
     public function emiSchedule(Loan $loan)
     {
+        $loan->load(['firms', 'firm', 'property', 'customer', 'emiSchedules.firms', 'emiSchedules.firm']);
         $this->authorise($loan);
-        $loan->load(['firm', 'property', 'customer', 'emiSchedules.firm']);
 
         $today = now()->toDateString();
         foreach ($loan->emiSchedules as $emi) {
@@ -246,7 +265,7 @@ class LoanController extends Controller
                 $emi->update(['emi_status' => 'Overdue']);
             }
         }
-        $loan->refresh()->load('emiSchedules.firm');
+        $loan->refresh()->load(['firms', 'firm', 'emiSchedules.firms', 'emiSchedules.firm']);
 
         return view('admin.loans.emi-schedule', compact('loan'));
     }

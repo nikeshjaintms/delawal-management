@@ -130,7 +130,7 @@
                 @forelse($receipts as $key => $receipt)
                 <tr>
                     <td>{{ $receipts->firstItem() + $key }}</td>
-                    <td><strong style="color:#0F172A;">{{ $receipt->firm->firm_name ?? '—' }}</strong></td>
+                    <td><strong style="color:#0F172A;">{{ $receipt->firm_names }}</strong></td>
                     <td>
                         <span class="receipt-no-chip">{{ $receipt->receipt_no ?? '—' }}</span>
                     </td>

@@ -12,12 +12,13 @@ class LoanReportController extends Controller
 {
     private function getReportData(Request $request)
     {
-        $query = Loan::with(['firm', 'property', 'customer']);
+        $query = Loan::with(['firms', 'firm', 'property', 'customer']);
 
         if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
-        } elseif ($request->filled('firm_id')) {
-            $query->where('firm_id', $request->firm_id);
+            $query->forFirms([Auth::user()->firm_id]);
+        } elseif ($request->filled('firm_ids') || $request->filled('firm_id')) {
+            $firmIds = $request->input('firm_ids', (array)$request->firm_id);
+            $query->forFirms($firmIds);
         }
 
         if ($request->filled('filter_status'))    $query->where('loan_status', $request->filter_status);
@@ -58,23 +59,12 @@ class LoanReportController extends Controller
 
     public function index(Request $request)
     {
-        $loans     = $this->getReportData($request);
-        $summaries = $this->buildSummaries($loans);
+        $loans      = $this->getReportData($request);
+        $summaries  = $this->buildSummaries($loans);
 
-        $firms     = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
-        $propQuery = Property::orderBy('property_name');
-        $custQuery = Customer::where('status', 'active')->orderBy('name');
-
-        if (!Auth::user()->isAdmin()) {
-            $propQuery->where('firm_id', Auth::user()->firm_id);
-            $custQuery->where('firm_id', Auth::user()->firm_id);
-        } elseif ($request->filled('firm_id')) {
-            $propQuery->where('firm_id', $request->firm_id);
-            $custQuery->where('firm_id', $request->firm_id);
-        }
-
-        $properties = $propQuery->get();
-        $customers  = $custQuery->get();
+        $firms      = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $properties = Property::orderBy('property_name')->get();
+        $customers  = Customer::orderBy('name')->get();
 
         return view('admin.loan-report.index', array_merge(
             compact('loans', 'firms', 'properties', 'customers'),
@@ -86,24 +76,9 @@ class LoanReportController extends Controller
     {
         $loans     = $this->getReportData($request);
         $summaries = $this->buildSummaries($loans);
-        $firms     = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
-
-        $propQuery = Property::orderBy('property_name');
-        $custQuery = Customer::orderBy('name');
-
-        if (!Auth::user()->isAdmin()) {
-            $propQuery->where('firm_id', Auth::user()->firm_id);
-            $custQuery->where('firm_id', Auth::user()->firm_id);
-        } elseif ($request->filled('firm_id')) {
-            $propQuery->where('firm_id', $request->firm_id);
-            $custQuery->where('firm_id', $request->firm_id);
-        }
-
-        $properties = $propQuery->get();
-        $customers  = $custQuery->get();
 
         return view('admin.loan-report.pdf', array_merge(
-            compact('loans', 'firms', 'properties', 'customers'),
+            compact('loans'),
             $summaries
         ));
     }
@@ -113,61 +88,36 @@ class LoanReportController extends Controller
         $loans    = $this->getReportData($request);
         $filename = 'loan-report-' . date('Y-m-d') . '.csv';
 
-        $totalLoan    = $loans->sum('loan_amount');
-        $totalPaid    = $loans->sum('paid_amount');
-        $totalPending = $loans->sum('pending_amount');
-
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
-        $callback = function () use ($loans, $request, $totalLoan, $totalPaid, $totalPending) {
+        $callback = function () use ($loans, $request) {
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // Report Header
             fputcsv($handle, ['Delawala Properties & Management - Loan Report']);
             fputcsv($handle, ['Generated on', date('d M Y, h:i A')]);
-            if ($request->filled('from_date') || $request->filled('to_date')) {
-                $fromDisplay = $request->filled('from_date') ? \Carbon\Carbon::parse($request->from_date)->format('d M Y') : 'All time';
-                $toDisplay = $request->filled('to_date') ? \Carbon\Carbon::parse($request->to_date)->format('d M Y') : 'Now';
-                fputcsv($handle, ['Date Range', $fromDisplay . ' to ' . $toDisplay]);
-            }
-            fputcsv($handle, []); // Blank row
+            fputcsv($handle, []);
 
-            // Summary Section
-            fputcsv($handle, ['SUMMARY']);
-            fputcsv($handle, ['Total Loan Amount', number_format($totalLoan, 2)]);
-            fputcsv($handle, ['Total Loans', $loans->count()]);
-            fputcsv($handle, ['Total Paid', number_format($totalPaid, 2)]);
-            fputcsv($handle, ['Total Pending', number_format($totalPending, 2)]);
-            fputcsv($handle, []); // Blank row
-
-            // Data Header
             fputcsv($handle, [
-                'Bank Name', 'Loan Type', 'Customer', 'Property',
-                'Loan Amount (₹)', 'Interest Rate (%)', 'EMI Amount (₹)',
-                'Start Date', 'End Date', 'Total EMIs',
-                'Paid (₹)', 'Pending (₹)', 'Status',
+                'Firm(s)', 'Bank Name', 'Loan Type', 'Customer', 'Property',
+                'Loan Amount (₹)', 'EMI Amount (₹)', 'Paid Amount (₹)', 'Pending Amount (₹)', 'Status'
             ]);
 
-            // Data Rows
             foreach ($loans as $l) {
                 fputcsv($handle, [
+                    $l->firm_names,
                     $l->bank_name,
                     $l->loan_type,
-                    $l->customer?->name ?? '-',
-                    $l->property?->property_name ?? '-',
+                    $l->customer?->name ?? 'General',
+                    $l->property?->property_name ?? 'N/A',
                     number_format($l->loan_amount, 2),
-                    $l->interest_rate,
                     number_format($l->emi_amount, 2),
-                    \Carbon\Carbon::parse($l->loan_start_date)->format('d M Y'),
-                    \Carbon\Carbon::parse($l->loan_end_date)->format('d M Y'),
-                    $l->total_emi_months,
                     number_format($l->paid_amount, 2),
                     number_format($l->pending_amount, 2),
-                    $l->loan_status,
+                    $l->loan_status
                 ]);
             }
             fclose($handle);

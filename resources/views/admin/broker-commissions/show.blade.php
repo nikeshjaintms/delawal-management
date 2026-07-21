@@ -149,7 +149,7 @@
     <table class="details-table">
         <tr>
             <th>Firm</th>
-            <td><strong>{{ $commission->firm->firm_name ?? '-' }}</strong></td>
+            <td><strong>{{ $commission->firm_names }}</strong></td>
         </tr>
         <tr>
             <th>Broker Name</th>

@@ -146,7 +146,7 @@
                 @endphp
                 <tr>
                     <td>{{ $incomes->firstItem() + $key }}</td>
-                    <td><strong style="color:#0F172A;">{{ $income->firm->firm_name ?? '—' }}</strong></td>
+                    <td><strong style="color:#0F172A;">{{ $income->firm_names }}</strong></td>
                     <td style="white-space:nowrap;">{{ \Carbon\Carbon::parse($income->income_date)->format('d M Y') }}</td>
                     <td>
                         <span class="type-chip type-{{ $typeSlug }}">{{ $income->income_type ?? '—' }}</span>

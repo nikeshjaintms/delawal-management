@@ -170,7 +170,7 @@
                 @forelse($expenses as $key => $expense)
                 <tr>
                     <td>{{ $expenses->firstItem() + $key }}</td>
-                    <td><strong style="color:#0F172A;">{{ $expense->firm->firm_name ?? '—' }}</strong></td>
+                    <td><strong style="color:#0F172A;">{{ $expense->firm_names }}</strong></td>
                     <td style="white-space:nowrap;">{{ \Carbon\Carbon::parse($expense->expense_date)->format('d M Y') }}</td>
                     <td>
                         <div class="expense-title">{{ $expense->expense_title }}</div>

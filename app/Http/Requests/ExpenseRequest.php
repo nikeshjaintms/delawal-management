@@ -41,7 +41,9 @@ class ExpenseRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
-            'firm_id'             => 'required|exists:firms,id',
+            'firm_ids'             => 'nullable|array',
+            'firm_ids.*'           => 'exists:firms,id',
+            'firm_id'              => 'nullable|exists:firms,id',
             'expense_title'       => 'required|string|max:255',
             'expense_date'        => 'required|date',
             'expense_category_id' => 'nullable|exists:expense_categories,id',

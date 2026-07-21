@@ -18,8 +18,12 @@ class ExpenseController extends Controller
 
     private function authorise(Expense $expense): void
     {
-        if (!Auth::user()->isAdmin() && $expense->firm_id !== Auth::user()->firm_id) {
-            abort(403);
+        $user = Auth::user();
+        if ($user && !$user->isAdmin()) {
+            $userFirmId = $user->firm_id;
+            if ($expense->firm_id != $userFirmId && !$expense->firms->contains($userFirmId)) {
+                abort(403);
+            }
         }
     }
 
@@ -47,12 +51,13 @@ class ExpenseController extends Controller
 
     public function index(Request $request)
     {
-        $query = Expense::with(['firm', 'property', 'expenseCategory']);
+        $query = Expense::with(['firms', 'firm', 'property', 'expenseCategory']);
 
         if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
-        } elseif ($request->filled('firm_id')) {
-            $query->where('firm_id', $request->firm_id);
+            $query->forFirms([Auth::user()->firm_id]);
+        } elseif ($request->filled('firm_ids') || $request->filled('firm_id')) {
+            $firmIds = $request->input('firm_ids', (array)$request->firm_id);
+            $query->forFirms($firmIds);
         }
 
         if ($request->filled('search')) {
@@ -63,6 +68,7 @@ class ExpenseController extends Controller
                   ->orWhere('paid_to', 'like', "%{$s}%")
                   ->orWhere('bill_no', 'like', "%{$s}%")
                   ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
+                  ->orWhereHas('firms', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
         }
@@ -107,7 +113,8 @@ class ExpenseController extends Controller
 
     public function store(ExpenseRequest $request)
     {
-        $firmId = $request->firm_id ?? Auth::user()->firm_id;
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? Auth::user()->firm_id));
+        $primaryFirmId = reset($firmIds) ?: Auth::user()->firm_id;
 
         $categoryName = null;
         if ($request->expense_category_id) {
@@ -121,8 +128,8 @@ class ExpenseController extends Controller
                 ->store('expenses/bills', 'public');
         }
 
-        Expense::create([
-            'firm_id'             => $firmId,
+        $expense = Expense::create([
+            'firm_id'             => $primaryFirmId,
             'property_id'         => $request->property_id ?: null,
             'expense_date'        => $request->expense_date,
             'expense_category_id' => $request->expense_category_id ?: null,
@@ -137,19 +144,22 @@ class ExpenseController extends Controller
             'remarks'             => $request->remarks,
         ]);
 
+        $expense->syncFirms($firmIds);
+
         return redirect()->route('expenses.index')
             ->with('success', 'Expense added successfully.');
     }
 
     public function show(Expense $expense)
     {
+        $expense->load(['firms', 'firm', 'property.propertyType', 'expenseCategory']);
         $this->authorise($expense);
-        $expense->load(['firm', 'property.propertyType', 'expenseCategory']);
         return view('admin.expenses.show', compact('expense'));
     }
 
     public function edit(Expense $expense)
     {
+        $expense->load(['firms', 'firm']);
         $this->authorise($expense);
         return view('admin.expenses.edit', array_merge(
             ['expense' => $expense],
@@ -159,9 +169,11 @@ class ExpenseController extends Controller
 
     public function update(ExpenseRequest $request, Expense $expense)
     {
+        $expense->load(['firms', 'firm']);
         $this->authorise($expense);
 
-        $firmId = $request->firm_id ?? $expense->firm_id ?? Auth::user()->firm_id;
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $expense->firm_id ?? Auth::user()->firm_id));
+        $primaryFirmId = reset($firmIds) ?: $expense->firm_id;
 
         $categoryName = $expense->expense_category;
         if ($request->expense_category_id) {
@@ -181,7 +193,7 @@ class ExpenseController extends Controller
         }
 
         $expense->update([
-            'firm_id'             => $firmId,
+            'firm_id'             => $primaryFirmId,
             'property_id'         => $request->property_id ?: null,
             'expense_date'        => $request->expense_date,
             'expense_category_id' => $request->expense_category_id ?: null,
@@ -195,6 +207,8 @@ class ExpenseController extends Controller
             'approval_status'     => $request->approval_status,
             'remarks'             => $request->remarks,
         ]);
+
+        $expense->syncFirms($firmIds);
 
         return redirect()->route('expenses.index')
             ->with('success', 'Expense updated successfully.');

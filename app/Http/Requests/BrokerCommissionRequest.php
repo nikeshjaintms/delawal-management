@@ -41,7 +41,9 @@ class BrokerCommissionRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
-            'firm_id' => 'required|exists:firms,id',
+            'firm_ids'  => 'nullable|array',
+            'firm_ids.*'=> 'exists:firms,id',
+            'firm_id'   => 'nullable|exists:firms,id',
             'broker_id' => 'required|exists:brokers,id',
             'property_id' => 'required|exists:properties,id',
             'customer_id' => 'nullable|exists:customers,id',
