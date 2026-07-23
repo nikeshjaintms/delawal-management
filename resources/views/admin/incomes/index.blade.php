@@ -56,9 +56,20 @@
         <h2>Income Management</h2>
         <p>Track and manage all income records.</p>
     </div>
-    <a href="{{ route('incomes.create') }}" class="btn-gold">
-        <i class="fa-solid fa-plus"></i> Add Income
-    </a>
+    <div class="action-buttons" style="display:flex; gap:10px; align-items:center;">
+        <a href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}" class="btn-outline" style="border:1px solid var(--border-color); background:transparent; color:var(--text-secondary); padding:9px 16px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:600; transition:var(--transition); display:inline-flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-file-csv"></i> Export CSV
+        </a>
+        <a href="{{ request()->fullUrlWithQuery(['export' => 'pdf']) }}" class="btn-outline" target="_blank" style="border:1px solid var(--border-color); background:transparent; color:var(--text-secondary); padding:9px 16px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:600; transition:var(--transition); display:inline-flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-file-pdf"></i> PDF
+        </a>
+        <a href="{{ request()->fullUrlWithQuery(['print' => 'true']) }}" class="btn-outline" target="_blank" style="border:1px solid var(--border-color); background:transparent; color:var(--text-secondary); padding:9px 16px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:600; transition:var(--transition); display:inline-flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-print"></i> Print
+        </a>
+        <a href="{{ route('incomes.create') }}" class="btn-gold">
+            <i class="fa-solid fa-plus"></i> Add Income
+        </a>
+    </div>
 </div>
 
 @if(session('success'))
@@ -97,6 +108,32 @@
             </select>
         </div>
         <div class="filter-group">
+            <span class="filter-label">Property</span>
+            <select name="filter_property" class="filter-control @error('filter_property') is-invalid @enderror">
+                <option value="">All Properties</option>
+                @foreach($properties as $p)
+                    <option value="{{ $p->id }}" {{ request('filter_property') == $p->id ? 'selected' : '' }}>{{ $p->property_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Property Type</span>
+            <select name="filter_property_type" class="filter-control @error('filter_property_type') is-invalid @enderror">
+                <option value="">All Types</option>
+                @foreach($propertyTypes as $pt)
+                    <option value="{{ $pt->id }}" {{ request('filter_property_type') == $pt->id ? 'selected' : '' }}>{{ $pt->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">From Date</span>
+            <input type="date" name="from_date" value="{{ request('from_date') }}" class="filter-control @error('from_date') is-invalid @enderror">
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">To Date</span>
+            <input type="date" name="to_date" value="{{ request('to_date') }}" class="filter-control @error('to_date') is-invalid @enderror">
+        </div>
+        <div class="filter-group">
             <span class="filter-label">Status</span>
             <select name="filter_status" class="filter-control @error('filter_status') is-invalid @enderror">
                 <option value="">All Status</option>
@@ -105,7 +142,7 @@
             </select>
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_type','filter_status','firm_id']))
+        @if(request()->hasAny(['search','filter_type','filter_status','firm_id','filter_property','filter_property_type','from_date','to_date']))
             <a href="{{ route('incomes.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
@@ -130,6 +167,8 @@
                 <tr>
                     <th>#</th>
                     <th>Firm</th>
+                    <th>Property Name</th>
+                    <th>Property Type</th>
                     <th>Date</th>
                     <th>Income Type</th>
                     <th>Received From</th>
@@ -147,6 +186,8 @@
                 <tr>
                     <td>{{ $incomes->firstItem() + $key }}</td>
                     <td><strong style="color:#0F172A;">{{ $income->firm_names }}</strong></td>
+                    <td><strong>{{ $income->property->property_name ?? '—' }}</strong></td>
+                    <td>{{ $income->property->propertyType->name ?? '—' }}</td>
                     <td style="white-space:nowrap;">{{ \Carbon\Carbon::parse($income->income_date)->format('d M Y') }}</td>
                     <td>
                         <span class="type-chip type-{{ $typeSlug }}">{{ $income->income_type ?? '—' }}</span>
@@ -154,8 +195,8 @@
                     <td>{{ $income->received_from ?? '—' }}</td>
                     <td class="amount-col">₹{{ number_format($income->amount, 2) }}</td>
                     <td>
-                        @if($income->payment_mode)
-                            <span class="mode-chip">{{ $income->payment_mode }}</span>
+                        @if($income->paymentMode)
+                            <span class="mode-chip">{{ $income->paymentMode->name }}</span>
                         @else
                             <span style="color:var(--text-secondary);">—</span>
                         @endif

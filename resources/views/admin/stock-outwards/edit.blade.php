@@ -42,14 +42,14 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="outward_date">Outward Date <span>*</span></label>
-                    <input type="date" name="outward_date" id="outward_date" value="{{ old('outward_date',$stockOutward- class="@error('outward_date') is-invalid @enderror">outward_date?\Carbon\Carbon::parse($stockOutward->outward_date)->format('Y-m-d'):'') }}" class="form-control">
+                    <input type="date" name="outward_date" id="outward_date" value="{{ old('outward_date',$stockOutward->outward_date?\Carbon\Carbon::parse($stockOutward->outward_date)->format('Y-m-d'):'') }}" class="form-control">
                     @error('outward_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="quantity">Quantity <span>*</span></label>
-                    <input type="number" step="0.001" name="quantity" id="quantity" value="{{ old('quantity',$stockOutward- class="@error('quantity') is-invalid @enderror">quantity) }}" class="form-control">
+                    <input type="number" step="0.001" name="quantity" id="quantity" value="{{ old('quantity',$stockOutward->quantity) }}" class="form-control">
                     <div class="form-hint">Current record: {{ number_format($stockOutward->quantity,3) }} {{ $stockOutward->material?->unit }}</div>
                     @error('quantity')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
@@ -66,7 +66,7 @@
             <div class="section-title"><i class="fa-solid fa-clipboard-list"></i> Usage Details</div>
             <div class="form-group">
                 <label class="form-label" for="used_for">Used For</label>
-                <input type="text" name="used_for" id="used_for" value="{{ old('used_for',$stockOutward- class="@error('used_for') is-invalid @enderror">used_for) }}" class="form-control" autocomplete="off" placeholder="e.g. Foundation work, Plastering">
+                <input type="text" name="used_for" id="used_for" value="{{ old('used_for',$stockOutward->used_for) }}" class="form-control" autocomplete="off" placeholder="e.g. Foundation work, Plastering">
             </div>
             <div class="form-group">
                 <label class="form-label" for="remarks">Remarks</label>

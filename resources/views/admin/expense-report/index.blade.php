@@ -241,8 +241,10 @@
             <span class="filter-label">Payment Mode</span>
             <select name="filter_mode" class="filter-ctrl @error('filter_mode') is-invalid @enderror">
                 <option value="">All Modes</option>
-                @foreach(['Cash', 'Bank Transfer', 'UPI', 'Cheque', 'Other'] as $mode)
-                    <option value="{{ $mode }}" {{ request('filter_mode') == $mode ? 'selected' : '' }}>{{ $mode }}</option>
+                @foreach(\App\Models\PaymentMode::whereHas('firms', function($q) { $q->where('firms.id', Auth::user()->firm_id); })->where('status', 'active')->orderBy('name')->get() as $pm)
+                    <option value="{{ $pm->name }}" {{ request('filter_mode') == $pm->name ? 'selected' : '' }}>
+                        {{ $pm->name }}
+                    </option>
                 @endforeach
             </select>
         </div>

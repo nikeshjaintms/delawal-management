@@ -273,7 +273,7 @@
                                     @if($perm)
                                         <input type="checkbox"
                                             name="permissions[]"
-                                            value="{{ $perm- class="@error('permissions') is-invalid @enderror">id }}"
+                                            value="{{ $perm->id }}"
                                             class="perm-cb row-{{ $loop->parent->index }} col-{{ $action }}"
                                             {{ in_array($perm->id, $assignedPermissionIds) ? 'checked' : '' }}>
                                     @else

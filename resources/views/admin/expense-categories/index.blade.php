@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Expense Categories')
 @section('page-title', 'Expense Category Master')
@@ -215,6 +215,7 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    <th>Firm</th>
                     <th>Name</th>
                     <th>Description</th>
                     <th>Status</th>
@@ -225,6 +226,7 @@
                 @forelse($expenseCategories as $key => $category)
                     <tr>
                         <td>{{ $expenseCategories->firstItem() + $key }}</td>
+                        <td>{{ $category->firm_names }}</td>
                         <td><strong>{{ $category->name }}</strong></td>
                         <td>
                             @if($category->description)
@@ -258,7 +260,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" align="center" style="padding: 30px; color: var(--text-secondary);">
+                        <td colspan="6" align="center" style="padding: 30px; color: var(--text-secondary);">
                             No expense categories found for this firm.
                         </td>
                     </tr>

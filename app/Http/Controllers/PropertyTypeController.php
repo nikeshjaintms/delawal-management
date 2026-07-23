@@ -12,7 +12,9 @@ class PropertyTypeController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PropertyType::where('firm_id', Auth::user()->firm_id);
+        $query = PropertyType::with('firms')->whereHas('firms', function($q) {
+            $q->where('firms.id', Auth::user()->firm_id);
+        });
 
         if ($request->search) {
             $query->where(function ($q) use ($request) {
@@ -29,26 +31,26 @@ class PropertyTypeController extends Controller
 
     public function create()
     {
-        return view('admin.property-types.create');
+        $firms = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
+        return view('admin.property-types.create', compact('firms'));
     }
 
     public function store(PropertyTypeRequest $request)
     {
-        
-
-        PropertyType::create([
-            'firm_id'     => Auth::user()->firm_id,
+        $propertyType = PropertyType::create([
             'name'        => $request->name,
             'description' => $request->description,
             'status'      => $request->status,
         ]);
+        $propertyType->firms()->attach($request->firm_ids);
 
         return redirect()->route('property-types.index')->with('success', 'Property type added successfully.');
     }
 
     public function show(PropertyType $propertyType)
     {
-        if ($propertyType->firm_id != Auth::user()->firm_id) {
+        $propertyType->load('firms');
+        if (!$propertyType->firms->contains(Auth::user()->firm_id)) {
             abort(403);
         }
 
@@ -57,33 +59,36 @@ class PropertyTypeController extends Controller
 
     public function edit(PropertyType $propertyType)
     {
-        if ($propertyType->firm_id != Auth::user()->firm_id) {
+        $propertyType->load('firms');
+        if (!$propertyType->firms->contains(Auth::user()->firm_id)) {
             abort(403);
         }
 
-        return view('admin.property-types.edit', compact('propertyType'));
+        $firms = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
+        return view('admin.property-types.edit', compact('propertyType', 'firms'));
     }
 
     public function update(PropertyTypeRequest $request, PropertyType $propertyType)
     {
-        if ($propertyType->firm_id != Auth::user()->firm_id) {
+        $propertyType->load('firms');
+        if (!$propertyType->firms->contains(Auth::user()->firm_id)) {
             abort(403);
         }
-
-        
 
         $propertyType->update([
             'name'        => $request->name,
             'description' => $request->description,
             'status'      => $request->status,
         ]);
+        $propertyType->firms()->sync($request->firm_ids);
 
         return redirect()->route('property-types.index')->with('success', 'Property type updated successfully.');
     }
 
     public function destroy(PropertyType $propertyType)
     {
-        if ($propertyType->firm_id != Auth::user()->firm_id) {
+        $propertyType->load('firms');
+        if (!$propertyType->firms->contains(Auth::user()->firm_id)) {
             abort(403);
         }
 

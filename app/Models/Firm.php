@@ -138,4 +138,24 @@ class Firm extends Model
     public function multiReceipts()         { return $this->morphedByMany(Receipt::class, 'firmable', 'firmables'); }
     public function multiLoans()            { return $this->morphedByMany(Loan::class, 'firmable', 'firmables'); }
     public function multiBrokerCommissions(){ return $this->morphedByMany(BrokerCommission::class, 'firmable', 'firmables'); }
+
+    public function propertyTypes()
+    {
+        return $this->belongsToMany(PropertyType::class, 'property_type_firm', 'firm_id', 'property_type_id')->withTimestamps();
+    }
+
+    public function expenseCategories()
+    {
+        return $this->belongsToMany(ExpenseCategory::class, 'expense_category_firm', 'firm_id', 'expense_category_id')->withTimestamps();
+    }
+
+    public function paymentModes()
+    {
+        return $this->belongsToMany(PaymentMode::class, 'payment_mode_firm', 'firm_id', 'payment_mode_id')->withTimestamps();
+    }
+
+    public function invoiceSettings()
+    {
+        return $this->belongsToMany(InvoiceSetting::class, 'tax_gst_setting_firm', 'firm_id', 'invoice_setting_id')->withTimestamps();
+    }
 }

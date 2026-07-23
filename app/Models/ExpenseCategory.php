@@ -9,14 +9,13 @@ class ExpenseCategory extends Model
     use \App\Traits\HasFirms;
 
     protected $fillable = [
-        'firm_id',
         'name',
         'description',
         'status',
     ];
 
-    public function firm()
+    public function firms()
     {
-        return $this->belongsTo(Firm::class);
+        return $this->belongsToMany(Firm::class, 'expense_category_firm', 'expense_category_id', 'firm_id')->withTimestamps();
     }
 }

@@ -72,7 +72,7 @@ textarea.form-control{resize:vertical;min-height:90px}
         <div class="form-group">
             <label class="form-label">Status Date <span>*</span></label>
             <input type="date" name="status_date"
-                   value="{{ old('status_date', $record- class="@error('status_date') is-invalid @enderror">status_date->format('Y-m-d')) }}"
+                   value="{{ old('status_date', $record->status_date->format('Y-m-d')) }}"
                    class="form-control" required>
             @error('status_date')<div class="text-error">{{ $message }}</div>@enderror
         </div>

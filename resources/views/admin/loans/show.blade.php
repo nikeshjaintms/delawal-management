@@ -45,7 +45,7 @@
 </style>
 
 <div class="crud-header">
-    <div class="crud-title"><h2>Loan Details</h2><p>Complete loan record and EMI overview.</p></div>
+    <div class="crud-title"><h2>Loan Details</h2><p>Complete loan record overview.</p></div>
 </div>
 
 @if(session('success'))
@@ -56,8 +56,8 @@
     <div class="loan-hero">
         <div class="loan-icon"><i class="fa-solid fa-landmark"></i></div>
         <div class="loan-hero-info">
-            <h3>{{ $loan->bank_name }}</h3>
-            <p>{{ $loan->loan_type }} &nbsp;·&nbsp; {{ $loan->total_emi_months }} months</p>
+            <h3>{{ $loan->loan_type === 'Personal Loan' ? $loan->person_name : $loan->bank_name }}</h3>
+            <p>{{ $loan->loan_type }} @if($loan->loan_type === 'Business Loan') &nbsp;·&nbsp; {{ $loan->total_emi_months }} months @endif</p>
             <div class="hero-badges">
                 <span class="amount-big">₹{{ number_format($loan->loan_amount,2) }}</span>
                 <span class="loan-status ls-{{ strtolower($loan->loan_status) }}">{{ $loan->loan_status }}</span>
@@ -65,65 +65,103 @@
         </div>
     </div>
 
-    <div class="section-title"><i class="fa-solid fa-circle-info"></i> Loan Information</div>
-    <div class="detail-grid">
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
-            <div class="detail-value">{{ $loan->firm_names }}</div>
+    @if($loan->loan_type === 'Personal Loan')
+        <div class="section-title"><i class="fa-solid fa-circle-info"></i> Loan Information</div>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
+                <div class="detail-value">{{ $loan->firm_names }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-user"></i> Person Name</div>
+                <div class="detail-value">{{ $loan->person_name }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-people-arrows"></i> Relationship</div>
+                <div class="detail-value">{{ $loan->relationship ?? '—' }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-phone"></i> Mobile Number</div>
+                <div class="detail-value">{{ $loan->mobile_number ?? '—' }}</div>
+            </div>
         </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-landmark"></i> Bank Name</div>
-            <div class="detail-value">{{ $loan->bank_name }}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-file-invoice"></i> Loan Type</div>
-            <div class="detail-value">{{ $loan->loan_type }}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-user"></i> Customer</div>
-            @if($loan->customer)
-                <div class="detail-value">{{ $loan->customer->name }}<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">{{ $loan->customer->mobile }}</div></div>
-            @else
-                <div class="detail-value empty">Not linked</div>
-            @endif
-        </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-building"></i> Property</div>
-            @if($loan->property)
-                <div class="detail-value">{{ $loan->property->property_name }}{{ $loan->property->property_code?' ('.$loan->property->property_code.')':'' }}</div>
-            @else
-                <div class="detail-value empty">Not linked</div>
-            @endif
-        </div>
-    </div>
 
-    <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Financial Details</div>
-    <div class="detail-grid-3">
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Loan Amount</div>
-            <div class="detail-value amount-big">₹{{ number_format($loan->loan_amount,2) }}</div>
+        <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Financial Details</div>
+        <div class="detail-grid-3">
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Loan Amount</div>
+                <div class="detail-value amount-big">₹{{ number_format($loan->loan_amount,2) }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-calendar"></i> Loan Date</div>
+                <div class="detail-value">{{ $loan->loan_start_date ? \Carbon\Carbon::parse($loan->loan_start_date)->format('d M Y') : '—' }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-wallet"></i> Payment Mode</div>
+                <div class="detail-value">{{ $loan->paymentMode->name ?? '—' }}</div>
+            </div>
         </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-percent"></i> Interest Rate</div>
-            <div class="detail-value">{{ $loan->interest_rate }}% p.a.</div>
+    @else
+        <div class="section-title"><i class="fa-solid fa-circle-info"></i> Loan Information</div>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
+                <div class="detail-value">{{ $loan->firm_names }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-landmark"></i> Bank Name</div>
+                <div class="detail-value">{{ $loan->bank_name }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-file-invoice"></i> Loan Type</div>
+                <div class="detail-value">{{ $loan->loan_type }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-user"></i> Customer</div>
+                @if($loan->customer)
+                    <div class="detail-value">{{ $loan->customer->name }}<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">{{ $loan->customer->mobile }}</div></div>
+                @else
+                    <div class="detail-value empty">Not linked</div>
+                @endif
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-building"></i> Property</div>
+                @if($loan->property)
+                    <div class="detail-value">{{ $loan->property->property_name }}{{ $loan->property->property_code?' ('.$loan->property->property_code.')':'' }}</div>
+                @else
+                    <div class="detail-value empty">Not linked</div>
+                @endif
+            </div>
         </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-wallet"></i> EMI Amount</div>
-            <div class="detail-value" style="color:#B91C1C;font-size:16px;font-weight:700;">₹{{ number_format($loan->emi_amount,2)}} / month</div>
+
+        <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Financial Details</div>
+        <div class="detail-grid-3">
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Loan Amount</div>
+                <div class="detail-value amount-big">₹{{ number_format($loan->loan_amount,2) }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-percent"></i> Interest Rate</div>
+                <div class="detail-value">{{ $loan->interest_rate }}% p.a.</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-wallet"></i> EMI Amount</div>
+                <div class="detail-value" style="color:#B91C1C;font-size:16px;font-weight:700;">₹{{ number_format($loan->emi_amount,2)}} / month</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-calendar-days"></i> Total EMI Months</div>
+                <div class="detail-value">{{ $loan->total_emi_months }} months</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-regular fa-calendar"></i> Loan Duration</div>
+                <div class="detail-value">{{ \Carbon\Carbon::parse($loan->loan_start_date)->format('d M Y') }} <span style="color:var(--text-secondary);font-weight:400;">to</span> {{ \Carbon\Carbon::parse($loan->loan_end_date)->format('d M Y') }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-shield-halved"></i> Loan Status</div>
+                <div class="detail-value"><span class="loan-status ls-{{ strtolower($loan->loan_status) }}">{{ $loan->loan_status }}</span></div>
+            </div>
         </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-calendar-days"></i> Total EMI Months</div>
-            <div class="detail-value">{{ $loan->total_emi_months }} months</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-regular fa-calendar"></i> Loan Duration</div>
-            <div class="detail-value">{{ \Carbon\Carbon::parse($loan->loan_start_date)->format('d M Y') }} <span style="color:var(--text-secondary);font-weight:400;">to</span> {{ \Carbon\Carbon::parse($loan->loan_end_date)->format('d M Y') }}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-shield-halved"></i> Loan Status</div>
-            <div class="detail-value"><span class="loan-status ls-{{ strtolower($loan->loan_status) }}">{{ $loan->loan_status }}</span></div>
-        </div>
-    </div>
+    @endif
 
     <div class="section-title"><i class="fa-solid fa-chart-line"></i> Payment Progress</div>
     @php $pct = $loan->loan_amount > 0 ? round(($loan->paid_amount / $loan->loan_amount) * 100) : 0; @endphp
@@ -149,7 +187,9 @@
     </div>
 
     <div class="form-actions">
-        <a href="{{ route('loans.emi-schedule', $loan->id) }}" class="btn-gold"><i class="fa-solid fa-calendar-days"></i> View EMI Schedule</a>
+        @if($loan->loan_type === 'Business Loan')
+            <a href="{{ route('loans.emi-schedule', $loan->id) }}" class="btn-gold"><i class="fa-solid fa-calendar-days"></i> View EMI Schedule</a>
+        @endif
         <a href="{{ route('loans.edit', $loan->id) }}" class="btn-outline"><i class="fa-regular fa-pen-to-square"></i> Edit Loan</a>
         <a href="{{ route('loans.index') }}" class="btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to List</a>
     </div>

@@ -32,18 +32,27 @@ class IncomeController extends Controller
         $firms   = Firm::where('status', 'active')->orderBy('firm_name')->get();
         $pmQuery = PaymentMode::where('status', 'active')->orderBy('name');
         if ($firmId && (!$user || !$user->isAdmin())) {
-            $pmQuery->where('firm_id', $firmId);
+            $pmQuery->whereHas('firms', function($q) use ($firmId) {
+                $q->where('firms.id', $firmId);
+            });
         }
+
+        $propQuery = \App\Models\Property::with('propertyType')->orderBy('property_name');
+        if ($firmId && (!$user || !$user->isAdmin())) {
+            $propQuery->where('firm_id', $firmId);
+        }
+        $properties = $propQuery->get();
 
         return [
             'firms'        => $firms,
             'paymentModes' => $pmQuery->get(),
+            'properties'   => $properties,
         ];
     }
 
     public function index(Request $request)
     {
-        $query = Income::with(['firms', 'firm', 'paymentMode']);
+        $query = Income::with(['firms', 'firm', 'paymentMode', 'property.propertyType']);
 
         if (!Auth::user()->isAdmin()) {
             $query->forFirms([Auth::user()->firm_id]);
@@ -59,6 +68,8 @@ class IncomeController extends Controller
                   ->orWhere('received_from', 'like', "%{$s}%")
                   ->orWhere('reference_no', 'like', "%{$s}%")
                   ->orWhere('description', 'like', "%{$s}%")
+                  ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
+                  ->orWhereHas('property.propertyType', fn($pt) => $pt->where('name', 'like', "%{$s}%"))
                   ->orWhereHas('firms', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
@@ -72,11 +83,93 @@ class IncomeController extends Controller
             $query->where('status', $request->filter_status);
         }
 
+        if ($request->filled('from_date')) {
+            $query->whereDate('income_date', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('income_date', '<=', $request->to_date);
+        }
+
+        if ($request->filled('filter_property')) {
+            $query->where('property_id', $request->filter_property);
+        }
+
+        if ($request->filled('filter_property_type')) {
+            $query->whereHas('property', fn($q) => $q->where('property_type_id', $request->filter_property_type));
+        }
+
         $totalAmount = (clone $query)->sum('amount');
+
+        if ($request->filled('export')) {
+            $exportType = $request->export;
+            $allRecords = $query->orderBy('income_date', 'desc')->get();
+            if ($exportType === 'csv' || $exportType === 'excel') {
+                return $this->exportCsv($allRecords);
+            }
+            if ($exportType === 'pdf') {
+                return view('admin.incomes.pdf', compact('allRecords', 'totalAmount'));
+            }
+        }
+
+        if ($request->get('print') === 'true') {
+            $allRecords = $query->orderBy('income_date', 'desc')->get();
+            return view('admin.incomes.pdf', compact('allRecords', 'totalAmount')); // PDF styled print view
+        }
+
         $incomes     = $query->orderBy('income_date', 'desc')->paginate(15)->withQueryString();
+        
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $firms       = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.incomes.index', compact('incomes', 'firms', 'totalAmount'));
+        $propQuery = \App\Models\Property::orderBy('property_name');
+        if (!Auth::user()->isAdmin()) {
+            $propQuery->where('firm_id', $firmId);
+        }
+        $properties = $propQuery->get();
+
+        $ptQuery = \App\Models\PropertyType::orderBy('name');
+        if (!Auth::user()->isAdmin()) {
+            $ptQuery->whereHas('firms', fn($q) => $q->where('firms.id', $firmId));
+        }
+        $propertyTypes = $ptQuery->get();
+
+        return view('admin.incomes.index', compact('incomes', 'firms', 'totalAmount', 'properties', 'propertyTypes'));
+    }
+
+    private function exportCsv($records)
+    {
+        $filename = 'income-report-' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+        $callback = function () use ($records) {
+            $h = fopen('php://output', 'w');
+            fprintf($h, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($h, ['Delawala Properties & Management - Income Report']);
+            fputcsv($h, ['Generated on', date('d M Y, h:i A')]);
+            fputcsv($h, []);
+            fputcsv($h, ['Sr', 'Firm', 'Property Name', 'Property Type', 'Date', 'Income Type', 'Received From', 'Amount', 'Payment Mode', 'Status']);
+            foreach ($records as $i => $r) {
+                fputcsv($h, [
+                    $i + 1,
+                    $r->firm_names ?? $r->firm->firm_name ?? '—',
+                    $r->property->property_name ?? '—',
+                    $r->property->propertyType->name ?? '—',
+                    \Carbon\Carbon::parse($r->income_date)->format('d M Y'),
+                    $r->income_type ?? '—',
+                    $r->received_from ?? '—',
+                    number_format($r->amount, 2),
+                    $r->paymentMode->name ?? '—',
+                    ucfirst($r->status),
+                ]);
+            }
+            fclose($h);
+        };
+        return response()->stream($callback, 200, $headers);
     }
 
     public function create()
@@ -91,6 +184,7 @@ class IncomeController extends Controller
 
         $income = Income::create([
             'firm_id'         => $primaryFirmId,
+            'property_id'     => $request->property_id,
             'income_date'     => $request->income_date,
             'income_type'     => $request->income_type,
             'amount'          => $request->amount,
@@ -108,14 +202,14 @@ class IncomeController extends Controller
 
     public function show(Income $income)
     {
-        $income->load(['firms', 'firm', 'paymentMode']);
+        $income->load(['firms', 'firm', 'paymentMode', 'property.propertyType']);
         $this->authorise($income);
         return view('admin.incomes.show', compact('income'));
     }
 
     public function edit(Income $income)
     {
-        $income->load(['firms', 'firm']);
+        $income->load(['firms', 'firm', 'property.propertyType']);
         $this->authorise($income);
         return view('admin.incomes.edit', array_merge(['income' => $income], $this->dropdowns($income->firm_id)));
     }
@@ -130,6 +224,7 @@ class IncomeController extends Controller
 
         $income->update([
             'firm_id'         => $primaryFirmId,
+            'property_id'     => $request->property_id,
             'income_date'     => $request->income_date,
             'income_type'     => $request->income_type,
             'amount'          => $request->amount,

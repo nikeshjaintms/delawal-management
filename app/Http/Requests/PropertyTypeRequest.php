@@ -41,6 +41,8 @@ class PropertyTypeRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
+            'firm_ids'   => 'required|array|min:1',
+            'firm_ids.*' => 'exists:firms,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'status' => 'required|in:active,inactive',
@@ -78,6 +80,7 @@ class PropertyTypeRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'firm_ids' => 'Firms',
             'name' => 'Type Name',
             'description' => 'Description',
             'status' => 'Status',

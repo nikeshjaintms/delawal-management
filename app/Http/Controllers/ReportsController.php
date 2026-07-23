@@ -1313,8 +1313,11 @@ class ReportsController extends Controller
             );
         }
         if ($request->filled('filter_property')) {
-            $query->whereHas('rental', fn($q) =>
-                $q->where('property_id', $request->filter_property)
+            $query->where('property_id', $request->filter_property);
+        }
+        if ($request->filled('filter_property_type')) {
+            $query->whereHas('property', fn($q) =>
+                $q->where('property_type_id', $request->filter_property_type)
             );
         }
 
@@ -1349,10 +1352,13 @@ class ReportsController extends Controller
         $totalActive = $activeQuery->count();
         $properties  = $propQuery->get();
         $firms       = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $propertyTypes = \App\Models\PropertyType::whereHas('firms', function($q) use ($firmId) {
+            $q->where('firms.id', $firmId);
+        })->where('status', 'active')->orderBy('name')->get();
 
         return view('admin.reports.rentals', compact(
             'records', 'totalRentAmt', 'totalReceived',
-            'totalPending', 'totalActive', 'properties', 'firms'
+            'totalPending', 'totalActive', 'properties', 'firms', 'propertyTypes'
         ));
     }
 
@@ -1406,7 +1412,7 @@ class ReportsController extends Controller
             // Data Header
             fputcsv($h, [
                 'Sr', 'Firm', 'Payment Date', 'Month/Year', 'Tenant Name',
-                'Tenant Mobile', 'Property', 'Monthly Rent',
+                'Tenant Mobile', 'Property Name', 'Property Type', 'Property Code', 'Monthly Rent',
                 'Paid Amount', 'Pending Amount', 'Payment Mode', 'Status',
             ]);
 
@@ -1421,7 +1427,9 @@ class ReportsController extends Controller
                     $rp->payment_month . ' ' . $rp->payment_year,
                     $rp->rental?->tenant_name  ?? '-',
                     $rp->rental?->tenant_mobile ?? '-',
-                    $rp->rental?->property?->property_name ?? '-',
+                    $rp->property->property_name ?? $rp->rental?->property?->property_name ?? '-',
+                    $rp->property->propertyType->name ?? $rp->rental?->property?->propertyType->name ?? '-',
+                    $rp->property->property_code ?? $rp->rental?->property?->property_code ?? '-',
                     number_format($rp->rent_amount, 2),
                     number_format($rp->paid_amount, 2),
                     number_format($rp->pending_amount, 2),

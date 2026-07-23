@@ -31,7 +31,9 @@ class LedgerController extends Controller
             'customers'    => Customer::where('firm_id', $firmId)->where('status', 'active')->orderBy('name')->get(),
             'vendors'      => Vendor::where('firm_id', $firmId)->where('status', 'active')->orderBy('name')->get(),
             'brokers'      => Broker::where('firm_id', $firmId)->where('status', 'active')->orderBy('name')->get(),
-            'paymentModes' => PaymentMode::where('firm_id', $firmId)->where('status', 'active')->orderBy('name')->get(),
+            'paymentModes' => PaymentMode::whereHas('firms', function($q) use ($firmId) {
+                $q->where('firms.id', $firmId);
+            })->where('status', 'active')->orderBy('name')->get(),
         ];
     }
 

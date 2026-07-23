@@ -46,6 +46,18 @@
     <div class="section-heading"><i class="fa-solid fa-gear"></i> General Settings</div>
     <div class="form-grid-2">
         <div class="form-group">
+            <label class="form-label" for="firm_ids">Firms <span>*</span></label>
+            <select name="firm_ids[]" id="firm_ids" class="form-control select2-multi @error('firm_ids') is-invalid @enderror" multiple required data-placeholder="Search and select firm(s)...">
+                @foreach($firms as $firm)
+                    <option value="{{ $firm->id }}" {{ in_array($firm->id, old('firm_ids', [Auth::user()->firm_id])) ? 'selected' : '' }}>
+                        {{ $firm->firm_name }}
+                    </option>
+                @endforeach
+            </select>
+            @error('firm_ids')<div class="text-error">{{ $message }}</div>@enderror
+            @error('firm_ids.*')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+        <div class="form-group">
             <label class="form-label">Financial Year</label>
             <select name="financial_year_id" class="form-control @error('financial_year_id') is-invalid @enderror">
                 <option value="">— Select Financial Year —</option>

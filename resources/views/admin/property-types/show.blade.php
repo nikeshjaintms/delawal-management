@@ -250,6 +250,14 @@
 
         <div class="detail-item">
             <div class="detail-label">
+                <i class="fa-solid fa-building"></i>
+                Assigned Firms
+            </div>
+            <div class="detail-value">{{ $propertyType->firm_names }}</div>
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label">
                 <i class="fa-solid fa-tag"></i>
                 Name
             </div>

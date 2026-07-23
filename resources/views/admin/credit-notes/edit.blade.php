@@ -47,11 +47,11 @@ textarea.form-control{resize:vertical;min-height:80px;}
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Credit Note No</label>
-                    <input type="text" name="credit_note_no" value="{{ old('credit_note_no',$creditNote- class="@error('credit_note_no') is-invalid @enderror">credit_note_no) }}" class="form-control">
+                    <input type="text" name="credit_note_no" value="{{ old('credit_note_no',$creditNote->credit_note_no) }}" class="form-control">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Date <span>*</span></label>
-                    <input type="date" name="credit_note_date" value="{{ old('credit_note_date',\Carbon\Carbon::parse($creditNote- class="@error('credit_note_date') is-invalid @enderror">credit_note_date)->format('Y-m-d')) }}" class="form-control">
+                    <input type="date" name="credit_note_date" value="{{ old('credit_note_date',\Carbon\Carbon::parse($creditNote->credit_note_date)->format('Y-m-d')) }}" class="form-control">
                     @error('credit_note_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
@@ -67,7 +67,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
                 </div>
                 <div class="form-group">
                     <label class="form-label">Related Invoice No</label>
-                    <input type="text" name="related_invoice_no" value="{{ old('related_invoice_no',$creditNote- class="@error('related_invoice_no') is-invalid @enderror">related_invoice_no) }}" class="form-control">
+                    <input type="text" name="related_invoice_no" value="{{ old('related_invoice_no',$creditNote->related_invoice_no) }}" class="form-control">
                 </div>
             </div>
             <div class="form-row">
@@ -92,36 +92,36 @@ textarea.form-control{resize:vertical;min-height:80px;}
                 <div class="form-group">
                     <label class="form-label">Taxable Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="taxable_amount" id="taxable_amount"
-                           value="{{ old('taxable_amount',$creditNote- class="@error('taxable_amount') is-invalid @enderror">taxable_amount) }}" class="form-control" oninput="calcCredit()">
+                           value="{{ old('taxable_amount',$creditNote->taxable_amount) }}" class="form-control" oninput="calcCredit()">
                     @error('taxable_amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
             <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label">CGST Rate (%)</label>
-                    <input type="number" step="0.01" name="cgst_rate" id="cgst_rate" value="{{ old('cgst_rate',$creditNote- class="@error('cgst_rate') is-invalid @enderror">cgst_rate) }}" class="form-control" oninput="autoCalcGst()">
+                    <input type="number" step="0.01" name="cgst_rate" id="cgst_rate" value="{{ old('cgst_rate',$creditNote->cgst_rate) }}" class="form-control" oninput="autoCalcGst()">
                 </div>
                 <div class="form-group">
                     <label class="form-label">CGST Amount (₹)</label>
-                    <input type="number" step="0.01" name="cgst_amount" id="cgst_amount" value="{{ old('cgst_amount',$creditNote- class="@error('cgst_amount') is-invalid @enderror">cgst_amount) }}" class="form-control" oninput="calcCredit()">
+                    <input type="number" step="0.01" name="cgst_amount" id="cgst_amount" value="{{ old('cgst_amount',$creditNote->cgst_amount) }}" class="form-control" oninput="calcCredit()">
                 </div>
                 <div class="form-group">
                     <label class="form-label">SGST Rate (%)</label>
-                    <input type="number" step="0.01" name="sgst_rate" id="sgst_rate" value="{{ old('sgst_rate',$creditNote- class="@error('sgst_rate') is-invalid @enderror">sgst_rate) }}" class="form-control" oninput="autoCalcGst()">
+                    <input type="number" step="0.01" name="sgst_rate" id="sgst_rate" value="{{ old('sgst_rate',$creditNote->sgst_rate) }}" class="form-control" oninput="autoCalcGst()">
                 </div>
             </div>
             <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label">SGST Amount (₹)</label>
-                    <input type="number" step="0.01" name="sgst_amount" id="sgst_amount" value="{{ old('sgst_amount',$creditNote- class="@error('sgst_amount') is-invalid @enderror">sgst_amount) }}" class="form-control" oninput="calcCredit()">
+                    <input type="number" step="0.01" name="sgst_amount" id="sgst_amount" value="{{ old('sgst_amount',$creditNote->sgst_amount) }}" class="form-control" oninput="calcCredit()">
                 </div>
                 <div class="form-group">
                     <label class="form-label">IGST Rate (%)</label>
-                    <input type="number" step="0.01" name="igst_rate" id="igst_rate" value="{{ old('igst_rate',$creditNote- class="@error('igst_rate') is-invalid @enderror">igst_rate) }}" class="form-control" oninput="autoCalcGst()">
+                    <input type="number" step="0.01" name="igst_rate" id="igst_rate" value="{{ old('igst_rate',$creditNote->igst_rate) }}" class="form-control" oninput="autoCalcGst()">
                 </div>
                 <div class="form-group">
                     <label class="form-label">IGST Amount (₹)</label>
-                    <input type="number" step="0.01" name="igst_amount" id="igst_amount" value="{{ old('igst_amount',$creditNote- class="@error('igst_amount') is-invalid @enderror">igst_amount) }}" class="form-control" oninput="calcCredit()">
+                    <input type="number" step="0.01" name="igst_amount" id="igst_amount" value="{{ old('igst_amount',$creditNote->igst_amount) }}" class="form-control" oninput="calcCredit()">
                 </div>
             </div>
             <div class="calc-box">

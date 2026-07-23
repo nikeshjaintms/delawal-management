@@ -33,7 +33,7 @@
 </style>
 
 <div class="crud-header">
-    <div class="crud-title"><h2>Add Loan</h2><p>Create a new loan record and auto-generate EMI schedule.</p></div>
+    <div class="crud-title"><h2>Add Loan</h2><p>Create a new loan record.</p></div>
 </div>
 
 <div class="card-box">
@@ -46,22 +46,25 @@
             @include('admin.components.firm-select')
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Bank Name <span class="req">*</span></label>
-                    <input type="text" name="bank_name" value="{{ old('bank_name') }}" class="form-control @error('bank_name') is-invalid @enderror" placeholder="e.g. SBI, HDFC Bank, ICICI">
-                    @error('bank_name')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-                <div class="form-group">
                     <label class="form-label">Loan Type <span class="req">*</span></label>
-                    <select name="loan_type" class="form-control @error('loan_type') is-invalid @enderror">
-                        <option value="">— Select Type —</option>
-                        @foreach(['Home Loan','Personal Loan','Business Loan','Mortgage','Car Loan','Other'] as $t)
-                            <option value="{{ $t }}" {{ old('loan_type')==$t?'selected':'' }}>{{ $t }}</option>
-                        @endforeach
+                    <select name="loan_type" id="loan_type" class="form-control @error('loan_type') is-invalid @enderror" onchange="toggleLoanType()">
+                        <option value="Business Loan" {{ old('loan_type', 'Business Loan') == 'Business Loan' ? 'selected' : '' }}>Business Loan</option>
+                        <option value="Personal Loan" {{ old('loan_type') == 'Personal Loan' ? 'selected' : '' }}>Personal Loan</option>
                     </select>
                     @error('loan_type')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
+                <div class="form-group business-only">
+                    <label class="form-label">Bank Name <span class="req">*</span></label>
+                    <input type="text" name="bank_name" id="bank_name" value="{{ old('bank_name') }}" class="form-control @error('bank_name') is-invalid @enderror" placeholder="e.g. SBI, HDFC Bank, ICICI">
+                    @error('bank_name')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group personal-only" style="display:none;">
+                    <label class="form-label">Person Name <span class="req">*</span></label>
+                    <input type="text" name="person_name" id="person_name" value="{{ old('person_name') }}" class="form-control @error('person_name') is-invalid @enderror" placeholder="Enter person's name">
+                    @error('person_name')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
             </div>
-            <div class="form-row">
+            <div class="form-row business-only">
                 <div class="form-group">
                     <label class="form-label">Customer <span class="opt">(optional)</span></label>
                     <select name="customer_id" class="form-control @error('customer_id') is-invalid @enderror">
@@ -83,34 +86,38 @@
                     @error('property_id')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
+            <div class="form-row personal-only" style="display:none;">
+                <div class="form-group">
+                    <label class="form-label">Mobile Number <span class="opt">(optional)</span></label>
+                    <input type="text" name="mobile_number" value="{{ old('mobile_number') }}" class="form-control @error('mobile_number') is-invalid @enderror" placeholder="Enter mobile number">
+                    @error('mobile_number')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Relationship <span class="opt">(optional)</span></label>
+                    <input type="text" name="relationship" value="{{ old('relationship') }}" class="form-control @error('relationship') is-invalid @enderror" placeholder="e.g. Friend, Brother, Relative">
+                    @error('relationship')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+            </div>
         </div>
 
         {{-- Section 2: Financial Details --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Financial Details</div>
-            <div class="form-row-3">
+            <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Loan Amount (₹) <span class="req">*</span></label>
                     <input type="number" step="0.01" name="loan_amount" id="loan_amount" value="{{ old('loan_amount') }}" class="form-control @error('loan_amount') is-invalid @enderror" placeholder="0.00" oninput="calcEmi()">
                     @error('loan_amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Interest Rate (% p.a.) <span class="req">*</span></label>
-                    <input type="number" step="0.01" name="interest_rate" id="interest_rate" value="{{ old('interest_rate') }}" class="form-control @error('interest_rate') is-invalid @enderror" placeholder="e.g. 8.5" oninput="calcEmi()">
-                    @error('interest_rate')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Total EMI Months <span class="req">*</span></label>
-                    <input type="number" name="total_emi_months" id="total_emi_months" value="{{ old('total_emi_months') }}" class="form-control @error('total_emi_months') is-invalid @enderror" placeholder="e.g. 120" oninput="calcEmi()">
-                    @error('total_emi_months')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">EMI Amount (₹) <span class="req">*</span></label>
-                    <input type="number" step="0.01" name="emi_amount" id="emi_amount" value="{{ old('emi_amount') }}" class="form-control @error('emi_amount') is-invalid @enderror" placeholder="Auto-calculated or enter manually">
-                    <div class="form-hint">Auto-calculated based on loan amount, rate & tenure. You can override.</div>
-                    @error('emi_amount')<div class="text-error">{{ $message }}</div>@enderror
+                <div class="form-group personal-only" style="display:none;">
+                    <label class="form-label">Payment Mode <span class="opt">(optional)</span></label>
+                    <select name="payment_mode_id" class="form-control @error('payment_mode_id') is-invalid @enderror">
+                        <option value="">— Select Payment Mode —</option>
+                        @foreach($paymentModes as $pm)
+                            <option value="{{ $pm->id }}" {{ old('payment_mode_id') == $pm->id ? 'selected' : '' }}>{{ $pm->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('payment_mode_id')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">Loan Status <span class="req">*</span></label>
@@ -122,6 +129,25 @@
                     @error('loan_status')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
+            
+            <div class="form-row-3 business-only">
+                <div class="form-group">
+                    <label class="form-label">Interest Rate (% p.a.) <span class="req">*</span></label>
+                    <input type="number" step="0.01" name="interest_rate" id="interest_rate" value="{{ old('interest_rate') }}" class="form-control @error('interest_rate') is-invalid @enderror" placeholder="e.g. 8.5" oninput="calcEmi()">
+                    @error('interest_rate')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Total EMI Months <span class="req">*</span></label>
+                    <input type="number" name="total_emi_months" id="total_emi_months" value="{{ old('total_emi_months') }}" class="form-control @error('total_emi_months') is-invalid @enderror" placeholder="e.g. 120" oninput="calcEmi()">
+                    @error('total_emi_months')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label">EMI Amount (₹) <span class="req">*</span></label>
+                    <input type="number" step="0.01" name="emi_amount" id="emi_amount" value="{{ old('emi_amount') }}" class="form-control @error('emi_amount') is-invalid @enderror" placeholder="Auto-calculated or enter manually">
+                    <div class="form-hint">Auto-calculated based on loan amount, rate & tenure. You can override.</div>
+                    @error('emi_amount')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+            </div>
         </div>
 
         {{-- Section 3: Schedule --}}
@@ -129,11 +155,11 @@
             <div class="section-title"><i class="fa-regular fa-calendar-days"></i> Loan Schedule</div>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Loan Start Date <span class="req">*</span></label>
-                    <input type="date" name="loan_start_date" id="loan_start_date" value="{{ old('loan_start_date') }}" class="form-control @error('loan_start_date') is-invalid @enderror">
+                    <label class="form-label" id="start_date_label">Loan Start Date <span class="req">*</span></label>
+                    <input type="date" name="loan_start_date" id="loan_start_date" value="{{ old('loan_start_date', date('Y-m-d')) }}" class="form-control @error('loan_start_date') is-invalid @enderror">
                     @error('loan_start_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
-                <div class="form-group">
+                <div class="form-group business-only">
                     <label class="form-label">Loan End Date <span class="req">*</span></label>
                     <input type="date" name="loan_end_date" id="loan_end_date" value="{{ old('loan_end_date') }}" class="form-control @error('loan_end_date') is-invalid @enderror">
                     @error('loan_end_date')<div class="text-error">{{ $message }}</div>@enderror
@@ -151,14 +177,37 @@
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn-gold"><i class="fa-solid fa-check"></i> Save Loan & Generate EMI</button>
+            <button type="submit" class="btn-gold" id="submit_btn"><i class="fa-solid fa-check"></i> Save Loan & Generate EMI</button>
             <a href="{{ route('loans.index') }}" class="btn-outline"><i class="fa-solid fa-arrow-left"></i> Back</a>
         </div>
     </form>
 </div>
 
 <script>
+function toggleLoanType() {
+    const loanType = document.getElementById('loan_type').value;
+    const businessOnly = document.querySelectorAll('.business-only');
+    const personalOnly = document.querySelectorAll('.personal-only');
+    const submitBtn = document.getElementById('submit_btn');
+    const startDateLabel = document.getElementById('start_date_label');
+
+    if (loanType === 'Personal Loan') {
+        businessOnly.forEach(el => el.style.display = 'none');
+        personalOnly.forEach(el => el.style.display = 'block');
+        submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Personal Loan';
+        startDateLabel.innerHTML = 'Loan Date <span class="req">*</span>';
+    } else {
+        businessOnly.forEach(el => el.style.display = 'block');
+        personalOnly.forEach(el => el.style.display = 'none');
+        submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Loan & Generate EMI';
+        startDateLabel.innerHTML = 'Loan Start Date <span class="req">*</span>';
+    }
+}
+
 function calcEmi() {
+    const loanType = document.getElementById('loan_type').value;
+    if (loanType === 'Personal Loan') return;
+
     const P = parseFloat(document.getElementById('loan_amount').value) || 0;
     const annualRate = parseFloat(document.getElementById('interest_rate').value) || 0;
     const n = parseInt(document.getElementById('total_emi_months').value) || 0;
@@ -177,6 +226,11 @@ function calcEmi() {
         document.getElementById('loan_end_date').value = d.toISOString().split('T')[0];
     }
 }
+
 document.getElementById('loan_start_date').addEventListener('change', calcEmi);
+
+document.addEventListener('DOMContentLoaded', function() {
+    toggleLoanType();
+});
 </script>
 @endsection

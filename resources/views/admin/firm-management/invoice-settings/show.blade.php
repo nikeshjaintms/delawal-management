@@ -39,6 +39,7 @@
 <div class="detail-card">
     <div class="section-heading"><i class="fa-solid fa-gear"></i> General Settings</div>
     <div class="detail-grid-2">
+        <div><div class="detail-label">Assigned Firms</div><div class="detail-value">{{ $invoiceSetting->firm_names }}</div></div>
         <div><div class="detail-label">Financial Year</div><div class="detail-value">{{ $invoiceSetting->financialYear->year_name ?? '—' }}</div></div>
         <div><div class="detail-label">Status</div><div class="detail-value"><span class="badge badge-{{ $invoiceSetting->status }}">{{ ucfirst($invoiceSetting->status) }}</span></div></div>
         <div><div class="detail-label">Starting Number</div><div class="detail-value">{{ $invoiceSetting->starting_number }}</div></div>

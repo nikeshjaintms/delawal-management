@@ -42,6 +42,16 @@
         </div>
 
         <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-hotel"></i> Property Name</div>
+            <div class="detail-value">{{ $income->property->property_name ?? '—' }}</div>
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-house"></i> Property Type</div>
+            <div class="detail-value">{{ $income->property->propertyType->name ?? '—' }}</div>
+        </div>
+
+        <div class="detail-item">
             <div class="detail-label"><i class="fa-regular fa-calendar"></i> Income Date</div>
             <div class="detail-value">{{ \Carbon\Carbon::parse($income->income_date)->format('d M Y') }}</div>
         </div>

@@ -44,9 +44,28 @@
 
             <div class="form-row">
                 <div class="form-group">
+                    <label class="form-label" for="property_id">Property <span>*</span></label>
+                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required>
+                        <option value="">— Select Property —</option>
+                        @foreach($properties as $property)
+                            <option value="{{ $property->id }}" data-type="{{ $property->propertyType->name ?? 'No Property Type Assigned' }}" {{ old('property_id', $income->property_id) == $property->id ? 'selected' : '' }}>
+                                {{ $property->property_name }} @if($property->property_code) ({{ $property->property_code }}) @endif
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('property_id')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="property_type_display">Property Type</label>
+                    <input type="text" id="property_type_display" class="form-control form-control-readonly" readonly placeholder="Auto-determined">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
                     <label class="form-label" for="income_date">Income Date <span>*</span></label>
                     <input type="date" name="income_date" id="income_date"
-                           value="{{ old('income_date', \Carbon\Carbon::parse($income- class="@error('income_date') is-invalid @enderror">income_date)->format('Y-m-d')) }}"
+                           value="{{ old('income_date', \Carbon\Carbon::parse($income->income_date)->format('Y-m-d')) }}"
                            class="form-control">
                     @error('income_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
@@ -69,7 +88,7 @@
                 <div class="form-group">
                     <label class="form-label" for="amount">Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="amount" id="amount"
-                           value="{{ old('amount', $income- class="@error('amount') is-invalid @enderror">amount) }}"
+                           value="{{ old('amount', $income->amount) }}"
                            class="form-control" placeholder="0.00" min="0">
                     @error('amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
@@ -92,14 +111,14 @@
                 <div class="form-group">
                     <label class="form-label" for="received_from">Received From <span class="opt">(optional)</span></label>
                     <input type="text" name="received_from" id="received_from"
-                           value="{{ old('received_from', $income- class="@error('received_from') is-invalid @enderror">received_from) }}"
+                           value="{{ old('received_from', $income->received_from) }}"
                            class="form-control" placeholder="Name / organisation">
                     @error('received_from')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="reference_no">Reference No <span class="opt">(optional)</span></label>
                     <input type="text" name="reference_no" id="reference_no"
-                           value="{{ old('reference_no', $income- class="@error('reference_no') is-invalid @enderror">reference_no) }}"
+                           value="{{ old('reference_no', $income->reference_no) }}"
                            class="form-control" placeholder="Receipt / cheque / UTR number">
                     @error('reference_no')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
@@ -134,4 +153,36 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.jQuery && jQuery.fn.select2) {
+        jQuery('#property_id').select2({
+            placeholder: "Search and select property...",
+            allowClear: true,
+            width: '100%'
+        });
+    }
+
+    function updatePropertyType() {
+        const select = document.getElementById('property_id');
+        const selectedOption = select.options[select.selectedIndex];
+        const propType = selectedOption ? selectedOption.getAttribute('data-type') : '';
+        const val = select.value;
+        if (!val) {
+            document.getElementById('property_type_display').value = 'Auto-determined';
+        } else {
+            document.getElementById('property_type_display').value = propType || 'No Property Type Assigned';
+        }
+    }
+
+    if (window.jQuery) {
+        jQuery('#property_id').on('change', updatePropertyType);
+        jQuery('#property_id').on('select2:select', updatePropertyType);
+        jQuery('#property_id').on('select2:unselect', updatePropertyType);
+    }
+    document.getElementById('property_id').addEventListener('change', updatePropertyType);
+    updatePropertyType();
+});
+</script>
 @endsection

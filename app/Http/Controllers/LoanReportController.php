@@ -12,7 +12,7 @@ class LoanReportController extends Controller
 {
     private function getReportData(Request $request)
     {
-        $query = Loan::with(['firms', 'firm', 'property', 'customer']);
+        $query = Loan::with(['firms', 'firm', 'property', 'customer', 'paymentMode']);
 
         if (!Auth::user()->isAdmin()) {
             $query->forFirms([Auth::user()->firm_id]);
@@ -102,21 +102,28 @@ class LoanReportController extends Controller
             fputcsv($handle, []);
 
             fputcsv($handle, [
-                'Firm(s)', 'Bank Name', 'Loan Type', 'Customer', 'Property',
-                'Loan Amount (₹)', 'EMI Amount (₹)', 'Paid Amount (₹)', 'Pending Amount (₹)', 'Status'
+                'Firm(s)', 'Loan Type', 'Bank Name', 'Person Name', 'Relationship',
+                'Mobile', 'Customer', 'Property',
+                'Loan Amount (₹)', 'EMI Amount (₹)', 'Paid Amount (₹)', 'Pending Amount (₹)',
+                'Payment Mode', 'Loan Date', 'Status'
             ]);
 
             foreach ($loans as $l) {
                 fputcsv($handle, [
                     $l->firm_names,
-                    $l->bank_name,
                     $l->loan_type,
-                    $l->customer?->name ?? 'General',
-                    $l->property?->property_name ?? 'N/A',
+                    $l->bank_name ?? '',
+                    $l->person_name ?? '',
+                    $l->relationship ?? '',
+                    $l->mobile_number ?? '',
+                    $l->customer?->name ?? '',
+                    $l->property?->property_name ?? '',
                     number_format($l->loan_amount, 2),
-                    number_format($l->emi_amount, 2),
+                    number_format($l->emi_amount ?? 0, 2),
                     number_format($l->paid_amount, 2),
                     number_format($l->pending_amount, 2),
+                    $l->paymentMode?->name ?? '',
+                    $l->loan_start_date,
                     $l->loan_status
                 ]);
             }

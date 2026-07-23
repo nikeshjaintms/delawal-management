@@ -21,6 +21,9 @@ class LoanRequest extends FormRequest
                 $inputs[$key] = trim($value);
             }
         }
+        if (isset($inputs['firm_ids']) && is_array($inputs['firm_ids']) && !empty($inputs['firm_ids'])) {
+            $inputs['firm_id'] = $inputs['firm_ids'][0];
+        }
         $this->replace($inputs);
     }
 
@@ -41,21 +44,29 @@ class LoanRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
-            'firm_ids'             => 'nullable|array',
-            'firm_ids.*'           => 'exists:firms,id',
-            'firm_id'              => 'nullable|exists:firms,id',
-            'bank_name'        => 'required|string|max:255',
-            'loan_type'        => 'required|string|max:255',
+            'firm_ids'         => 'nullable|array',
+            'firm_ids.*'       => 'exists:firms,id',
+            'firm_id'          => 'nullable|exists:firms,id',
+            'loan_type'        => 'required|in:Business Loan,Personal Loan',
+            
+            // Business Loan Validation
+            'bank_name'        => 'required_if:loan_type,Business Loan|nullable|string|max:255',
             'property_id'      => 'nullable|exists:properties,id',
             'customer_id'      => 'nullable|exists:customers,id',
             'loan_amount'      => 'required|numeric|min:0.01',
-            'interest_rate'    => 'required|numeric|min:0|max:100',
-            'total_emi_months' => 'required|integer|min:1',
-            'emi_amount'       => 'required|numeric|min:0',
+            'interest_rate'    => 'required_if:loan_type,Business Loan|nullable|numeric|min:0|max:100',
+            'total_emi_months' => 'required_if:loan_type,Business Loan|nullable|integer|min:1',
+            'emi_amount'       => 'required_if:loan_type,Business Loan|nullable|numeric|min:0',
             'loan_start_date'  => 'required|date',
-            'loan_end_date'    => 'required|date|after_or_equal:loan_start_date',
+            'loan_end_date'    => 'required_if:loan_type,Business Loan|nullable|date|after_or_equal:loan_start_date',
             'loan_status'      => 'required|in:Active,Completed,Closed,Cancelled',
             'remarks'          => 'nullable|string|max:1000',
+            
+            // Personal Loan Validation
+            'person_name'      => 'required_if:loan_type,Personal Loan|nullable|string|max:255',
+            'mobile_number'    => 'nullable|string|max:30',
+            'relationship'     => 'nullable|string|max:100',
+            'payment_mode_id'  => 'nullable|exists:payment_modes,id',
         ];
 
         // Replace placeholders in unique rules dynamically
@@ -103,6 +114,10 @@ class LoanRequest extends FormRequest
             'loan_end_date'    => 'Loan End Date',
             'loan_status'      => 'Loan Status',
             'remarks'          => 'Remarks',
+            'person_name'      => 'Person Name',
+            'mobile_number'    => 'Mobile Number',
+            'relationship'     => 'Relationship',
+            'payment_mode_id'  => 'Payment Mode',
         ];
     }
 

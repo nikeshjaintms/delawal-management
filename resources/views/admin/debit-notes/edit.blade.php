@@ -46,11 +46,11 @@ textarea.form-control{resize:vertical;min-height:80px;}
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Debit Note No</label>
-                    <input type="text" name="debit_note_no" value="{{ old('debit_note_no',$debitNote- class="@error('debit_note_no') is-invalid @enderror">debit_note_no) }}" class="form-control">
+                    <input type="text" name="debit_note_no" value="{{ old('debit_note_no',$debitNote->debit_note_no) }}" class="form-control">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Date <span>*</span></label>
-                    <input type="date" name="debit_note_date" value="{{ old('debit_note_date',\Carbon\Carbon::parse($debitNote- class="@error('debit_note_date') is-invalid @enderror">debit_note_date)->format('Y-m-d')) }}" class="form-control">
+                    <input type="date" name="debit_note_date" value="{{ old('debit_note_date',\Carbon\Carbon::parse($debitNote->debit_note_date)->format('Y-m-d')) }}" class="form-control">
                     @error('debit_note_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
@@ -66,7 +66,7 @@ textarea.form-control{resize:vertical;min-height:80px;}
                 </div>
                 <div class="form-group">
                     <label class="form-label">Related Bill No</label>
-                    <input type="text" name="related_bill_no" value="{{ old('related_bill_no',$debitNote- class="@error('related_bill_no') is-invalid @enderror">related_bill_no) }}" class="form-control">
+                    <input type="text" name="related_bill_no" value="{{ old('related_bill_no',$debitNote->related_bill_no) }}" class="form-control">
                 </div>
             </div>
             <div class="form-row">
@@ -91,36 +91,36 @@ textarea.form-control{resize:vertical;min-height:80px;}
                 <div class="form-group">
                     <label class="form-label">Taxable Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="taxable_amount" id="taxable_amount"
-                           value="{{ old('taxable_amount',$debitNote- class="@error('taxable_amount') is-invalid @enderror">taxable_amount) }}" class="form-control" oninput="calcDebit()">
+                           value="{{ old('taxable_amount',$debitNote->taxable_amount) }}" class="form-control" oninput="calcDebit()">
                     @error('taxable_amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
             <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label">CGST Rate (%)</label>
-                    <input type="number" step="0.01" name="cgst_rate" id="cgst_rate" value="{{ old('cgst_rate',$debitNote- class="@error('cgst_rate') is-invalid @enderror">cgst_rate) }}" class="form-control" oninput="autoCalcGst()">
+                    <input type="number" step="0.01" name="cgst_rate" id="cgst_rate" value="{{ old('cgst_rate',$debitNote->cgst_rate) }}" class="form-control" oninput="autoCalcGst()">
                 </div>
                 <div class="form-group">
                     <label class="form-label">CGST Amount (₹)</label>
-                    <input type="number" step="0.01" name="cgst_amount" id="cgst_amount" value="{{ old('cgst_amount',$debitNote- class="@error('cgst_amount') is-invalid @enderror">cgst_amount) }}" class="form-control" oninput="calcDebit()">
+                    <input type="number" step="0.01" name="cgst_amount" id="cgst_amount" value="{{ old('cgst_amount',$debitNote->cgst_amount) }}" class="form-control" oninput="calcDebit()">
                 </div>
                 <div class="form-group">
                     <label class="form-label">SGST Rate (%)</label>
-                    <input type="number" step="0.01" name="sgst_rate" id="sgst_rate" value="{{ old('sgst_rate',$debitNote- class="@error('sgst_rate') is-invalid @enderror">sgst_rate) }}" class="form-control" oninput="autoCalcGst()">
+                    <input type="number" step="0.01" name="sgst_rate" id="sgst_rate" value="{{ old('sgst_rate',$debitNote->sgst_rate) }}" class="form-control" oninput="autoCalcGst()">
                 </div>
             </div>
             <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label">SGST Amount (₹)</label>
-                    <input type="number" step="0.01" name="sgst_amount" id="sgst_amount" value="{{ old('sgst_amount',$debitNote- class="@error('sgst_amount') is-invalid @enderror">sgst_amount) }}" class="form-control" oninput="calcDebit()">
+                    <input type="number" step="0.01" name="sgst_amount" id="sgst_amount" value="{{ old('sgst_amount',$debitNote->sgst_amount) }}" class="form-control" oninput="calcDebit()">
                 </div>
                 <div class="form-group">
                     <label class="form-label">IGST Rate (%)</label>
-                    <input type="number" step="0.01" name="igst_rate" id="igst_rate" value="{{ old('igst_rate',$debitNote- class="@error('igst_rate') is-invalid @enderror">igst_rate) }}" class="form-control" oninput="autoCalcGst()">
+                    <input type="number" step="0.01" name="igst_rate" id="igst_rate" value="{{ old('igst_rate',$debitNote->igst_rate) }}" class="form-control" oninput="autoCalcGst()">
                 </div>
                 <div class="form-group">
                     <label class="form-label">IGST Amount (₹)</label>
-                    <input type="number" step="0.01" name="igst_amount" id="igst_amount" value="{{ old('igst_amount',$debitNote- class="@error('igst_amount') is-invalid @enderror">igst_amount) }}" class="form-control" oninput="calcDebit()">
+                    <input type="number" step="0.01" name="igst_amount" id="igst_amount" value="{{ old('igst_amount',$debitNote->igst_amount) }}" class="form-control" oninput="calcDebit()">
                 </div>
             </div>
             <div class="calc-box">

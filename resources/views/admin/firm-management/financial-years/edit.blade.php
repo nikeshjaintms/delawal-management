@@ -47,18 +47,18 @@
     <div class="form-grid" style="margin-bottom:18px">
         <div class="form-group" style="grid-column:1/-1">
             <label class="form-label">Financial Year Name <span>*</span></label>
-            <input type="text" name="year_name" value="{{ old('year_name', $financialYear- class="@error('year_name') is-invalid @enderror">year_name) }}" class="form-control" required>
+            <input type="text" name="year_name" value="{{ old('year_name', $financialYear->year_name) }}" class="form-control" required>
             <div class="form-hint">Format: YYYY-YYYY (e.g. 2026-2027)</div>
             @error('year_name')<div class="text-error">{{ $message }}</div>@enderror
         </div>
         <div class="form-group">
             <label class="form-label">Start Date <span>*</span></label>
-            <input type="date" name="start_date" value="{{ old('start_date', $financialYear- class="@error('start_date') is-invalid @enderror">start_date->format('Y-m-d')) }}" class="form-control" required>
+            <input type="date" name="start_date" value="{{ old('start_date', $financialYear->start_date->format('Y-m-d')) }}" class="form-control" required>
             @error('start_date')<div class="text-error">{{ $message }}</div>@enderror
         </div>
         <div class="form-group">
             <label class="form-label">End Date <span>*</span></label>
-            <input type="date" name="end_date" value="{{ old('end_date', $financialYear- class="@error('end_date') is-invalid @enderror">end_date->format('Y-m-d')) }}" class="form-control" required>
+            <input type="date" name="end_date" value="{{ old('end_date', $financialYear->end_date->format('Y-m-d')) }}" class="form-control" required>
             @error('end_date')<div class="text-error">{{ $message }}</div>@enderror
         </div>
         <div class="form-group">
@@ -73,7 +73,7 @@
             <label class="form-label">Set as Active Year</label>
             <div class="toggle-row">
                 <input type="checkbox" name="is_active" id="is_active" value="1"
-                    {{ old('is_active', $financialYear- class="@error('is_active') is-invalid @enderror">is_active) ? 'checked':'' }}>
+                    {{ old('is_active', $financialYear->is_active) ? 'checked':'' }}>
                 <label for="is_active">Mark as current active financial year</label>
             </div>
         </div>

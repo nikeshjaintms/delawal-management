@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Add Rental Payment')
+@section('title', 'Edit Rental Payment')
 @section('page-title', 'Rental Management')
 
 @section('content')
@@ -41,8 +41,8 @@
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Add Rental Payment</h2>
-        <p>Record a monthly rent payment for this tenant.</p>
+        <h2>Edit Rental Payment</h2>
+        <p>Update monthly rent payment details.</p>
     </div>
 </div>
 
@@ -63,9 +63,11 @@
 </div>
 
 <div class="card-box">
-    <form method="POST" action="{{ route('rental-payments.store', $rental->id) }}">
+    <form method="POST" action="{{ route('rental-payments.update', [$rental->id, $rentalPayment->id]) }}">
         @csrf
+        @method('PUT')
         @include('admin.components.firm-select', ['model' => $rental])
+
         {{-- Property --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-building"></i> Property Details</div>
@@ -74,7 +76,7 @@
                 <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required>
                     <option value="">-- Select Property --</option>
                     @foreach($properties as $property)
-                        <option value="{{ $property->id }}" {{ old('property_id', $rental->property_id) == $property->id ? 'selected' : '' }}>
+                        <option value="{{ $property->id }}" {{ old('property_id', $rentalPayment->property_id) == $property->id ? 'selected' : '' }}>
                             {{ $property->property_code ? $property->property_code . ' - ' : '' }}{{ $property->property_name }}{{ $property->propertyType ? ' - ' . $property->propertyType->name : '' }}
                         </option>
                     @endforeach
@@ -92,7 +94,7 @@
                     <select name="payment_month" id="payment_month" class="form-control @error('payment_month') is-invalid @enderror">
                         <option value="">-- Select Month --</option>
                         @foreach(['January','February','March','April','May','June','July','August','September','October','November','December'] as $m)
-                            <option value="{{ $m }}" {{ old('payment_month') == $m ? 'selected' : '' }}>{{ $m }}</option>
+                            <option value="{{ $m }}" {{ old('payment_month', $rentalPayment->payment_month) == $m ? 'selected' : '' }}>{{ $m }}</option>
                         @endforeach
                     </select>
                     @error('payment_month') <div class="text-error">{{ $message }}</div> @enderror
@@ -102,7 +104,7 @@
                     <select name="payment_year" id="payment_year" class="form-control @error('payment_year') is-invalid @enderror">
                         <option value="">-- Select Year --</option>
                         @for($y = date('Y') + 1; $y >= 2020; $y--)
-                            <option value="{{ $y }}" {{ old('payment_year', date('Y')) == $y ? 'selected' : '' }}>{{ $y }}</option>
+                            <option value="{{ $y }}" {{ old('payment_year', $rentalPayment->payment_year) == $y ? 'selected' : '' }}>{{ $y }}</option>
                         @endfor
                     </select>
                     @error('payment_year') <div class="text-error">{{ $message }}</div> @enderror
@@ -117,15 +119,15 @@
                 <div class="form-group">
                     <label class="form-label" for="rent_amount">Rent Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="rent_amount" id="rent_amount"
-                           value="{{ old('rent_amount', $rental->rent_amount) }}"
-                           class="form-control" placeholder="Enter rent amount"
+                           value="{{ old('rent_amount', $rentalPayment->rent_amount) }}"
+                           class="form-control @error('rent_amount') is-invalid @enderror" placeholder="Enter rent amount"
                            oninput="calcPending()">
                     @error('rent_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="paid_amount">Paid Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="paid_amount" id="paid_amount"
-                           value="{{ old('paid_amount', 0) }}"
+                           value="{{ old('paid_amount', $rentalPayment->paid_amount) }}"
                            class="form-control @error('paid_amount') is-invalid @enderror" placeholder="Enter amount paid"
                            oninput="calcPending()">
                     @error('paid_amount') <div class="text-error">{{ $message }}</div> @enderror
@@ -148,7 +150,7 @@
                     <select name="payment_mode" id="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror">
                         <option value="">-- Select Mode --</option>
                         @foreach(\App\Models\PaymentMode::whereHas('firms', function($q) { $q->where('firms.id', Auth::user()->firm_id); })->where('status', 'active')->orderBy('name')->get() as $pm)
-                            <option value="{{ $pm->name }}" {{ old('payment_mode') == $pm->name ? 'selected' : '' }}>{{ $pm->name }}</option>
+                            <option value="{{ $pm->name }}" {{ old('payment_mode', $rentalPayment->payment_mode) == $pm->name ? 'selected' : '' }}>{{ $pm->name }}</option>
                         @endforeach
                     </select>
                     @error('payment_mode') <div class="text-error">{{ $message }}</div> @enderror
@@ -156,21 +158,21 @@
                 <div class="form-group">
                     <label class="form-label" for="payment_date">Payment Date</label>
                     <input type="date" name="payment_date" id="payment_date"
-                           value="{{ old('payment_date', date('Y-m-d')) }}" class="form-control @error('payment_date') is-invalid @enderror">
+                           value="{{ old('payment_date', $rentalPayment->payment_date) }}" class="form-control @error('payment_date') is-invalid @enderror">
                     @error('payment_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
             <div class="form-group">
                 <label class="form-label" for="remarks">Remarks</label>
                 <textarea name="remarks" id="remarks" class="form-control @error('remarks') is-invalid @enderror"
-                          placeholder="Add any notes about this payment...">{{ old('remarks') }}</textarea>
+                          placeholder="Add any notes about this payment...">{{ old('remarks', $rentalPayment->remarks) }}</textarea>
                 @error('remarks') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>
 
         <div class="form-actions">
             <button type="submit" class="btn-gold">
-                <i class="fa-solid fa-check"></i> Save Payment
+                <i class="fa-solid fa-check"></i> Update Payment
             </button>
             <a href="{{ route('rental-payments.index', $rental->id) }}" class="btn-outline">Back</a>
         </div>

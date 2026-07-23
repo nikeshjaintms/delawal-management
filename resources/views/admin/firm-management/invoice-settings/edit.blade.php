@@ -46,6 +46,18 @@
     <div class="section-heading"><i class="fa-solid fa-gear"></i> General Settings</div>
     <div class="form-grid-2">
         <div class="form-group">
+            <label class="form-label" for="firm_ids">Firms <span>*</span></label>
+            <select name="firm_ids[]" id="firm_ids" class="form-control select2-multi @error('firm_ids') is-invalid @enderror" multiple required data-placeholder="Search and select firm(s)...">
+                @foreach($firms as $firm)
+                    <option value="{{ $firm->id }}" {{ in_array($firm->id, old('firm_ids', $invoiceSetting->firms->pluck('id')->toArray())) ? 'selected' : '' }}>
+                        {{ $firm->firm_name }}
+                    </option>
+                @endforeach
+            </select>
+            @error('firm_ids')<div class="text-error">{{ $message }}</div>@enderror
+            @error('firm_ids.*')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+        <div class="form-group">
             <label class="form-label">Financial Year</label>
             <select name="financial_year_id" class="form-control @error('financial_year_id') is-invalid @enderror">
                 <option value="">— None —</option>
@@ -65,11 +77,11 @@
         </div>
         <div class="form-group">
             <label class="form-label">Starting Number <span>*</span></label>
-            <input type="number" name="starting_number" value="{{ old('starting_number',$invoiceSetting- class="@error('starting_number') is-invalid @enderror">starting_number) }}" class="form-control" min="1" required>
+            <input type="number" name="starting_number" value="{{ old('starting_number',$invoiceSetting->starting_number) }}" class="form-control" min="1" required>
         </div>
         <div class="form-group">
             <label class="form-label">Current Number <span>*</span></label>
-            <input type="number" name="current_number" value="{{ old('current_number',$invoiceSetting- class="@error('current_number') is-invalid @enderror">current_number) }}" class="form-control" min="1" required>
+            <input type="number" name="current_number" value="{{ old('current_number',$invoiceSetting->current_number) }}" class="form-control" min="1" required>
             <div class="form-hint">⚠ Changing this affects the next generated invoice number</div>
         </div>
     </div>

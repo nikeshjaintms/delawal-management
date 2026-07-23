@@ -96,7 +96,7 @@
                 <div class="form-group">
                     <label class="form-label" for="sale_date">Sale Date</label>
                     <input type="date" name="sale_date" id="sale_date"
-                           value="{{ old('sale_date', $propertySale- class="@error('sale_date') is-invalid @enderror">sale_date ? \Carbon\Carbon::parse($propertySale->sale_date)->format('Y-m-d') : '') }}"
+                           value="{{ old('sale_date', $propertySale->sale_date ? \Carbon\Carbon::parse($propertySale->sale_date)->format('Y-m-d') : '') }}"
                            class="form-control">
                     @error('sale_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
@@ -110,21 +110,21 @@
                 <div class="form-group">
                     <label class="form-label" for="sale_amount">Sale Amount (₹)</label>
                     <input type="number" step="0.01" name="sale_amount" id="sale_amount"
-                           value="{{ old('sale_amount', $propertySale- class="@error('sale_amount') is-invalid @enderror">sale_amount) }}"
+                           value="{{ old('sale_amount', $propertySale->sale_amount) }}"
                            class="form-control" placeholder="Enter total sale amount" oninput="calcRemaining()">
                     @error('sale_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="booking_amount">Booking Amount (₹)</label>
                     <input type="number" step="0.01" name="booking_amount" id="booking_amount"
-                           value="{{ old('booking_amount', $propertySale- class="@error('booking_amount') is-invalid @enderror">booking_amount) }}"
+                           value="{{ old('booking_amount', $propertySale->booking_amount) }}"
                            class="form-control" placeholder="Enter advance / booking amount" oninput="calcRemaining()">
                     @error('booking_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="remaining_amount">Remaining Amount (₹)</label>
                     <input type="number" step="0.01" name="remaining_amount" id="remaining_amount"
-                           value="{{ old('remaining_amount', $propertySale- class="@error('remaining_amount') is-invalid @enderror">remaining_amount) }}"
+                           value="{{ old('remaining_amount', $propertySale->remaining_amount) }}"
                            class="form-control" placeholder="Auto-calculated">
                     <div class="calc-hint"><i class="fa-solid fa-calculator" style="font-size:10px;"></i> Auto = Sale − Booking</div>
                     @error('remaining_amount') <div class="text-error">{{ $message }}</div> @enderror

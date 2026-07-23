@@ -76,6 +76,8 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('rentals/{rental}/payments', [RentalPaymentController::class, 'index'])->name('rental-payments.index')->middleware(['permission:rental_view']);
     Route::get('rentals/{rental}/payments/create', [RentalPaymentController::class, 'create'])->name('rental-payments.create')->middleware(['permission:rental_view']);
     Route::post('rentals/{rental}/payments', [RentalPaymentController::class, 'store'])->name('rental-payments.store')->middleware(['permission:rental_view']);
+    Route::get('rentals/{rental}/payments/{rentalPayment}/edit', [RentalPaymentController::class, 'edit'])->name('rental-payments.edit')->middleware(['permission:rental_view']);
+    Route::put('rentals/{rental}/payments/{rentalPayment}', [RentalPaymentController::class, 'update'])->name('rental-payments.update')->middleware(['permission:rental_view']);
     Route::delete('rentals/{rental}/payments/{rentalPayment}', [RentalPaymentController::class, 'destroy'])->name('rental-payments.destroy')->middleware(['permission:rental_view']);
 
     // ── Booking & Purchase ───────────────────────────────────────────
@@ -103,6 +105,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
 
     // ── Loan Management ──────────────────────────────────────────────
     Route::resource('loans', LoanController::class)->middleware(['permission:loan_view']);
+    Route::get('emi-schedules', [LoanController::class, 'emiScheduleIndex'])->name('emi-schedules.index')->middleware(['permission:loan_view']);
     Route::get('loans/{loan}/emi-schedule', [LoanController::class, 'emiSchedule'])->name('loans.emi-schedule')->middleware(['permission:loan_view']);
     Route::post('loans/{loan}/emi-schedule/{emi}/pay', [LoanController::class, 'emiPay'])->name('loans.emi-pay')->middleware(['permission:loan_view']);
 

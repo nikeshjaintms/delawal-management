@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title','Invoice Number Series')
 @section('page-title','Firm Management')
 
@@ -65,7 +65,7 @@
         <table class="premium-table">
             <thead>
                 <tr>
-                    <th>#</th><th>Financial Year</th><th>Prefixes</th>
+                    <th>#</th><th>Firm</th><th>Financial Year</th><th>Prefixes</th>
                     <th>Starting #</th><th>Current #</th><th>Status</th><th>Actions</th>
                 </tr>
             </thead>
@@ -73,6 +73,7 @@
             @forelse($settings as $i => $setting)
                 <tr>
                     <td>{{ $settings->firstItem() + $i }}</td>
+                    <td>{{ $setting->firm_names }}</td>
                     <td>{{ $setting->financialYear->year_name ?? '—' }}</td>
                     <td>
                         <span class="prefix-pill">{{ $setting->sales_prefix }}</span>
@@ -96,7 +97,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-secondary)">No invoice settings found. <a href="{{ route('invoice-settings.create') }}" style="color:var(--blue)">Add one</a>.</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-secondary)">No invoice settings found. <a href="{{ route('invoice-settings.create') }}" style="color:var(--blue)">Add one</a>.</td></tr>
             @endforelse
             </tbody>
         </table>

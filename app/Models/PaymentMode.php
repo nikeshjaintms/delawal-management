@@ -9,14 +9,13 @@ class PaymentMode extends Model
     use \App\Traits\HasFirms;
 
     protected $fillable = [
-        'firm_id',
         'name',
         'description',
         'status',
     ];
 
-    public function firm()
+    public function firms()
     {
-        return $this->belongsTo(Firm::class);
+        return $this->belongsToMany(Firm::class, 'payment_mode_firm', 'payment_mode_id', 'firm_id')->withTimestamps();
     }
 }

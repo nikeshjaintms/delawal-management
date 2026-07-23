@@ -7,12 +7,15 @@ use App\Http\Requests\InvoiceSettingRequest;
 use App\Models\InvoiceSetting;
 use App\Models\FinancialYear;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class InvoiceSettingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = InvoiceSetting::with('financialYear');
+        $query = InvoiceSetting::with('firms')->whereHas('firms', function($q) {
+            $q->where('firms.id', Auth::user()->firm_id);
+        })->with('financialYear');
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -26,13 +29,15 @@ class InvoiceSettingController extends Controller
     public function create()
     {
         $financialYears = FinancialYear::where('status', 'active')->latest()->get();
-        return view('admin.firm-management.invoice-settings.create', compact('financialYears'));
+        $firms = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
+        return view('admin.firm-management.invoice-settings.create', compact('financialYears', 'firms'));
     }
 
     public function store(InvoiceSettingRequest $request)
     {
         $validated = $request->validated();
-        InvoiceSetting::create($validated);
+        $invoiceSetting = InvoiceSetting::create($validated);
+        $invoiceSetting->firms()->attach($request->firm_ids);
 
         return redirect()->route('invoice-settings.index')
             ->with('success', 'Invoice settings created successfully!');
@@ -40,20 +45,37 @@ class InvoiceSettingController extends Controller
 
     public function show(InvoiceSetting $invoiceSetting)
     {
-        $invoiceSetting->load('financialYear');
+        $invoiceSetting->load('firms');
+        if (!$invoiceSetting->firms->contains(Auth::user()->firm_id)) {
+            abort(403);
+        }
+
+        $invoiceSetting->load(['financialYear', 'firms']);
         return view('admin.firm-management.invoice-settings.show', compact('invoiceSetting'));
     }
 
     public function edit(InvoiceSetting $invoiceSetting)
     {
+        $invoiceSetting->load('firms');
+        if (!$invoiceSetting->firms->contains(Auth::user()->firm_id)) {
+            abort(403);
+        }
+
         $financialYears = FinancialYear::where('status', 'active')->latest()->get();
-        return view('admin.firm-management.invoice-settings.edit', compact('invoiceSetting', 'financialYears'));
+        $firms = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
+        return view('admin.firm-management.invoice-settings.edit', compact('invoiceSetting', 'financialYears', 'firms'));
     }
 
     public function update(InvoiceSettingRequest $request, InvoiceSetting $invoiceSetting)
     {
+        $invoiceSetting->load('firms');
+        if (!$invoiceSetting->firms->contains(Auth::user()->firm_id)) {
+            abort(403);
+        }
+
         $validated = $request->validated();
         $invoiceSetting->update($validated);
+        $invoiceSetting->firms()->sync($request->firm_ids);
 
         return redirect()->route('invoice-settings.index')
             ->with('success', 'Invoice settings updated successfully!');
@@ -61,6 +83,11 @@ class InvoiceSettingController extends Controller
 
     public function destroy(InvoiceSetting $invoiceSetting)
     {
+        $invoiceSetting->load('firms');
+        if (!$invoiceSetting->firms->contains(Auth::user()->firm_id)) {
+            abort(403);
+        }
+
         $invoiceSetting->delete();
 
         return redirect()->route('invoice-settings.index')
@@ -70,6 +97,11 @@ class InvoiceSettingController extends Controller
     /** Preview current invoice number formats */
     public function preview(InvoiceSetting $invoiceSetting)
     {
+        $invoiceSetting->load('firms');
+        if (!$invoiceSetting->firms->contains(Auth::user()->firm_id)) {
+            abort(403);
+        }
+
         $invoiceSetting->load('financialYear');
         $year = $invoiceSetting->financialYear
             ? substr($invoiceSetting->financialYear->year_name, 0, 4)

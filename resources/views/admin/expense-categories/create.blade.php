@@ -125,6 +125,19 @@
     <form method="POST" action="{{ route('expense-categories.store') }}">
         @csrf
 
+        <div class="form-group">
+            <label class="form-label" for="firm_ids">Firms <span>*</span></label>
+            <select name="firm_ids[]" id="firm_ids" class="form-control select2-multi @error('firm_ids') is-invalid @enderror" multiple required data-placeholder="Search and select firm(s)...">
+                @foreach($firms as $firm)
+                    <option value="{{ $firm->id }}" {{ in_array($firm->id, old('firm_ids', [Auth::user()->firm_id])) ? 'selected' : '' }}>
+                        {{ $firm->firm_name }}
+                    </option>
+                @endforeach
+            </select>
+            @error('firm_ids') <div class="text-error">{{ $message }}</div> @enderror
+            @error('firm_ids.*') <div class="text-error">{{ $message }}</div> @enderror
+        </div>
+
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="name">Expense Category Name <span>*</span></label>

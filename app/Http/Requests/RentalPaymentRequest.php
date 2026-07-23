@@ -44,12 +44,15 @@ class RentalPaymentRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
-            'firm_id'      => 'required|exists:firms,id',
-            'payment_date' => 'required|date',
-            'amount' => 'required|numeric|min:0.01',
-            'payment_mode_id' => 'required|exists:payment_modes,id',
-            'transaction_no' => 'nullable|string|max:255',
-            'remarks' => 'nullable|string|max:1000',
+            'firm_id'        => 'required|exists:firms,id',
+            'property_id'    => 'required|exists:properties,id',
+            'payment_month'  => 'required|string|max:255',
+            'payment_year'   => 'required|integer|min:2020',
+            'rent_amount'    => 'required|numeric|min:0',
+            'paid_amount'    => 'required|numeric|min:0',
+            'payment_date'   => 'required|date',
+            'payment_mode'   => 'required|string|max:255',
+            'remarks'        => 'nullable|string|max:1000',
         ];
 
         // Replace placeholders in unique rules dynamically
@@ -84,11 +87,14 @@ class RentalPaymentRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'payment_date' => 'Payment Date',
-            'amount' => 'Amount',
-            'payment_mode_id' => 'Payment Mode',
-            'transaction_no' => 'Transaction Number',
-            'remarks' => 'Remarks',
+            'property_id'   => 'Property',
+            'payment_month' => 'Payment Month',
+            'payment_year'  => 'Payment Year',
+            'rent_amount'   => 'Rent Amount',
+            'paid_amount'   => 'Paid Amount',
+            'payment_date'  => 'Payment Date',
+            'payment_mode'  => 'Payment Mode',
+            'remarks'       => 'Remarks',
         ];
     }
 

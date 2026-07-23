@@ -62,13 +62,13 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="minimum_stock">Minimum Stock Level</label>
-                    <input type="number" step="0.001" name="minimum_stock" id="minimum_stock" value="{{ old('minimum_stock',$material- class="@error('minimum_stock') is-invalid @enderror">minimum_stock) }}" class="form-control">
+                    <input type="number" step="0.001" name="minimum_stock" id="minimum_stock" value="{{ old('minimum_stock',$material->minimum_stock) }}" class="form-control">
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="opening_stock">Opening Stock</label>
-                    <input type="number" step="0.001" name="opening_stock" id="opening_stock" value="{{ old('opening_stock',$material- class="@error('opening_stock') is-invalid @enderror">opening_stock) }}" class="form-control">
+                    <input type="number" step="0.001" name="opening_stock" id="opening_stock" value="{{ old('opening_stock',$material->opening_stock) }}" class="form-control">
                     <div class="form-hint">Changing opening stock does NOT recalculate current stock.</div>
                 </div>
                 <div class="form-group">

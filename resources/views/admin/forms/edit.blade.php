@@ -181,13 +181,13 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="form_name">Form Name <span>*</span></label>
-                <input type="text" name="form_name" id="form_name" value="{{ old('form_name', $form- class="@error('form_name') is-invalid @enderror">form_name) }}" class="form-control" placeholder="e.g. Tenant Background Check" required>
+                <input type="text" name="form_name" id="form_name" value="{{ old('form_name', $form->form_name) }}" class="form-control" placeholder="e.g. Tenant Background Check" required>
                 @error('form_name') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="form_type">Form Type <span>*</span></label>
-                <input type="text" name="form_type" id="form_type" value="{{ old('form_type', $form- class="@error('form_type') is-invalid @enderror">form_type) }}" class="form-control" placeholder="e.g. Verification, Inquiry, Survey" required>
+                <input type="text" name="form_type" id="form_type" value="{{ old('form_type', $form->form_type) }}" class="form-control" placeholder="e.g. Verification, Inquiry, Survey" required>
                 @error('form_type') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>

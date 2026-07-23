@@ -41,6 +41,8 @@ class InvoiceSettingRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
+            'firm_ids'          => 'required|array|min:1',
+            'firm_ids.*'        => 'exists:firms,id',
             'financial_year_id' => 'nullable|exists:financial_years,id',
             'status'            => 'required|in:active,inactive',
             'starting_number'   => 'required|integer|min:1',
@@ -88,6 +90,7 @@ class InvoiceSettingRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'firm_ids'          => 'Firms',
             'financial_year_id' => 'Financial Year',
             'status'            => 'Status',
             'starting_number'   => 'Starting Number',

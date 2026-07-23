@@ -60,14 +60,14 @@
                 <div class="form-group">
                     <label class="form-label" for="expense_title">Expense Title <span>*</span></label>
                     <input type="text" name="expense_title" id="expense_title"
-                           value="{{ old('expense_title', $expense- class="@error('expense_title') is-invalid @enderror">expense_title) }}"
+                           value="{{ old('expense_title', $expense->expense_title) }}"
                            class="form-control" placeholder="e.g. Site Maintenance Work">
                     @error('expense_title')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="expense_date">Expense Date <span>*</span></label>
                     <input type="date" name="expense_date" id="expense_date"
-                           value="{{ old('expense_date', \Carbon\Carbon::parse($expense- class="@error('expense_date') is-invalid @enderror">expense_date)->format('Y-m-d')) }}"
+                           value="{{ old('expense_date', \Carbon\Carbon::parse($expense->expense_date)->format('Y-m-d')) }}"
                            class="form-control">
                     @error('expense_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
@@ -109,7 +109,7 @@
                 <div class="form-group">
                     <label class="form-label" for="amount">Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="amount" id="amount"
-                           value="{{ old('amount', $expense- class="@error('amount') is-invalid @enderror">amount) }}"
+                           value="{{ old('amount', $expense->amount) }}"
                            class="form-control" placeholder="0.00">
                     @error('amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
@@ -117,8 +117,8 @@
                     <label class="form-label" for="payment_mode">Payment Mode</label>
                     <select name="payment_mode" id="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror">
                         <option value="">— Select Mode —</option>
-                        @foreach(['Cash','Bank Transfer','UPI','Cheque','Other'] as $m)
-                            <option value="{{ $m }}" {{ old('payment_mode', $expense->payment_mode) == $m ? 'selected' : '' }}>{{ $m }}</option>
+                        @foreach(\App\Models\PaymentMode::whereHas('firms', function($q) { $q->where('firms.id', Auth::user()->firm_id); })->where('status', 'active')->orderBy('name')->get() as $pm)
+                            <option value="{{ $pm->name }}" {{ old('payment_mode', $expense->payment_mode) == $pm->name ? 'selected' : '' }}>{{ $pm->name }}</option>
                         @endforeach
                     </select>
                     @error('payment_mode')<div class="text-error">{{ $message }}</div>@enderror
@@ -126,7 +126,7 @@
                 <div class="form-group">
                     <label class="form-label" for="paid_to">Paid To</label>
                     <input type="text" name="paid_to" id="paid_to"
-                           value="{{ old('paid_to', $expense- class="@error('paid_to') is-invalid @enderror">paid_to) }}"
+                           value="{{ old('paid_to', $expense->paid_to) }}"
                            class="form-control" placeholder="Vendor / person name">
                     @error('paid_to')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
@@ -135,7 +135,7 @@
                 <div class="form-group">
                     <label class="form-label" for="bill_no">Bill / Invoice No</label>
                     <input type="text" name="bill_no" id="bill_no"
-                           value="{{ old('bill_no', $expense- class="@error('bill_no') is-invalid @enderror">bill_no) }}"
+                           value="{{ old('bill_no', $expense->bill_no) }}"
                            class="form-control" placeholder="Enter bill or invoice number">
                     @error('bill_no')<div class="text-error">{{ $message }}</div>@enderror
                 </div>

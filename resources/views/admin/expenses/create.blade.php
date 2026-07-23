@@ -109,8 +109,8 @@
                     <label class="form-label" for="payment_mode">Payment Mode</label>
                     <select name="payment_mode" id="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror">
                         <option value="">— Select Mode —</option>
-                        @foreach(['Cash','Bank Transfer','UPI','Cheque','Other'] as $m)
-                            <option value="{{ $m }}" {{ old('payment_mode') == $m ? 'selected' : '' }}>{{ $m }}</option>
+                        @foreach(\App\Models\PaymentMode::whereHas('firms', function($q) { $q->where('firms.id', Auth::user()->firm_id); })->where('status', 'active')->orderBy('name')->get() as $pm)
+                            <option value="{{ $pm->name }}" {{ old('payment_mode') == $pm->name ? 'selected' : '' }}>{{ $pm->name }}</option>
                         @endforeach
                     </select>
                     @error('payment_mode')<div class="text-error">{{ $message }}</div>@enderror

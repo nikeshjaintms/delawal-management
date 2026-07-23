@@ -123,7 +123,7 @@
         <div class="form-group">
             <label class="form-label" for="role_name">Role Name <span>*</span></label>
             <input type="text" name="role_name" id="role_name"
-                value="{{ old('role_name', $role- class="@error('role_name') is-invalid @enderror">role_name ?? $role->name) }}"
+                value="{{ old('role_name', $role->role_name ?? $role->name) }}"
                 class="form-control" placeholder="e.g. Manager, Accountant" required>
             @error('role_name') <div class="text-error">{{ $message }}</div> @enderror
         </div>

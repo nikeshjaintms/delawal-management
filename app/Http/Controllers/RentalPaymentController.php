@@ -28,7 +28,7 @@ class RentalPaymentController extends Controller
 
         $rental->load(['property', 'firm']);
 
-        $payments = RentalPayment::with('firm')
+        $payments = RentalPayment::with(['firm', 'property.propertyType'])
             ->where('rental_id', $rental->id)
             ->orderByDesc('payment_year')
             ->orderByDesc('payment_month')
@@ -46,9 +46,19 @@ class RentalPaymentController extends Controller
 
         $rental->load(['property', 'firm']);
 
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        $propQuery = Property::with('propertyType')->orderBy('property_name');
+        if (!$isAdmin) {
+            $propQuery->where('firm_id', $firmId);
+        }
+        $properties = $propQuery->get();
+
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.rental-payments.create', compact('rental', 'firms'));
+        return view('admin.rental-payments.create', compact('rental', 'firms', 'properties'));
     }
 
     public function store(RentalPaymentRequest $request, Rental $rental)
@@ -72,6 +82,7 @@ class RentalPaymentController extends Controller
         RentalPayment::create([
             'firm_id'        => $firmId,
             'rental_id'      => $rental->id,
+            'property_id'    => $request->property_id,
             'payment_month'  => $request->payment_month,
             'payment_year'   => $request->payment_year,
             'rent_amount'    => $rentAmt,
@@ -88,6 +99,67 @@ class RentalPaymentController extends Controller
         return redirect()
             ->route('rental-payments.index', $rental->id)
             ->with('success', 'Payment recorded successfully.');
+    }
+
+    public function edit(Rental $rental, RentalPayment $rentalPayment)
+    {
+        $this->firmCheck($rental);
+        if ($rentalPayment->rental_id !== $rental->id) {
+            abort(403);
+        }
+
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        $propQuery = Property::with('propertyType')->orderBy('property_name');
+        if (!$isAdmin) {
+            $propQuery->where('firm_id', $firmId);
+        }
+        $properties = $propQuery->get();
+
+        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+
+        return view('admin.rental-payments.edit', compact('rental', 'rentalPayment', 'firms', 'properties'));
+    }
+
+    public function update(RentalPaymentRequest $request, Rental $rental, RentalPayment $rentalPayment)
+    {
+        $this->firmCheck($rental);
+        if ($rentalPayment->rental_id !== $rental->id) {
+            abort(403);
+        }
+
+        $rentAmt  = (float) $request->rent_amount;
+        $paidAmt  = (float) $request->paid_amount;
+        $pending  = max(0, $rentAmt - $paidAmt);
+
+        if ($paidAmt <= 0) {
+            $status = 'pending';
+        } elseif ($paidAmt >= $rentAmt) {
+            $status = 'paid';
+        } else {
+            $status = 'partial';
+        }
+
+        $rentalPayment->update([
+            'property_id'    => $request->property_id,
+            'payment_month'  => $request->payment_month,
+            'payment_year'   => $request->payment_year,
+            'rent_amount'    => $rentAmt,
+            'paid_amount'    => $paidAmt,
+            'pending_amount' => $pending,
+            'payment_date'   => $request->payment_date,
+            'payment_mode'   => $request->payment_mode,
+            'payment_status' => $status,
+            'remarks'        => $request->remarks,
+        ]);
+
+        $rental->update(['payment_status' => $status]);
+
+        return redirect()
+            ->route('rental-payments.index', $rental->id)
+            ->with('success', 'Payment updated successfully.');
     }
 
     public function destroy(Rental $rental, RentalPayment $rentalPayment)

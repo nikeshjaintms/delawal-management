@@ -292,7 +292,8 @@
                 <tr>
                     <th style="width:44px;">Sr. No.</th>
                     <th>Date</th>
-                    <th>Customer / Borrower</th>
+                    <th>Loan Type</th>
+                    <th>Customer / Person</th>
                     <th>Property / Project</th>
                     <th>Bank / Finance Company</th>
                     <th class="amt">Loan Amount</th>
@@ -317,23 +318,32 @@
                             {{ \Carbon\Carbon::parse($loan->loan_start_date)->format('d M Y') }}
                         </td>
                         <td>
-                            @if($loan->customer)
+                            <span style="font-weight:600;">{{ $loan->loan_type }}</span>
+                        </td>
+                        <td>
+                            @if($loan->loan_type === 'Personal Loan')
+                                <div style="font-weight:600;color:#0F172A;">{{ $loan->person_name }}</div>
+                                @if($loan->relationship)
+                                    <div style="font-size:11.5px;color:#64748B;">{{ $loan->relationship }}</div>
+                                @endif
+                            @elseif($loan->customer)
                                 <div style="font-weight:600;color:#0F172A;">{{ $loan->customer->name }}</div>
                             @else
                                 <span style="color:#94A3B8;">—</span>
                             @endif
                         </td>
                         <td>
-                            @if($loan->property)
+                            @if($loan->loan_type === 'Business Loan' && $loan->property)
                                 <div style="font-weight:500;">{{ $loan->property->property_name }}</div>
                             @else
                                 <span style="color:#94A3B8;">—</span>
                             @endif
                         </td>
                         <td>
-                            <div style="font-weight:600;">{{ $loan->bank_name ?? '—' }}</div>
-                            @if($loan->loan_type)
-                                <div style="font-size:11.5px;color:#64748B;">{{ $loan->loan_type }}</div>
+                            @if($loan->loan_type === 'Business Loan')
+                                <div style="font-weight:600;">{{ $loan->bank_name ?? '—' }}</div>
+                            @else
+                                <span style="color:#94A3B8;">—</span>
                             @endif
                         </td>
                         <td class="amt" style="font-weight:700;color:#3B82F6;">

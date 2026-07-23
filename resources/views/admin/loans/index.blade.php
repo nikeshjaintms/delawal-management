@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title','Loan Management')
+@section('title','Loans')
 @section('page-title','Loan Management')
 @section('content')
 <style>
@@ -9,44 +9,47 @@
     .btn-gold{background-color:var(--gold);color:#FFF;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;transition:var(--transition);box-shadow:0 4px 10px rgba(212,175,55,0.2);}
     .btn-gold:hover{background-color:#B58D1B;transform:translateY(-1px);}
     .card-box{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:24px;box-shadow:var(--soft-shadow);}
-    .stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;}
-    .stat-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:20px;box-shadow:var(--soft-shadow);display:flex;align-items:center;gap:14px;}
-    .stat-icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
-    .stat-icon.gold{background:rgba(212,175,55,0.12);color:var(--gold);}
-    .stat-icon.green{background:rgba(34,197,94,0.1);color:#16803D;}
+    .stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:24px;}
+    .stat-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:18px 20px;display:flex;align-items:center;gap:16px;box-shadow:var(--soft-shadow);transition:var(--transition);}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(15,31,53,0.05);border-color:rgba(212,175,55,0.2);}
+    .stat-icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+    .stat-icon.gold{background:rgba(212,175,55,0.1);color:var(--gold);}
+    .stat-icon.blue{background:rgba(59,130,246,0.1);color:#2563EB;}
+    .stat-icon.green{background:rgba(16,185,129,0.1);color:#059669;}
     .stat-icon.red{background:rgba(239,68,68,0.1);color:#DC2626;}
-    .stat-icon.blue{background:rgba(59,130,246,0.1);color:#1D4ED8;}
-    .stat-body .s-label{font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
-    .stat-body .s-value{font-size:20px;font-weight:800;color:var(--text-primary);}
+    .stat-body .s-label{font-size:11.5px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+    .stat-body .s-value{font-size:19px;font-weight:800;color:var(--text-primary);}
     .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end;}
     .filter-group{display:flex;flex-direction:column;gap:5px;}
     .filter-label{font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.6px;}
     .filter-control{padding:9px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:13px;font-family:var(--font-primary);color:var(--text-primary);outline:none;background:#FFF;transition:var(--transition);min-width:130px;}
     .filter-control:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-light);}
-    .search-input{padding:9px 14px;border:1px solid var(--border-color);border-radius:8px;font-size:13px;font-family:var(--font-primary);outline:none;transition:var(--transition);min-width:210px;}
+    .search-input{padding:9px 14px;border:1px solid var(--border-color);border-radius:8px;font-size:13px;font-family:var(--font-primary);color:var(--text-primary);outline:none;transition:var(--transition);min-width:200px;}
     .search-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-light);}
-    .btn-search{background-color:var(--text-primary);color:#FFF;padding:9px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-primary);align-self:flex-end;}
-    .btn-reset{padding:9px 10px;color:var(--text-secondary);text-decoration:none;font-size:13px;align-self:flex-end;}
+    .btn-search{background-color:var(--text-primary);color:#FFF;padding:9px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-primary);white-space:nowrap;align-self:flex-end;}
+    .btn-search:hover{background-color:#1E293B;}
+    .btn-reset{padding:9px 12px;color:var(--text-secondary);text-decoration:none;font-size:13px;font-weight:500;align-self:flex-end;}
+    .btn-reset:hover{color:var(--text-primary);}
     .table-container{width:100%;overflow-x:auto;}
     .premium-table{width:100%;border-collapse:collapse;text-align:left;font-size:13.5px;}
     .premium-table th{padding:13px 14px;background:#F9FAFB;color:var(--text-secondary);font-weight:600;border-bottom:1px solid var(--border-color);font-size:11.5px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
     .premium-table td{padding:14px;border-bottom:1px solid #F1F5F9;color:var(--text-primary);vertical-align:middle;}
     .premium-table tr:last-child td{border-bottom:none;}
-    .premium-table tbody tr:hover{background:#F9FAFB;}
-    .loan-status{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;}
+    .premium-table tbody tr:hover{background-color:#F9FAFB;}
+    .loan-status{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;}
     .ls-active{background:rgba(34,197,94,0.1);color:#16803D;}
     .ls-completed{background:rgba(59,130,246,0.1);color:#1D4ED8;}
     .ls-closed{background:rgba(100,116,139,0.1);color:#475569;}
     .ls-cancelled{background:rgba(239,68,68,0.1);color:#DC2626;}
-    .progress-wrap{width:90px;background:#F1F5F9;border-radius:4px;height:6px;overflow:hidden;}
-    .progress-bar{height:100%;border-radius:4px;background:var(--gold);}
-    .action-links{display:flex;gap:8px;align-items:center;white-space:nowrap;}
-    .action-link{color:var(--text-secondary);text-decoration:none;font-size:13px;transition:var(--transition);display:inline-flex;align-items:center;gap:4px;}
-    .action-link.view:hover{color:#0EA5E9;}
-    .action-link.edit:hover{color:var(--gold);}
-    .action-link.emi:hover{color:#6366F1;}
-    .action-link.delete-btn{background:none;border:none;cursor:pointer;color:var(--text-secondary);font-family:var(--font-primary);font-size:13px;padding:0;}
-    .action-link.delete-btn:hover{color:#EF4444;}
+    .progress-wrap{width:70px;background:#E2E8F0;border-radius:4px;height:6px;overflow:hidden;}
+    .progress-bar{height:100%;background:var(--gold);border-radius:4px;}
+    .table-action-buttons{display:flex;align-items:center;gap:8px;}
+    .btn-view,.btn-edit,.btn-delete{padding:6px 10px;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;border:none;cursor:pointer;background:#FFF;border:1px solid var(--border-color);color:var(--text-secondary);transition:var(--transition);}
+    .btn-view:hover{color:#0EA5E9;border-color:rgba(14,165,233,0.3);background:rgba(14,165,233,0.04);}
+    .btn-edit:hover{color:var(--gold);border-color:rgba(212,175,55,0.3);background:rgba(212,175,55,0.04);}
+    .btn-delete:hover{color:#EF4444;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.04);}
+    .action-link.emi{padding:6px 10px;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;border:1px solid var(--border-color);color:#4F46E5;background:#FFF;transition:var(--transition);}
+    .action-link.emi:hover{background:rgba(79,70,229,0.04);border-color:rgba(79,70,229,0.3);}
     .alert-success{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);color:#16803D;padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:13.5px;display:flex;align-items:center;gap:8px;}
     .pagination-wrapper{margin-top:24px;display:flex;justify-content:center;}
 </style>
@@ -106,7 +109,15 @@
         @endif
         <div class="filter-group">
             <span class="filter-label">Search</span>
-            <input type="text" name="search" value="{{ request('search') }}" class="search-input @error('search') is-invalid @enderror" placeholder="Bank, type, customer, property...">
+            <input type="text" name="search" value="{{ request('search') }}" class="search-input @error('search') is-invalid @enderror" placeholder="Bank, person, customer, property...">
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Loan Type</span>
+            <select name="filter_loan_type" class="filter-control @error('filter_loan_type') is-invalid @enderror">
+                <option value="">All Types</option>
+                <option value="Business Loan" {{ request('filter_loan_type') == 'Business Loan' ? 'selected' : '' }}>Business Loan</option>
+                <option value="Personal Loan" {{ request('filter_loan_type') == 'Personal Loan' ? 'selected' : '' }}>Personal Loan</option>
+            </select>
         </div>
         <div class="filter-group">
             <span class="filter-label">Customer</span>
@@ -127,6 +138,14 @@
             </select>
         </div>
         <div class="filter-group">
+            <span class="filter-label">From Date</span>
+            <input type="date" name="from_date" value="{{ request('from_date') }}" class="filter-control @error('from_date') is-invalid @enderror">
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">To Date</span>
+            <input type="date" name="to_date" value="{{ request('to_date') }}" class="filter-control @error('to_date') is-invalid @enderror">
+        </div>
+        <div class="filter-group">
             <span class="filter-label">Status</span>
             <select name="filter_status" class="filter-control @error('filter_status') is-invalid @enderror">
                 <option value="">All Status</option>
@@ -136,7 +155,7 @@
             </select>
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_customer','filter_property','filter_status','firm_id']))
+        @if(request()->hasAny(['search','filter_customer','filter_property','filter_status','firm_id','filter_loan_type','from_date','to_date']))
             <a href="{{ route('loans.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
@@ -147,13 +166,14 @@
                 <tr>
                     <th>#</th>
                     <th>Firm</th>
-                    <th>Bank / Loan</th>
+                    <th>Loan Type</th>
+                    <th>Bank / Person</th>
                     <th>Customer</th>
                     <th>Property</th>
                     <th style="text-align:right;">Loan Amount</th>
                     <th style="text-align:right;">EMI / mo</th>
                     <th>EMIs</th>
-                    <th>Start</th>
+                    <th>Date</th>
                     <th>Progress</th>
                     <th style="text-align:center;">Status</th>
                     <th style="width:180px;">Action</th>
@@ -169,20 +189,45 @@
                     <td>{{ $loans->firstItem() + $key }}</td>
                     <td><strong style="color:#0F172A;">{{ $loan->firm_names }}</strong></td>
                     <td>
-                        <div style="font-weight:700;">{{ $loan->bank_name }}</div>
-                        <div style="font-size:11.5px;color:var(--text-secondary);">{{ $loan->loan_type }}</div>
+                        <span class="type-chip" style="font-weight: 700; color: #4B5563;">{{ $loan->loan_type }}</span>
                     </td>
                     <td>
-                        @if($loan->customer)
+                        @if($loan->loan_type === 'Personal Loan')
+                            <div style="font-weight:700;">{{ $loan->person_name }}</div>
+                            <div style="font-size:11.5px;color:var(--text-secondary);">{{ $loan->relationship ?? 'Personal' }}</div>
+                        @else
+                            <div style="font-weight:700;">{{ $loan->bank_name }}</div>
+                        @endif
+                    </td>
+                    <td>
+                        @if($loan->loan_type === 'Business Loan' && $loan->customer)
                             <div style="font-weight:600;font-size:13px;">{{ $loan->customer->name }}</div>
                             <div style="font-size:11px;color:var(--text-secondary);">{{ $loan->customer->mobile }}</div>
                         @else <span style="color:var(--text-secondary);">—</span>
                         @endif
                     </td>
-                    <td>{{ $loan->property?->property_name ?? '—' }}</td>
+                    <td>
+                        @if($loan->loan_type === 'Business Loan')
+                            {{ $loan->property?->property_name ?? '—' }}
+                        @else
+                            <span style="color:var(--text-secondary);">—</span>
+                        @endif
+                    </td>
                     <td style="text-align:right;font-weight:700;">₹{{ number_format($loan->loan_amount,2) }}</td>
-                    <td style="text-align:right;color:#B91C1C;font-weight:700;">₹{{ number_format($loan->emi_amount,2) }}</td>
-                    <td style="font-size:12.5px;">{{ $loan->total_emi_months }} mo</td>
+                    <td style="text-align:right;color:#B91C1C;font-weight:700;">
+                        @if($loan->loan_type === 'Business Loan' && $loan->emi_amount)
+                            ₹{{ number_format($loan->emi_amount,2) }}
+                        @else
+                            <span style="color:var(--text-secondary);">—</span>
+                        @endif
+                    </td>
+                    <td style="font-size:12.5px;">
+                        @if($loan->loan_type === 'Business Loan' && $loan->total_emi_months)
+                            {{ $loan->total_emi_months }} mo
+                        @else
+                            <span style="color:var(--text-secondary);">—</span>
+                        @endif
+                    </td>
                     <td style="font-size:12.5px;white-space:nowrap;">{{ \Carbon\Carbon::parse($loan->loan_start_date)->format('d M Y') }}</td>
                     <td>
                         <div class="progress-wrap">
@@ -196,11 +241,13 @@
                     <td>
                         <div class="table-action-buttons">
                             <a href="{{ route('loans.show', $loan->id) }}" class="btn-view"><i class="fa fa-eye"></i> View</a>
-                            <a href="{{ route('loans.emi-schedule', $loan->id) }}" class="action-link emi"><i class="fa-solid fa-calendar-days"></i> EMI</a>
+                            @if($loan->loan_type === 'Business Loan')
+                                <a href="{{ route('loans.emi-schedule', $loan->id) }}" class="action-link emi"><i class="fa-solid fa-calendar-days"></i> EMI</a>
+                            @endif
                             <a href="{{ route('loans.edit', $loan->id) }}" class="btn-edit"><i class="fa fa-edit"></i> Edit</a>
                             <form action="{{ route('loans.destroy', $loan->id) }}" method="POST" style="display:inline;" id="del-loan-{{ $loan->id }}">
                                 @csrf @method('DELETE')
-                                <button type="button" class="btn-delete" onclick="confirmDelete({{ $loan->id }},'{{ addslashes($loan->bank_name) }}')">
+                                <button type="button" class="btn-delete" onclick="confirmDelete({{ $loan->id }},'{{ addslashes($loan->loan_type === 'Personal Loan' ? $loan->person_name : $loan->bank_name) }}')">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </form>
@@ -209,7 +256,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="11" style="padding:40px;text-align:center;color:var(--text-secondary);">
+                    <td colspan="13" style="padding:40px;text-align:center;color:var(--text-secondary);">
                         <i class="fa-solid fa-landmark" style="font-size:28px;opacity:0.25;display:block;margin-bottom:8px;"></i>
                         No loan records found.
                     </td>
@@ -224,10 +271,9 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function confirmDelete(id,name){
-    Swal.fire({title:'Delete Loan?',html:'Delete loan from <strong>'+name+'</strong>?<br><small style="color:#64748B;">All EMI schedules will also be deleted.</small>',icon:'warning',showCancelButton:true,confirmButtonColor:'#EF4444',cancelButtonColor:'#64748B',confirmButtonText:'Yes, Delete',cancelButtonText:'Cancel',customClass:{popup:'swal-loan-popup'}})
+    Swal.fire({title:'Delete Loan?',html:'Delete loan from <strong>'+name+'</strong>?<br><small style="color:#64748B;">All EMI schedules and history will also be deleted.</small>',icon:'warning',showCancelButton:true,confirmButtonColor:'#EF4444',cancelButtonColor:'#64748B',confirmButtonText:'Yes, Delete',cancelButtonText:'Cancel',customClass:{popup:'swal-loan-popup'}})
     .then(r=>{if(r.isConfirmed)document.getElementById('del-loan-'+id).submit();});
 }
 </script>
 <style>.swal-loan-popup{font-family:'Outfit',sans-serif!important;border-radius:14px!important;}</style>
 @endsection
-

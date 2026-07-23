@@ -245,13 +245,13 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="commission_value">Commission Value <span>*</span></label>
-                <input type="number" step="0.01" min="0" name="commission_value" id="commission_value" value="{{ old('commission_value', $commission- class="@error('commission_value') is-invalid @enderror">commission_value) }}" class="form-control" placeholder="E.g. 2.50 or 5000">
+                <input type="number" step="0.01" min="0" name="commission_value" id="commission_value" value="{{ old('commission_value', $commission->commission_value) }}" class="form-control" placeholder="E.g. 2.50 or 5000">
                 @error('commission_value') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="commission_amount">Calculated Amount (₹) <span>*</span></label>
-                <input type="number" step="0.01" min="0" name="commission_amount" id="commission_amount" value="{{ old('commission_amount', $commission- class="@error('commission_amount') is-invalid @enderror">commission_amount) }}" class="form-control" placeholder="Calculated automatically or entered manually">
+                <input type="number" step="0.01" min="0" name="commission_amount" id="commission_amount" value="{{ old('commission_amount', $commission->commission_amount) }}" class="form-control" placeholder="Calculated automatically or entered manually">
                 @error('commission_amount') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>
@@ -269,7 +269,7 @@
 
             <div class="form-group">
                 <label class="form-label" for="payment_date">Payment Date</label>
-                <input type="date" name="payment_date" id="payment_date" value="{{ old('payment_date', $commission- class="@error('payment_date') is-invalid @enderror">payment_date ? \Carbon\Carbon::parse($commission->payment_date)->format('Y-m-d') : '') }}" class="form-control">
+                <input type="date" name="payment_date" id="payment_date" value="{{ old('payment_date', $commission->payment_date ? \Carbon\Carbon::parse($commission->payment_date)->format('Y-m-d') : '') }}" class="form-control">
                 @error('payment_date') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>

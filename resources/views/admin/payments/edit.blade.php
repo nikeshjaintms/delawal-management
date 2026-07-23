@@ -95,7 +95,7 @@
                 <div class="form-group">
                     <label class="form-label" for="payment_amount">This Payment Amount <span>*</span></label>
                     <input type="number" step="0.01" name="payment_amount" id="payment_amount"
-                           value="{{ old('payment_amount', $payment- class="@error('payment_amount') is-invalid @enderror">payment_amount) }}"
+                           value="{{ old('payment_amount', $payment->payment_amount) }}"
                            class="form-control" placeholder="Enter payment amount">
                     @error('payment_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
@@ -105,8 +105,8 @@
                     <label class="form-label" for="payment_mode">Payment Mode <span>*</span></label>
                     <select name="payment_mode" id="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror">
                         <option value="">-- Select Mode --</option>
-                        @foreach(['Cash' => 'Cash', 'Bank Transfer' => 'Bank Transfer', 'UPI' => 'UPI', 'Cheque' => 'Cheque', 'NEFT' => 'NEFT', 'RTGS' => 'RTGS', 'IMPS' => 'IMPS', 'Loan' => 'Loan'] as $val => $lbl)
-                            <option value="{{ $val }}" {{ old('payment_mode', $payment->payment_mode) == $val ? 'selected' : '' }}>{{ $lbl }}</option>
+                        @foreach(\App\Models\PaymentMode::whereHas('firms', function($q) { $q->where('firms.id', Auth::user()->firm_id); })->where('status', 'active')->orderBy('name')->get() as $pm)
+                            <option value="{{ $pm->name }}" {{ old('payment_mode', $payment->payment_mode) == $pm->name ? 'selected' : '' }}>{{ $pm->name }}</option>
                         @endforeach
                     </select>
                     @error('payment_mode') <div class="text-error">{{ $message }}</div> @enderror
@@ -114,14 +114,14 @@
                 <div class="form-group">
                     <label class="form-label" for="payment_date">Payment Date <span>*</span></label>
                     <input type="date" name="payment_date" id="payment_date"
-                           value="{{ old('payment_date', $payment- class="@error('payment_date') is-invalid @enderror">payment_date ? \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') : '') }}"
+                           value="{{ old('payment_date', $payment->payment_date ? \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') : '') }}"
                            class="form-control">
                     @error('payment_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="transaction_ref">Transaction ID / Cheque No</label>
                     <input type="text" name="transaction_ref" id="transaction_ref"
-                           value="{{ old('transaction_ref', $payment- class="@error('transaction_ref') is-invalid @enderror">transaction_ref) }}"
+                           value="{{ old('transaction_ref', $payment->transaction_ref) }}"
                            class="form-control" autocomplete="off"
                            placeholder="Optional reference number">
                     @error('transaction_ref') <div class="text-error">{{ $message }}</div> @enderror

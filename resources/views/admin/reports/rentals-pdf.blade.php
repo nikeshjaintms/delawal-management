@@ -116,7 +116,15 @@
             <td style="white-space:nowrap;">{{ $r->payment_date ? \Carbon\Carbon::parse($r->payment_date)->format('d M Y') : '—' }}</td>
             <td><span style="background:rgba(20,184,166,.1);color:#0F766E;padding:2px 7px;border-radius:4px;font-weight:700;font-size:10px;">{{ $monthName }} {{ $r->payment_year }}</span></td>
             <td><strong>{{ $r->rental?->tenant_name ?? '—' }}</strong></td>
-            <td>{{ $r->rental?->property?->property_name ?? '—' }}</td>
+            <td>
+                <div>{{ $r->property->property_name ?? $r->rental?->property?->property_name ?? '—' }}</div>
+                <div style="font-size: 9px; color: #6B7280;">
+                    Type: {{ $r->property->propertyType->name ?? $r->rental?->property?->propertyType->name ?? '—' }} 
+                    @if($r->property?->property_code || $r->rental?->property?->property_code)
+                        | Code: {{ $r->property->property_code ?? $r->rental?->property?->property_code }}
+                    @endif
+                </div>
+            </td>
             <td><span style="background:#F1F5F9;color:#475569;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;">{{ $r->payment_mode ?? '—' }}</span></td>
             <td class="r" style="color:#0F766E;font-weight:700;">₹{{ number_format($r->rent_amount, 2) }}</td>
             <td class="r" style="color:#059669;font-weight:700;">₹{{ number_format($r->paid_amount, 2) }}</td>

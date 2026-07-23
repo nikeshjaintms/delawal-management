@@ -38,7 +38,9 @@ class ReceiptController extends Controller
 
         $pmQuery = PaymentMode::where('status', 'active')->orderBy('name');
         if ($firmId && (!$user || !$user->isAdmin())) {
-            $pmQuery->where('firm_id', $firmId);
+            $pmQuery->whereHas('firms', function($q) use ($firmId) {
+                $q->where('firms.id', $firmId);
+            });
         }
 
         return [

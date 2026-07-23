@@ -132,6 +132,9 @@
                 <thead>
                     <tr>
                         <th>No</th>
+                        <th>Property Name</th>
+                        <th>Property Type</th>
+                        <th>Property Code</th>
                         <th>Month / Year</th>
                         <th>Rent Amount</th>
                         <th>Paid Amount</th>
@@ -147,6 +150,9 @@
                     @foreach($payments as $key => $pay)
                         <tr>
                             <td>{{ $payments->firstItem() + $key }}</td>
+                            <td>{{ $pay->property->property_name ?? '—' }}</td>
+                            <td>{{ $pay->property->propertyType->name ?? '—' }}</td>
+                            <td>{{ $pay->property->property_code ?? '—' }}</td>
                             <td><span class="month-chip">{{ $pay->payment_month }} {{ $pay->payment_year }}</span></td>
                             <td class="amount-fw">₹{{ number_format($pay->rent_amount, 0) }}</td>
                             <td class="paid-green">₹{{ number_format($pay->paid_amount, 0) }}</td>
@@ -167,6 +173,9 @@
                             </td>
                             <td>
                                 <div class="table-action-buttons">
+                                    <a href="{{ route('rental-payments.edit', [$rental->id, $pay->id]) }}" class="btn-edit" style="margin-right: 5px;">
+                                        <i class="fa fa-edit"></i> Edit
+                                    </a>
                                     <form action="{{ route('rental-payments.destroy', [$rental->id, $pay->id]) }}"
                                           method="POST" style="display:inline;"
                                           id="del-pay-{{ $pay->id }}">

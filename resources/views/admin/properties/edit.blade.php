@@ -135,7 +135,7 @@
                 <div class="form-group">
                     <label class="form-label" for="property_name">Property Name <span>*</span></label>
                     <input type="text" name="property_name" id="property_name"
-                           value="{{ old('property_name', $property- class="@error('property_name') is-invalid @enderror">property_name) }}"
+                           value="{{ old('property_name', $property->property_name) }}"
                            class="form-control" autocomplete="off" placeholder="Enter property name">
                     @error('property_name') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
@@ -157,7 +157,7 @@
                 <div class="form-group">
                     <label class="form-label" for="property_code">Property Code</label>
                     <input type="text" name="property_code" id="property_code"
-                           value="{{ old('property_code', $property- class="@error('property_code') is-invalid @enderror">property_code) }}"
+                           value="{{ old('property_code', $property->property_code) }}"
                            class="form-control" autocomplete="off" placeholder="e.g. DEL-FLAT-001">
                     @error('property_code') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
@@ -175,14 +175,14 @@
                 <div class="form-group">
                     <label class="form-label" for="location">Location</label>
                     <input type="text" name="location" id="location"
-                           value="{{ old('location', $property- class="@error('location') is-invalid @enderror">location) }}"
+                           value="{{ old('location', $property->location) }}"
                            class="form-control" autocomplete="off" placeholder="e.g. Zadeshwar, Bharuch">
                     @error('location') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="city">City</label>
                     <input type="text" name="city" id="city"
-                           value="{{ old('city', $property- class="@error('city') is-invalid @enderror">city) }}"
+                           value="{{ old('city', $property->city) }}"
                            class="form-control" autocomplete="off" placeholder="e.g. Ahmedabad">
                     @error('city') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
@@ -201,7 +201,7 @@
                 <div class="form-group">
                     <label class="form-label" for="size">Size</label>
                     <input type="text" name="size" id="size"
-                           value="{{ old('size', $property- class="@error('size') is-invalid @enderror">size) }}"
+                           value="{{ old('size', $property->size) }}"
                            class="form-control" autocomplete="off" placeholder="e.g. 1200">
                     @error('size') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
@@ -218,7 +218,7 @@
                 <div class="form-group">
                     <label class="form-label" for="price">Price (₹)</label>
                     <input type="number" step="0.01" name="price" id="price"
-                           value="{{ old('price', $property- class="@error('price') is-invalid @enderror">price) }}"
+                           value="{{ old('price', $property->price) }}"
                            class="form-control" placeholder="Enter property price">
                     @error('price') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
@@ -227,14 +227,14 @@
                 <div class="form-group">
                     <label class="form-label" for="unit_no">Unit No</label>
                     <input type="text" name="unit_no" id="unit_no"
-                           value="{{ old('unit_no', $property- class="@error('unit_no') is-invalid @enderror">unit_no) }}"
+                           value="{{ old('unit_no', $property->unit_no) }}"
                            class="form-control" autocomplete="off" placeholder="e.g. A-101">
                     @error('unit_no') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="floor_no">Floor No</label>
                     <input type="text" name="floor_no" id="floor_no"
-                           value="{{ old('floor_no', $property- class="@error('floor_no') is-invalid @enderror">floor_no) }}"
+                           value="{{ old('floor_no', $property->floor_no) }}"
                            class="form-control" autocomplete="off" placeholder="e.g. 3rd Floor">
                     @error('floor_no') <div class="text-error">{{ $message }}</div> @enderror
                 </div>

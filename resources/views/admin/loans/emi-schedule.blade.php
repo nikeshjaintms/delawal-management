@@ -172,8 +172,8 @@
                 <label class="form-label">Payment Mode <span>*</span></label>
                 <select name="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror" required>
                     <option value="">— Select Mode —</option>
-                    @foreach(['Cash','Bank Transfer','UPI','Cheque','Other'] as $m)
-                        <option value="{{ $m }}">{{ $m }}</option>
+                    @foreach($paymentModes as $pm)
+                        <option value="{{ $pm->name }}">{{ $pm->name }}</option>
                     @endforeach
                 </select>
             </div>

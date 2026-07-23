@@ -46,14 +46,14 @@
                 <div class="form-group">
                     <label class="form-label" for="receipt_no">Receipt No</label>
                     <input type="text" name="receipt_no" id="receipt_no"
-                           value="{{ old('receipt_no', $receipt- class="@error('receipt_no') is-invalid @enderror">receipt_no) }}"
+                           value="{{ old('receipt_no', $receipt->receipt_no) }}"
                            class="form-control" placeholder="Receipt number">
                     @error('receipt_no')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="receipt_date">Receipt Date <span>*</span></label>
                     <input type="date" name="receipt_date" id="receipt_date"
-                           value="{{ old('receipt_date', \Carbon\Carbon::parse($receipt- class="@error('receipt_date') is-invalid @enderror">receipt_date)->format('Y-m-d')) }}"
+                           value="{{ old('receipt_date', \Carbon\Carbon::parse($receipt->receipt_date)->format('Y-m-d')) }}"
                            class="form-control">
                     @error('receipt_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
@@ -63,14 +63,14 @@
                 <div class="form-group">
                     <label class="form-label" for="received_from">Received From <span>*</span></label>
                     <input type="text" name="received_from" id="received_from"
-                           value="{{ old('received_from', $receipt- class="@error('received_from') is-invalid @enderror">received_from) }}"
+                           value="{{ old('received_from', $receipt->received_from) }}"
                            class="form-control" placeholder="Customer / person / organisation name">
                     @error('received_from')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="amount">Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="amount" id="amount"
-                           value="{{ old('amount', $receipt- class="@error('amount') is-invalid @enderror">amount) }}"
+                           value="{{ old('amount', $receipt->amount) }}"
                            class="form-control" placeholder="0.00" min="0">
                     @error('amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
@@ -93,7 +93,7 @@
                 <div class="form-group">
                     <label class="form-label" for="reference_no">Reference No <span class="opt">(optional)</span></label>
                     <input type="text" name="reference_no" id="reference_no"
-                           value="{{ old('reference_no', $receipt- class="@error('reference_no') is-invalid @enderror">reference_no) }}"
+                           value="{{ old('reference_no', $receipt->reference_no) }}"
                            class="form-control" placeholder="Cheque / UTR / transaction no">
                     @error('reference_no')<div class="text-error">{{ $message }}</div>@enderror
                 </div>

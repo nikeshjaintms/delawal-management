@@ -12,7 +12,9 @@ class ExpenseCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ExpenseCategory::where('firm_id', Auth::user()->firm_id);
+        $query = ExpenseCategory::with('firms')->whereHas('firms', function($q) {
+            $q->where('firms.id', Auth::user()->firm_id);
+        });
 
         if ($request->search) {
             $query->where(function ($q) use ($request) {
@@ -29,26 +31,26 @@ class ExpenseCategoryController extends Controller
 
     public function create()
     {
-        return view('admin.expense-categories.create');
+        $firms = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
+        return view('admin.expense-categories.create', compact('firms'));
     }
 
     public function store(ExpenseCategoryRequest $request)
     {
-        
-
-        ExpenseCategory::create([
-            'firm_id'     => Auth::user()->firm_id,
+        $expenseCategory = ExpenseCategory::create([
             'name'        => $request->name,
             'description' => $request->description,
             'status'      => $request->status,
         ]);
+        $expenseCategory->firms()->attach($request->firm_ids);
 
         return redirect()->route('expense-categories.index')->with('success', 'Expense category added successfully.');
     }
 
     public function show(ExpenseCategory $expenseCategory)
     {
-        if ($expenseCategory->firm_id != Auth::user()->firm_id) {
+        $expenseCategory->load('firms');
+        if (!$expenseCategory->firms->contains(Auth::user()->firm_id)) {
             abort(403);
         }
 
@@ -57,33 +59,36 @@ class ExpenseCategoryController extends Controller
 
     public function edit(ExpenseCategory $expenseCategory)
     {
-        if ($expenseCategory->firm_id != Auth::user()->firm_id) {
+        $expenseCategory->load('firms');
+        if (!$expenseCategory->firms->contains(Auth::user()->firm_id)) {
             abort(403);
         }
 
-        return view('admin.expense-categories.edit', compact('expenseCategory'));
+        $firms = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
+        return view('admin.expense-categories.edit', compact('expenseCategory', 'firms'));
     }
 
     public function update(ExpenseCategoryRequest $request, ExpenseCategory $expenseCategory)
     {
-        if ($expenseCategory->firm_id != Auth::user()->firm_id) {
+        $expenseCategory->load('firms');
+        if (!$expenseCategory->firms->contains(Auth::user()->firm_id)) {
             abort(403);
         }
-
-        
 
         $expenseCategory->update([
             'name'        => $request->name,
             'description' => $request->description,
             'status'      => $request->status,
         ]);
+        $expenseCategory->firms()->sync($request->firm_ids);
 
         return redirect()->route('expense-categories.index')->with('success', 'Expense category updated successfully.');
     }
 
     public function destroy(ExpenseCategory $expenseCategory)
     {
-        if ($expenseCategory->firm_id != Auth::user()->firm_id) {
+        $expenseCategory->load('firms');
+        if (!$expenseCategory->firms->contains(Auth::user()->firm_id)) {
             abort(403);
         }
 

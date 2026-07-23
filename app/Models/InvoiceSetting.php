@@ -6,12 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class InvoiceSetting extends Model
 {
+    use \App\Traits\HasFirms;
+
     protected $fillable = [
         'financial_year_id',
         'sales_prefix', 'purchase_prefix', 'booking_prefix', 'rental_prefix',
         'payment_prefix', 'receipt_prefix', 'expense_prefix', 'income_prefix', 'loan_prefix',
         'starting_number', 'current_number', 'status',
     ];
+
+    public function firms()
+    {
+        return $this->belongsToMany(Firm::class, 'tax_gst_setting_firm', 'invoice_setting_id', 'firm_id')->withTimestamps();
+    }
 
     public function financialYear()
     {

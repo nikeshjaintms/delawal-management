@@ -243,6 +243,17 @@
             </select>
         </div>
         <div class="filter-group">
+            <span class="filter-label">Property Type</span>
+            <select name="filter_property_type" class="filter-ctrl @error('filter_property_type') is-invalid @enderror">
+                <option value="">All Types</option>
+                @foreach($propertyTypes as $pt)
+                    <option value="{{ $pt->id }}" {{ request('filter_property_type')==$pt->id?'selected':'' }}>
+                        {{ $pt->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="filter-group">
             <span class="filter-label">Rent Status</span>
             <select name="filter_status" class="filter-ctrl @error('filter_status') is-invalid @enderror">
                 <option value="">All Status</option>
@@ -255,15 +266,15 @@
             <span class="filter-label">Payment Mode</span>
             <select name="filter_mode" class="filter-ctrl @error('filter_mode') is-invalid @enderror">
                 <option value="">All Modes</option>
-                @foreach(['Cash','Cheque','NEFT','RTGS','UPI','Bank Transfer','Online'] as $m)
-                    <option value="{{ $m }}" {{ request('filter_mode')==$m?'selected':'' }}>{{ $m }}</option>
+                @foreach(\App\Models\PaymentMode::whereHas('firms', function($q) { $q->where('firms.id', Auth::user()->firm_id); })->where('status', 'active')->orderBy('name')->get() as $pm)
+                    <option value="{{ $pm->name }}" {{ request('filter_mode')==$pm->name?'selected':'' }}>{{ $pm->name }}</option>
                 @endforeach
             </select>
         </div>
         <button type="submit" class="btn-filter">
             <i class="fa-solid fa-magnifying-glass"></i> Search
         </button>
-        @if(request()->hasAny(['from_date','to_date','firm_id','filter_tenant','filter_property','filter_status','filter_mode']))
+        @if(request()->hasAny(['from_date','to_date','firm_id','filter_tenant','filter_property','filter_property_type','filter_status','filter_mode']))
             <a href="{{ route('reports.rentals') }}" class="btn-reset">
                 <i class="fa-solid fa-rotate-left"></i> Reset
             </a>
@@ -299,7 +310,9 @@
                     <th>Rent Date</th>
                     <th>Month / Year</th>
                     <th>Tenant Name</th>
-                    <th>Property / Unit</th>
+                    <th>Property Name</th>
+                    <th>Property Type</th>
+                    <th>Property Code</th>
                     <th class="amt">Monthly Rent</th>
                     <th class="amt">Received Amt</th>
                     <th class="amt">Pending Amt</th>
@@ -341,11 +354,18 @@
                     </td>
                     <td>
                         <div style="font-weight:600;font-size:13px;">
-                            {{ $rp->rental?->property?->property_name ?? '—' }}
+                            {{ $rp->property->property_name ?? $rp->rental?->property?->property_name ?? '—' }}
                         </div>
-                        @if($rp->rental?->rent_due_date)
-                            <div style="font-size:11px;color:#64748B;">Due: {{ $rp->rental->rent_due_date }}th every month</div>
-                        @endif
+                    </td>
+                    <td>
+                        <div style="font-size:13px;">
+                            {{ $rp->property->propertyType->name ?? $rp->rental?->property?->propertyType->name ?? '—' }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size:13px;font-family:monospace;">
+                            {{ $rp->property->property_code ?? $rp->rental?->property?->property_code ?? '—' }}
+                        </div>
                     </td>
                     <td class="amt" style="color:#0D9488;font-weight:700;">
                         ₹{{ number_format($rp->rent_amount, 2) }}

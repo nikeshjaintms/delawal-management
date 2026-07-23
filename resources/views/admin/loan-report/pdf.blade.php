@@ -78,8 +78,8 @@
     <thead>
         <tr>
             <th style="width:20px;">#</th>
-            <th>Bank Name</th>
             <th>Loan Type</th>
+            <th>Bank / Person</th>
             <th>Customer</th>
             <th>Property</th>
             <th class="r">Loan Amount</th>
@@ -95,13 +95,19 @@
         @forelse($loans as $i => $loan)
         <tr>
             <td style="color:#9CA3AF;">{{ $i+1 }}</td>
-            <td style="font-weight:600;">{{ $loan->bank_name }}</td>
             <td>{{ $loan->loan_type }}</td>
+            <td style="font-weight:600;">
+                @if($loan->loan_type === 'Personal Loan')
+                    {{ $loan->person_name }}
+                @else
+                    {{ $loan->bank_name }}
+                @endif
+            </td>
             <td>{{ $loan->customer?->name ?? '—' }}</td>
             <td>{{ $loan->property?->property_name ?? '—' }}</td>
             <td class="r" style="color:#92710A;font-weight:700;">₹{{ number_format($loan->loan_amount,2) }}</td>
-            <td class="r" style="color:#B91C1C;">₹{{ number_format($loan->emi_amount,2) }}</td>
-            <td>{{ $loan->total_emi_months }}</td>
+            <td class="r" style="color:#B91C1C;">₹{{ number_format($loan->emi_amount ?? 0,2) }}</td>
+            <td>{{ $loan->total_emi_months ?? '—' }}</td>
             <td style="white-space:nowrap;">{{ \Carbon\Carbon::parse($loan->loan_start_date)->format('d M Y') }}</td>
             <td class="r" style="color:#16803D;">₹{{ number_format($loan->paid_amount,2) }}</td>
             <td class="r" style="color:#DC2626;">₹{{ number_format($loan->pending_amount,2) }}</td>

@@ -11,6 +11,7 @@ class RentalPayment extends Model
     protected $fillable = [
         'firm_id',
         'rental_id',
+        'property_id',
         'payment_month',
         'payment_year',
         'rent_amount',
@@ -30,5 +31,10 @@ class RentalPayment extends Model
     public function rental()
     {
         return $this->belongsTo(Rental::class);
+    }
+
+    public function property()
+    {
+        return $this->belongsTo(Property::class);
     }
 }

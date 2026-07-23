@@ -200,7 +200,7 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="commission_percentage">Commission Percentage</label>
-                <input type="number" step="0.01" min="0" max="100" name="commission_percentage" id="commission_percentage" value="{{ old('commission_percentage', $broker- class="@error('commission_percentage') is-invalid @enderror">commission_percentage) }}" class="form-control" placeholder="Enter broker commission percentage, e.g. 2.50">
+                <input type="number" step="0.01" min="0" max="100" name="commission_percentage" id="commission_percentage" value="{{ old('commission_percentage', $broker->commission_percentage) }}" class="form-control" placeholder="Enter broker commission percentage, e.g. 2.50">
                 <div class="form-hint">Enter a value between 0 and 100.</div>
                 @error('commission_percentage') <div class="text-error">{{ $message }}</div> @enderror
             </div>

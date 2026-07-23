@@ -183,7 +183,7 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="name">Tenant Name <span>*</span></label>
-                <input type="text" name="name" id="name" value="{{ old('name', $tenant- class="@error('name') is-invalid @enderror">name) }}" class="form-control" placeholder="Enter tenant name">
+                <input type="text" name="name" id="name" value="{{ old('name', $tenant->name) }}" class="form-control" placeholder="Enter tenant name">
                 @error('name') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
@@ -197,13 +197,13 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="email">Email</label>
-                <input type="email" name="email" id="email" value="{{ old('email', $tenant- class="@error('email') is-invalid @enderror">email) }}" class="form-control" placeholder="Enter email address">
+                <input type="email" name="email" id="email" value="{{ old('email', $tenant->email) }}" class="form-control" placeholder="Enter email address">
                 @error('email') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="city">City</label>
-                <input type="text" name="city" id="city" value="{{ old('city', $tenant- class="@error('city') is-invalid @enderror">city) }}" class="form-control" placeholder="Enter city name">
+                <input type="text" name="city" id="city" value="{{ old('city', $tenant->city) }}" class="form-control" placeholder="Enter city name">
                 @error('city') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>
@@ -228,7 +228,7 @@
 
             <div class="form-group">
                 <label class="form-label" for="identity_number">Identity Number</label>
-                <input type="text" name="identity_number" id="identity_number" value="{{ old('identity_number', $tenant- class="@error('identity_number') is-invalid @enderror">identity_number) }}" class="form-control" placeholder="Enter Aadhaar, PAN, Passport or other ID number">
+                <input type="text" name="identity_number" id="identity_number" value="{{ old('identity_number', $tenant->identity_number) }}" class="form-control" placeholder="Enter Aadhaar, PAN, Passport or other ID number">
                 @error('identity_number') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>

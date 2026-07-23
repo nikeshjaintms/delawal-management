@@ -71,14 +71,14 @@
                 <div class="form-group">
                     <label class="form-label" for="tenant_name">Tenant Name <span>*</span></label>
                     <input type="text" name="tenant_name" id="tenant_name"
-                           value="{{ old('tenant_name', $rental- class="@error('tenant_name') is-invalid @enderror">tenant_name) }}"
+                           value="{{ old('tenant_name', $rental->tenant_name) }}"
                            class="form-control" autocomplete="off" placeholder="Enter tenant full name">
                     @error('tenant_name') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="tenant_mobile">Tenant Mobile <span>*</span></label>
                     <input type="text" name="tenant_mobile" id="tenant_mobile"
-                           value="{{ old('tenant_mobile', $rental- class="@error('tenant_mobile') is-invalid @enderror">tenant_mobile) }}"
+                           value="{{ old('tenant_mobile', $rental->tenant_mobile) }}"
                            class="form-control" autocomplete="off" placeholder="Enter tenant contact number">
                     @error('tenant_mobile') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
@@ -87,7 +87,7 @@
                 <div class="form-group">
                     <label class="form-label" for="tenant_email">Tenant Email</label>
                     <input type="email" name="tenant_email" id="tenant_email"
-                           value="{{ old('tenant_email', $rental- class="@error('tenant_email') is-invalid @enderror">tenant_email) }}"
+                           value="{{ old('tenant_email', $rental->tenant_email) }}"
                            class="form-control" placeholder="Enter tenant email address">
                     @error('tenant_email') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
@@ -101,14 +101,14 @@
                 <div class="form-group">
                     <label class="form-label" for="rent_amount">Monthly Rent Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="rent_amount" id="rent_amount"
-                           value="{{ old('rent_amount', $rental- class="@error('rent_amount') is-invalid @enderror">rent_amount) }}"
+                           value="{{ old('rent_amount', $rental->rent_amount) }}"
                            class="form-control" placeholder="Enter monthly rent">
                     @error('rent_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="security_deposit">Security Deposit (₹)</label>
                     <input type="number" step="0.01" name="security_deposit" id="security_deposit"
-                           value="{{ old('security_deposit', $rental- class="@error('security_deposit') is-invalid @enderror">security_deposit) }}"
+                           value="{{ old('security_deposit', $rental->security_deposit) }}"
                            class="form-control" placeholder="Enter security deposit amount">
                     @error('security_deposit') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
@@ -122,21 +122,21 @@
                 <div class="form-group">
                     <label class="form-label" for="rent_start_date">Rent Start Date <span>*</span></label>
                     <input type="date" name="rent_start_date" id="rent_start_date"
-                           value="{{ old('rent_start_date', $rental- class="@error('rent_start_date') is-invalid @enderror">rent_start_date ? \Carbon\Carbon::parse($rental->rent_start_date)->format('Y-m-d') : '') }}"
+                           value="{{ old('rent_start_date', $rental->rent_start_date ? \Carbon\Carbon::parse($rental->rent_start_date)->format('Y-m-d') : '') }}"
                            class="form-control">
                     @error('rent_start_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="rent_end_date">Rent End Date</label>
                     <input type="date" name="rent_end_date" id="rent_end_date"
-                           value="{{ old('rent_end_date', $rental- class="@error('rent_end_date') is-invalid @enderror">rent_end_date ? \Carbon\Carbon::parse($rental->rent_end_date)->format('Y-m-d') : '') }}"
+                           value="{{ old('rent_end_date', $rental->rent_end_date ? \Carbon\Carbon::parse($rental->rent_end_date)->format('Y-m-d') : '') }}"
                            class="form-control">
                     @error('rent_end_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="rent_due_date">Rent Due Day of Month</label>
                     <input type="number" name="rent_due_date" id="rent_due_date" min="1" max="31"
-                           value="{{ old('rent_due_date', $rental- class="@error('rent_due_date') is-invalid @enderror">rent_due_date) }}"
+                           value="{{ old('rent_due_date', $rental->rent_due_date) }}"
                            class="form-control" placeholder="e.g. 5">
                     <div class="form-hint">Day of month when rent is due (1–31).</div>
                     @error('rent_due_date') <div class="text-error">{{ $message }}</div> @enderror

@@ -69,17 +69,17 @@ textarea.form-control{resize:vertical;min-height:80px}
         </div>
         <div class="form-group">
             <label class="form-label">Document Title <span>*</span></label>
-            <input type="text" name="document_title" value="{{ old('document_title', $doc- class="@error('document_title') is-invalid @enderror">document_title) }}" class="form-control" required>
+            <input type="text" name="document_title" value="{{ old('document_title', $doc->document_title) }}" class="form-control" required>
             @error('document_title')<div class="text-error">{{ $message }}</div>@enderror
         </div>
         <div class="form-group">
             <label class="form-label">Document Number</label>
-            <input type="text" name="document_number" value="{{ old('document_number', $doc- class="@error('document_number') is-invalid @enderror">document_number) }}" class="form-control">
+            <input type="text" name="document_number" value="{{ old('document_number', $doc->document_number) }}" class="form-control">
             @error('document_number')<div class="text-error">{{ $message }}</div>@enderror
         </div>
         <div class="form-group">
             <label class="form-label">Expiry Date</label>
-            <input type="date" name="expiry_date" value="{{ old('expiry_date', $doc- class="@error('expiry_date') is-invalid @enderror">expiry_date?->format('Y-m-d')) }}" class="form-control">
+            <input type="date" name="expiry_date" value="{{ old('expiry_date', $doc->expiry_date?->format('Y-m-d')) }}" class="form-control">
             @error('expiry_date')<div class="text-error">{{ $message }}</div>@enderror
         </div>
         <div class="form-group">

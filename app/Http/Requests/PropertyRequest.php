@@ -21,6 +21,11 @@ class PropertyRequest extends FormRequest
                 $inputs[$key] = trim($value);
             }
         }
+        
+        if (isset($inputs['firm_ids']) && is_array($inputs['firm_ids']) && !empty($inputs['firm_ids'])) {
+            $inputs['firm_id'] = $inputs['firm_ids'][0];
+        }
+        
         $this->replace($inputs);
     }
 

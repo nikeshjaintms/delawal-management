@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Payment Modes')
 @section('page-title', 'Payment Mode Master')
@@ -226,6 +226,7 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    <th>Firm</th>
                     <th>Name</th>
                     <th>Description</th>
                     <th>Status</th>
@@ -236,6 +237,7 @@
                 @forelse($paymentModes as $key => $mode)
                     <tr>
                         <td>{{ $paymentModes->firstItem() + $key }}</td>
+                        <td>{{ $mode->firm_names }}</td>
                         <td><strong>{{ $mode->name }}</strong></td>
                         <td>
                             @if($mode->description)
@@ -269,7 +271,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" align="center" style="padding: 30px; color: var(--text-secondary);">
+                        <td colspan="6" align="center" style="padding: 30px; color: var(--text-secondary);">
                             No payment modes found for this firm.
                         </td>
                     </tr>

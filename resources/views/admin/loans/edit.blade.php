@@ -33,115 +33,152 @@
 </style>
 
 <div class="crud-header">
-    <div class="crud-title"><h2>Edit Loan</h2><p>Update — <strong>{{ $loan->bank_name }}</strong> · {{ $loan->loan_type }}</p></div>
+    <div class="crud-title"><h2>Edit Loan</h2><p>Update loan record details.</p></div>
 </div>
 
 <div class="card-box">
-    <form method="POST" action="{{ route('loans.update', $loan->id) }}">
-        @csrf @method('PUT')
+    <form method="POST" action="{{ route('loans.update', $loan->id) }}" id="loanForm">
+        @csrf
+        @method('PUT')
 
+        {{-- Section 1: Loan Info --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-landmark"></i> Loan Information</div>
             @include('admin.components.firm-select', ['model' => $loan])
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Bank Name <span class="req">*</span></label>
-                    <input type="text" name="bank_name" value="{{ old('bank_name',$loan- class="@error('bank_name') is-invalid @enderror">bank_name) }}" class="form-control">
-                    @error('bank_name')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-                <div class="form-group">
                     <label class="form-label">Loan Type <span class="req">*</span></label>
-                    <select name="loan_type" class="form-control @error('loan_type') is-invalid @enderror">
-                        @foreach(['Home Loan','Personal Loan','Business Loan','Mortgage','Car Loan','Other'] as $t)
-                            <option value="{{ $t }}" {{ old('loan_type',$loan->loan_type)==$t?'selected':'' }}>{{ $t }}</option>
-                        @endforeach
+                    <select name="loan_type" id="loan_type" class="form-control @error('loan_type') is-invalid @enderror" onchange="toggleLoanType()">
+                        <option value="Business Loan" {{ old('loan_type', $loan->loan_type) == 'Business Loan' ? 'selected' : '' }}>Business Loan</option>
+                        <option value="Personal Loan" {{ old('loan_type', $loan->loan_type) == 'Personal Loan' ? 'selected' : '' }}>Personal Loan</option>
                     </select>
                     @error('loan_type')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
+                <div class="form-group business-only">
+                    <label class="form-label">Bank Name <span class="req">*</span></label>
+                    <input type="text" name="bank_name" id="bank_name" value="{{ old('bank_name', $loan->bank_name) }}" class="form-control @error('bank_name') is-invalid @enderror" placeholder="e.g. SBI, HDFC Bank, ICICI">
+                    @error('bank_name')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group personal-only" style="display:none;">
+                    <label class="form-label">Person Name <span class="req">*</span></label>
+                    <input type="text" name="person_name" id="person_name" value="{{ old('person_name', $loan->person_name) }}" class="form-control @error('person_name') is-invalid @enderror" placeholder="Enter person's name">
+                    @error('person_name')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
             </div>
-            <div class="form-row">
+            <div class="form-row business-only">
                 <div class="form-group">
                     <label class="form-label">Customer <span class="opt">(optional)</span></label>
                     <select name="customer_id" class="form-control @error('customer_id') is-invalid @enderror">
                         <option value="">— Select Customer —</option>
                         @foreach($customers as $c)
-                            <option value="{{ $c->id }}" {{ old('customer_id',$loan->customer_id)==$c->id?'selected':'' }}>{{ $c->name }} — {{ $c->mobile }}</option>
+                            <option value="{{ $c->id }}" {{ old('customer_id', $loan->customer_id)==$c->id?'selected':'' }}>{{ $c->name }} — {{ $c->mobile }}</option>
                         @endforeach
                     </select>
+                    @error('customer_id')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">Property <span class="opt">(optional)</span></label>
                     <select name="property_id" class="form-control @error('property_id') is-invalid @enderror">
                         <option value="">— Select Property —</option>
                         @foreach($properties as $p)
-                            <option value="{{ $p->id }}" {{ old('property_id',$loan->property_id)==$p->id?'selected':'' }}>{{ $p->property_name }}{{ $p->property_code?' ('.$p->property_code.')':'' }}</option>
+                            <option value="{{ $p->id }}" {{ old('property_id', $loan->property_id)==$p->id?'selected':'' }}>{{ $p->property_name }}{{ $p->property_code?' ('.$p->property_code.')':'' }}</option>
                         @endforeach
                     </select>
+                    @error('property_id')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+            </div>
+            <div class="form-row personal-only" style="display:none;">
+                <div class="form-group">
+                    <label class="form-label">Mobile Number <span class="opt">(optional)</span></label>
+                    <input type="text" name="mobile_number" value="{{ old('mobile_number', $loan->mobile_number) }}" class="form-control @error('mobile_number') is-invalid @enderror" placeholder="Enter mobile number">
+                    @error('mobile_number')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Relationship <span class="opt">(optional)</span></label>
+                    <input type="text" name="relationship" value="{{ old('relationship', $loan->relationship) }}" class="form-control @error('relationship') is-invalid @enderror" placeholder="e.g. Friend, Brother, Relative">
+                    @error('relationship')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
         </div>
 
+        {{-- Section 2: Financial Details --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Financial Details</div>
-            <div class="form-row-3">
-                <div class="form-group">
-                    <label class="form-label">Loan Amount (₹) <span class="req">*</span></label>
-                    <input type="number" step="0.01" name="loan_amount" value="{{ old('loan_amount',$loan- class="@error('loan_amount') is-invalid @enderror">loan_amount) }}" class="form-control">
-                    @error('loan_amount')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Interest Rate (% p.a.) <span class="req">*</span></label>
-                    <input type="number" step="0.01" name="interest_rate" value="{{ old('interest_rate',$loan- class="@error('interest_rate') is-invalid @enderror">interest_rate) }}" class="form-control">
-                    @error('interest_rate')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Total EMI Months <span class="req">*</span></label>
-                    <input type="number" name="total_emi_months" value="{{ old('total_emi_months',$loan- class="@error('total_emi_months') is-invalid @enderror">total_emi_months) }}" class="form-control">
-                    @error('total_emi_months')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-            </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">EMI Amount (₹) <span class="req">*</span></label>
-                    <input type="number" step="0.01" name="emi_amount" value="{{ old('emi_amount',$loan- class="@error('emi_amount') is-invalid @enderror">emi_amount) }}" class="form-control">
-                    @error('emi_amount')<div class="text-error">{{ $message }}</div>@enderror
+                    <label class="form-label">Loan Amount (₹) <span class="req">*</span></label>
+                    <input type="number" step="0.01" name="loan_amount" id="loan_amount" value="{{ old('loan_amount', $loan->loan_amount) }}" class="form-control @error('loan_amount') is-invalid @enderror" placeholder="0.00" oninput="calcEmi()">
+                    @error('loan_amount')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group personal-only" style="display:none;">
+                    <label class="form-label">Payment Mode <span class="opt">(optional)</span></label>
+                    <select name="payment_mode_id" class="form-control @error('payment_mode_id') is-invalid @enderror">
+                        <option value="">— Select Payment Mode —</option>
+                        @foreach($paymentModes as $pm)
+                            <option value="{{ $pm->id }}" {{ old('payment_mode_id', $loan->payment_mode_id) == $pm->id ? 'selected' : '' }}>{{ $pm->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('payment_mode_id')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">Loan Status <span class="req">*</span></label>
                     <select name="loan_status" class="form-control @error('loan_status') is-invalid @enderror">
                         @foreach(['Active','Completed','Closed','Cancelled'] as $s)
-                            <option value="{{ $s }}" {{ old('loan_status',$loan->loan_status)==$s?'selected':'' }}>{{ $s }}</option>
+                            <option value="{{ $s }}" {{ old('loan_status', $loan->loan_status)==$s?'selected':'' }}>{{ $s }}</option>
                         @endforeach
                     </select>
+                    @error('loan_status')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+            </div>
+            
+            <div class="form-row-3 business-only">
+                <div class="form-group">
+                    <label class="form-label">Interest Rate (% p.a.) <span class="req">*</span></label>
+                    <input type="number" step="0.01" name="interest_rate" id="interest_rate" value="{{ old('interest_rate', $loan->interest_rate) }}" class="form-control @error('interest_rate') is-invalid @enderror" placeholder="e.g. 8.5" oninput="calcEmi()">
+                    @error('interest_rate')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Total EMI Months <span class="req">*</span></label>
+                    <input type="number" name="total_emi_months" id="total_emi_months" value="{{ old('total_emi_months', $loan->total_emi_months) }}" class="form-control @error('total_emi_months') is-invalid @enderror" placeholder="e.g. 120" oninput="calcEmi()">
+                    @error('total_emi_months')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label">EMI Amount (₹) <span class="req">*</span></label>
+                    <input type="number" step="0.01" name="emi_amount" id="emi_amount" value="{{ old('emi_amount', $loan->emi_amount) }}" class="form-control @error('emi_amount') is-invalid @enderror" placeholder="Auto-calculated or enter manually">
+                    <div class="form-hint">Auto-calculated based on loan amount, rate & tenure. You can override.</div>
+                    @error('emi_amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
         </div>
 
+        {{-- Section 3: Schedule --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-regular fa-calendar-days"></i> Loan Schedule</div>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Loan Start Date <span class="req">*</span></label>
-                    <input type="date" name="loan_start_date" value="{{ old('loan_start_date',\Carbon\Carbon::parse($loan- class="@error('loan_start_date') is-invalid @enderror">loan_start_date)->format('Y-m-d')) }}" class="form-control">
+                    <label class="form-label" id="start_date_label">Loan Start Date <span class="req">*</span></label>
+                    <input type="date" name="loan_start_date" id="loan_start_date" value="{{ old('loan_start_date', $loan->loan_start_date ? \Carbon\Carbon::parse($loan->loan_start_date)->format('Y-m-d') : '') }}" class="form-control @error('loan_start_date') is-invalid @enderror">
                     @error('loan_start_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
-                <div class="form-group">
+                <div class="form-group business-only">
                     <label class="form-label">Loan End Date <span class="req">*</span></label>
-                    <input type="date" name="loan_end_date" value="{{ old('loan_end_date',\Carbon\Carbon::parse($loan- class="@error('loan_end_date') is-invalid @enderror">loan_end_date)->format('Y-m-d')) }}" class="form-control">
+                    <input type="date" name="loan_end_date" id="loan_end_date" value="{{ old('loan_end_date', $loan->loan_end_date ? \Carbon\Carbon::parse($loan->loan_end_date)->format('Y-m-d') : '') }}" class="form-control @error('loan_end_date') is-invalid @enderror">
                     @error('loan_end_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
         </div>
 
+        {{-- Section 4: Remarks --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-note-sticky"></i> Remarks</div>
             <div class="form-group">
-                <textarea name="remarks" class="form-control @error('remarks') is-invalid @enderror" placeholder="Any notes...">{{ old('remarks',$loan->remarks) }}</textarea>
+                <textarea name="remarks" class="form-control @error('remarks') is-invalid @enderror" placeholder="Any notes about this loan...">{{ old('remarks', $loan->remarks) }}</textarea>
+                @error('remarks')<div class="text-error">{{ $message }}</div>@enderror
             </div>
         </div>
 
         {{-- Regenerate option --}}
-        <div class="form-section">
+        <div class="form-section business-only">
             <div class="regen-box">
                 <input type="checkbox" name="regenerate_emi" value="1" id="regenerate_emi" style="margin-top:2px;accent-color:#EF4444;" class="@error('regenerate_emi') is-invalid @enderror">
                 <div>
@@ -152,9 +189,60 @@
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn-gold"><i class="fa-solid fa-floppy-disk"></i> Update Loan</button>
+            <button type="submit" class="btn-gold" id="submit_btn"><i class="fa-solid fa-floppy-disk"></i> Update Loan</button>
             <a href="{{ route('loans.show', $loan->id) }}" class="btn-outline"><i class="fa-solid fa-arrow-left"></i> Back</a>
         </div>
     </form>
 </div>
+
+<script>
+function toggleLoanType() {
+    const loanType = document.getElementById('loan_type').value;
+    const businessOnly = document.querySelectorAll('.business-only');
+    const personalOnly = document.querySelectorAll('.personal-only');
+    const submitBtn = document.getElementById('submit_btn');
+    const startDateLabel = document.getElementById('start_date_label');
+
+    if (loanType === 'Personal Loan') {
+        businessOnly.forEach(el => el.style.display = 'none');
+        personalOnly.forEach(el => el.style.display = 'block');
+        submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Personal Loan';
+        startDateLabel.innerHTML = 'Loan Date <span class="req">*</span>';
+    } else {
+        businessOnly.forEach(el => el.style.display = 'block');
+        personalOnly.forEach(el => el.style.display = 'none');
+        submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Loan';
+        startDateLabel.innerHTML = 'Loan Start Date <span class="req">*</span>';
+    }
+}
+
+function calcEmi() {
+    const loanType = document.getElementById('loan_type').value;
+    if (loanType === 'Personal Loan') return;
+
+    const P = parseFloat(document.getElementById('loan_amount').value) || 0;
+    const annualRate = parseFloat(document.getElementById('interest_rate').value) || 0;
+    const n = parseInt(document.getElementById('total_emi_months').value) || 0;
+
+    if (P > 0 && annualRate > 0 && n > 0) {
+        const r = annualRate / 12 / 100;
+        const emi = P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+        document.getElementById('emi_amount').value = emi.toFixed(2);
+    }
+
+    // Auto-calculate end date
+    const startDate = document.getElementById('loan_start_date').value;
+    if (startDate && n > 0) {
+        const d = new Date(startDate);
+        d.setMonth(d.getMonth() + n);
+        document.getElementById('loan_end_date').value = d.toISOString().split('T')[0];
+    }
+}
+
+document.getElementById('loan_start_date').addEventListener('change', calcEmi);
+
+document.addEventListener('DOMContentLoaded', function() {
+    toggleLoanType();
+});
+</script>
 @endsection

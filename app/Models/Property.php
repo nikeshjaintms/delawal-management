@@ -42,4 +42,14 @@ class Property extends Model
     {
         return $this->hasMany(\App\Models\PropertyDocument::class);
     }
+
+    public function rentalPayments()
+    {
+        return $this->hasMany(RentalPayment::class);
+    }
+
+    public function incomes()
+    {
+        return $this->hasMany(Income::class);
+    }
 }

@@ -9,14 +9,13 @@ class PropertyType extends Model
     use \App\Traits\HasFirms;
 
     protected $fillable = [
-        'firm_id',
         'name',
         'description',
         'status',
     ];
 
-    public function firm()
+    public function firms()
     {
-        return $this->belongsTo(Firm::class);
+        return $this->belongsToMany(Firm::class, 'property_type_firm', 'property_type_id', 'firm_id')->withTimestamps();
     }
 }

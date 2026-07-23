@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Property Types')
 @section('page-title', 'Property Type Master')
@@ -273,6 +273,7 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    <th>Firm</th>
                     <th>Name</th>
                     <th>Description</th>
                     <th>Status</th>
@@ -283,6 +284,7 @@
                 @forelse($propertyTypes as $key => $type)
                     <tr>
                         <td>{{ $propertyTypes->firstItem() + $key }}</td>
+                        <td>{{ $type->firm_names }}</td>
                         <td><strong>{{ $type->name }}</strong></td>
                         <td>
                             @if($type->description)

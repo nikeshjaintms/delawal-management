@@ -46,7 +46,7 @@
                 <div class="form-group">
                     <label class="form-label" for="item_name">Item Name <span>*</span></label>
                     <input type="text" name="item_name" id="item_name"
-                           value="{{ old('item_name', $purchase- class="@error('item_name') is-invalid @enderror">item_name) }}"
+                           value="{{ old('item_name', $purchase->item_name) }}"
                            class="form-control" placeholder="e.g. Cement, Steel Rods">
                     @error('item_name')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
@@ -69,14 +69,14 @@
                 <div class="form-group">
                     <label class="form-label" for="purchase_date">Purchase Date <span>*</span></label>
                     <input type="date" name="purchase_date" id="purchase_date"
-                           value="{{ old('purchase_date', \Carbon\Carbon::parse($purchase- class="@error('purchase_date') is-invalid @enderror">purchase_date)->format('Y-m-d')) }}"
+                           value="{{ old('purchase_date', \Carbon\Carbon::parse($purchase->purchase_date)->format('Y-m-d')) }}"
                            class="form-control">
                     @error('purchase_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="quantity">Quantity</label>
                     <input type="number" name="quantity" id="quantity"
-                           value="{{ old('quantity', $purchase- class="@error('quantity') is-invalid @enderror">quantity) }}"
+                           value="{{ old('quantity', $purchase->quantity) }}"
                            class="form-control" placeholder="1" min="0" step="any">
                     @error('quantity')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
@@ -86,19 +86,16 @@
                 <div class="form-group">
                     <label class="form-label" for="purchase_amount">Purchase Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="purchase_amount" id="purchase_amount"
-                           value="{{ old('purchase_amount', $purchase- class="@error('purchase_amount') is-invalid @enderror">purchase_amount) }}"
-                           class="form-control" placeholder="0.00" min="0">
+                           value="{{ old('purchase_amount', $purchase->purchase_amount) }}"
+                           class="form-control @error('purchase_amount') is-invalid @enderror" placeholder="0.00" min="0">
                     @error('purchase_amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="payment_mode">Payment Mode</label>
                     <select name="payment_mode" id="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror">
                         <option value="">— Select Mode —</option>
-                        @foreach(['Cash','Bank Transfer','UPI','Cheque','Other'] as $m)
-                            <option value="{{ $m }}"
-                                {{ old('payment_mode', $purchase->payment_mode) == $m ? 'selected' : '' }}>
-                                {{ $m }}
-                            </option>
+                        @foreach(\App\Models\PaymentMode::whereHas('firms', function($q) { $q->where('firms.id', Auth::user()->firm_id); })->where('status', 'active')->orderBy('name')->get() as $pm)
+                            <option value="{{ $pm->name }}" {{ old('payment_mode', $purchase->payment_mode) == $pm->name ? 'selected' : '' }}>{{ $pm->name }}</option>
                         @endforeach
                     </select>
                     @error('payment_mode')<div class="text-error">{{ $message }}</div>@enderror
@@ -121,7 +118,7 @@
                 <div class="form-group">
                     <label class="form-label" for="reference_no">Reference No <span class="opt">(optional)</span></label>
                     <input type="text" name="reference_no" id="reference_no"
-                           value="{{ old('reference_no', $purchase- class="@error('reference_no') is-invalid @enderror">reference_no) }}"
+                           value="{{ old('reference_no', $purchase->reference_no) }}"
                            class="form-control" placeholder="Bill / Invoice / PO number">
                     @error('reference_no')<div class="text-error">{{ $message }}</div>@enderror
                 </div>

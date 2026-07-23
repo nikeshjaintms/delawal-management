@@ -44,12 +44,12 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Transaction Title <span>*</span></label>
-                    <input type="text" name="transaction_title" value="{{ old('transaction_title',$ledger- class="@error('transaction_title') is-invalid @enderror">transaction_title) }}" class="form-control">
+                    <input type="text" name="transaction_title" value="{{ old('transaction_title',$ledger->transaction_title) }}" class="form-control">
                     @error('transaction_title')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">Ledger Date <span>*</span></label>
-                    <input type="date" name="ledger_date" value="{{ old('ledger_date',\Carbon\Carbon::parse($ledger- class="@error('ledger_date') is-invalid @enderror">ledger_date)->format('Y-m-d')) }}" class="form-control">
+                    <input type="date" name="ledger_date" value="{{ old('ledger_date',\Carbon\Carbon::parse($ledger->ledger_date)->format('Y-m-d')) }}" class="form-control">
                     @error('ledger_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
@@ -81,19 +81,19 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" style="color:#DC2626;">Debit Amount (₹)</label>
-                    <input type="number" step="0.01" name="debit_amount" value="{{ old('debit_amount',$ledger- class="@error('debit_amount') is-invalid @enderror">debit_amount) }}" class="form-control debit-input">
+                    <input type="number" step="0.01" name="debit_amount" value="{{ old('debit_amount',$ledger->debit_amount) }}" class="form-control debit-input">
                     @error('debit_amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" style="color:#16803D;">Credit Amount (₹)</label>
-                    <input type="number" step="0.01" name="credit_amount" value="{{ old('credit_amount',$ledger- class="@error('credit_amount') is-invalid @enderror">credit_amount) }}" class="form-control credit-input">
+                    <input type="number" step="0.01" name="credit_amount" value="{{ old('credit_amount',$ledger->credit_amount) }}" class="form-control credit-input">
                     @error('credit_amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Reference No <span class="opt">(optional)</span></label>
-                    <input type="text" name="reference_no" value="{{ old('reference_no',$ledger- class="@error('reference_no') is-invalid @enderror">reference_no) }}" class="form-control" placeholder="Invoice / cheque / receipt no">
+                    <input type="text" name="reference_no" value="{{ old('reference_no',$ledger->reference_no) }}" class="form-control" placeholder="Invoice / cheque / receipt no">
                 </div>
             </div>
         </div>
