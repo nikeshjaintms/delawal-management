@@ -1,0 +1,111 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+
+class PropertyDocumentRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    protected function prepareForValidation()
+    {
+        $inputs = $this->all();
+        foreach ($inputs as $key => $value) {
+            if (is_string($value)) {
+                $inputs[$key] = trim($value);
+            }
+        }
+        $this->replace($inputs);
+    }
+
+    public function rules(): array
+    {
+        $id = null;
+        if ($this->route()) {
+            foreach ($this->route()->parameters() as $param) {
+                if (is_object($param)) {
+                    $id = $param->id;
+                    break;
+                } elseif (is_numeric($param)) {
+                    $id = $param;
+                    break;
+                }
+            }
+        }
+        $firmId = $this->get('firm_id') ?: (auth()->check() && auth()->user() ? auth()->user()->firm_id : session('firm_id'));
+
+        $rules = [
+            'firm_id'         => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
+            'property_id'     => 'required|exists:properties,id',
+            'document_type'   => 'required|string|max:255',
+            'document_title'  => 'required|string|max:255',
+            'document_file'   => $this->isMethod('post') ? 'required|file|max:5120' : 'nullable|file|max:5120',
+            'document_number' => 'nullable|string|max:255',
+            'expiry_date'     => 'nullable|date',
+            'remarks'         => 'nullable|string|max:1000',
+            'status'          => 'required|in:active,inactive',
+        ];
+
+        // Replace placeholders in unique rules dynamically
+        foreach ($rules as $field => $rule) {
+            if (is_string($rule)) {
+                $replaced = str_replace('{ID}', $id ?: 'NULL', $rule);
+                $replaced = str_replace('{FIRM_ID}', $firmId, $replaced);
+                
+                // Dynamic Password rule for users
+                if ($field === 'password') {
+                    if ($this->isMethod('post')) {
+                        $replaced = 'required|string|min:6|same:confirm_password';
+                    } else {
+                        $replaced = 'nullable|string|min:6|same:confirm_password';
+                    }
+                }
+                if ($field === 'confirm_password') {
+                    if ($this->isMethod('post')) {
+                        $replaced = 'required';
+                    } else {
+                        $replaced = 'nullable';
+                    }
+                }
+                
+                $rules[$field] = $replaced;
+            }
+        }
+
+        return $rules;
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'property_id'     => 'Property',
+            'document_type'   => 'Document Type',
+            'document_title'  => 'Document Title',
+            'document_file'   => 'Upload Document',
+            'document_number' => 'Document Number',
+            'expiry_date'     => 'Expiry Date',
+            'remarks'         => 'Remarks',
+            'status'          => 'Status',
+        ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        if ($this->expectsJson() || $this->ajax() || $this->wantsJson()) {
+            throw new HttpResponseException(
+                response()->json([
+                    'success' => false,
+                    'message' => 'Validation errors occurred.',
+                    'errors' => $validator->errors()
+                ], 422)
+            );
+        }
+        parent::failedValidation($validator);
+    }
+}
