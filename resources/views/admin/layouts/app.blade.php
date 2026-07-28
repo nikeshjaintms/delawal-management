@@ -1154,6 +1154,14 @@
                                 <i class="fa-solid fa-arrow-up-from-bracket"></i><span>Stock Outward</span>
                             </a>
                         </li>
+                        @if($authUser->hasPermission('purchase_order_view'))
+                        <li class="submenu-item">
+                            <a href="{{ route('purchase-orders.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'purchase-orders.') ? 'active' : '' }}">
+                                <i class="fa-solid fa-file-invoice"></i><span>Purchase Order</span>
+                            </a>
+                        </li>
+                        @endif
+
                         <li class="submenu-item">
                             <a href="{{ route('stock-report.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'stock-report.') ? 'active' : '' }}">
                                 <i class="fa-solid fa-chart-bar"></i><span>Current Stock Report</span>
@@ -1331,7 +1339,7 @@
 
                 @if($authUser->hasPermission('loan_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('loans.index') }}" class="submenu-link">
+                    <a href="{{ route('emi-schedules.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'emi-schedules.') ? 'active' : '' }}">
                         <i class="fa-solid fa-calendar-minus"></i><span>EMI Schedule</span>
                     </a>
                 </li>

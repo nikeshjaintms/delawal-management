@@ -53,7 +53,7 @@
                     </select>
                     @error('loan_type')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
-                <div class="form-group business-only">
+                <div class="form-group business-loan-only">
                     <label class="form-label">Bank Name <span class="req">*</span></label>
                     <input type="text" name="bank_name" id="bank_name" value="{{ old('bank_name') }}" class="form-control @error('bank_name') is-invalid @enderror" placeholder="e.g. SBI, HDFC Bank, ICICI">
                     @error('bank_name')<div class="text-error">{{ $message }}</div>@enderror
@@ -64,7 +64,7 @@
                     @error('person_name')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
-            <div class="form-row business-only">
+            <div class="form-row business-loan-only">
                 <div class="form-group">
                     <label class="form-label">Customer <span class="opt">(optional)</span></label>
                     <select name="customer_id" class="form-control @error('customer_id') is-invalid @enderror">
@@ -130,7 +130,7 @@
                 </div>
             </div>
             
-            <div class="form-row-3 business-only">
+            <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label">Interest Rate (% p.a.) <span class="req">*</span></label>
                     <input type="number" step="0.01" name="interest_rate" id="interest_rate" value="{{ old('interest_rate') }}" class="form-control @error('interest_rate') is-invalid @enderror" placeholder="e.g. 8.5" oninput="calcEmi()">
@@ -159,7 +159,7 @@
                     <input type="date" name="loan_start_date" id="loan_start_date" value="{{ old('loan_start_date', date('Y-m-d')) }}" class="form-control @error('loan_start_date') is-invalid @enderror">
                     @error('loan_start_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
-                <div class="form-group business-only">
+                <div class="form-group">
                     <label class="form-label">Loan End Date <span class="req">*</span></label>
                     <input type="date" name="loan_end_date" id="loan_end_date" value="{{ old('loan_end_date') }}" class="form-control @error('loan_end_date') is-invalid @enderror">
                     @error('loan_end_date')<div class="text-error">{{ $message }}</div>@enderror
@@ -186,7 +186,7 @@
 <script>
 function toggleLoanType() {
     const loanType = document.getElementById('loan_type').value;
-    const businessOnly = document.querySelectorAll('.business-only');
+    const businessOnly = document.querySelectorAll('.business-loan-only');
     const personalOnly = document.querySelectorAll('.personal-only');
     const submitBtn = document.getElementById('submit_btn');
     const startDateLabel = document.getElementById('start_date_label');
@@ -205,8 +205,6 @@ function toggleLoanType() {
 }
 
 function calcEmi() {
-    const loanType = document.getElementById('loan_type').value;
-    if (loanType === 'Personal Loan') return;
 
     const P = parseFloat(document.getElementById('loan_amount').value) || 0;
     const annualRate = parseFloat(document.getElementById('interest_rate').value) || 0;

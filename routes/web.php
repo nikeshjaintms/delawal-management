@@ -83,6 +83,17 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     // ── Booking & Purchase ───────────────────────────────────────────
     Route::resource('bookings', \App\Http\Controllers\BookingController::class)->middleware(['permission:booking_view']);
     Route::resource('purchases', \App\Http\Controllers\PurchaseController::class)->middleware(['permission:purchase_view']);
+    Route::get('purchase-orders/export-excel', [\App\Http\Controllers\PurchaseOrderController::class, 'exportExcel'])->name('purchase-orders.excel')->middleware(['permission:purchase_order_export']);
+    Route::get('purchase-orders/export-pdf', [\App\Http\Controllers\PurchaseOrderController::class, 'exportPdf'])->name('purchase-orders.pdf')->middleware(['permission:purchase_order_print']);
+    Route::get('purchase-orders/{purchase_order}/print', [\App\Http\Controllers\PurchaseOrderController::class, 'print'])->name('purchase-orders.print')->middleware(['permission:purchase_order_print']);
+    Route::get('purchase-orders/{purchase_order}/pdf', [\App\Http\Controllers\PurchaseOrderController::class, 'downloadPdf'])->name('purchase-orders.pdf-download')->middleware(['permission:purchase_order_print']);
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->middleware(['permission:purchase_order_view']);
+    
+    // Purchase Order Pending Items AJAX API for Stock Inward
+    Route::get('purchase-orders/{purchase_order}/pending-items', [\App\Http\Controllers\StockInwardController::class, 'getPendingItems'])->name('purchase-orders.pending-items');
+    Route::get('stock-inwards/{inward_number}/pending-outward-items', [\App\Http\Controllers\StockOutwardController::class, 'getPendingOutwardItems'])->name('stock-inwards.pending-outward-items');
+    Route::get('stock-inwards/{stock_inward}/print', [\App\Http\Controllers\StockInwardController::class, 'print'])->name('stock-inwards.print')->middleware(['permission:inventory_view']);
+    Route::get('stock-outwards/{stock_outward}/print', [\App\Http\Controllers\StockOutwardController::class, 'print'])->name('stock-outwards.print')->middleware(['permission:inventory_view']);
 
     // ── Inventory ────────────────────────────────────────────────────
     Route::resource('expenses', ExpenseController::class)->middleware(['permission:expense_view']);

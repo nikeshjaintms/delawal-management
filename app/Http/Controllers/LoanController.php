@@ -103,8 +103,20 @@ class LoanController extends Controller
         $totalPaid = $schedules->sum('paid_amount');
         $pending   = $loan->loan_amount - $totalPaid;
 
-        $allPaid = $schedules->every(fn($e) => $e->emi_status === 'Paid');
-        $status  = $allPaid ? 'Completed' : $loan->loan_status;
+        if ($pending <= 0) {
+            foreach ($schedules as $e) {
+                if (in_array($e->emi_status, ['Pending', 'Partial', 'Overdue'])) {
+                    $e->update([
+                        'emi_status'     => 'Paid',
+                        'pending_amount' => 0.00,
+                    ]);
+                }
+            }
+            $status = 'Completed';
+        } else {
+            $allPaid = $schedules->every(fn($e) => $e->emi_status === 'Paid');
+            $status  = $allPaid ? 'Completed' : $loan->loan_status;
+        }
 
         $loan->update([
             'paid_amount'    => $totalPaid,
@@ -184,11 +196,11 @@ class LoanController extends Controller
             'property_id'     => $request->property_id ?: null,
             'customer_id'     => $request->customer_id ?: null,
             'loan_amount'     => $request->loan_amount,
-            'interest_rate'   => $request->loan_type === 'Business Loan' ? $request->interest_rate : null,
-            'emi_amount'      => $request->loan_type === 'Business Loan' ? $request->emi_amount : null,
+            'interest_rate'   => $request->interest_rate,
+            'emi_amount'      => $request->emi_amount,
             'loan_start_date' => $request->loan_start_date,
-            'loan_end_date'   => $request->loan_type === 'Business Loan' ? $request->loan_end_date : null,
-            'total_emi_months'=> $request->loan_type === 'Business Loan' ? $request->total_emi_months : null,
+            'loan_end_date'   => $request->loan_end_date,
+            'total_emi_months'=> $request->total_emi_months,
             'paid_amount'     => 0,
             'pending_amount'  => $request->loan_amount,
             'loan_status'     => $request->loan_status,
@@ -201,14 +213,14 @@ class LoanController extends Controller
 
         $loan->syncFirms($firmIds);
         
-        if ($loan->loan_type === 'Business Loan') {
+        if ($loan->total_emi_months > 0 && $loan->emi_amount > 0) {
             $this->generateEmiSchedule($loan, $firmIds);
             return redirect()->route('loans.show', $loan->id)
-                ->with('success', 'Business Loan added and EMI schedule generated successfully.');
+                ->with('success', $loan->loan_type . ' added and EMI schedule generated successfully.');
         }
 
         return redirect()->route('loans.show', $loan->id)
-            ->with('success', 'Personal Loan added successfully.');
+            ->with('success', $loan->loan_type . ' added successfully.');
     }
 
     public function show(Loan $loan)
@@ -252,11 +264,11 @@ class LoanController extends Controller
             'property_id'     => $request->property_id ?: null,
             'customer_id'     => $request->customer_id ?: null,
             'loan_amount'     => $request->loan_amount,
-            'interest_rate'   => $request->loan_type === 'Business Loan' ? $request->interest_rate : null,
-            'emi_amount'      => $request->loan_type === 'Business Loan' ? $request->emi_amount : null,
+            'interest_rate'   => $request->interest_rate,
+            'emi_amount'      => $request->emi_amount,
             'loan_start_date' => $request->loan_start_date,
-            'loan_end_date'   => $request->loan_type === 'Business Loan' ? $request->loan_end_date : null,
-            'total_emi_months'=> $request->loan_type === 'Business Loan' ? $request->total_emi_months : null,
+            'loan_end_date'   => $request->loan_end_date,
+            'total_emi_months'=> $request->total_emi_months,
             'loan_status'     => $request->loan_status,
             'remarks'         => $request->remarks,
             'person_name'     => $request->loan_type === 'Personal Loan' ? $request->person_name : null,
@@ -267,13 +279,12 @@ class LoanController extends Controller
 
         $loan->syncFirms($firmIds);
 
-        if ($loan->loan_type === 'Business Loan') {
-            if ($request->boolean('regenerate_emi')) {
-                $this->generateEmiSchedule($loan, $firmIds);
-                $loan->update(['paid_amount' => 0, 'pending_amount' => $request->loan_amount]);
-            }
-        } else {
-            // Delete any existing EMI schedules for Personal Loan
+        if ($request->boolean('regenerate_emi') || ($loan->emiSchedules()->count() == 0 && $loan->total_emi_months > 0 && $loan->emi_amount > 0)) {
+            $this->generateEmiSchedule($loan, $firmIds);
+            $loan->update(['paid_amount' => 0, 'pending_amount' => $request->loan_amount]);
+        }
+
+        if ($loan->total_emi_months <= 0 || $loan->emi_amount <= 0) {
             $loan->emiSchedules()->delete();
         }
 
@@ -293,8 +304,7 @@ class LoanController extends Controller
 
     public function emiScheduleIndex(Request $request)
     {
-        $query = Loan::with(['firm', 'property', 'customer', 'emiSchedules'])
-            ->where('loan_type', 'Business Loan');
+        $query = Loan::with(['firm', 'property', 'customer', 'emiSchedules']);
 
         if (!Auth::user()->isAdmin()) {
             $query->forFirms([Auth::user()->firm_id]);
@@ -309,6 +319,7 @@ class LoanController extends Controller
             $s = $request->search;
             $query->where(function ($q) use ($s) {
                 $q->where('bank_name', 'like', "%{$s}%")
+                  ->orWhere('person_name', 'like', "%{$s}%")
                   ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%{$s}%"))
                   ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"));
             });
@@ -336,10 +347,6 @@ class LoanController extends Controller
     {
         $loan->load(['firms', 'firm', 'property', 'customer', 'emiSchedules.firms', 'emiSchedules.firm']);
         $this->authorise($loan);
-
-        if ($loan->loan_type === 'Personal Loan') {
-            return redirect()->route('loans.show', $loan->id)->with('error', 'EMI Schedule is not applicable for Personal Loans.');
-        }
 
         $today = now()->toDateString();
         foreach ($loan->emiSchedules as $emi) {

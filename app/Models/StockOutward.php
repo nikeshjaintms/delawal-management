@@ -9,8 +9,12 @@ class StockOutward extends Model
     use \App\Traits\HasFirms;
 
     protected $fillable = [
-        'firm_id', 'material_id', 'property_id',
-        'outward_date', 'quantity', 'used_for', 'remarks',
+        'firm_id', 'outward_number', 'stock_inward_number', 'material_id', 'property_id',
+        'outward_date', 'quantity', 'vehicle_no', 'driver_name', 'lr_no', 'transport_name', 'used_for', 'remarks',
+    ];
+
+    protected $casts = [
+        'outward_date' => 'date',
     ];
 
     public function firm()     { return $this->belongsTo(Firm::class); }

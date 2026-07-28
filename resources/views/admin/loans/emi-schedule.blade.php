@@ -52,7 +52,7 @@
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>EMI Schedule — {{ $loan->bank_name }}</h2>
+        <h2>EMI Schedule — {{ $loan->loan_type === 'Personal Loan' ? $loan->person_name : $loan->bank_name }}</h2>
         <p>Manage month-wise EMI payments and track status.</p>
     </div>
     <a href="{{ route('loans.show', $loan->id) }}" class="btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to Loan</a>
@@ -121,7 +121,7 @@
                     <td style="text-align:right;font-weight:700;">₹{{ number_format($emi->emi_amount,2) }}</td>
                     <td style="text-align:right;color:#16803D;font-weight:700;">₹{{ number_format($emi->paid_amount,2) }}</td>
                     <td style="text-align:right;color:#DC2626;font-weight:700;">₹{{ number_format($emi->pending_amount,2) }}</td>
-                    <td style="font-size:13px;">{{ $emi->payment_date ? \Carbon\Carbon::parse($emi->payment_date)->format('d M Y') : '—' }}</td>
+                    <td style="font-size:13px;">{{ !empty($emi->payment_date) ? \Carbon\Carbon::parse($emi->payment_date)->format('d M Y') : '—' }}</td>
                     <td style="font-size:12.5px;">{{ $emi->payment_mode ?? '—' }}</td>
                     <td style="text-align:center;">
                         <span class="emi-status {{ $stClass }}">{{ $emi->emi_status }}</span>

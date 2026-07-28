@@ -10,7 +10,7 @@ class Material extends Model
 
     protected $fillable = [
         'firm_id', 'material_category_id', 'material_name',
-        'unit', 'opening_stock', 'current_stock', 'minimum_stock', 'status',
+        'unit', 'opening_stock', 'current_stock', 'damaged_stock', 'minimum_stock', 'status',
     ];
 
     public function firm()             { return $this->belongsTo(Firm::class); }

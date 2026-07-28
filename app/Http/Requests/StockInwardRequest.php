@@ -3,8 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StockInwardRequest extends FormRequest
 {
@@ -26,60 +24,30 @@ class StockInwardRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = null;
-        if ($this->route()) {
-            foreach ($this->route()->parameters() as $param) {
-                if (is_object($param)) {
-                    $id = $param->id;
-                    break;
-                } elseif (is_numeric($param)) {
-                    $id = $param;
-                    break;
-                }
-            }
-        }
         $user = auth()->user();
         $firmId = $user ? $user->firm_id : 0;
 
         $rules = [
-            'material_id' => 'required|exists:materials,id',
-            'property_id' => 'nullable|exists:properties,id',
-            'quantity' => 'required|numeric|min:0.001',
-            'rate' => 'nullable|numeric|min:0',
-            'inward_date' => 'required|date',
+            'inward_date'   => 'required|date',
             'supplier_name' => 'nullable|string|max:255',
-            'bill_no' => 'nullable|string|max:255',
-            'remarks' => 'nullable|string|max:1000',
+            'bill_no'       => 'nullable|string|max:255',
+            'remarks'       => 'nullable|string|max:1000',
         ];
 
-        if ($user && $user->isAdmin()) {
+        if ($user && $user->isAdmin() && !$this->has('items')) {
             $rules['firm_id'] = 'required|exists:firms,id';
         }
 
-        // Replace placeholders in unique rules dynamically
-        foreach ($rules as $field => $rule) {
-            if (is_string($rule)) {
-                $replaced = str_replace('{ID}', $id ?: 'NULL', $rule);
-                $replaced = str_replace('{FIRM_ID}', $firmId, $replaced);
-                
-                // Dynamic Password rule for users
-                if ($field === 'password') {
-                    if ($this->isMethod('post')) {
-                        $replaced = 'required|string|min:6|same:confirm_password';
-                    } else {
-                        $replaced = 'nullable|string|min:6|same:confirm_password';
-                    }
-                }
-                if ($field === 'confirm_password') {
-                    if ($this->isMethod('post')) {
-                        $replaced = 'required';
-                    } else {
-                        $replaced = 'nullable';
-                    }
-                }
-                
-                $rules[$field] = $replaced;
-            }
+        if ($this->has('items')) {
+            $rules['purchase_order_id'] = 'required|exists:purchase_orders,id';
+            $rules['items'] = 'required|array|min:1';
+            $rules['items.*.material_id'] = 'required|exists:materials,id';
+            $rules['items.*.qty_received'] = 'required|numeric|min:0.001';
+        } else {
+            $rules['material_id'] = 'required|exists:materials,id';
+            $rules['quantity'] = 'required|numeric|min:0.001';
+            $rules['rate'] = 'nullable|numeric|min:0';
+            $rules['property_id'] = 'nullable|exists:properties,id';
         }
 
         return $rules;
@@ -98,19 +66,5 @@ class StockInwardRequest extends FormRequest
             'remarks' => 'Remarks',
             'firm_id' => 'Firm',
         ];
-    }
-
-    protected function failedValidation(Validator $validator)
-    {
-        if ($this->expectsJson() || $this->ajax() || $this->wantsJson()) {
-            throw new HttpResponseException(
-                response()->json([
-                    'success' => false,
-                    'message' => 'Validation errors occurred.',
-                    'errors' => $validator->errors()
-                ], 422)
-            );
-        }
-        parent::failedValidation($validator);
     }
 }
