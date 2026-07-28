@@ -30,11 +30,15 @@ class AdminUserSeeder extends Seeder
         User::where('email', 'admin@gmail.com')->delete();
 
         // Create new admin user with specified credentials
+        $adminRole = \App\Models\Role::where('name', 'Admin')->first();
+        $roleId = $adminRole ? $adminRole->id : 1;
+
         User::create([
             'name'     => 'Admin User',
             'email'    => 'admin@gmail.com',
             'password' => Hash::make('123456'),
             'firm_id'  => $firm->id,
+            'role_id'  => $roleId,
             'role'     => 'admin',
         ]);
 
