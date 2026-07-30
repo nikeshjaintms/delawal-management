@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class PropertyRequest extends FormRequest
+class ProjectRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -47,23 +47,17 @@ class PropertyRequest extends FormRequest
 
         $rules = [
             'firm_id' => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
-            'project_id' => 'required|exists:projects,id',
-            'property_name' => 'required|string|max:255',
-            'property_type_id' => 'required|exists:property_types,id',
-            'property_code' => 'required|string|max:100|unique:properties,property_code,{ID},id,firm_id,{FIRM_ID}',
-            'status' => 'required|in:available,booked,sold,rented',
-            'location' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:100',
+            'project_name' => 'required|string|max:255',
+            'project_code' => 'required|string|max:100|unique:projects,project_code,{ID},id,firm_id,{FIRM_ID}',
+            'project_type' => 'required|string|max:255',
+            'status' => 'required|in:active,inactive',
             'address' => 'nullable|string|max:1000',
-            'size' => 'nullable|string|max:50',
-            'size_unit' => 'nullable|string|max:30',
-            'price' => 'nullable|numeric|min:0',
-            'unit_no' => 'nullable|string|max:50',
-            'floor_no' => 'nullable|string|max:50',
-            'facing' => 'nullable|string|max:50',
+            'city' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
+            'pincode' => 'nullable|string|max:20',
             'description' => 'nullable|string|max:2000',
-            'main_image' => 'nullable',
-            'document_file' => 'nullable',
+            'project_image' => 'nullable|image|max:2048',
         ];
 
         // Replace placeholders in unique rules dynamically
@@ -71,23 +65,6 @@ class PropertyRequest extends FormRequest
             if (is_string($rule)) {
                 $replaced = str_replace('{ID}', $id ?: 'NULL', $rule);
                 $replaced = str_replace('{FIRM_ID}', $firmId, $replaced);
-                
-                // Dynamic Password rule for users
-                if ($field === 'password') {
-                    if ($this->isMethod('post')) {
-                        $replaced = 'required|string|min:6|same:confirm_password';
-                    } else {
-                        $replaced = 'nullable|string|min:6|same:confirm_password';
-                    }
-                }
-                if ($field === 'confirm_password') {
-                    if ($this->isMethod('post')) {
-                        $replaced = 'required';
-                    } else {
-                        $replaced = 'nullable';
-                    }
-                }
-                
                 $rules[$field] = $replaced;
             }
         }
@@ -98,21 +75,18 @@ class PropertyRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'project_id' => 'Project',
-            'property_name' => 'Property Name',
-            'property_type_id' => 'Property Type',
-            'property_code' => 'Property Code',
+            'firm_id' => 'Firm',
+            'project_name' => 'Project Name',
+            'project_code' => 'Project Code',
+            'project_type' => 'Project Type',
             'status' => 'Status',
-            'location' => 'Location',
-            'city' => 'City',
             'address' => 'Address',
-            'size' => 'Size',
-            'size_unit' => 'Size Unit',
-            'price' => 'Price',
-            'unit_no' => 'Unit Number',
-            'floor_no' => 'Floor Number',
-            'facing' => 'Facing',
+            'city' => 'City',
+            'state' => 'State',
+            'country' => 'Country',
+            'pincode' => 'Pincode',
             'description' => 'Description',
+            'project_image' => 'Project Image',
         ];
     }
 

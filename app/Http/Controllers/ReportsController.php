@@ -232,8 +232,9 @@ class ReportsController extends Controller
         $grandTotal    = $expenses->sum('computed_grand_total');
 
         $vendors    = \App\Models\Vendor::where('firm_id', $firmId)->orderBy('name')->get();
-        $categories = \App\Models\ExpenseCategory::where('firm_id', $firmId)
-            ->where('status', 'active')->orderBy('name')->get();
+        $categories = \App\Models\ExpenseCategory::whereHas('firms', function($q) use ($firmId) {
+            $q->where('firms.id', $firmId);
+        })->where('status', 'active')->orderBy('name')->get();
 
         return view('admin.reports.gst-purchase', compact(
             'expenses', 'vendors', 'categories',

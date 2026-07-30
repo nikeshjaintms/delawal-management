@@ -27,7 +27,7 @@
     .btn-outline:hover{background:#F9FAFB;color:var(--text-primary);border-color:#D1D5DB;}
 </style>
 <div class="crud-header"><div class="crud-title"><h2>Add Material</h2><p>Register a new material item in inventory.</p></div></div>
-<div class="card-box">
+<div class="card-box">  
     <form method="POST" action="{{ route('materials.store') }}">
         @csrf
         @include('admin.components.firm-select')

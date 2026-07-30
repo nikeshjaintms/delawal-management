@@ -13,7 +13,8 @@ class StockReportController extends Controller
 {
     private function getReportData(Request $request)
     {
-        $firmId = Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
 
         $query = Material::with('materialCategory')
             ->where('firm_id', $firmId);
@@ -49,7 +50,9 @@ class StockReportController extends Controller
     public function index(Request $request)
     {
         $materials  = $this->getReportData($request);
-        $categories = MaterialCategory::where('firm_id', Auth::user()->firm_id)
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        $categories = MaterialCategory::where('firm_id', $firmId)
             ->where('status', 'active')
             ->orderBy('category_name')
             ->get();
@@ -64,7 +67,9 @@ class StockReportController extends Controller
     public function exportPdf(Request $request)
     {
         $materials  = $this->getReportData($request);
-        $categories = MaterialCategory::where('firm_id', Auth::user()->firm_id)
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        $categories = MaterialCategory::where('firm_id', $firmId)
             ->orderBy('category_name')->get();
 
         return view('admin.stock-report.pdf', compact('materials'));

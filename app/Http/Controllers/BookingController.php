@@ -53,8 +53,12 @@ class BookingController extends Controller
     {
         $query = Booking::with(['firm', 'property', 'customer', 'broker']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $query->where('firm_id', $firmId);
         } elseif ($request->filled('firm_id')) {
             $query->where('firm_id', $request->firm_id);
         }
@@ -87,7 +91,8 @@ class BookingController extends Controller
 
     public function store(BookingRequest $request)
     {
-        $firmId = $request->firm_id ?? Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
 
         $booking = Booking::create([
             'firm_id'        => $firmId,
@@ -117,7 +122,7 @@ class BookingController extends Controller
                 'commission_amount' => $request->commission_amount ?: 0,
                 'payment_status'    => 'pending',
                 'status'            => 'active',
-                'created_by'        => Auth::user()->id,
+                'created_by'        => Auth::id() ?: session('user_id'),
             ]);
         }
 
@@ -126,14 +131,20 @@ class BookingController extends Controller
 
     public function show(Booking $booking)
     {
-        if (!Auth::user()->isAdmin() && $booking->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        if (!$isAdmin && $booking->firm_id != $firmId) abort(403);
         $booking->load(['firm', 'property.propertyType', 'customer', 'broker']);
         return view('admin.bookings.show', compact('booking'));
     }
 
     public function edit(Booking $booking)
     {
-        if (!Auth::user()->isAdmin() && $booking->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        if (!$isAdmin && $booking->firm_id != $firmId) abort(403);
         $commission = \App\Models\BrokerCommission::where('booking_id', $booking->id)->first();
         return view('admin.bookings.edit', array_merge([
             'booking' => $booking,
@@ -143,7 +154,10 @@ class BookingController extends Controller
 
     public function update(BookingRequest $request, Booking $booking)
     {
-        if (!Auth::user()->isAdmin() && $booking->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        if (!$isAdmin && $booking->firm_id != $firmId) abort(403);
 
         $firmId = $request->firm_id ?? $booking->firm_id;
 
@@ -176,7 +190,7 @@ class BookingController extends Controller
                     'commission_amount' => $request->commission_amount ?: 0,
                     'payment_status'    => 'pending',
                     'status'            => 'active',
-                    'created_by'        => Auth::user()->id,
+                    'created_by'        => Auth::id() ?: session('user_id'),
                 ]
             );
         }
@@ -186,7 +200,10 @@ class BookingController extends Controller
 
     public function destroy(Booking $booking)
     {
-        if (!Auth::user()->isAdmin() && $booking->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        if (!$isAdmin && $booking->firm_id != $firmId) abort(403);
 
         $booking->delete();
 

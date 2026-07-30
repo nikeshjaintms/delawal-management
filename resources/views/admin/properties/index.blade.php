@@ -179,10 +179,20 @@
                     @endforeach
                 </select>
             @endif
+
+            <select name="project_id" class="search-input" onchange="this.form.submit()" style="max-width: 180px;">
+                <option value="">All Projects</option>
+                @foreach($projects as $proj)
+                    <option value="{{ $proj->id }}" {{ request('project_id') == $proj->id ? 'selected' : '' }}>
+                        {{ $proj->project_name }}
+                    </option>
+                @endforeach
+            </select>
+
             <input type="text" name="search" value="{{ request('search') }}"
-                   placeholder="Search by name, code, location, city, status..." class="search-input @error('search') is-invalid @enderror">
+                   placeholder="Search by name, code, location, city..." class="search-input @error('search') is-invalid @enderror">
             <button type="submit" class="btn-search">Search</button>
-            @if(request('search') || request('firm_id'))
+            @if(request('search') || request('firm_id') || request('project_id'))
                 <a href="{{ route('properties.index') }}" class="btn-reset">Reset</a>
             @endif
         </form>
@@ -199,6 +209,7 @@
                     <th>Image</th>
                     <th>Code</th>
                     <th>Property Name</th>
+                    <th>Project</th>
                     <th>Type</th>
                     <th>City</th>
                     <th>Size</th>
@@ -226,6 +237,15 @@
                         </td>
                         <td>{{ $property->property_code ?? '-' }}</td>
                         <td><strong>{{ $property->property_name }}</strong></td>
+                        <td>
+                            @if($property->project)
+                                <a href="{{ route('projects.show', $property->project->id) }}" style="color: var(--gold); font-weight: 600; text-decoration: none;">
+                                    {{ $property->project->project_name }}
+                                </a>
+                            @else
+                                <span style="color: var(--text-secondary);">-</span>
+                            @endif
+                        </td>
                         <td>{{ $property->propertyType->name ?? '-' }}</td>
                         <td>{{ $property->city ?? '-' }}</td>
                         <td>

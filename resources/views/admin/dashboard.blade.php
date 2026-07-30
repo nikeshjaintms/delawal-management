@@ -88,6 +88,9 @@
     .kpi-card:hover:has(.ik-red)    { border-color: rgba(239, 68, 68, 0.4); }
     .kpi-card:hover:has(.ik-purple) { border-color: rgba(139, 92, 246, 0.4); }
     .kpi-card:hover:has(.ik-sky)    { border-color: rgba(14, 165, 233, 0.4); }
+    .kpi-card:hover:has(.ik-teal)   { border-color: rgba(20, 184, 166, 0.4); }
+    .kpi-card:hover:has(.ik-rose)   { border-color: rgba(244, 63, 94, 0.4); }
+    .kpi-card:hover:has(.ik-indigo) { border-color: rgba(99, 102, 241, 0.4); }
 
     .kpi-card:has(.ik-blue)::before { background: #3b82f6; }
     .kpi-card:has(.ik-blue)::after  { background: #3b82f6; }
@@ -103,6 +106,12 @@
     .kpi-card:has(.ik-purple)::after  { background: #8b5cf6; }
     .kpi-card:has(.ik-sky)::before { background: #0ea5e9; }
     .kpi-card:has(.ik-sky)::after  { background: #0ea5e9; }
+    .kpi-card:has(.ik-teal)::before { background: #14b8a6; }
+    .kpi-card:has(.ik-teal)::after  { background: #14b8a6; }
+    .kpi-card:has(.ik-rose)::before { background: #f43f5e; }
+    .kpi-card:has(.ik-rose)::after  { background: #f43f5e; }
+    .kpi-card:has(.ik-indigo)::before { background: #6366f1; }
+    .kpi-card:has(.ik-indigo)::after  { background: #6366f1; }
 
     .kpi-card:hover .kpi-icon-box i { transform: scale(1.12); }
     .kpi-deco { position: absolute; width: 110px; height: 110px; border-radius: 50%; top: -32px; right: -32px; opacity: 0.45; pointer-events: none; }
@@ -120,6 +129,9 @@
     .ik-red    { background: #7f1d1d;  color: #ffffff; box-shadow: 0 4px 12px rgba(127, 29, 29, 0.35); }
     .ik-purple { background: #4c1d95;  color: #ffffff; box-shadow: 0 4px 12px rgba(76, 29, 149, 0.35); }
     .ik-sky    { background: #0369a1;  color: #ffffff; box-shadow: 0 4px 12px rgba(3, 105, 161, 0.35); }
+    .ik-teal   { background: #115e59;  color: #ffffff; box-shadow: 0 4px 12px rgba(17, 94, 89, 0.35); }
+    .ik-rose   { background: #9f1239;  color: #ffffff; box-shadow: 0 4px 12px rgba(159, 18, 57, 0.35); }
+    .ik-indigo { background: #312e81;  color: #ffffff; box-shadow: 0 4px 12px rgba(49, 46, 129, 0.35); }
 
     .deco-blue   { background: radial-gradient(circle, rgba(59,130,246,0.14) 0%, transparent 70%); }
     .deco-green  { background: radial-gradient(circle, rgba(16,185,129,0.14) 0%, transparent 70%); }
@@ -128,10 +140,16 @@
     .deco-red    { background: radial-gradient(circle, rgba(239,68,68,0.14) 0%, transparent 70%); }
     .deco-purple { background: radial-gradient(circle, rgba(139,92,246,0.14) 0%, transparent 70%); }
     .deco-sky    { background: radial-gradient(circle, rgba(14,165,233,0.14) 0%, transparent 70%); }
+    .deco-teal   { background: radial-gradient(circle, rgba(20,184,166,0.14) 0%, transparent 70%); }
+    .deco-rose   { background: radial-gradient(circle, rgba(244,63,94,0.14) 0%, transparent 70%); }
+    .deco-indigo { background: radial-gradient(circle, rgba(99,102,241,0.14) 0%, transparent 70%); }
 
     .bk-blue, .bk-sky, .bk-purple, .bk-amber, .bk-orange { background: transparent; color: #64748B; padding: 0; }
-    .bk-green { background: transparent; color: #10b981; padding: 0; }
-    .bk-red   { background: transparent; color: #ef4444; padding: 0; }
+    .bk-green  { background: transparent; color: #10b981; padding: 0; }
+    .bk-red    { background: transparent; color: #ef4444; padding: 0; }
+    .bk-teal   { background: transparent; color: #14b8a6; padding: 0; }
+    .bk-rose   { background: transparent; color: #f43f5e; padding: 0; }
+    .bk-indigo { background: transparent; color: #6366f1; padding: 0; }
 
     /* --- Dashboard Bottom Grid --- */
     .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 22px; margin-bottom: 24px; }
@@ -305,13 +323,13 @@
             <div class="kpi-deco deco-purple"></div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-icon-box ik-green"><i class="fa-solid fa-user-check"></i></div>
+            <div class="kpi-icon-box ik-teal"><i class="fa-solid fa-user-check"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Active Users</span>
-                <span class="kpi-value" style="color:#10B981;">{{ number_format($activeUsers) }}</span>
-                <span class="kpi-badge bk-green">Logged in</span>
+                <span class="kpi-value" style="color:#14B8A6;">{{ number_format($activeUsers) }}</span>
+                <span class="kpi-badge bk-teal">Logged in</span>
             </div>
-            <div class="kpi-deco deco-green"></div>
+            <div class="kpi-deco deco-teal"></div>
         </div>
     </div>
 
@@ -324,13 +342,13 @@
 
     <div class="kpi-grid">
         <div class="kpi-card">
-            <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-users"></i></div>
+            <div class="kpi-icon-box ik-indigo"><i class="fa-solid fa-users"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Customers</span>
                 <span class="kpi-value">{{ number_format($totalCustomers) }}</span>
-                <span class="kpi-badge bk-blue">ERP Clients</span>
+                <span class="kpi-badge bk-indigo">ERP Clients</span>
             </div>
-            <div class="kpi-deco deco-blue"></div>
+            <div class="kpi-deco deco-indigo"></div>
         </div>
         <div class="kpi-card">
             <div class="kpi-icon-box ik-purple"><i class="fa-solid fa-city"></i></div>

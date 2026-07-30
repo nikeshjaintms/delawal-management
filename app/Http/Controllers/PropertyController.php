@@ -18,15 +18,25 @@ class PropertyController extends Controller
     public function index(Request $request)
     {
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
-        $query = Property::with(['propertyType', 'firm']);
+        $query = Property::with(['propertyType', 'firm', 'project']);
 
         if ($isAdmin) {
             if ($request->filled('firm_id')) {
                 $query->where('firm_id', $request->firm_id);
             }
+            $projectsQuery = \App\Models\Project::orderBy('project_name');
+            if ($request->filled('firm_id')) {
+                $projectsQuery->where('firm_id', $request->firm_id);
+            }
+            $projects = $projectsQuery->get();
         } else {
             $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
             $query->where('firm_id', $firmId);
+            $projects = \App\Models\Project::where('firm_id', $firmId)->orderBy('project_name')->get();
+        }
+
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
         }
 
         if ($request->filled('search')) {
@@ -40,9 +50,9 @@ class PropertyController extends Controller
             });
         }
 
-        $properties = $query->latest()->paginate(15);
+        $properties = $query->latest()->paginate(15)->withQueryString();
 
-        return view('admin.properties.index', compact('properties'));
+        return view('admin.properties.index', compact('properties', 'projects'));
     }
 
     // ----------------------------------------------------------------
@@ -55,11 +65,15 @@ class PropertyController extends Controller
 
         if ($isAdmin) {
             $propertyTypes = PropertyType::orderBy('name')->get();
+            $projects = \App\Models\Project::orderBy('project_name')->get();
         } else {
-            $propertyTypes = PropertyType::where('firm_id', $firmId)->orderBy('name')->get();
+            $propertyTypes = PropertyType::whereHas('firms', function($q) use ($firmId) {
+                $q->where('firms.id', $firmId);
+            })->orderBy('name')->get();
+            $projects = \App\Models\Project::where('firm_id', $firmId)->orderBy('project_name')->get();
         }
 
-        return view('admin.properties.create', compact('propertyTypes'));
+        return view('admin.properties.create', compact('propertyTypes', 'projects'));
     }
 
     // ----------------------------------------------------------------
@@ -85,6 +99,7 @@ class PropertyController extends Controller
 
         Property::create([
             'firm_id'          => $firmId,
+            'project_id'       => $request->project_id,
             'property_type_id' => $request->property_type_id ?: null,
             'property_name'    => $request->property_name,
             'property_code'    => $request->property_code,
@@ -128,11 +143,15 @@ class PropertyController extends Controller
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         if ($isAdmin) {
             $propertyTypes = PropertyType::orderBy('name')->get();
+            $projects = \App\Models\Project::where('firm_id', $property->firm_id)->orderBy('project_name')->get();
         } else {
-            $propertyTypes = PropertyType::where('firm_id', $property->firm_id)->orderBy('name')->get();
+            $propertyTypes = PropertyType::whereHas('firms', function($q) use ($property) {
+                $q->where('firms.id', $property->firm_id);
+            })->orderBy('name')->get();
+            $projects = \App\Models\Project::where('firm_id', $property->firm_id)->orderBy('project_name')->get();
         }
 
-        return view('admin.properties.edit', compact('property', 'propertyTypes'));
+        return view('admin.properties.edit', compact('property', 'propertyTypes', 'projects'));
     }
 
     // ----------------------------------------------------------------
@@ -166,6 +185,7 @@ class PropertyController extends Controller
 
         $property->update([
             'firm_id'          => $firmId,
+            'project_id'       => $request->project_id,
             'property_type_id' => $request->property_type_id ?: null,
             'property_name'    => $request->property_name,
             'property_code'    => $request->property_code,

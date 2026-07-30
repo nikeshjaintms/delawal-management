@@ -10,6 +10,7 @@ class Property extends Model
 
     protected $fillable = [
         'firm_id',
+        'project_id',
         'property_type_id',
         'property_code',
         'property_name',
@@ -31,6 +32,11 @@ class Property extends Model
     public function firm()
     {
         return $this->belongsTo(Firm::class);
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function propertyType()

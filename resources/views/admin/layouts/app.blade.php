@@ -1119,6 +1119,14 @@
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">
+                @if($authUser->hasPermission('project_view'))
+                <li class="submenu-item">
+                    <a href="{{ route('projects.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'projects.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-city"></i><span>Project Master</span>
+                    </a>
+                </li>
+                @endif
+
                 @if($authUser->hasPermission('property_view'))
                 <li class="submenu-item">
                     <a href="{{ route('properties.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'properties.') ? 'active' : '' }}">

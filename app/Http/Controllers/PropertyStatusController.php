@@ -42,7 +42,9 @@ class PropertyStatusController extends Controller
             }
         } else {
             $firmId        = auth()->user() ? auth()->user()->firm_id : session('firm_id');
-            $propertyTypes = PropertyType::where('firm_id', $firmId)->orderBy('name')->get();
+            $propertyTypes = PropertyType::whereHas('firms', function($q) use ($firmId) {
+                $q->where('firms.id', $firmId);
+            })->orderBy('name')->get();
             $properties    = $this->firmProperties($firmId)->orderBy('property_name')->get();
             $statuses      = PropertyStatus::statuses();
             $query         = PropertyStatus::with(['property.propertyType', 'firm'])

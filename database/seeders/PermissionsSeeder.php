@@ -16,6 +16,7 @@ class PermissionsSeeder extends Seeder
             'broker_commission' => 'Broker Commissions',
             'vendor' => 'Vendors',
             'tenant' => 'Tenants',
+            'project' => 'Project',
             'property_type' => 'Property Type',
             'payment_mode' => 'Payment Mode',
             'expense_category' => 'Expense Category',

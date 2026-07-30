@@ -114,8 +114,22 @@
                     @error('property_name') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="property_type_id">Property Type</label>
-                    <select name="property_type_id" id="property_type_id" class="form-control @error('property_type_id') is-invalid @enderror">
+                    <label class="form-label" for="project_id">Project <span>*</span></label>
+                    <select name="project_id" id="project_id" class="form-control @error('project_id') is-invalid @enderror" required>
+                        <option value="">-- Select Project --</option>
+                        @foreach($projects as $proj)
+                            <option value="{{ $proj->id }}" {{ old('project_id', request('project_id')) == $proj->id ? 'selected' : '' }}>
+                                {{ $proj->project_name }} ({{ $proj->project_code }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('project_id') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="property_type_id">Property Type <span>*</span></label>
+                    <select name="property_type_id" id="property_type_id" class="form-control @error('property_type_id') is-invalid @enderror" required>
                         <option value="">-- Select Property Type --</option>
                         @foreach($propertyTypes as $type)
                             <option value="{{ $type->id }}" {{ old('property_type_id') == $type->id ? 'selected' : '' }}>
@@ -125,14 +139,14 @@
                     </select>
                     @error('property_type_id') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
-            </div>
-            <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label" for="property_code">Property Code</label>
+                    <label class="form-label" for="property_code">Property Code <span>*</span></label>
                     <input type="text" name="property_code" id="property_code" value="{{ old('property_code') }}"
-                           class="form-control @error('property_code') is-invalid @enderror" autocomplete="off" placeholder="e.g. DEL-FLAT-001">
+                           class="form-control @error('property_code') is-invalid @enderror" autocomplete="off" placeholder="e.g. DEL-FLAT-001" required>
                     @error('property_code') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
+            </div>
+            <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="status">Property Status <span>*</span></label>
                     <select name="status" id="status" class="form-control @error('status') is-invalid @enderror">
@@ -142,14 +156,14 @@
                     </select>
                     @error('status') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
-            </div>
-            <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="location">Location</label>
                     <input type="text" name="location" id="location" value="{{ old('location') }}"
                            class="form-control @error('location') is-invalid @enderror" autocomplete="off" placeholder="e.g. Zadeshwar, Bharuch">
                     @error('location') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
+            </div>
+            <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="city">City</label>
                     <input type="text" name="city" id="city" value="{{ old('city') }}"

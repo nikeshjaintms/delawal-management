@@ -79,36 +79,14 @@
         }
 
         /* ════════════════════════════════════════
-           GLASS LOGIN CARD
+           LOGIN CONTAINER
         ════════════════════════════════════════ */
         .login-card {
-            background: rgba(255, 255, 255, 0.13);
-            backdrop-filter: blur(22px) saturate(160%);
-            -webkit-backdrop-filter: blur(22px) saturate(160%);
-            border: 1px solid rgba(255, 255, 255, 0.22);
+            background: transparent;
+            border: 1px solid rgba(197, 168, 126, 0.45);
             border-radius: 22px;
             padding: 32px 40px 28px;
-            box-shadow:
-                0 28px 72px rgba(0, 0, 0, 0.32),
-                0 4px 18px rgba(0, 0, 0, 0.18),
-                inset 0 1px 0 rgba(255, 255, 255, 0.26);
             position: relative;
-        }
-
-        /* Blue top accent stripe */
-        .login-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 32px; right: 32px;
-            height: 2px;
-            background: linear-gradient(90deg,
-                transparent 0%,
-                rgba(197,168,126,0.5) 20%,
-                #C5A87E 50%,
-                rgba(197,168,126,0.5) 80%,
-                transparent 100%
-            );
-            border-radius: 0 0 4px 4px;
         }
 
         /* ════════════════════════════════════════
@@ -221,7 +199,7 @@
 
         /* ACTIVE tab — gold */
         .toggle-btn.tab-active {
-            background: linear-gradient(135deg, #A88959 0%, #C5A87E 55%, #E5CBA2 100%);
+            background: linear-gradient(135deg, #8A6E3B 0%, #C5A87E 100%);
             color: #FFFFFF;
             box-shadow:
                 0 4px 16px rgba(197, 168, 126, 0.45),
@@ -363,7 +341,7 @@
         .btn-login {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #A88959 0%, #C5A87E 55%, #E5CBA2 100%);
+            background: linear-gradient(135deg, #8A6E3B 0%, #C5A87E 100%);
             color: #FFFFFF;
             font-size: 15px; font-weight: 700;
             font-family: 'Inter', sans-serif;

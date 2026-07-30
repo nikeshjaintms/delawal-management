@@ -16,9 +16,10 @@ class PurchaseOrderController extends Controller
     private function authorise(PurchaseOrder $po): void
     {
         $user = Auth::user();
-        if ($user && !$user->isAdmin()) {
-            $userFirmId = $user->firm_id;
-            if ($po->firm_id != $userFirmId && !$po->firms->contains($userFirmId)) {
+        $isAdmin = $user && $user->isAdmin();
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            if ($po->firm_id != $firmId && !$po->firms->contains($firmId)) {
                 abort(403);
             }
         }
@@ -50,8 +51,12 @@ class PurchaseOrderController extends Controller
     {
         $query = PurchaseOrder::with(['firm', 'vendor', 'creator']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->forFirms([Auth::user()->firm_id]);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $query->forFirms([$firmId]);
         } elseif ($request->filled('firm_id')) {
             $query->forFirms([$request->firm_id]);
         }
@@ -383,8 +388,11 @@ class PurchaseOrderController extends Controller
     public function exportPdf(Request $request)
     {
         $query = PurchaseOrder::with(['firm', 'vendor']);
-        if (!Auth::user()->isAdmin()) {
-            $query->forFirms([Auth::user()->firm_id]);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $query->forFirms([$firmId]);
         }
         $purchaseOrders = $query->orderBy('po_date', 'desc')->get();
         return view('admin.purchase-orders.pdf', compact('purchaseOrders'))->with('listMode', true)->with('printMode', true);
@@ -393,8 +401,11 @@ class PurchaseOrderController extends Controller
     public function exportExcel(Request $request)
     {
         $query = PurchaseOrder::with(['firm', 'vendor']);
-        if (!Auth::user()->isAdmin()) {
-            $query->forFirms([Auth::user()->firm_id]);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $query->forFirms([$firmId]);
         }
         $purchaseOrders = $query->orderBy('po_date', 'desc')->get();
 

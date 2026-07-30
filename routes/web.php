@@ -11,6 +11,7 @@ use App\Http\Controllers\PropertyTypeController;
 use App\Http\Controllers\PaymentModeController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PropertySaleController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\RentalController;
@@ -66,6 +67,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::resource('expense-categories', ExpenseCategoryController::class)->middleware(['permission:expense_category_view']);
 
     // ── Property ─────────────────────────────────────────────────────
+    Route::resource('projects', ProjectController::class)->middleware(['permission:project_view']);
     Route::resource('properties', PropertyController::class)->middleware(['permission:property_view']);
     Route::resource('property-sales', PropertySaleController::class)->middleware(['permission:property_sales_view']);
     Route::resource('property-documents', PropertyDocumentController::class)->middleware(['permission:property_documents_view']);

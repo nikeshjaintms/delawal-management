@@ -2,7 +2,20 @@
 @section('title', 'Purchase Orders')
 @section('page-title', 'Inventory & Purchasing')
 @php
-    $authUser = Auth::user();
+    $user = Auth::user();
+    if (!$user && session('login_type') === 'firm' && session('firm_id')) {
+        $authUser = new class {
+            public function isAdmin()        { return true; }
+            public function hasPermission($p){ return true; }
+            public $role = null;
+            public $name = '';
+            public $firm_id = null;
+        };
+        $authUser->name = session('firm_name', 'Firm');
+        $authUser->firm_id = session('firm_id');
+    } else {
+        $authUser = $user;
+    }
 @endphp
 @section('content')
 <style>
