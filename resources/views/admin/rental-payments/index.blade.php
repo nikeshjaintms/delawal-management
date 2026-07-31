@@ -72,8 +72,8 @@
         <a href="{{ route('rental-payments.create', $rental->id) }}" class="btn-gold">
             <i class="fa-solid fa-plus"></i> Add Payment
         </a>
-        <a href="{{ route('rentals.index') }}" class="btn-outline">
-            <i class="fa-solid fa-arrow-left"></i> Back to Rentals
+        <a href="{{ route('rentals.index', ['collect' => 1]) }}" class="btn-outline">
+            <i class="fa-solid fa-arrow-left"></i> Back to Rent Collection
         </a>
     </div>
 </div>

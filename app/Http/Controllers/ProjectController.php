@@ -54,6 +54,13 @@ class ProjectController extends Controller
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         $firmId = $isAdmin ? $request->firm_id : (auth()->user() ? auth()->user()->firm_id : session('firm_id'));
 
+        $projectCode = $request->project_code;
+        if (empty($projectCode)) {
+            $latest = Project::latest('id')->first();
+            $nextId = $latest ? $latest->id + 1 : 1;
+            $projectCode = 'PRJ-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+        }
+
         $imagePath = null;
         if ($request->hasFile('project_image')) {
             $imagePath = $request->file('project_image')->store('projects/images', 'public');
@@ -62,7 +69,7 @@ class ProjectController extends Controller
         Project::create([
             'firm_id'       => $firmId,
             'project_name'  => $request->project_name,
-            'project_code'  => $request->project_code,
+            'project_code'  => $projectCode,
             'project_type'  => $request->project_type,
             'address'       => $request->address,
             'city'          => $request->city,
@@ -72,6 +79,8 @@ class ProjectController extends Controller
             'description'   => $request->description,
             'status'        => $request->status,
             'project_image' => $imagePath,
+            'created_by'    => auth()->id(),
+            'updated_by'    => auth()->id(),
         ]);
 
         return redirect()->route('projects.index')->with('success', 'Project added successfully.');
@@ -99,6 +108,11 @@ class ProjectController extends Controller
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         $firmId = $isAdmin ? $request->firm_id : $project->firm_id;
 
+        $projectCode = $request->project_code;
+        if (empty($projectCode)) {
+            $projectCode = $project->project_code;
+        }
+
         $imagePath = $project->project_image;
         if ($request->hasFile('project_image')) {
             if ($project->project_image) {
@@ -110,7 +124,7 @@ class ProjectController extends Controller
         $project->update([
             'firm_id'       => $firmId,
             'project_name'  => $request->project_name,
-            'project_code'  => $request->project_code,
+            'project_code'  => $projectCode,
             'project_type'  => $request->project_type,
             'address'       => $request->address,
             'city'          => $request->city,
@@ -120,6 +134,7 @@ class ProjectController extends Controller
             'description'   => $request->description,
             'status'        => $request->status,
             'project_image' => $imagePath,
+            'updated_by'    => auth()->id(),
         ]);
 
         return redirect()->route('projects.index')->with('success', 'Project updated successfully.');
@@ -128,6 +143,11 @@ class ProjectController extends Controller
     public function destroy(Project $project)
     {
         $this->authorise($project);
+
+        if ($project->properties()->count() > 0) {
+            return redirect()->route('projects.index')
+                ->with('error', 'Cannot delete Project because it has associated properties.');
+        }
 
         if ($project->project_image) {
             Storage::disk('public')->delete($project->project_image);

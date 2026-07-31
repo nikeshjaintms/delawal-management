@@ -25,9 +25,13 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('status')->default('active'); // active/inactive
             $table->string('project_image')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
 
             $table->foreign('firm_id')->references('id')->on('firms')->onDelete('cascade');
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
+            $table->foreign('updated_by')->references('id')->on('users')->onDelete('set null');
             $table->unique(['firm_id', 'project_code']);
         });
     }

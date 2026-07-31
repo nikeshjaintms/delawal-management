@@ -48,7 +48,8 @@ class MaterialCategoryRequest extends FormRequest
         ];
 
         if ($user && $user->isAdmin()) {
-            $rules['firm_id'] = 'required|exists:firms,id';
+            $rules['firm_ids'] = 'required|array|min:1';
+            $rules['firm_ids.*'] = 'exists:firms,id';
         }
 
         // Replace placeholders in unique rules dynamically

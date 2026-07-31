@@ -49,13 +49,20 @@
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Rental Management</h2>
-        <p>Manage all property rentals and tenant agreements firm-wise.</p>
+        @if(request()->has('collect'))
+            <h2>Rent Collection</h2>
+            <p>Track rental payments and collect outstanding dues for active agreements.</p>
+        @else
+            <h2>Rental Management</h2>
+            <p>Manage all property rentals and tenant agreements firm-wise.</p>
+        @endif
     </div>
+    @if(!request()->has('collect'))
     <a href="{{ route('rentals.create') }}" class="btn-gold">
         <i class="fa-solid fa-plus"></i>
         <span>Add Rental</span>
     </a>
+    @endif
 </div>
 
 @if(session('success'))
@@ -68,6 +75,9 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('rentals.index') }}" class="search-form">
+            @if(request()->has('collect'))
+                <input type="hidden" name="collect" value="1">
+            @endif
             @if(auth()->user() && auth()->user()->isAdmin())
                 <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width: 180px;">
                     <option value="">All Firms</option>
@@ -82,7 +92,7 @@
                    placeholder="Search by tenant, property, firm, status..." class="search-input @error('search') is-invalid @enderror">
             <button type="submit" class="btn-search">Search</button>
             @if(request('search') || request('firm_id'))
-                <a href="{{ route('rentals.index') }}" class="btn-reset">Reset</a>
+                <a href="{{ route('rentals.index', request()->has('collect') ? ['collect' => 1] : []) }}" class="btn-reset">Reset</a>
             @endif
         </form>
     </div>
@@ -151,29 +161,40 @@
                         <td><span class="badge badge-{{ $rental->rental_status }}">{{ ucfirst($rental->rental_status) }}</span></td>
                         <td>
                             <div class="table-action-buttons">
-                                <a href="{{ route('rental-payments.index', $rental->id) }}" class="action-link payments"
-                                   title="Payment History">
-                                    <i class="fa-solid fa-money-bill-wave"></i> Payments
-                                </a>
-                                <a href="{{ route('rentals.show', $rental->id) }}" class="btn-view"
-                                   title="View Rental">
-                                    <i class="fa fa-eye"></i> View
-                                </a>
-                                <a href="{{ route('rentals.edit', $rental->id) }}" class="btn-edit"
-                                   title="Edit Rental">
-                                    <i class="fa fa-edit"></i> Edit
-                                </a>
-                                <form action="{{ route('rentals.destroy', $rental->id) }}" method="POST"
-                                      style="display:inline;" id="delete-form-{{ $rental->id }}">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button"
-                                        class="btn-delete"
-                                        title="Delete Rental"
-                                        onclick="confirmDelete({{ $rental->id }}, '{{ addslashes($rental->tenant_name) }}')">
-                                        <i class="fa fa-trash"></i> Delete
-                                    </button>
-                                </form>
+                                @if(request()->has('collect'))
+                                    <a href="{{ route('rental-payments.create', $rental->id) }}" class="btn-gold" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; gap: 4px; display: inline-flex; align-items: center;"
+                                       title="Collect Rent">
+                                        <i class="fa-solid fa-hand-holding-dollar"></i> Collect Rent
+                                    </a>
+                                    <a href="{{ route('rental-payments.index', $rental->id) }}" class="action-link payments" style="margin-left: 8px; font-weight: 600;"
+                                       title="Payment History">
+                                        <i class="fa-solid fa-clock-rotate-left"></i> History
+                                    </a>
+                                @else
+                                    <a href="{{ route('rental-payments.index', $rental->id) }}" class="action-link payments"
+                                       title="Payment History">
+                                        <i class="fa-solid fa-money-bill-wave"></i> Payments
+                                    </a>
+                                    <a href="{{ route('rentals.show', $rental->id) }}" class="btn-view"
+                                       title="View Rental">
+                                        <i class="fa fa-eye"></i> View
+                                    </a>
+                                    <a href="{{ route('rentals.edit', $rental->id) }}" class="btn-edit"
+                                       title="Edit Rental">
+                                        <i class="fa fa-edit"></i> Edit
+                                    </a>
+                                    <form action="{{ route('rentals.destroy', $rental->id) }}" method="POST"
+                                          style="display:inline;" id="delete-form-{{ $rental->id }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button"
+                                            class="btn-delete"
+                                            title="Delete Rental"
+                                            onclick="confirmDelete({{ $rental->id }}, '{{ addslashes($rental->tenant_name) }}')">
+                                            <i class="fa fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

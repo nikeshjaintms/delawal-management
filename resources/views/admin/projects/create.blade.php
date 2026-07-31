@@ -164,8 +164,8 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="project_code">Project Code (Unique) <span>*</span></label>
-                <input type="text" name="project_code" id="project_code" value="{{ old('project_code') }}" class="form-control @error('project_code') is-invalid @enderror" placeholder="Enter project code" required>
+                <label class="form-label" for="project_code">Project Code (Leave blank to auto-generate)</label>
+                <input type="text" name="project_code" id="project_code" value="{{ old('project_code') }}" class="form-control @error('project_code') is-invalid @enderror" placeholder="Auto-generated if empty">
                 @error('project_code') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>

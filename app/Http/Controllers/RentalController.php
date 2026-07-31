@@ -36,6 +36,10 @@ class RentalController extends Controller
             $query->where('firm_id', $request->firm_id);
         }
 
+        if ($request->has('collect')) {
+            $query->where('rental_status', 'active');
+        }
+
         if ($request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {

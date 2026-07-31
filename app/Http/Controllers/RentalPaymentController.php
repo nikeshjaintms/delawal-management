@@ -6,6 +6,7 @@ use App\Http\Requests\RentalPaymentRequest;
 use App\Models\Rental;
 use App\Models\RentalPayment;
 use App\Models\Firm;
+use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 

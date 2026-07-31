@@ -63,11 +63,14 @@ class MaterialController extends Controller
     public function store(MaterialRequest $request)
     {
         $user = Auth::user();
-        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+        $firmIds = $request->firm_ids;
+        if (empty($firmIds)) {
+            $firmIds = (array)($user ? $user->firm_id : session('firm_id'));
+        }
         $opening = (float) ($request->opening_stock ?? 0);
 
-        Material::create([
-            'firm_id'              => $firmId,
+        $material = Material::create([
+            'firm_id'              => reset($firmIds),
             'material_category_id' => $request->material_category_id ?: null,
             'material_name'        => $request->material_name,
             'unit'                 => $request->unit,
@@ -76,6 +79,8 @@ class MaterialController extends Controller
             'minimum_stock'        => $request->minimum_stock ?? 0,
             'status'               => $request->status,
         ]);
+
+        $material->syncFirms($firmIds);
 
         return redirect()->route('materials.index')->with('success', 'Material added successfully.');
     }
@@ -123,6 +128,12 @@ class MaterialController extends Controller
             'minimum_stock'        => $request->minimum_stock ?? 0,
             'status'               => $request->status,
         ]);
+
+        $firmIds = $request->firm_ids;
+        if (empty($firmIds)) {
+            $firmIds = (array)($user ? $user->firm_id : session('firm_id'));
+        }
+        $material->syncFirms($firmIds);
 
         return redirect()->route('materials.index')->with('success', 'Material updated successfully.');
     }

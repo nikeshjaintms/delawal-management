@@ -54,12 +54,14 @@ class DashboardController extends Controller
         $totalPendingAmt     = PropertySale::sum('remaining_amount') ?: 0;
         $recentCustomers     = Customer::latest()->limit(5)->get();
         $recentPayments      = Payment::with(['customer', 'property'])->latest()->limit(5)->get();
+        $totalProjects       = \App\Models\Project::count();
+        $activeProjects      = \App\Models\Project::where('status', 'active')->count();
 
         return view('admin.dashboard', compact(
             'totalFirms', 'activeFirms', 'inactiveFirms', 'totalUsers', 'activeUsers',
             'totalCustomers', 'totalProperties', 'availableProperties', 'soldProperties',
             'rentedProperties', 'totalBookings', 'totalReceivedAmt', 'totalExpenses', 'netProfit',
-            'totalPendingAmt', 'recentCustomers', 'recentPayments'
+            'totalPendingAmt', 'recentCustomers', 'recentPayments', 'totalProjects', 'activeProjects'
         ));
     }
 
@@ -144,6 +146,9 @@ class DashboardController extends Controller
         $recentPayments  = Payment::with(['customer', 'property'])
             ->where('firm_id', $firmId)->latest()->limit(5)->get();
 
+        $totalProjects  = \App\Models\Project::where('firm_id', $firmId)->count();
+        $activeProjects = \App\Models\Project::where('firm_id', $firmId)->where('status', 'active')->count();
+
         return view('admin.firm-dashboard', compact(
             'totalCustomers', 'newCustomersMonth',
             'totalProperties', 'availableProperties', 'soldProperties',
@@ -154,7 +159,7 @@ class DashboardController extends Controller
             'totalExpenses',
             'totalLoans', 'totalLoanAmount', 'pendingLoanAmt',
             'totalMaterials', 'lowStockCount', 'outStockCount',
-            'recentCustomers', 'recentPayments'
+            'recentCustomers', 'recentPayments', 'totalProjects', 'activeProjects'
         ));
     }
 }

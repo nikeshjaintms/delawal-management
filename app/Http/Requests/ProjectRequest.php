@@ -48,7 +48,7 @@ class ProjectRequest extends FormRequest
         $rules = [
             'firm_id' => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
             'project_name' => 'required|string|max:255',
-            'project_code' => 'required|string|max:100|unique:projects,project_code,{ID},id,firm_id,{FIRM_ID}',
+            'project_code' => 'nullable|string|max:100|unique:projects,project_code,{ID},id,firm_id,{FIRM_ID}',
             'project_type' => 'required|string|max:255',
             'status' => 'required|in:active,inactive',
             'address' => 'nullable|string|max:1000',

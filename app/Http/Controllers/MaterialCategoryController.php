@@ -39,14 +39,20 @@ class MaterialCategoryController extends Controller
     public function store(MaterialCategoryRequest $request)
     {
         $user = Auth::user();
-        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+        $firmIds = $request->firm_ids;
+        if (empty($firmIds)) {
+            $firmIds = (array)($user ? $user->firm_id : session('firm_id'));
+        }
 
-        MaterialCategory::create([
-            'firm_id'       => $firmId,
+        $materialCategory = MaterialCategory::create([
+            'firm_id'       => reset($firmIds),
             'category_name' => $request->category_name,
             'description'   => $request->description,
             'status'        => $request->status,
         ]);
+
+        $materialCategory->syncFirms($firmIds);
+
         return redirect()->route('material-categories.index')->with('success', 'Material category added successfully.');
     }
 
@@ -83,6 +89,13 @@ class MaterialCategoryController extends Controller
             'description'   => $request->description,
             'status'        => $request->status,
         ]);
+
+        $firmIds = $request->firm_ids;
+        if (empty($firmIds)) {
+            $firmIds = (array)($user ? $user->firm_id : session('firm_id'));
+        }
+        $materialCategory->syncFirms($firmIds);
+
         return redirect()->route('material-categories.index')->with('success', 'Material category updated successfully.');
     }
 

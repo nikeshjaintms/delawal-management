@@ -1025,10 +1025,10 @@
             </a>
         </li>
 
-        {{-- 1. Masters --}}
+        {{-- Firm Management --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="1. Masters">
-                <i class="fa-solid fa-layer-group"></i><span>1. Masters</span>
+            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="Firm Management">
+                <i class="fa-solid fa-building"></i><span>Firm Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">
@@ -1038,6 +1038,26 @@
                         <i class="fa-solid fa-building"></i><span>Firms</span>
                     </a>
                 </li>
+                @endif
+            </ul>
+        </li>
+
+        @if($authUser->hasPermission('project_view'))
+        <li class="menu-item">
+            <a href="{{ route('projects.index') }}" class="menu-link {{ str_starts_with($currentRoute ?? '', 'projects.') ? 'active' : '' }}" data-label="Project Management">
+                <i class="fa-solid fa-city"></i><span>Project Management</span>
+            </a>
+        </li>
+        @endif
+
+        {{-- 1. Masters --}}
+        <li class="menu-item">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="1. Masters">
+                <i class="fa-solid fa-layer-group"></i><span>1. Masters</span>
+                <i class="fa-solid fa-chevron-right submenu-arrow"></i>
+            </a>
+            <ul class="submenu-list">
+                @if(!session('login_type') === 'firm' || session('login_type') !== 'firm')
                 <li class="submenu-item">
                     <a href="{{ route('financial-years.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'financial-years.') ? 'active' : '' }}">
                         <i class="fa-solid fa-calendar-days"></i><span>Financial Years</span>
@@ -1119,18 +1139,25 @@
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">
-                @if($authUser->hasPermission('project_view'))
+                @if($authUser->hasPermission('property_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('projects.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'projects.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-city"></i><span>Project Master</span>
+                    <a href="{{ route('properties.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'properties.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-building"></i><span>Property Master</span>
                     </a>
                 </li>
                 @endif
 
                 @if($authUser->hasPermission('property_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('properties.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'properties.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-building"></i><span>Property Master</span>
+                    <a href="{{ route('property-availability.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'property-availability.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-circle-check"></i><span>Property Status</span>
+                    </a>
+                </li>
+                @endif
+                @if($authUser->hasPermission('property_documents_view'))
+                <li class="submenu-item">
+                    <a href="{{ route('property-documents.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'property-documents.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-folder-open"></i><span>Property Documents</span>
                     </a>
                 </li>
                 @endif
@@ -1169,7 +1196,6 @@
                             </a>
                         </li>
                         @endif
-
                         <li class="submenu-item">
                             <a href="{{ route('stock-report.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'stock-report.') ? 'active' : '' }}">
                                 <i class="fa-solid fa-chart-bar"></i><span>Current Stock Report</span>
@@ -1178,21 +1204,6 @@
                     </ul>
                 </li>
                 @endif
-                @if($authUser->hasPermission('property_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('property-availability.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'property-availability.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-circle-check"></i><span>Property Status</span>
-                    </a>
-                </li>
-                @endif
-                @if($authUser->hasPermission('property_documents_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('property-documents.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'property-documents.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-folder-open"></i><span>Property Documents</span>
-                    </a>
-                </li>
-                @endif
-
             </ul>
         </li>
 
@@ -1285,14 +1296,14 @@
                 @endif
                 @if($authUser->hasPermission('rental_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('rentals.index') }}" class="submenu-link {{ (str_starts_with($currentRoute ?? '', 'rentals.') || str_starts_with($currentRoute ?? '', 'rental-payments.')) ? 'active' : '' }}">
+                    <a href="{{ route('rentals.index') }}" class="submenu-link {{ (str_starts_with($currentRoute ?? '', 'rentals.') && !request()->has('collect') && !str_starts_with($currentRoute ?? '', 'rental-payments.')) ? 'active' : '' }}">
                         <i class="fa-solid fa-key"></i><span>Rent Agreement</span>
                     </a>
                 </li>
                 @endif
                 @if($authUser->hasPermission('rental_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('rentals.index') }}" class="submenu-link">
+                    <a href="{{ route('rentals.index', ['collect' => 1]) }}" class="submenu-link {{ (request()->has('collect') || str_starts_with($currentRoute ?? '', 'rental-payments.')) ? 'active' : '' }}">
                         <i class="fa-solid fa-hand-holding-dollar"></i><span>Rent Collection</span>
                     </a>
                 </li>

@@ -92,6 +92,11 @@ class FirmController extends Controller
 
     public function destroy(Firm $firmMaster)
     {
+        if ($firmMaster->projects()->count() > 0) {
+            return redirect()->route('firm-master.index')
+                ->with('error', 'Cannot delete Firm because it has associated projects.');
+        }
+
         if ($firmMaster->firm_logo) {
             Storage::disk('public')->delete($firmMaster->firm_logo);
         }

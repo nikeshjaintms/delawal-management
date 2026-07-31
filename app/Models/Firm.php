@@ -21,6 +21,11 @@ class Firm extends Model
         return $this->hasMany(User::class);
     }
 
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
+    }
+
     public function financialYears()
     {
         return $this->hasMany(FinancialYear::class);

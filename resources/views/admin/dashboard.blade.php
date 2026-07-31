@@ -351,6 +351,24 @@
             <div class="kpi-deco deco-indigo"></div>
         </div>
         <div class="kpi-card">
+            <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-city"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Total Projects</span>
+                <span class="kpi-value">{{ number_format($totalProjects) }}</span>
+                <span class="kpi-badge bk-blue">All Projects</span>
+            </div>
+            <div class="kpi-deco deco-blue"></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon-box ik-green"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Active Projects</span>
+                <span class="kpi-value" style="color:#10B981;">{{ number_format($activeProjects) }}</span>
+                <span class="kpi-badge bk-green">Operational</span>
+            </div>
+            <div class="kpi-deco deco-green"></div>
+        </div>
+        <div class="kpi-card">
             <div class="kpi-icon-box ik-purple"><i class="fa-solid fa-city"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Properties</span>
