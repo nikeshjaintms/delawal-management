@@ -74,14 +74,17 @@ class PropertyDocumentController extends Controller
     /* ── STORE ──────────────────────────────────────────────────────── */
     public function store(PropertyDocumentRequest $request)
     {
-        $isAdmin = auth()->user() && auth()->user()->isAdmin();
-        $firmId = $isAdmin ? $request->firm_id : (auth()->user() ? auth()->user()->firm_id : session('firm_id'));
-
-        // Authorise: property must belong to the selected firm
         $property = Property::findOrFail($request->property_id);
-        if ($property->firm_id != $firmId) {
-            abort(403);
+
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        if (!$isAdmin) {
+            $userFirmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+            if ($property->firm_id != $userFirmId) {
+                abort(403);
+            }
         }
+
+        $firmId = $property->firm_id;
 
         $filePath = $request->file('document_file')
             ->store('property-documents', 'public');
@@ -141,14 +144,17 @@ class PropertyDocumentController extends Controller
     {
         $this->authorise($propertyDocument);
 
-        $isAdmin = auth()->user() && auth()->user()->isAdmin();
-        $firmId = $isAdmin ? $request->firm_id : $propertyDocument->firm_id;
-
-        // Authorise: property must belong to the selected firm
         $property = Property::findOrFail($request->property_id);
-        if ($property->firm_id != $firmId) {
-            abort(403);
+
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        if (!$isAdmin) {
+            $userFirmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+            if ($property->firm_id != $userFirmId) {
+                abort(403);
+            }
         }
+
+        $firmId = $property->firm_id;
 
         $filePath = $propertyDocument->document_file;
 

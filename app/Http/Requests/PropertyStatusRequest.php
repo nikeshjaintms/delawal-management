@@ -21,6 +21,11 @@ class PropertyStatusRequest extends FormRequest
                 $inputs[$key] = trim($value);
             }
         }
+        
+        if (isset($inputs['firm_ids']) && is_array($inputs['firm_ids']) && !empty($inputs['firm_ids'])) {
+            $inputs['firm_id'] = $inputs['firm_ids'][0];
+        }
+        
         $this->replace($inputs);
     }
 
@@ -41,9 +46,11 @@ class PropertyStatusRequest extends FormRequest
         $firmId = $this->get('firm_id') ?: (auth()->check() && auth()->user() ? auth()->user()->firm_id : session('firm_id'));
 
         $rules = [
+            'firm_ids' => 'nullable|array',
+            'firm_ids.*' => 'exists:firms,id',
             'firm_id' => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
             'property_id' => 'required|exists:properties,id',
-            'status' => 'required|in:available,booked,sold,rented',
+            'status' => 'required|in:available,booked,sold,rented,reserved,under_maintenance',
             'status_date' => 'required|date',
             'remarks' => 'nullable|string|max:1000',
         ];

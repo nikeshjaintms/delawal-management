@@ -97,12 +97,17 @@ class PropertyStatusController extends Controller
     /* ── STORE ──────────────────────────────────────────────────────── */
     public function store(PropertyStatusRequest $request)
     {
-        $isAdmin = auth()->user() && auth()->user()->isAdmin();
-        $firmId = $isAdmin ? $request->firm_id : (auth()->user() ? auth()->user()->firm_id : session('firm_id'));
-
-        // Authorise
         $property = Property::findOrFail($request->property_id);
-        if ($property->firm_id != $firmId) abort(403);
+        
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        if (!$isAdmin) {
+            $userFirmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+            if ($property->firm_id != $userFirmId) {
+                abort(403);
+            }
+        }
+
+        $firmId = $property->firm_id;
 
         // Create status record
         $record = PropertyStatus::create([
@@ -158,11 +163,17 @@ class PropertyStatusController extends Controller
     {
         $this->authorise($propertyAvailability);
 
-        $isAdmin = auth()->user() && auth()->user()->isAdmin();
-        $firmId = $isAdmin ? $request->firm_id : $propertyAvailability->firm_id;
-
         $property = Property::findOrFail($request->property_id);
-        if ($property->firm_id != $firmId) abort(403);
+        
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        if (!$isAdmin) {
+            $userFirmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+            if ($property->firm_id != $userFirmId) {
+                abort(403);
+            }
+        }
+
+        $firmId = $property->firm_id;
 
         $propertyAvailability->update([
             'firm_id'     => $firmId,
