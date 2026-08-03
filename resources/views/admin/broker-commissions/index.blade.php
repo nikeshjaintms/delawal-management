@@ -3,6 +3,23 @@
 @section('title', 'Broker Commissions')
 @section('page-title', 'Broker Commissions')
 
+@php
+    $user = Auth::user();
+    if (!$user && session('login_type') === 'firm' && session('firm_id')) {
+        $authUser = new class {
+            public function isAdmin()        { return true; }
+            public function hasPermission($p){ return true; }
+            public $role = null;
+            public $name = '';
+            public $firm_id = null;
+        };
+        $authUser->name = session('firm_name', 'Firm');
+        $authUser->firm_id = session('firm_id');
+    } else {
+        $authUser = $user;
+    }
+@endphp
+
 @section('content')
 <style>
     .crud-header {
@@ -324,7 +341,7 @@
         <a href="{{ route('broker-commissions.excel', request()->query()) }}" class="btn-secondary">
             <i class="fa-solid fa-file-excel"></i> Export CSV
         </a>
-        @if(Auth::user()->hasPermission('broker_commission_add'))
+        @if($authUser && $authUser->hasPermission('broker_commission_add'))
         <a href="{{ route('broker-commissions.create') }}" class="btn-gold">
             <i class="fa-solid fa-plus"></i> Add Commission
         </a>
@@ -479,7 +496,7 @@
                         </td>
                         <td>{{ $c->payment_date ? \Carbon\Carbon::parse($c->payment_date)->format('d M Y') : '-' }}</td>
                         <td>
-                            @if(Auth::user()->hasPermission('broker_commission_edit'))
+                            @if($authUser && $authUser->hasPermission('broker_commission_edit'))
                             <form action="{{ route('broker-commissions.toggle-status', $c->id) }}" method="POST">
                                 @csrf
                                 @method('PATCH')
@@ -497,17 +514,17 @@
                         </td>
                         <td>
                             <div class="action-buttons-wrap">
-                                @if(Auth::user()->hasPermission('broker_commission_view'))
+                                @if($authUser && $authUser->hasPermission('broker_commission_view'))
                                 <a href="{{ route('broker-commissions.show', $c->id) }}" class="btn-view">
                                     <i class="fa fa-eye"></i> View
                                 </a>
                                 @endif
-                                @if(Auth::user()->hasPermission('broker_commission_edit'))
+                                @if($authUser && $authUser->hasPermission('broker_commission_edit'))
                                 <a href="{{ route('broker-commissions.edit', $c->id) }}" class="btn-edit">
                                     <i class="fa fa-edit"></i> Edit
                                 </a>
                                 @endif
-                                @if(Auth::user()->hasPermission('broker_commission_delete'))
+                                @if($authUser && $authUser->hasPermission('broker_commission_delete'))
                                 <form action="{{ route('broker-commissions.destroy', $c->id) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')

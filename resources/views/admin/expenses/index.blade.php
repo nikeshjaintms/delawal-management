@@ -1,6 +1,22 @@
 @extends('admin.layouts.app')
 @section('title', 'Expenses')
 @section('page-title', 'Expense Management')
+@php
+    $user = Auth::user();
+    if (!$user && session('login_type') === 'firm' && session('firm_id')) {
+        $authUser = new class {
+            public function isAdmin()        { return true; }
+            public function hasPermission($p){ return true; }
+            public $role = null;
+            public $name = '';
+            public $firm_id = null;
+        };
+        $authUser->name = session('firm_name', 'Firm');
+        $authUser->firm_id = session('firm_id');
+    } else {
+        $authUser = $user;
+    }
+@endphp
 @section('content')
 <style>
     .crud-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:15px;}
@@ -111,7 +127,7 @@
             <span class="filter-label">Payment Mode</span>
             <select name="filter_mode" class="filter-control @error('filter_mode') is-invalid @enderror">
                 <option value="">All Modes</option>
-                @foreach(\App\Models\PaymentMode::whereHas('firms', function($q) { $q->where('firms.id', Auth::user()->firm_id); })->where('status', 'active')->orderBy('name')->get() as $pm)
+                @foreach(\App\Models\PaymentMode::whereHas('firms', function($q) use ($authUser) { $q->where('firms.id', $authUser ? $authUser->firm_id : null); })->where('status', 'active')->orderBy('name')->get() as $pm)
                     <option value="{{ $pm->name }}" {{ request('filter_mode') == $pm->name ? 'selected' : '' }}>{{ $pm->name }}</option>
                 @endforeach
             </select>

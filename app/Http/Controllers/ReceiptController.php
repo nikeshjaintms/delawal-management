@@ -14,9 +14,11 @@ class ReceiptController extends Controller
     private function authorise(Receipt $receipt): void
     {
         $user = Auth::user();
-        if ($user && !$user->isAdmin()) {
-            $userFirmId = $user->firm_id;
-            if ($receipt->firm_id != $userFirmId && !$receipt->firms->contains($userFirmId)) {
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            if ($receipt->firm_id != $firmId && !$receipt->firms->contains($firmId)) {
                 abort(403);
             }
         }
@@ -24,7 +26,8 @@ class ReceiptController extends Controller
 
     private function generateReceiptNo($firmId = null): string
     {
-        $fId   = $firmId ?? Auth::user()->firm_id;
+        $user = Auth::user();
+        $fId   = $firmId ?? ($user ? $user->firm_id : session('firm_id'));
         $count = Receipt::where('firm_id', $fId)->count() + 1;
         return 'RCT-' . str_pad($count, 5, '0', STR_PAD_LEFT);
     }
@@ -53,8 +56,12 @@ class ReceiptController extends Controller
     {
         $query = Receipt::with(['firms', 'firm', 'paymentMode']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->forFirms([Auth::user()->firm_id]);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            $query->forFirms([$firmId]);
         } elseif ($request->filled('firm_ids') || $request->filled('firm_id')) {
             $firmIds = $request->input('firm_ids', (array)$request->firm_id);
             $query->forFirms($firmIds);
@@ -90,8 +97,10 @@ class ReceiptController extends Controller
 
     public function store(ReceiptRequest $request)
     {
-        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? Auth::user()->firm_id));
-        $primaryFirmId = reset($firmIds) ?: Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $firmId));
+        $primaryFirmId = reset($firmIds) ?: $firmId;
 
         $receipt = Receipt::create([
             'firm_id'         => $primaryFirmId,
@@ -129,7 +138,9 @@ class ReceiptController extends Controller
         $receipt->load(['firms', 'firm']);
         $this->authorise($receipt);
 
-        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $receipt->firm_id ?? Auth::user()->firm_id));
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $receipt->firm_id ?? firmId));
         $primaryFirmId = reset($firmIds) ?: $receipt->firm_id;
 
         $receipt->update([

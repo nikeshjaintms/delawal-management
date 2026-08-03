@@ -2,6 +2,22 @@
 
 @section('title', 'Projects')
 @section('page-title', 'Project Master')
+@php
+    $user = Auth::user();
+    if (!$user && session('login_type') === 'firm' && session('firm_id')) {
+        $authUser = new class {
+            public function isAdmin()        { return true; }
+            public function hasPermission($p){ return true; }
+            public $role = null;
+            public $name = '';
+            public $firm_id = null;
+        };
+        $authUser->name = session('firm_name', 'Firm');
+        $authUser->firm_id = session('firm_id');
+    } else {
+        $authUser = $user;
+    }
+@endphp
 
 @section('content')
 <style>
@@ -231,7 +247,7 @@
         <h2>Project Management</h2>
         <p>Create and manage projects, firms, and location details.</p>
     </div>
-    @if(auth()->user()->hasPermission('project_add'))
+    @if($authUser && $authUser->hasPermission('project_add'))
         <a href="{{ route('projects.create') }}" class="btn-gold">
             <i class="fa-solid fa-plus"></i> Add Project
         </a>
@@ -241,7 +257,7 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('projects.index') }}" class="search-form">
-            @if(auth()->user()->isAdmin())
+            @if($authUser && $authUser->isAdmin())
                 <select name="firm_id" class="filter-select">
                     <option value="">All Firms</option>
                     @foreach(\App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get() as $firm)
@@ -277,7 +293,7 @@
                     <th>Image</th>
                     <th>Project Name</th>
                     <th>Project Code</th>
-                    @if(auth()->user()->isAdmin())
+                    @if($authUser && $authUser->isAdmin())
                         <th>Firm</th>
                     @endif
                     <th>Type</th>
@@ -304,7 +320,7 @@
                             </a>
                         </td>
                         <td><code style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-weight: 600;">{{ $project->project_code }}</code></td>
-                        @if(auth()->user()->isAdmin())
+                        @if($authUser && $authUser->isAdmin())
                             <td>{{ $project->firm->firm_name ?? '-' }}</td>
                         @endif
                         <td>{{ $project->project_type }}</td>
@@ -316,17 +332,17 @@
                         </td>
                         <td style="text-align: right;">
                             <div class="action-links" style="justify-content: flex-end;">
-                                @if(auth()->user()->hasPermission('project_view'))
+                                @if($authUser && $authUser->hasPermission('project_view'))
                                     <a href="{{ route('projects.show', $project->id) }}" class="action-link">
                                         <i class="fa-regular fa-eye"></i> View
                                     </a>
                                 @endif
-                                @if(auth()->user()->hasPermission('project_edit'))
+                                @if($authUser && $authUser->hasPermission('project_edit'))
                                     <a href="{{ route('projects.edit', $project->id) }}" class="action-link">
                                         <i class="fa-regular fa-pen-to-square"></i> Edit
                                     </a>
                                 @endif
-                                @if(auth()->user()->hasPermission('project_delete'))
+                                @if($authUser && $authUser->hasPermission('project_delete'))
                                     <form action="{{ route('projects.destroy', $project->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this project?')" style="display: inline;">
                                         @csrf
                                         @method('DELETE')
@@ -340,7 +356,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ auth()->user()->isAdmin() ? 8 : 7 }}">
+                        <td colspan="{{ $authUser && $authUser->isAdmin() ? 8 : 7 }}">
                             <div class="empty-state">
                                 <i class="fa-solid fa-city"></i>
                                 <p>No projects found. Add your first project to get started!</p>

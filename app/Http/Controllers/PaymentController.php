@@ -17,9 +17,13 @@ class PaymentController extends Controller
      */
     public function getBookingInfo($id)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $query = PropertySale::with(['customer', 'property']);
-        if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
+        if (!$isAdmin) {
+            $query->where('firm_id', $firmId);
         }
         $sale = $query->findOrFail($id);
 
@@ -42,8 +46,12 @@ class PaymentController extends Controller
     {
         $query = Payment::with(['firm', 'propertySale', 'customer', 'property']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            $query->where('firm_id', $firmId);
         } elseif ($request->filled('firm_id')) {
             $query->where('firm_id', $request->firm_id);
         }
@@ -71,11 +79,15 @@ class PaymentController extends Controller
 
     public function create()
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $bookingsQuery = PropertySale::with(['customer', 'property', 'firm'])
             ->whereIn('sale_status', ['booked', 'sold']);
 
-        if (!Auth::user()->isAdmin()) {
-            $bookingsQuery->where('firm_id', Auth::user()->firm_id);
+        if (!$isAdmin) {
+            $bookingsQuery->where('firm_id', $firmId);
         }
 
         $bookings = $bookingsQuery->latest()->get();
@@ -86,9 +98,13 @@ class PaymentController extends Controller
 
     public function store(PaymentRequest $request)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $saleQuery = PropertySale::query();
-        if (!Auth::user()->isAdmin()) {
-            $saleQuery->where('firm_id', Auth::user()->firm_id);
+        if (!$isAdmin) {
+            $saleQuery->where('firm_id', $firmId);
         }
         $sale = $saleQuery->findOrFail($request->property_sale_id);
 
@@ -138,7 +154,11 @@ class PaymentController extends Controller
 
     public function show(Payment $payment)
     {
-        if (!Auth::user()->isAdmin() && $payment->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $payment->firm_id != $firmId) {
             abort(403);
         }
 
@@ -149,15 +169,19 @@ class PaymentController extends Controller
 
     public function edit(Payment $payment)
     {
-        if (!Auth::user()->isAdmin() && $payment->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $payment->firm_id != $firmId) {
             abort(403);
         }
 
         $bookingsQuery = PropertySale::with(['customer', 'property', 'firm'])
             ->whereIn('sale_status', ['booked', 'sold']);
 
-        if (!Auth::user()->isAdmin()) {
-            $bookingsQuery->where('firm_id', Auth::user()->firm_id);
+        if (!$isAdmin) {
+            $bookingsQuery->where('firm_id', $firmId);
         }
 
         $bookings = $bookingsQuery->latest()->get();
@@ -168,13 +192,17 @@ class PaymentController extends Controller
 
     public function update(PaymentRequest $request, Payment $payment)
     {
-        if (!Auth::user()->isAdmin() && $payment->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $payment->firm_id != $firmId) {
             abort(403);
         }
 
         $saleQuery = PropertySale::query();
-        if (!Auth::user()->isAdmin()) {
-            $saleQuery->where('firm_id', Auth::user()->firm_id);
+        if (!$isAdmin) {
+            $saleQuery->where('firm_id', $firmId);
         }
         $sale = $saleQuery->findOrFail($request->property_sale_id);
 
@@ -224,7 +252,11 @@ class PaymentController extends Controller
 
     public function destroy(Payment $payment)
     {
-        if (!Auth::user()->isAdmin() && $payment->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $payment->firm_id != $firmId) {
             abort(403);
         }
 

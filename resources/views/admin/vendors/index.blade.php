@@ -2,6 +2,22 @@
 
 @section('title', 'Vendors')
 @section('page-title', 'Vendor Master')
+@php
+    $user = Auth::user();
+    if (!$user && session('login_type') === 'firm' && session('firm_id')) {
+        $authUser = new class {
+            public function isAdmin()        { return true; }
+            public function hasPermission($p){ return true; }
+            public $role = null;
+            public $name = '';
+            public $firm_id = null;
+        };
+        $authUser->name = session('firm_name', 'Firm');
+        $authUser->firm_id = session('firm_id');
+    } else {
+        $authUser = $user;
+    }
+@endphp
 
 @section('content')
 <style>
@@ -286,7 +302,7 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('vendors.index') }}" class="search-form">
-            @if(auth()->user()->isAdmin())
+            @if($authUser && $authUser->isAdmin())
                 <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width: 180px;">
                     <option value="">All Firms</option>
                     @foreach(\App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get() as $firm)
@@ -309,7 +325,7 @@
             <thead>
                 <tr>
                     <th>No</th>
-                    @if(auth()->user()->isAdmin())
+                    @if($authUser && $authUser->isAdmin())
                         <th>Firm</th>
                     @endif
                     <th>Name</th>
@@ -326,7 +342,7 @@
                 @forelse($vendors as $key => $vendor)
                     <tr>
                         <td>{{ $vendors->firstItem() + $key }}</td>
-                        @if(auth()->user()->isAdmin())
+                        @if($authUser && $authUser->isAdmin())
                             <td><span class="badge" style="background:#E6EFF9; color:var(--sidebar-active); font-weight:600;">{{ $vendor->firm->firm_name ?? '-' }}</span></td>
                         @endif
                         <td><strong>{{ $vendor->name }}</strong></td>

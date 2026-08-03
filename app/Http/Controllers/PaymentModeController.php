@@ -12,9 +12,17 @@ class PaymentModeController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PaymentMode::with('firms')->whereHas('firms', function($q) {
-            $q->where('firms.id', Auth::user()->firm_id);
-        });
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        $query = PaymentMode::with('firms');
+        
+        if (!$isAdmin) {
+            $query->whereHas('firms', function($q) use ($firmId) {
+                $q->where('firms.id', $firmId);
+            });
+        }
 
         if ($request->search) {
             $query->where(function ($q) use ($request) {
@@ -49,8 +57,12 @@ class PaymentModeController extends Controller
 
     public function show(PaymentMode $paymentMode)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $paymentMode->load('firms');
-        if (!$paymentMode->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$paymentMode->firms->contains($firmId)) {
             abort(403);
         }
 
@@ -59,8 +71,12 @@ class PaymentModeController extends Controller
 
     public function edit(PaymentMode $paymentMode)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $paymentMode->load('firms');
-        if (!$paymentMode->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$paymentMode->firms->contains($firmId)) {
             abort(403);
         }
 
@@ -70,8 +86,12 @@ class PaymentModeController extends Controller
 
     public function update(PaymentModeRequest $request, PaymentMode $paymentMode)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $paymentMode->load('firms');
-        if (!$paymentMode->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$paymentMode->firms->contains($firmId)) {
             abort(403);
         }
 
@@ -87,8 +107,12 @@ class PaymentModeController extends Controller
 
     public function destroy(PaymentMode $paymentMode)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $paymentMode->load('firms');
-        if (!$paymentMode->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$paymentMode->firms->contains($firmId)) {
             abort(403);
         }
 

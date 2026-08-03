@@ -13,9 +13,12 @@ class BrokerController extends Controller
     public function index(Request $request)
     {
         $query = Broker::query();
+        
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
 
-        if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
+        if (!$isAdmin) {
+            $query->where('firm_id', $user ? $user->firm_id : session('firm_id'));
         } elseif ($request->filled('firm_id')) {
             $query->where('firm_id', $request->firm_id);
         }
@@ -41,8 +44,11 @@ class BrokerController extends Controller
 
     public function store(BrokerRequest $request)
     {
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         Broker::create([
-            'firm_id'               => $request->firm_id ?? Auth::user()->firm_id,
+            'firm_id'               => $request->firm_id ?? $firmId,
             'name'                  => $request->name,
             'mobile'                => $request->mobile,
             'email'                 => $request->email,
@@ -57,7 +63,11 @@ class BrokerController extends Controller
 
     public function show(Broker $broker)
     {
-        if (!Auth::user()->isAdmin() && $broker->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $broker->firm_id != $firmId) {
             abort(403);
         }
 
@@ -66,7 +76,11 @@ class BrokerController extends Controller
 
     public function edit(Broker $broker)
     {
-        if (!Auth::user()->isAdmin() && $broker->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $broker->firm_id != $firmId) {
             abort(403);
         }
 
@@ -75,7 +89,11 @@ class BrokerController extends Controller
 
     public function update(BrokerRequest $request, Broker $broker)
     {
-        if (!Auth::user()->isAdmin() && $broker->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $broker->firm_id != $firmId) {
             abort(403);
         }
 
@@ -95,7 +113,11 @@ class BrokerController extends Controller
 
     public function destroy(Broker $broker)
     {
-        if (!Auth::user()->isAdmin() && $broker->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $broker->firm_id != $firmId) {
             abort(403);
         }
 

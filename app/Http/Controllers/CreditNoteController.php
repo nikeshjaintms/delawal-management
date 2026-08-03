@@ -16,7 +16,11 @@ class CreditNoteController extends Controller
 
     private function authorise(CreditNote $note): void
     {
-        if (!Auth::user()->isAdmin() && $note->firm_id !== Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $note->firm_id !== $firmId) abort(403);
     }
 
     private function dropdowns($selectedFirmId = null): array
@@ -45,8 +49,12 @@ class CreditNoteController extends Controller
     {
         $query = CreditNote::with(['firm', 'customer']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            $query->where('firm_id', $firmId);
         } elseif ($request->filled('firm_id')) {
             $query->where('firm_id', $request->firm_id);
         }
@@ -70,8 +78,8 @@ class CreditNoteController extends Controller
         $creditNotes  = $query->orderBy('credit_note_date', 'desc')->paginate(15)->withQueryString();
 
         $custQuery = Customer::orderBy('name');
-        if (!Auth::user()->isAdmin()) {
-            $custQuery->where('firm_id', Auth::user()->firm_id);
+        if (!$isAdmin) {
+            $custQuery->where('firm_id', $firmId);
         }
         $customers = $custQuery->get();
         $firms     = Firm::where('status', 'active')->orderBy('firm_name')->get();
@@ -86,7 +94,8 @@ class CreditNoteController extends Controller
 
     public function store(CreditNoteRequest $request)
     {
-        $firmId = $request->firm_id ?? Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
 
         $cgst   = (float) ($request->cgst_amount ?? 0);
         $sgst   = (float) ($request->sgst_amount ?? 0);

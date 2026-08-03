@@ -2,6 +2,22 @@
 
 @section('title', 'Project Details')
 @section('page-title', 'Project Master')
+@php
+    $user = Auth::user();
+    if (!$user && session('login_type') === 'firm' && session('firm_id')) {
+        $authUser = new class {
+            public function isAdmin()        { return true; }
+            public function hasPermission($p){ return true; }
+            public $role = null;
+            public $name = '';
+            public $firm_id = null;
+        };
+        $authUser->name = session('firm_name', 'Firm');
+        $authUser->firm_id = session('firm_id');
+    } else {
+        $authUser = $user;
+    }
+@endphp
 
 @section('content')
 <style>
@@ -186,7 +202,7 @@
         <p>Project profile, code, and property listings.</p>
     </div>
     <div style="display: flex; gap: 10px;">
-        @if(auth()->user()->hasPermission('project_edit'))
+        @if($authUser && $authUser->hasPermission('project_edit'))
             <a href="{{ route('projects.edit', $project->id) }}" class="btn-gold">
                 <i class="fa-regular fa-pen-to-square"></i> Edit Project
             </a>
@@ -260,7 +276,7 @@
         <div class="card-box">
             <div class="section-title">
                 <span>Associated Properties ({{ $project->properties->count() }})</span>
-                @if(auth()->user()->hasPermission('property_add'))
+                @if($authUser && $authUser->hasPermission('property_add'))
                     <a href="{{ route('properties.create', ['project_id' => $project->id]) }}" class="btn-gold" style="padding: 6px 12px; font-size: 12.5px;">
                         <i class="fa-solid fa-plus"></i> Add Property
                     </a>

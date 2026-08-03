@@ -12,10 +12,14 @@ class FormSubmissionController extends Controller
 {
     public function index(Request $request)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $query = FormSubmission::with(['form', 'firm']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
+        if (!$isAdmin) {
+            $query->where('firm_id', $firmId);
         } elseif ($request->filled('firm_id')) {
             $query->where('firm_id', $request->firm_id);
         }
@@ -27,8 +31,8 @@ class FormSubmissionController extends Controller
         $submissions = $query->latest()->paginate(15)->withQueryString();
         
         $formsQuery = Form::select('id', 'form_name', 'firm_id');
-        if (!Auth::user()->isAdmin()) {
-            $formsQuery->where('firm_id', Auth::user()->firm_id);
+        if (!$isAdmin) {
+            $formsQuery->where('firm_id', $firmId);
         }
         $forms = $formsQuery->get();
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
@@ -38,8 +42,12 @@ class FormSubmissionController extends Controller
 
     public function show($id)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $submission = FormSubmission::with(['form.fields', 'firm'])->findOrFail($id);
-        if (!Auth::user()->isAdmin() && $submission->firm_id != Auth::user()->firm_id) {
+        if (!$isAdmin && $submission->firm_id != $firmId) {
             abort(403);
         }
         return view('admin.forms.submission_show', compact('submission'));
@@ -47,8 +55,12 @@ class FormSubmissionController extends Controller
 
     public function destroy($id)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $submission = FormSubmission::findOrFail($id);
-        if (!Auth::user()->isAdmin() && $submission->firm_id != Auth::user()->firm_id) {
+        if (!$isAdmin && $submission->firm_id != $firmId) {
             abort(403);
         }
         $submission->delete();

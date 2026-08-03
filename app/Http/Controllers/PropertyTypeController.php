@@ -12,9 +12,17 @@ class PropertyTypeController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PropertyType::with('firms')->whereHas('firms', function($q) {
-            $q->where('firms.id', Auth::user()->firm_id);
-        });
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        $query = PropertyType::with('firms');
+        
+        if (!$isAdmin) {
+            $query->whereHas('firms', function($q) use ($firmId) {
+                $q->where('firms.id', $firmId);
+            });
+        }
 
         if ($request->search) {
             $query->where(function ($q) use ($request) {
@@ -49,8 +57,12 @@ class PropertyTypeController extends Controller
 
     public function show(PropertyType $propertyType)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $propertyType->load('firms');
-        if (!$propertyType->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$propertyType->firms->contains($firmId)) {
             abort(403);
         }
 
@@ -59,8 +71,12 @@ class PropertyTypeController extends Controller
 
     public function edit(PropertyType $propertyType)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $propertyType->load('firms');
-        if (!$propertyType->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$propertyType->firms->contains($firmId)) {
             abort(403);
         }
 
@@ -70,8 +86,12 @@ class PropertyTypeController extends Controller
 
     public function update(PropertyTypeRequest $request, PropertyType $propertyType)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $propertyType->load('firms');
-        if (!$propertyType->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$propertyType->firms->contains($firmId)) {
             abort(403);
         }
 
@@ -87,8 +107,12 @@ class PropertyTypeController extends Controller
 
     public function destroy(PropertyType $propertyType)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $propertyType->load('firms');
-        if (!$propertyType->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$propertyType->firms->contains($firmId)) {
             abort(403);
         }
 

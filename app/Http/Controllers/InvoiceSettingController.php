@@ -13,9 +13,19 @@ class InvoiceSettingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = InvoiceSetting::with('firms')->whereHas('firms', function($q) {
-            $q->where('firms.id', Auth::user()->firm_id);
-        })->with('financialYear');
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        $query = InvoiceSetting::with('firms');
+        
+        if (!$isAdmin) {
+            $query->whereHas('firms', function($q) use ($firmId) {
+                $q->where('firms.id', $firmId);
+            });
+        }
+
+        $query->with('financialYear');
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -45,8 +55,12 @@ class InvoiceSettingController extends Controller
 
     public function show(InvoiceSetting $invoiceSetting)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $invoiceSetting->load('firms');
-        if (!$invoiceSetting->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$invoiceSetting->firms->contains($firmId)) {
             abort(403);
         }
 
@@ -56,8 +70,12 @@ class InvoiceSettingController extends Controller
 
     public function edit(InvoiceSetting $invoiceSetting)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $invoiceSetting->load('firms');
-        if (!$invoiceSetting->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$invoiceSetting->firms->contains($firmId)) {
             abort(403);
         }
 
@@ -68,8 +86,12 @@ class InvoiceSettingController extends Controller
 
     public function update(InvoiceSettingRequest $request, InvoiceSetting $invoiceSetting)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $invoiceSetting->load('firms');
-        if (!$invoiceSetting->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$invoiceSetting->firms->contains($firmId)) {
             abort(403);
         }
 
@@ -83,8 +105,12 @@ class InvoiceSettingController extends Controller
 
     public function destroy(InvoiceSetting $invoiceSetting)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $invoiceSetting->load('firms');
-        if (!$invoiceSetting->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$invoiceSetting->firms->contains($firmId)) {
             abort(403);
         }
 
@@ -97,8 +123,12 @@ class InvoiceSettingController extends Controller
     /** Preview current invoice number formats */
     public function preview(InvoiceSetting $invoiceSetting)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $invoiceSetting->load('firms');
-        if (!$invoiceSetting->firms->contains(Auth::user()->firm_id)) {
+        if (!$isAdmin && !$invoiceSetting->firms->contains($firmId)) {
             abort(403);
         }
 

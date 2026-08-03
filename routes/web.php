@@ -180,12 +180,6 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
         Route::get('roles/{role}/permissions', [RoleController::class, 'permissions'])->name('roles.permissions')->middleware(['permission:role_permission_view']);
         Route::post('roles/{role}/permissions', [RoleController::class, 'updatePermissions'])->name('roles.permissions.update')->middleware(['permission:role_permission_edit']);
 
-        // ── Form Management ──────────────────────────────────────────────
-        Route::resource('forms', FormController::class)->middleware(['permission:form_management_view']);
-        Route::patch('forms/{form}/toggle-status', [FormController::class, 'toggleStatus'])->name('forms.toggle-status')->middleware(['permission:form_management_edit']);
-        Route::post('forms/{form}/submit', [FormController::class, 'submit'])->name('forms.submit')->middleware(['permission:form_management_view']);
-        Route::resource('form-submissions', FormSubmissionController::class)->only(['index', 'show', 'destroy'])->middleware(['permission:form_management_view']);
-
         // ── Audit Logs ───────────────────────────────────────────────────
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index')->middleware(['permission:audit_logs_view']);
         Route::post('audit-logs/track', [AuditLogController::class, 'track'])->name('audit-logs.track');
@@ -200,9 +194,15 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
         Route::resource('firm-master', FirmController::class);
         Route::resource('financial-years', FinancialYearController::class);
         Route::patch('financial-years/{financialYear}/set-active', [FinancialYearController::class, 'setActive'])->name('financial-years.set-active');
-        Route::resource('invoice-settings', InvoiceSettingController::class);
-        Route::get('invoice-settings/{invoiceSetting}/preview', [InvoiceSettingController::class, 'preview'])->name('invoice-settings.preview');
     });
+
+    // ── Form & Invoice Settings (Accessible to both Admin & Firm) ───────────────────
+    Route::resource('forms', FormController::class)->middleware(['permission:form_management_view']);
+    Route::patch('forms/{form}/toggle-status', [FormController::class, 'toggleStatus'])->name('forms.toggle-status')->middleware(['permission:form_management_edit']);
+    Route::post('forms/{form}/submit', [FormController::class, 'submit'])->name('forms.submit')->middleware(['permission:form_management_view']);
+    Route::resource('form-submissions', FormSubmissionController::class)->only(['index', 'show', 'destroy'])->middleware(['permission:form_management_view']);
+    Route::resource('invoice-settings', InvoiceSettingController::class);
+    Route::get('invoice-settings/{invoiceSetting}/preview', [InvoiceSettingController::class, 'preview'])->name('invoice-settings.preview');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

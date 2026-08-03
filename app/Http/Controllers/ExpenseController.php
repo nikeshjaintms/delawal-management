@@ -19,9 +19,11 @@ class ExpenseController extends Controller
     private function authorise(Expense $expense): void
     {
         $user = Auth::user();
-        if ($user && !$user->isAdmin()) {
-            $userFirmId = $user->firm_id;
-            if ($expense->firm_id != $userFirmId && !$expense->firms->contains($userFirmId)) {
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            if ($expense->firm_id != $firmId && !$expense->firms->contains($firmId)) {
                 abort(403);
             }
         }
@@ -39,7 +41,9 @@ class ExpenseController extends Controller
 
         if ($firmId && (!$user || !$user->isAdmin())) {
             $propQuery->where('firm_id', $firmId);
-            $catQuery->where('firm_id', $firmId);
+            $catQuery->whereHas('firms', function($q) use ($firmId) {
+                $q->where('firms.id', $firmId);
+            });
         }
 
         return [
@@ -53,8 +57,12 @@ class ExpenseController extends Controller
     {
         $query = Expense::with(['firms', 'firm', 'property', 'expenseCategory']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->forFirms([Auth::user()->firm_id]);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            $query->forFirms([$firmId]);
         } elseif ($request->filled('firm_ids') || $request->filled('firm_id')) {
             $firmIds = $request->input('firm_ids', (array)$request->firm_id);
             $query->forFirms($firmIds);
@@ -113,8 +121,10 @@ class ExpenseController extends Controller
 
     public function store(ExpenseRequest $request)
     {
-        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? Auth::user()->firm_id));
-        $primaryFirmId = reset($firmIds) ?: Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $firmId));
+        $primaryFirmId = reset($firmIds) ?: $firmId;
 
         $categoryName = null;
         if ($request->expense_category_id) {
@@ -172,7 +182,9 @@ class ExpenseController extends Controller
         $expense->load(['firms', 'firm']);
         $this->authorise($expense);
 
-        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $expense->firm_id ?? Auth::user()->firm_id));
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $expense->firm_id ?? $firmId));
         $primaryFirmId = reset($firmIds) ?: $expense->firm_id;
 
         $categoryName = $expense->expense_category;

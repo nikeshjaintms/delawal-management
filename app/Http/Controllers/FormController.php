@@ -16,10 +16,14 @@ class FormController extends Controller
 {
     public function index(Request $request)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $query = Form::with('firm');
 
-        if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
+        if (!$isAdmin) {
+            $query->where('firm_id', $firmId);
         } elseif ($request->filled('firm_id')) {
             $query->where('firm_id', $request->firm_id);
         }
@@ -49,7 +53,8 @@ class FormController extends Controller
     {
         return DB::transaction(function () use ($request) {
             try {
-                $firmId = $request->firm_id ?? Auth::user()->firm_id;
+                $user = Auth::user();
+                $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
 
                 $form = Form::create([
                     'firm_id'     => $firmId,
@@ -96,7 +101,11 @@ class FormController extends Controller
 
     public function show(Form $form)
     {
-        if (!Auth::user()->isAdmin() && $form->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $form->firm_id != $firmId) abort(403);
 
         $fields = $form->fields()->where('status', 'active')->orderBy('sort_order', 'asc')->get();
         return view('admin.forms.show', compact('form', 'fields'));
@@ -104,7 +113,11 @@ class FormController extends Controller
 
     public function edit(Form $form)
     {
-        if (!Auth::user()->isAdmin() && $form->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $form->firm_id != $firmId) abort(403);
 
         $fields = $form->fields()->orderBy('sort_order', 'asc')->get();
         $firms  = Firm::where('status', 'active')->orderBy('firm_name')->get();
@@ -113,10 +126,15 @@ class FormController extends Controller
 
     public function update(FormRequest $request, Form $form)
     {
-        if (!Auth::user()->isAdmin() && $form->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $form->firm_id != $firmId) abort(403);
 
         return DB::transaction(function () use ($request, $form) {
             try {
+                $user = Auth::user();
                 $firmId = $request->firm_id ?? $form->firm_id;
 
                 $form->update([
@@ -147,13 +165,13 @@ class FormController extends Controller
                             }
                         } else {
                             $newField = $form->fields()->create([
-                                'label'       => $fieldData['label'],
-                                'field_name'  => strtolower(str_replace(' ', '_', $fieldData['field_name'])),
-                                'field_type'  => $fieldData['field_type'],
-                                'is_required' => isset($fieldData['is_required']) && $fieldData['is_required'] ? true : false,
-                                'options'     => $fieldData['options'] ?? null,
-                                'sort_order'  => $fieldData['sort_order'],
-                                'status'      => $fieldData['status'],
+                                    'label'       => $fieldData['label'],
+                                    'field_name'  => strtolower(str_replace(' ', '_', $fieldData['field_name'])),
+                                    'field_type'  => $fieldData['field_type'],
+                                    'is_required' => isset($fieldData['is_required']) && $fieldData['is_required'] ? true : false,
+                                    'options'     => $fieldData['options'] ?? null,
+                                    'sort_order'  => $fieldData['sort_order'],
+                                    'status'      => $fieldData['status'],
                             ]);
                             $existingIds[] = $newField->id;
                         }
@@ -184,7 +202,11 @@ class FormController extends Controller
 
     public function destroy(Form $form)
     {
-        if (!Auth::user()->isAdmin() && $form->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $form->firm_id != $firmId) abort(403);
 
         $form->delete();
 
@@ -193,7 +215,11 @@ class FormController extends Controller
 
     public function toggleStatus(Form $form)
     {
-        if (!Auth::user()->isAdmin() && $form->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $form->firm_id != $firmId) abort(403);
 
         $form->status = $form->status === 'active' ? 'inactive' : 'active';
         $form->save();
@@ -203,7 +229,8 @@ class FormController extends Controller
 
     public function submit(Request $request, Form $form)
     {
-        $firmId = $form->firm_id ?: Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $form->firm_id ?: ($user ? $user->firm_id : session('firm_id'));
 
         FormSubmission::create([
             'firm_id'        => $firmId,

@@ -17,7 +17,11 @@ class BrokerCommissionController extends Controller
 {
     private function authorise(BrokerCommission $commission): void
     {
-        if (!Auth::user()->isAdmin() && $commission->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $commission->firm_id != $firmId) {
             abort(403);
         }
     }
@@ -52,9 +56,13 @@ class BrokerCommissionController extends Controller
 
     public function index(Request $request)
     {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         $kpiQuery = BrokerCommission::query();
-        if (!Auth::user()->isAdmin()) {
-            $kpiQuery->where('firm_id', Auth::user()->firm_id);
+        if (!$isAdmin) {
+            $kpiQuery->where('firm_id', $firmId);
         } elseif ($request->filled('firm_id')) {
             $kpiQuery->where('firm_id', $request->firm_id);
         }
@@ -72,8 +80,8 @@ class BrokerCommissionController extends Controller
         // Query with filters
         $query = BrokerCommission::with(['firm', 'broker', 'property', 'customer', 'booking']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
+        if (!$isAdmin) {
+            $query->where('firm_id', $firmId);
         } elseif ($request->filled('firm_id')) {
             $query->where('firm_id', $request->firm_id);
         }
@@ -133,7 +141,8 @@ class BrokerCommissionController extends Controller
 
     public function store(BrokerCommissionRequest $request)
     {
-        $firmId = $request->firm_id ?? Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
 
         BrokerCommission::create([
             'firm_id'           => $firmId,
@@ -180,7 +189,8 @@ class BrokerCommissionController extends Controller
         $commission = BrokerCommission::findOrFail($id);
         $this->authorise($commission);
 
-        $firmId = $request->firm_id ?? $commission->firm_id ?? Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $request->firm_id ?? $commission->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
 
         $commission->update([
             'firm_id'           => $firmId,
@@ -226,8 +236,12 @@ class BrokerCommissionController extends Controller
     {
         $query = BrokerCommission::with(['firm', 'broker', 'property', 'customer', 'booking']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            $query->where('firm_id', $firmId);
         } elseif ($request->filled('firm_id')) {
             $query->where('firm_id', $request->firm_id);
         }

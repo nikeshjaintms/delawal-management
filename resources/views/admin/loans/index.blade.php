@@ -1,6 +1,22 @@
 @extends('admin.layouts.app')
 @section('title','Loans')
 @section('page-title','Loan Management')
+@php
+    $user = Auth::user();
+    if (!$user && session('login_type') === 'firm' && session('firm_id')) {
+        $authUser = new class {
+            public function isAdmin()        { return true; }
+            public function hasPermission($p){ return true; }
+            public $role = null;
+            public $name = '';
+            public $firm_id = null;
+        };
+        $authUser->name = session('firm_name', 'Firm');
+        $authUser->firm_id = session('firm_id');
+    } else {
+        $authUser = $user;
+    }
+@endphp
 @section('content')
 <style>
     .crud-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:15px;}
@@ -68,7 +84,7 @@
 
 {{-- Stat Cards --}}
 @php
-    $firmId    = Auth::user()->firm_id;
+    $firmId    = $authUser ? $authUser->firm_id : null;
     $allLoans  = \App\Models\Loan::where('firm_id',$firmId);
     $activeCount    = (clone $allLoans)->where('loan_status','Active')->count();
     $completedCount = (clone $allLoans)->where('loan_status','Completed')->count();

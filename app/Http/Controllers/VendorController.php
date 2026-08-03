@@ -14,8 +14,11 @@ class VendorController extends Controller
     {
         $query = Vendor::query();
         
-        if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+
+        if (!$isAdmin) {
+            $query->where('firm_id', $user ? $user->firm_id : session('firm_id'));
         } elseif ($request->filled('firm_id')) {
             $query->where('firm_id', $request->firm_id);
         }
@@ -42,8 +45,11 @@ class VendorController extends Controller
 
     public function store(VendorRequest $request)
     {
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
         Vendor::create([
-            'firm_id'       => $request->firm_id ?? Auth::user()->firm_id,
+            'firm_id'       => $request->firm_id ?? $firmId,
             'name'          => $request->name,
             'mobile'        => $request->mobile,
             'email'         => $request->email,
@@ -59,7 +65,11 @@ class VendorController extends Controller
 
     public function show(Vendor $vendor)
     {
-        if (!Auth::user()->isAdmin() && $vendor->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $vendor->firm_id != $firmId) {
             abort(403);
         }
 
@@ -68,7 +78,11 @@ class VendorController extends Controller
 
     public function edit(Vendor $vendor)
     {
-        if (!Auth::user()->isAdmin() && $vendor->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $vendor->firm_id != $firmId) {
             abort(403);
         }
 
@@ -77,7 +91,11 @@ class VendorController extends Controller
 
     public function update(VendorRequest $request, Vendor $vendor)
     {
-        if (!Auth::user()->isAdmin() && $vendor->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $vendor->firm_id != $firmId) {
             abort(403);
         }
 
@@ -98,7 +116,11 @@ class VendorController extends Controller
 
     public function destroy(Vendor $vendor)
     {
-        if (!Auth::user()->isAdmin() && $vendor->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $vendor->firm_id != $firmId) {
             abort(403);
         }
 

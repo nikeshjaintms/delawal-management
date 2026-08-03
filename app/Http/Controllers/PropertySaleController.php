@@ -57,8 +57,12 @@ class PropertySaleController extends Controller
     {
         $query = PropertySale::with(['firm', 'property', 'customer', 'broker']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->where('firm_id', Auth::user()->firm_id);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            $query->where('firm_id', $firmId);
         } elseif ($request->filled('firm_id')) {
             $query->where('firm_id', $request->firm_id);
         }
@@ -144,7 +148,11 @@ class PropertySaleController extends Controller
 
     public function show(PropertySale $propertySale)
     {
-        if (!Auth::user()->isAdmin() && $propertySale->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $propertySale->firm_id != $firmId) {
             abort(403);
         }
 
@@ -155,7 +163,11 @@ class PropertySaleController extends Controller
 
     public function edit(PropertySale $propertySale)
     {
-        if (!Auth::user()->isAdmin() && $propertySale->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $propertySale->firm_id != $firmId) {
             abort(403);
         }
 
@@ -167,7 +179,11 @@ class PropertySaleController extends Controller
 
     public function update(Request $request, PropertySale $propertySale)
     {
-        if (!Auth::user()->isAdmin() && $propertySale->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $propertySale->firm_id != $firmId) {
             abort(403);
         }
 
@@ -220,7 +236,11 @@ class PropertySaleController extends Controller
 
     public function destroy(PropertySale $propertySale)
     {
-        if (!Auth::user()->isAdmin() && $propertySale->firm_id != Auth::user()->firm_id) {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $propertySale->firm_id != $firmId) {
             abort(403);
         }
 

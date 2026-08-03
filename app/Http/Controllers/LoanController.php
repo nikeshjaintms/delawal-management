@@ -21,9 +21,11 @@ class LoanController extends Controller
     private function authorise(Loan $loan): void
     {
         $user = Auth::user();
-        if ($user && !$user->isAdmin()) {
-            $userFirmId = $user->firm_id;
-            if ($loan->firm_id != $userFirmId && !$loan->firms->contains($userFirmId)) {
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            if ($loan->firm_id != $firmId && !$loan->firms->contains($firmId)) {
                 abort(403);
             }
         }
@@ -129,8 +131,12 @@ class LoanController extends Controller
     {
         $query = Loan::with(['firms', 'firm', 'property', 'customer', 'paymentMode']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->forFirms([Auth::user()->firm_id]);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            $query->forFirms([$firmId]);
         } elseif ($request->filled('firm_ids') || $request->filled('firm_id')) {
             $firmIds = $request->input('firm_ids', (array)$request->firm_id);
             $query->forFirms($firmIds);
@@ -186,8 +192,10 @@ class LoanController extends Controller
 
     public function store(LoanRequest $request)
     {
-        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? Auth::user()->firm_id));
-        $primaryFirmId = reset($firmIds) ?: Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $firmId));
+        $primaryFirmId = reset($firmIds) ?: $firmId;
 
         $loan = Loan::create([
             'firm_id'         => $primaryFirmId,
@@ -254,7 +262,9 @@ class LoanController extends Controller
         $loan->load(['firms', 'firm']);
         $this->authorise($loan);
 
-        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $loan->firm_id ?? Auth::user()->firm_id));
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $loan->firm_id ?? $firmId));
         $primaryFirmId = reset($firmIds) ?: $loan->firm_id;
 
         $loan->update([
@@ -306,8 +316,12 @@ class LoanController extends Controller
     {
         $query = Loan::with(['firm', 'property', 'customer', 'emiSchedules']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->forFirms([Auth::user()->firm_id]);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            $query->forFirms([$firmId]);
         } elseif ($request->filled('firm_id')) {
             $query->forFirms([$request->firm_id]);
         }
@@ -357,9 +371,10 @@ class LoanController extends Controller
         $loan->refresh()->load(['firms', 'firm', 'emiSchedules.firms', 'emiSchedules.firm']);
 
         $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
         $firmId = $loan->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
         $pmQuery = \App\Models\PaymentMode::where('status', 'active')->orderBy('name');
-        if ($firmId && (!$user || !$user->isAdmin())) {
+        if ($firmId && (!$user || !$isAdmin)) {
             $pmQuery->whereHas('firms', function($q) use ($firmId) {
                 $q->where('firms.id', $firmId);
             });

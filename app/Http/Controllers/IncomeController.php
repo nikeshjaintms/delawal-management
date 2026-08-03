@@ -16,9 +16,11 @@ class IncomeController extends Controller
     private function authorise(Income $income): void
     {
         $user = Auth::user();
-        if ($user && !$user->isAdmin()) {
-            $userFirmId = $user->firm_id;
-            if ($income->firm_id != $userFirmId && !$income->firms->contains($userFirmId)) {
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            if ($income->firm_id != $firmId && !$income->firms->contains($firmId)) {
                 abort(403);
             }
         }
@@ -54,8 +56,12 @@ class IncomeController extends Controller
     {
         $query = Income::with(['firms', 'firm', 'paymentMode', 'property.propertyType']);
 
-        if (!Auth::user()->isAdmin()) {
-            $query->forFirms([Auth::user()->firm_id]);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            $query->forFirms([$firmId]);
         } elseif ($request->filled('firm_ids') || $request->filled('firm_id')) {
             $firmIds = $request->input('firm_ids', (array)$request->firm_id);
             $query->forFirms($firmIds);
@@ -119,19 +125,16 @@ class IncomeController extends Controller
 
         $incomes     = $query->orderBy('income_date', 'desc')->paginate(15)->withQueryString();
         
-        $user = Auth::user();
-        $firmId = $user ? $user->firm_id : session('firm_id');
-
         $firms       = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
         $propQuery = \App\Models\Property::orderBy('property_name');
-        if (!Auth::user()->isAdmin()) {
+        if (!$isAdmin) {
             $propQuery->where('firm_id', $firmId);
         }
         $properties = $propQuery->get();
 
         $ptQuery = \App\Models\PropertyType::orderBy('name');
-        if (!Auth::user()->isAdmin()) {
+        if (!$isAdmin) {
             $ptQuery->whereHas('firms', fn($q) => $q->where('firms.id', $firmId));
         }
         $propertyTypes = $ptQuery->get();
@@ -179,8 +182,10 @@ class IncomeController extends Controller
 
     public function store(IncomeRequest $request)
     {
-        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? Auth::user()->firm_id));
-        $primaryFirmId = reset($firmIds) ?: Auth::user()->firm_id;
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $firmId));
+        $primaryFirmId = reset($firmIds) ?: $firmId;
 
         $income = Income::create([
             'firm_id'         => $primaryFirmId,
@@ -219,7 +224,9 @@ class IncomeController extends Controller
         $income->load(['firms', 'firm']);
         $this->authorise($income);
 
-        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $income->firm_id ?? Auth::user()->firm_id));
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $income->firm_id ?? $firmId));
         $primaryFirmId = reset($firmIds) ?: $income->firm_id;
 
         $income->update([

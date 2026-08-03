@@ -34,9 +34,11 @@ class ReportsController extends Controller
     // ---------------------------------------------------------------
     // Shared — scope to current user's firm
     // ---------------------------------------------------------------
-    private function firmId(): int
+    private function firmId(): ?int
     {
-        return Auth::user()->firm_id;
+        $user = Auth::user();
+        $id = $user ? $user->firm_id : session('firm_id');
+        return $id ? (int) $id : null;
     }
 
     // ---------------------------------------------------------------
