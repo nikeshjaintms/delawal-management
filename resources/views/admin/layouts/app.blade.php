@@ -757,113 +757,230 @@
     }
 
     /* ================================================================
-       RESPONSIVE
+       RESPONSIVE DESIGN SYSTEM OVERRIDES
+       Matches Breakpoints: Mobile (320px-767px), Tablet (768px-1024px), Desktop (1025px+)
     ================================================================ */
-    @media (max-width: 992px) {
+    @media (max-width: 1024px) {
         :root {
             --sidebar-width: 260px;
         }
         .sidebar {
-            left: calc(-1 * var(--sidebar-width));
-            box-shadow: none;
-            /* width transition not needed on mobile, only left */
-            transition: left 0.3s cubic-bezier(0.4,0,0.2,1),
-                        box-shadow 0.3s ease;
+            left: calc(-1 * var(--sidebar-width)) !important;
+            box-shadow: none !important;
+            transition: left 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease !important;
         }
         .sidebar.active {
-            left: 0;
-            box-shadow: 4px 0 32px rgba(0,0,0,0.3);
+            left: 0 !important;
+            box-shadow: 4px 0 32px rgba(0,0,0,0.3) !important;
         }
         .main-content {
-            margin-left: 0;        /* full width on mobile */
-            transition: none;      /* no margin shift on mobile */
+            margin-left: 0 !important;
+            transition: none !important;
         }
-        .sidebar-overlay.active { display: block; }
-        /* No collapsed state on mobile — use slide in/out instead */
-        .sidebar-collapsed .sidebar { width: var(--sidebar-width); left: calc(-1 * var(--sidebar-width)); }
-        .sidebar-collapsed .sidebar.active { left: 0; }
-        .sidebar-collapsed .main-content { margin-left: 0; }
+        .sidebar-overlay.active { 
+            display: block !important; 
+        }
+        /* Collapsed logic fallback on tablet view */
+        .sidebar-collapsed .sidebar { 
+            width: var(--sidebar-width) !important; 
+            left: calc(-1 * var(--sidebar-width)) !important; 
+        }
+        .sidebar-collapsed .sidebar.active { 
+            left: 0 !important; 
+        }
+        .sidebar-collapsed .main-content { 
+            margin-left: 0 !important; 
+        }
         .sidebar-collapsed .menu-link span,
         .sidebar-collapsed .menu-group-label,
-        .sidebar-collapsed .logo-text { opacity: 1; width: auto; }
-    }
-    @media (max-width: 576px) {
-        .topbar { padding: 0 14px; }
-        .content-body { padding: 16px 14px 32px; }
-        .user-info { display: none; }
-    }
-
-    /* ================================================================
-       PAGE-LEVEL ANIMATION HELPERS
-    ================================================================ */
-    .content-body > * {
-        animation: slideUp 0.28s cubic-bezier(0.4,0,0.2,1) both;
-    }
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(10px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Stagger children */
-    .content-body > *:nth-child(1) { animation-delay: 0.02s; }
-    .content-body > *:nth-child(2) { animation-delay: 0.06s; }
-    .content-body > *:nth-child(3) { animation-delay: 0.10s; }
-    .content-body > *:nth-child(4) { animation-delay: 0.14s; }
-
-    /* Modal animation */
-    .modal.active .modal-box {
-        animation: modalIn 0.22s cubic-bezier(0.4,0,0.2,1) both;
-    }
-    @keyframes modalIn {
-        from { opacity: 0; transform: scale(0.94) translateY(10px); }
-        to   { opacity: 1; transform: scale(1) translateY(0); }
-    }
-    /* Responsive overrides and utility improvements */
-    html, body {
-        overflow-x: hidden; /* Prevent horizontal scrolling */
-        width: 100%;
-    }
-    .main-content {
-        overflow-x: hidden; /* Prevent layout shifts */
-    }
-    .table-responsive {
-        width: 100%;
-        margin-bottom: 1rem;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-    }
-    @media (max-width: 768px) {
-        .content-body {
-            padding: 12px 12px 24px !important;
+        .sidebar-collapsed .logo-text { 
+            opacity: 1 !important; 
+            width: auto !important; 
         }
-        .topbar {
-            padding: 0 16px !important;
+
+        /* Prevent table squeezed columns, support natural scrolling */
+        body .table-container, body .table-wrap, body .table-responsive, body div:has(> table) {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            width: 100% !important;
+            margin-bottom: 1rem !important;
+            border-radius: var(--radius-md) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+        body table, body .premium-table, body .erp-table, body .sales-table, body .pay-table, body .rent-table, body .r-table {
+            min-width: max-content !important;
+            width: 100% !important;
+        }
+        /* Table action row styling - prevent word wrap height explosion */
+        body td.actions, body td.action-column, body .action-links, body .table-action-buttons, body .action-buttons, body .btn-actions {
+            white-space: nowrap !important;
+            flex-wrap: nowrap !important;
+        }
+
+        /* Dashboard Grid Layout Adjustments */
+        body .dashboard-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+        }
+        body .summary-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+        }
+        body .kpi-grid, body .kpi-grid-2 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+
+        /* Filter bar responsiveness */
+        body .filter-bar {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+            align-items: end !important;
+            width: 100% !important;
+        }
+        body .filter-group {
+            width: 100% !important;
+            margin-bottom: 0 !important;
+        }
+        body .filter-control, body .search-input {
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+        body .btn-search, body .btn-reset {
+            width: 100% !important;
+            justify-content: center !important;
+            align-self: stretch !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .topbar { 
+            padding: 0 16px !important; 
+        }
+        .content-body { 
+            padding: 12px 12px 24px !important; 
+        }
+        .user-info { 
+            display: none !important; 
+        }
+        .page-header-title {
+            font-size: 14px !important;
+            max-width: 160px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+        .topbar-right {
+            gap: 12px !important;
         }
         .user-panel {
-            gap: 8px !important;
-        }
-        /* Buttons wrapping & stacking on mobile */
-        .btn, .btn-gold, .btn-outline, .btn-view, .btn-edit, .btn-delete {
-            white-space: normal !important;
-            word-wrap: break-word;
-            text-align: center;
-        }
-        .table-action-buttons, .action-buttons, .btn-actions {
-            flex-wrap: wrap !important;
             gap: 6px !important;
         }
-        /* Form fields stacking */
-        .form-group, .row > [class*="col-"] {
-            margin-bottom: 12px;
+
+        /* General Forms stack and spacing */
+        body .form-row, body .form-row-2, body .form-row-3, body .form-row-4, body .form-grid, body .grid-cols-2, body .grid-cols-3, body .grid-cols-4, body .form-row-extra {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
         }
-        /* Ensure tables fill width */
-        .premium-table {
+        body .form-group, body .form-group-row {
+            margin-bottom: 16px !important;
             width: 100% !important;
-            display: table !important;
+        }
+        body .form-control, body select, body input, body textarea {
+            width: 100% !important;
+            max-width: 100% !important;
+            display: block !important;
+        }
+
+        /* Touch friendly form actions - primary CTA on top, cancel/back on bottom */
+        body .form-actions {
+            flex-direction: column-reverse !important;
+            align-items: stretch !important;
+            gap: 10px !important;
+            margin-top: 20px !important;
+            padding-top: 16px !important;
+        }
+        body .form-actions > * {
+            width: 100% !important;
+            text-align: center !important;
+            justify-content: center !important;
+        }
+
+        /* Cards & KPI Boxes Spacing */
+        body .card-box, body .card, body .crud-box, body .stat-card, body .kpi-card {
+            padding: 16px !important;
+        }
+
+        /* Mobile specific font adjustments */
+        body h1, body .page-header-title { font-size: 15px !important; }
+        body h2, body .crud-title h2, body .rpt-title-block h2 { font-size: 18px !important; }
+        body h3, body .summary-title { font-size: 13px !important; }
+        body { font-size: 13px !important; }
+
+        /* KPI Layout */
+        body .kpi-grid, body .kpi-grid-2 {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* Table header styling for small screens */
+        body .crud-header, body .rpt-header {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 16px !important;
+            margin-bottom: 20px !important;
+        }
+        body .crud-title, body .rpt-title-block {
+            text-align: center !important;
+        }
+        body .crud-header .action-buttons, body .crud-header .btn-actions, body .rpt-action-btns {
+            justify-content: center !important;
+            width: 100% !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+        }
+        body .crud-header .action-buttons > *, body .crud-header .btn-actions > *, body .rpt-action-btns > * {
+            flex: 1 !important;
+            min-width: 120px !important;
+            text-align: center !important;
+            justify-content: center !important;
         }
     }
+
+    @media (max-width: 480px) {
+        body .filter-bar {
+            grid-template-columns: 1fr !important;
+        }
+        body .logout-btn span {
+            display: none !important;
+        }
+        body .logout-btn {
+            padding: 8px 10px !important;
+        }
+        body .page-header-title {
+            max-width: 100px !important;
+        }
+        body .crud-header .action-buttons > *, body .crud-header .btn-actions > *, body .rpt-action-btns > * {
+            width: 100% !important;
+            flex: none !important;
+        }
+    }
+
+    /* Keep generic touch padding and alignment for action buttons */
+    body .btn, body .btn-gold, body .btn-outline, body .btn-view, body .btn-edit, body .btn-delete, body .btn-search {
+        min-height: 38px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 13px !important;
+        padding: 8px 16px !important;
+    }
+
+    /* Scale images automatically inside wrappers */
+    body img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
     /* Avoid dropdown screen overflow */
     .dropdown-menu {
         max-width: 290px;
@@ -1557,7 +1674,7 @@ const sidebar       = document.getElementById('sidebar');
 const overlay       = document.getElementById('sidebarOverlay');
 const body          = document.body;
 
-const isDesktop = () => window.innerWidth > 992;
+const isDesktop = () => window.innerWidth > 1024;
 
 // ── Sync toggle button active state with current collapsed state ──
 function syncToggleBtn() {
