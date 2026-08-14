@@ -196,10 +196,20 @@
     }
 </style>
 
+{{-- Breadcrumb --}}
+<div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">
+    Property Management &nbsp;&gt;&nbsp; 
+    @if($project->propertyMaster)
+        <a href="{{ route('property-masters.show', $project->propertyMaster->id) }}" style="color: var(--gold); text-decoration: none; font-weight: 600;">{{ $project->propertyMaster->property_name }}</a> &nbsp;&gt;&nbsp; 
+    @endif
+    <a href="{{ route('projects.index', $project->property_id ? ['property_id' => $project->property_id] : []) }}" style="color: var(--gold); text-decoration: none; font-weight: 600;">Projects</a> &nbsp;&gt;&nbsp; 
+    <span style="color: var(--text-primary); font-weight: 600;">{{ $project->project_name }}</span>
+</div>
+
 <div class="crud-header">
     <div class="crud-title">
         <h2>{{ $project->project_name }}</h2>
-        <p>Project profile, code, and property listings.</p>
+        <p>Project details and Bulk management.</p>
     </div>
     <div style="display: flex; gap: 10px;">
         @if($authUser && $authUser->hasPermission('project_edit'))
@@ -207,9 +217,15 @@
                 <i class="fa-regular fa-pen-to-square"></i> Edit Project
             </a>
         @endif
-        <a href="{{ route('projects.index') }}" class="btn-outline">
-            <i class="fa-solid fa-arrow-left"></i> Back to Projects
-        </a>
+        @if($project->propertyMaster)
+            <a href="{{ route('property-masters.show', $project->propertyMaster->id) }}" class="btn-outline">
+                <i class="fa-solid fa-arrow-left"></i> Back to {{ $project->propertyMaster->property_name }}
+            </a>
+        @else
+            <a href="{{ route('projects.index') }}" class="btn-outline">
+                <i class="fa-solid fa-arrow-left"></i> Back to Projects
+            </a>
+        @endif
     </div>
 </div>
 
@@ -225,6 +241,18 @@
         @endif
 
         <ul class="info-list">
+            <li class="info-item">
+                <span class="info-label">Property Master</span>
+                <span class="info-value">
+                    @if($project->propertyMaster)
+                        <a href="{{ route('property-masters.show', $project->propertyMaster->id) }}" style="color: var(--gold); font-weight: 600; text-decoration: none;">
+                            {{ $project->propertyMaster->property_name }}
+                        </a>
+                    @else
+                        -
+                    @endif
+                </span>
+            </li>
             <li class="info-item">
                 <span class="info-label">Project Code</span>
                 <span class="info-value"><code style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-weight: 600;">{{ $project->project_code }}</code></span>
@@ -248,7 +276,7 @@
         </ul>
     </div>
 
-    <!-- Right Panel: Address & Child Properties -->
+    <!-- Right Panel: Address & Bulk Management -->
     <div style="display: flex; flex-direction: column; gap: 30px;">
         <div class="card-box">
             <h3 class="section-title" style="margin-bottom: 12px;">Location & Description</h3>
@@ -275,19 +303,24 @@
 
         <div class="card-box">
             <div class="section-title">
-                <span>Associated Properties ({{ $project->properties->count() }})</span>
-                @if($authUser && $authUser->hasPermission('property_add'))
-                    <a href="{{ route('properties.create', ['project_id' => $project->id]) }}" class="btn-gold" style="padding: 6px 12px; font-size: 12.5px;">
-                        <i class="fa-solid fa-plus"></i> Add Property
+                <span>Bulk Management ({{ $project->properties->count() }} Records)</span>
+                <div style="display: flex; gap: 8px;">
+                    <a href="{{ route('properties.index', ['project_id' => $project->id]) }}" class="btn-outline" style="padding: 6px 12px; font-size: 12.5px;">
+                        <i class="fa-solid fa-file-excel"></i> Manage Bulk Excel
                     </a>
-                @endif
+                    @if($authUser && $authUser->hasPermission('property_add'))
+                        <a href="{{ route('properties.create', ['project_id' => $project->id]) }}" class="btn-gold" style="padding: 6px 12px; font-size: 12.5px;">
+                            <i class="fa-solid fa-plus"></i> Add Bulk Record
+                        </a>
+                    @endif
+                </div>
             </div>
 
             <div style="width: 100%; overflow-x: auto;">
                 <table class="properties-table">
                     <thead>
                         <tr>
-                            <th>Property Name</th>
+                            <th>Bulk Record / Unit</th>
                             <th>Code</th>
                             <th>Status</th>
                             <th>Price</th>
@@ -320,7 +353,7 @@
                         @empty
                             <tr>
                                 <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 30px 0;">
-                                    No properties registered under this project yet.
+                                    No bulk records registered under this project yet. Use <strong>Manage Bulk Excel</strong> to upload excel.
                                 </td>
                             </tr>
                         @endforelse

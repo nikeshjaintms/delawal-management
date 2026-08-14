@@ -47,7 +47,8 @@ class StockInwardRequest extends FormRequest
             $rules['material_id'] = 'required|exists:materials,id';
             $rules['quantity'] = 'required|numeric|min:0.001';
             $rules['rate'] = 'nullable|numeric|min:0';
-            $rules['property_id'] = 'nullable|exists:properties,id';
+            $rules['project_id'] = 'nullable|exists:projects,id';
+            $rules['property_id'] = 'nullable';
         }
 
         return $rules;
@@ -57,14 +58,14 @@ class StockInwardRequest extends FormRequest
     {
         return [
             'material_id' => 'Material',
-            'property_id' => 'Property',
-            'quantity' => 'Quantity',
-            'rate' => 'Rate per Unit',
+            'project_id'  => 'Project',
+            'quantity'    => 'Quantity',
+            'rate'        => 'Rate per Unit',
             'inward_date' => 'Inward Date',
             'supplier_name' => 'Supplier Name',
-            'bill_no' => 'Bill/Invoice No',
-            'remarks' => 'Remarks',
-            'firm_id' => 'Firm',
+            'bill_no'     => 'Bill/Invoice No',
+            'remarks'     => 'Remarks',
+            'firm_id'     => 'Firm',
         ];
     }
 }

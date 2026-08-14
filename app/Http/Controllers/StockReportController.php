@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Material;
 use App\Models\MaterialCategory;
+use App\Models\Project;
 use App\Models\StockInward;
 use App\Models\StockOutward;
 use Illuminate\Http\Request;
@@ -27,15 +28,24 @@ class StockReportController extends Controller
             $query->where('material_category_id', $request->filter_category);
         }
 
+        if ($request->filter_project) {
+            $query->where('project_id', $request->filter_project);
+        }
+
         $materials = $query->orderBy('material_name')->get();
 
         // Attach inward/outward totals to each material
-        $materials->each(function ($material) {
-            $totalInward = StockInward::where('material_id', $material->id)
-                ->sum('quantity');
+        $materials->each(function ($material) use ($request) {
+            $inwQuery = StockInward::where('material_id', $material->id);
+            $outQuery = StockOutward::where('material_id', $material->id);
 
-            $totalOutward = StockOutward::where('material_id', $material->id)
-                ->sum('quantity');
+            if ($request->filter_project) {
+                $inwQuery->where('project_id', $request->filter_project);
+                $outQuery->where('project_id', $request->filter_project);
+            }
+
+            $totalInward  = $inwQuery->sum('quantity');
+            $totalOutward = $outQuery->sum('quantity');
 
             $material->total_inward   = (float) $totalInward;
             $material->total_outward  = (float) $totalOutward;
@@ -56,12 +66,16 @@ class StockReportController extends Controller
             ->where('status', 'active')
             ->orderBy('category_name')
             ->get();
+        $projects = Project::where('firm_id', $firmId)
+            ->with('propertyMaster')
+            ->orderBy('project_name')
+            ->get();
 
         $lowStockCount = $materials->filter(function ($m) {
             return $m->computed_stock <= $m->minimum_stock && $m->minimum_stock > 0;
         })->count();
 
-        return view('admin.stock-report.index', compact('materials', 'categories', 'lowStockCount'));
+        return view('admin.stock-report.index', compact('materials', 'categories', 'projects', 'lowStockCount'));
     }
 
     public function exportPdf(Request $request)

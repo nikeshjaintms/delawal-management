@@ -10,6 +10,7 @@ class PurchaseOrder extends Model
 
     protected $fillable = [
         'firm_id',
+        'project_id',
         'po_number',
         'vendor_id',
         'po_date',
@@ -34,6 +35,11 @@ class PurchaseOrder extends Model
     public function firm()
     {
         return $this->belongsTo(Firm::class);
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function vendor()

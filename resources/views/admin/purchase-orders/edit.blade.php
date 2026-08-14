@@ -106,6 +106,17 @@
 
         <div class="form-grid">
             <div class="form-group">
+                <label class="form-label">Project</label>
+                <select name="project_id" id="project_id" class="form-control">
+                    <option value="">Select Project</option>
+                    @foreach($projects as $proj)
+                        <option value="{{ $proj->id }}" {{ old('project_id', $purchaseOrder->project_id) == $proj->id ? 'selected' : '' }}>{{ $proj->project_name }} ({{ $proj->propertyMaster->property_name ?? 'Property' }})</option>
+                    @endforeach
+                </select>
+                @error('project_id') <span class="text-error show">{{ $message }}</span> @enderror
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">Expected Delivery Date</label>
                 <input type="date" name="delivery_date" id="delivery_date" class="form-control" value="{{ old('delivery_date', $purchaseOrder->delivery_date ? $purchaseOrder->delivery_date->format('Y-m-d') : '') }}">
                 @error('delivery_date') <span class="text-error show">{{ $message }}</span> @enderror

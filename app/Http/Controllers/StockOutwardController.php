@@ -6,7 +6,7 @@ use App\Http\Requests\StockOutwardRequest;
 use App\Models\StockOutward;
 use App\Models\StockInward;
 use App\Models\Material;
-use App\Models\Property;
+use App\Models\Project;
 use App\Models\Firm;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
@@ -20,21 +20,21 @@ class StockOutwardController extends Controller
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
         if ($isAdmin) {
-            $materials  = Material::where('status', 'active')->orderBy('material_name')->get();
-            $properties = Property::orderBy('property_name')->get();
+            $materials = Material::where('status', 'active')->orderBy('material_name')->get();
+            $projects  = Project::with('propertyMaster')->orderBy('project_name')->get();
         } else {
-            $firmId     = $user ? $user->firm_id : session('firm_id');
-            $materials  = Material::where('firm_id', $firmId)->where('status', 'active')->orderBy('material_name')->get();
-            $properties = Property::where('firm_id', $firmId)->orderBy('property_name')->get();
+            $firmId    = $user ? $user->firm_id : session('firm_id');
+            $materials = Material::where('firm_id', $firmId)->where('status', 'active')->orderBy('material_name')->get();
+            $projects  = Project::where('firm_id', $firmId)->with('propertyMaster')->orderBy('project_name')->get();
         }
-        return compact('materials', 'properties');
+        return compact('materials', 'projects');
     }
 
     public function index(Request $request)
     {
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
-        $query = StockOutward::with(['material.materialCategory', 'property']);
+        $query = StockOutward::with(['material.materialCategory', 'project.propertyMaster', 'property']);
 
         if (!$isAdmin) {
             $firmId = $user ? $user->firm_id : session('firm_id');
@@ -48,11 +48,11 @@ class StockOutwardController extends Controller
                   ->orWhere('outward_number', 'like', "%{$s}%")
                   ->orWhere('stock_inward_number', 'like', "%{$s}%")
                   ->orWhereHas('material', fn($m) => $m->where('material_name', 'like', "%{$s}%"))
-                  ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"));
+                  ->orWhereHas('project', fn($p) => $p->where('project_name', 'like', "%{$s}%"));
             });
         }
         if ($request->filter_material) $query->where('material_id', $request->filter_material);
-        if ($request->filter_property) $query->where('property_id', $request->filter_property);
+        if ($request->filter_project)  $query->where('project_id', $request->filter_project);
         if ($request->filter_date)     $query->where('outward_date', $request->filter_date);
 
         // Group by outward_number / ID to show representative transactions
@@ -60,18 +60,18 @@ class StockOutwardController extends Controller
             ->groupBy(DB::raw('COALESCE(outward_number, CAST(id AS CHAR))'));
         $query->whereIn('id', $subQuery);
 
-        $outwards   = $query->orderBy('outward_date', 'desc')->paginate(15)->withQueryString();
+        $outwards = $query->orderBy('outward_date', 'desc')->paginate(15)->withQueryString();
 
         if ($isAdmin) {
-            $materials  = Material::where('status', 'active')->get();
-            $properties = Property::get();
+            $materials = Material::where('status', 'active')->get();
+            $projects  = Project::with('propertyMaster')->orderBy('project_name')->get();
         } else {
             $firmId = $user ? $user->firm_id : session('firm_id');
-            $materials  = Material::where('firm_id', $firmId)->where('status', 'active')->get();
-            $properties = Property::where('firm_id', $firmId)->get();
+            $materials = Material::where('firm_id', $firmId)->where('status', 'active')->get();
+            $projects  = Project::where('firm_id', $firmId)->with('propertyMaster')->orderBy('project_name')->get();
         }
 
-        return view('admin.stock-outwards.index', compact('outwards', 'materials', 'properties'));
+        return view('admin.stock-outwards.index', compact('outwards', 'materials', 'projects'));
     }
 
     public function create(Request $request)
@@ -89,11 +89,11 @@ class StockOutwardController extends Controller
         }
         $inwardNumbers = $inwardNumbersQuery->orderBy('inward_number', 'desc')->pluck('inward_number');
 
-        $propertiesQuery = Property::orderBy('property_name');
+        $projectsQuery = Project::with('propertyMaster')->orderBy('project_name');
         if ($firmId && (!$user || !$user->isAdmin())) {
-            $propertiesQuery->where('firm_id', $firmId);
+            $projectsQuery->where('firm_id', $firmId);
         }
-        $properties = $propertiesQuery->get();
+        $projects = $projectsQuery->get();
 
         $selectedInward = null;
         $pendingItems = [];
@@ -130,10 +130,11 @@ class StockOutwardController extends Controller
         }
 
         $dropdowns = $this->dropdowns();
+        $selectedProjectId = $request->input('project_id');
 
         return view('admin.stock-outwards.create', array_merge(
             $dropdowns,
-            compact('inwardNumbers', 'properties', 'selectedInward', 'pendingItems')
+            compact('inwardNumbers', 'projects', 'selectedInward', 'pendingItems', 'selectedProjectId')
         ));
     }
 
@@ -177,6 +178,7 @@ class StockOutwardController extends Controller
 
         return response()->json([
             'firm_id'       => $first->firm_id,
+            'project_id'    => $first->project_id,
             'supplier_name' => $first->supplier_name ?? '—',
             'warehouse'     => $first->warehouse ?? 'Main Warehouse',
             'inward_date'   => $first->inward_date->format('Y-m-d'),
@@ -247,10 +249,11 @@ class StockOutwardController extends Controller
 
                     $out = StockOutward::create([
                         'firm_id'             => $inwGroup->firm_id,
+                        'project_id'          => $request->project_id ?? $inwGroup->project_id,
                         'outward_number'      => $outwardNumber,
                         'stock_inward_number' => $siNumber,
                         'material_id'         => $materialId,
-                        'property_id'         => $request->property_id,
+                        'property_id'         => null,
                         'outward_date'        => $request->outward_date,
                         'quantity'            => $qtyDisp,
                         'vehicle_no'          => $request->vehicle_no,
@@ -287,7 +290,8 @@ class StockOutwardController extends Controller
             }
         } else {
             // Manual Outward
-            $material = Material::where('firm_id', Auth::user()->firm_id)->findOrFail($request->material_id);
+            $userFirmId = Auth::user() ? Auth::user()->firm_id : session('firm_id');
+            $material = Material::findOrFail($request->material_id);
             $qty      = (float) $request->quantity;
 
             if ($material->current_stock < $qty) {
@@ -308,10 +312,11 @@ class StockOutwardController extends Controller
             DB::beginTransaction();
             try {
                 $out = StockOutward::create([
-                    'firm_id'        => Auth::user()->firm_id,
+                    'firm_id'        => $userFirmId ?: $material->firm_id,
+                    'project_id'     => $request->project_id ?: null,
                     'outward_number' => $outwardNumber,
                     'material_id'    => $request->material_id,
-                    'property_id'    => $request->property_id ?: null,
+                    'property_id'    => null,
                     'outward_date'   => $request->outward_date,
                     'quantity'       => $qty,
                     'used_for'       => $request->used_for,
@@ -321,7 +326,7 @@ class StockOutwardController extends Controller
                 $material->decrement('current_stock', $qty);
 
                 StockMovement::create([
-                    'firm_id'         => Auth::user()->firm_id,
+                    'firm_id'         => $userFirmId ?: $material->firm_id,
                     'material_id'     => $request->material_id,
                     'reference_type'  => 'Stock Outward (Manual)',
                     'reference_id'    => $out->id,
@@ -344,14 +349,17 @@ class StockOutwardController extends Controller
     public function show(StockOutward $stockOutward)
     {
         $user = Auth::user();
-        if ($stockOutward->firm_id != $user->firm_id) abort(403);
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $stockOutward->firm_id != $firmId) abort(403);
 
         if ($stockOutward->outward_number) {
-            $outwards = StockOutward::where('outward_number', $stockOutward->outward_number)->with(['material.materialCategory', 'property'])->get();
+            $outwards = StockOutward::where('outward_number', $stockOutward->outward_number)->with(['material.materialCategory', 'project.propertyMaster', 'property'])->get();
             $outwardGroup = $outwards->first();
             return view('admin.stock-outwards.show', compact('outwardGroup', 'outwards'));
         } else {
-            $stockOutward->load(['material.materialCategory', 'property']);
+            $stockOutward->load(['material.materialCategory', 'project.propertyMaster', 'property']);
             return view('admin.stock-outwards.show', compact('stockOutward'));
         }
     }
@@ -359,21 +367,28 @@ class StockOutwardController extends Controller
     public function print(StockOutward $stockOutward)
     {
         $user = Auth::user();
-        if ($stockOutward->firm_id != $user->firm_id) abort(403);
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $stockOutward->firm_id != $firmId) abort(403);
 
         if ($stockOutward->outward_number) {
-            $outwards = StockOutward::where('outward_number', $stockOutward->outward_number)->with(['material.materialCategory', 'property'])->get();
+            $outwards = StockOutward::where('outward_number', $stockOutward->outward_number)->with(['material.materialCategory', 'project.propertyMaster', 'property'])->get();
             $outwardGroup = $outwards->first();
             return view('admin.stock-outwards.show', compact('outwardGroup', 'outwards'))->with('printMode', true);
         } else {
-            $stockOutward->load(['material.materialCategory', 'property']);
+            $stockOutward->load(['material.materialCategory', 'project.propertyMaster', 'property']);
             return view('admin.stock-outwards.show', compact('stockOutward'))->with('printMode', true);
         }
     }
 
     public function edit(StockOutward $stockOutward)
     {
-        if ($stockOutward->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $stockOutward->firm_id != $firmId) abort(403);
         if ($stockOutward->stock_inward_number) {
             return redirect()->route('stock-outwards.index')->with('error', 'Cannot edit stock outward dispatched against a Stock Inward.');
         }
@@ -385,14 +400,18 @@ class StockOutwardController extends Controller
 
     public function update(StockOutwardRequest $request, StockOutward $stockOutward)
     {
-        if ($stockOutward->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $stockOutward->firm_id != $firmId) abort(403);
         if ($stockOutward->stock_inward_number) {
             return back()->with('error', 'Cannot edit reference stock outward.');
         }
 
         $oldQty  = (float) $stockOutward->quantity;
         $newQty  = (float) $request->quantity;
-        $material = Material::where('firm_id', Auth::user()->firm_id)->findOrFail($stockOutward->material_id);
+        $material = Material::findOrFail($stockOutward->material_id);
 
         $availableAfter = $material->current_stock + $oldQty - $newQty;
         if ($availableAfter < 0) {
@@ -406,7 +425,7 @@ class StockOutwardController extends Controller
 
         $stockOutward->update([
             'material_id'  => $request->material_id,
-            'property_id'  => $request->property_id ?: null,
+            'project_id'   => $request->project_id ?: null,
             'outward_date' => $request->outward_date,
             'quantity'     => $newQty,
             'used_for'     => $request->used_for,
@@ -418,7 +437,11 @@ class StockOutwardController extends Controller
 
     public function destroy(StockOutward $stockOutward)
     {
-        if ($stockOutward->firm_id != Auth::user()->firm_id) abort(403);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $stockOutward->firm_id != $firmId) abort(403);
 
         DB::beginTransaction();
         try {

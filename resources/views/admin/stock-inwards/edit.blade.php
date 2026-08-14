@@ -51,10 +51,10 @@
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label" for="property_id">Property</label>
-                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
-                        <option value="">-- General --</option>
-                        @foreach($properties as $p)<option value="{{ $p->id }}" {{ old('property_id',$stockInward->property_id)==$p->id?'selected':'' }}>{{ $p->property_name }}</option>@endforeach
+                    <label class="form-label" for="project_id">Project</label>
+                    <select name="project_id" id="project_id" class="form-control @error('project_id') is-invalid @enderror">
+                        <option value="">-- Select Project --</option>
+                        @foreach($projects as $p)<option value="{{ $p->id }}" {{ old('project_id',$stockInward->project_id)==$p->id?'selected':'' }}>{{ $p->project_name }} ({{ $p->propertyMaster->property_name ?? 'Property' }})</option>@endforeach
                     </select>
                 </div>
             </div>

@@ -30,8 +30,7 @@
         border-radius: 12px;
         padding: 30px;
         box-shadow: var(--soft-shadow);
-        max-width: 800px;
-        margin: 0 auto;
+        max-width: 900px;
     }
 
     .form-group {
@@ -44,7 +43,7 @@
         gap: 20px;
     }
 
-    @media (max-width: 576px) {
+    @media (max-width: 768px) {
         .form-row {
             grid-template-columns: 1fr;
             gap: 0;
@@ -135,6 +134,9 @@
         font-size: 14px;
         font-weight: 600;
         transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .btn-outline:hover {
@@ -143,27 +145,24 @@
         border-color: #D1D5DB;
     }
 
-    .current-image-preview {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-top: 10px;
-    }
-
     .current-image-preview img {
         width: 80px;
         height: 80px;
         object-fit: cover;
         border-radius: 8px;
         border: 1px solid var(--border-color);
+        margin-top: 10px;
     }
 </style>
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Edit Project</h2>
+        <h2>Edit Project: {{ $project->project_name }}</h2>
         <p>Modify details of the selected project.</p>
     </div>
+    <a href="{{ route('projects.show', $project->id) }}" class="btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> Back to Details
+    </a>
 </div>
 
 <div class="card-box">
@@ -174,25 +173,42 @@
 
         <div class="form-row">
             <div class="form-group">
-                <label class="form-label" for="project_name">Project Name <span>*</span></label>
-                <input type="text" name="project_name" id="project_name" value="{{ old('project_name', $project->project_name) }}" class="form-control @error('project_name') is-invalid @enderror" placeholder="Enter project name" required>
-                @error('project_name') <div class="text-error">{{ $message }}</div> @enderror
+                <label class="form-label" for="property_id">Property Master <span>*</span></label>
+                <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required>
+                    <option value="">Select Property Master</option>
+                    @if(isset($properties))
+                        @foreach($properties as $prop)
+                            <option value="{{ $prop->id }}" {{ (old('property_id', $project->property_id) == $prop->id) ? 'selected' : '' }}>
+                                {{ $prop->property_name }} ({{ $prop->property_code }})
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+                @error('property_id') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="project_code">Project Code (Leave blank to keep unchanged)</label>
-                <input type="text" name="project_code" id="project_code" value="{{ old('project_code', $project->project_code) }}" class="form-control @error('project_code') is-invalid @enderror" placeholder="Enter project code">
-                @error('project_code') <div class="text-error">{{ $message }}</div> @enderror
+                <label class="form-label" for="project_name">Project Name <span>*</span></label>
+                <input type="text" name="project_name" id="project_name" value="{{ old('project_name', $project->project_name) }}" class="form-control @error('project_name') is-invalid @enderror" placeholder="Enter project name" required>
+                @error('project_name') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>
 
         <div class="form-row">
             <div class="form-group">
+                <label class="form-label" for="project_code">Project Code (Leave blank to keep unchanged)</label>
+                <input type="text" name="project_code" id="project_code" value="{{ old('project_code', $project->project_code) }}" class="form-control @error('project_code') is-invalid @enderror" placeholder="Enter project code">
+                @error('project_code') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="form-group">
                 <label class="form-label" for="project_type">Project Type <span>*</span></label>
                 <input type="text" name="project_type" id="project_type" value="{{ old('project_type', $project->project_type) }}" class="form-control @error('project_type') is-invalid @enderror" placeholder="e.g. Residential, Commercial" required>
                 @error('project_type') <div class="text-error">{{ $message }}</div> @enderror
             </div>
+        </div>
 
+        <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="status">Status <span>*</span></label>
                 <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
@@ -246,22 +262,20 @@
         <div class="form-group">
             <label class="form-label" for="project_image">Project Image</label>
             <input type="file" name="project_image" id="project_image" class="form-control @error('project_image') is-invalid @enderror" accept="image/*">
-            @error('project_image') <div class="text-error">{{ $message }}</div> @enderror
-            
             @if($project->project_image)
                 <div class="current-image-preview">
-                    <img src="{{ asset('storage/' . $project->project_image) }}" alt="Current Image">
-                    <div>
-                        <span style="font-size: 13px; font-weight: 500; display: block; color: var(--text-primary);">Current Project Image</span>
-                        <span style="font-size: 12px; color: var(--text-secondary);">Uploading a new image will replace the current one.</span>
-                    </div>
+                    <img src="{{ asset('storage/' . $project->project_image) }}" alt="Current Project Image">
+                    <small style="display: block; color: var(--text-secondary); margin-top: 4px;">Current image</small>
                 </div>
             @endif
+            @error('project_image') <div class="text-error">{{ $message }}</div> @enderror
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn-gold">Update Project</button>
-            <a href="{{ route('projects.index') }}" class="btn-outline">Back</a>
+            <button type="submit" class="btn-gold">
+                <i class="fa-solid fa-check"></i> Update Project
+            </button>
+            <a href="{{ route('projects.show', $project->id) }}" class="btn-outline">Cancel</a>
         </div>
     </form>
 </div>

@@ -31,14 +31,16 @@ class StockOutwardRequest extends FormRequest
 
         if ($this->has('items')) {
             $rules['stock_inward_number'] = 'required|string';
-            $rules['property_id']         = 'required|exists:properties,id';
+            $rules['project_id']         = 'nullable|exists:projects,id';
+            $rules['property_id']        = 'nullable';
             $rules['items']               = 'required|array|min:1';
             $rules['items.*.material_id'] = 'required|exists:materials,id';
             $rules['items.*.qty_dispatch'] = 'required|numeric|min:0.001';
         } else {
             $rules['material_id'] = 'required|exists:materials,id';
             $rules['quantity']    = 'required|numeric|min:0.001';
-            $rules['property_id'] = 'nullable|exists:properties,id';
+            $rules['project_id']  = 'nullable|exists:projects,id';
+            $rules['property_id'] = 'nullable';
         }
 
         return $rules;
@@ -48,6 +50,7 @@ class StockOutwardRequest extends FormRequest
     {
         return [
             'material_id' => 'Material',
+            'project_id'  => 'Project',
             'quantity'    => 'Quantity',
             'outward_date'=> 'Outward Date',
             'remarks'     => 'Remarks',

@@ -30,7 +30,7 @@
 <div class="crud-header">
     <div class="crud-title">
         <h2>Stock Outward</h2>
-        <p>Record material usage, stock issues to construction sites, and dispatch gate passes.</p>
+        <p>Record site dispatches, material consumption, and outward gate passes.</p>
     </div>
     <a href="{{ route('stock-outwards.create') }}" class="btn-gold"><i class="fa-solid fa-plus"></i> Add Outward</a>
 </div>
@@ -46,7 +46,7 @@
     <form method="GET" action="{{ route('stock-outwards.index') }}" class="filter-bar">
         <div class="filter-group">
             <span class="filter-label">Search</span>
-            <input type="text" name="search" value="{{ request('search') }}" class="search-input" placeholder="Outward No, SI reference, used for...">
+            <input type="text" name="search" value="{{ request('search') }}" class="search-input" placeholder="Outward No, used for, IMIR...">
         </div>
         <div class="filter-group">
             <span class="filter-label">Material</span>
@@ -56,10 +56,10 @@
             </select>
         </div>
         <div class="filter-group">
-            <span class="filter-label">Property</span>
-            <select name="filter_property" class="filter-control">
-                <option value="">All Properties</option>
-                @foreach($properties as $p)<option value="{{ $p->id }}" {{ request('filter_property')==$p->id?'selected':'' }}>{{ $p->property_name }}</option>@endforeach
+            <span class="filter-label">Project</span>
+            <select name="filter_project" class="filter-control">
+                <option value="">All Projects</option>
+                @foreach($projects as $p)<option value="{{ $p->id }}" {{ request('filter_project')==$p->id?'selected':'' }}>{{ $p->project_name }} ({{ $p->propertyMaster->property_name ?? 'Property' }})</option>@endforeach
             </select>
         </div>
         <div class="filter-group">
@@ -67,7 +67,7 @@
             <input type="date" name="filter_date" value="{{ request('filter_date') }}" class="filter-control">
         </div>
         <button type="submit" class="btn-search">Filter</button>
-        @if(request()->hasAny(['search','filter_material','filter_property','filter_date']))<a href="{{ route('stock-outwards.index') }}" class="btn-reset">Reset</a>@endif
+        @if(request()->hasAny(['search','filter_material','filter_project','filter_date']))<a href="{{ route('stock-outwards.index') }}" class="btn-reset">Reset</a>@endif
     </form>
 
     <div class="table-container">
@@ -77,7 +77,7 @@
                     <th>Outward Number</th>
                     <th>Date</th>
                     <th>Ref. IMIR</th>
-                    <th>Destination Property</th>
+                    <th>Destination Project</th>
                     <th>Material (Sample)</th>
                     <th>Total Items</th>
                     <th>Vehicle No</th>
@@ -98,7 +98,7 @@
                     <td><strong>{{ $out->outward_number ?: 'SO-'.$out->id }}</strong></td>
                     <td style="white-space:nowrap;">{{ $out->outward_date->format('d M Y') }}</td>
                     <td>{{ $out->stock_inward_number ?: 'Manual' }}</td>
-                    <td>{{ $out->property->property_name ?? 'General' }}</td>
+                    <td>{{ $out->project->project_name ?? ($out->property->property_name ?? 'General') }}</td>
                     <td>{{ $sampleMaterial }}</td>
                     <td style="font-weight:700; text-align:center;">{{ $itemCount }}</td>
                     <td>{{ $out->vehicle_no ?: '—' }}</td>
@@ -132,7 +132,7 @@
 function confirmDel(id,name,prefix){
     Swal.fire({
         title:'Delete Outward Transaction?',
-        html:'Are you sure you want to delete transaction <strong>'+name+'</strong>?<br><small style="color:#64748B;">All related items will be deleted and stock will be reversed.</small>',
+        html:'Are you sure you want to delete transaction <strong>'+name+'</strong>?<br><small style="color:#64748B;">All related items will be deleted and stock will be restored.</small>',
         icon:'warning',
         showCancelButton:true,
         confirmButtonColor:'#EF4444',

@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class ProjectRequest extends FormRequest
+class PropertyMasterRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -47,21 +47,20 @@ class ProjectRequest extends FormRequest
 
         $rules = [
             'firm_id' => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
-            'property_id' => 'required|exists:property_masters,id',
-            'project_name' => 'required|string|max:255',
-            'project_code' => 'nullable|string|max:100|unique:projects,project_code,{ID},id,firm_id,{FIRM_ID}',
-            'project_type' => 'required|string|max:255',
+            'property_name' => 'required|string|max:255',
+            'property_code' => 'nullable|string|max:100|unique:property_masters,property_code,{ID},id,firm_id,{FIRM_ID}',
             'status' => 'required|in:active,inactive',
+            'location' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:1000',
             'city' => 'nullable|string|max:100',
             'state' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
             'pincode' => 'nullable|string|max:20',
             'description' => 'nullable|string|max:2000',
-            'project_image' => 'nullable|image|max:2048',
+            'main_image' => 'nullable|image|max:2048',
+            'document_file' => 'nullable|file|max:10240',
         ];
 
-        // Replace placeholders in unique rules dynamically
         foreach ($rules as $field => $rule) {
             if (is_string($rule)) {
                 $replaced = str_replace('{ID}', $id ?: 'NULL', $rule);
@@ -77,18 +76,18 @@ class ProjectRequest extends FormRequest
     {
         return [
             'firm_id' => 'Firm',
-            'property_id' => 'Property',
-            'project_name' => 'Project Name',
-            'project_code' => 'Project Code',
-            'project_type' => 'Project Type',
+            'property_name' => 'Property Name',
+            'property_code' => 'Property Code',
             'status' => 'Status',
+            'location' => 'Location',
             'address' => 'Address',
             'city' => 'City',
             'state' => 'State',
             'country' => 'Country',
             'pincode' => 'Pincode',
             'description' => 'Description',
-            'project_image' => 'Project Image',
+            'main_image' => 'Main Image',
+            'document_file' => 'Document File',
         ];
     }
 

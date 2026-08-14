@@ -6,6 +6,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\Vendor;
 use App\Models\Firm;
+use App\Models\Project;
 use App\Models\Material;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,24 +33,27 @@ class PurchaseOrderController extends Controller
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        $vendorQuery = Vendor::where('status', 'active')->orderBy('name');
+        $vendorQuery   = Vendor::where('status', 'active')->orderBy('name');
         $materialQuery = Material::where('status', 'active')->orderBy('material_name');
+        $projectQuery  = Project::with('propertyMaster')->orderBy('project_name');
 
         if ($firmId && (!$user || !$user->isAdmin())) {
             $vendorQuery->where('firm_id', $firmId);
             $materialQuery->where('firm_id', $firmId);
+            $projectQuery->where('firm_id', $firmId);
         }
 
         return [
             'firms'     => $firms,
             'vendors'   => $vendorQuery->get(),
             'materials' => $materialQuery->get(),
+            'projects'  => $projectQuery->get(),
         ];
     }
 
     public function index(Request $request)
     {
-        $query = PurchaseOrder::with(['firm', 'vendor', 'creator']);
+        $query = PurchaseOrder::with(['firm', 'vendor', 'creator', 'project.propertyMaster']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -67,12 +71,16 @@ class PurchaseOrderController extends Controller
                 $q->where('po_number', 'like', "%{$s}%")
                   ->orWhere('status', 'like', "%{$s}%")
                   ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"))
-                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
+                  ->orWhereHas('project', fn($p) => $p->where('project_name', 'like', "%{$s}%"));
             });
         }
 
         if ($request->filled('filter_status')) {
             $query->where('status', $request->filter_status);
+        }
+        if ($request->filled('filter_project')) {
+            $query->where('project_id', $request->filter_project);
         }
 
         if ($request->filled('start_date')) {
@@ -85,8 +93,9 @@ class PurchaseOrderController extends Controller
         $totalAmount = (clone $query)->sum('grand_total');
         $purchaseOrders = $query->orderBy('po_date', 'desc')->paginate(15)->withQueryString();
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $projects = Project::with('propertyMaster')->orderBy('project_name')->get();
 
-        return view('admin.purchase-orders.index', compact('purchaseOrders', 'firms', 'totalAmount'));
+        return view('admin.purchase-orders.index', compact('purchaseOrders', 'firms', 'projects', 'totalAmount'));
     }
 
     public function create()
@@ -98,6 +107,7 @@ class PurchaseOrderController extends Controller
     {
         $request->validate([
             'firm_id'       => 'required|exists:firms,id',
+            'project_id'    => 'nullable|exists:projects,id',
             'vendor_id'     => 'required|exists:vendors,id',
             'po_date'       => 'required|date',
             'delivery_date' => 'nullable|date|after_or_equal:po_date',
@@ -125,6 +135,7 @@ class PurchaseOrderController extends Controller
 
             $po = PurchaseOrder::create([
                 'firm_id'         => $request->firm_id,
+                'project_id'      => $request->project_id ?: null,
                 'po_number'       => $poNumber,
                 'vendor_id'       => $request->vendor_id,
                 'po_date'         => $request->po_date,
@@ -154,7 +165,6 @@ class PurchaseOrderController extends Controller
             $firm = Firm::find($po->firm_id);
             $isInterstate = false;
             if ($vendor && $firm) {
-                // If states are different, it is Interstate (IGST), otherwise Intrastate (CGST + SGST)
                 $vendorState = strtolower(trim($vendor->state ?? ''));
                 $firmState = strtolower(trim($firm->state ?? ''));
                 if (!empty($vendorState) && !empty($firmState) && $vendorState !== $firmState) {
@@ -178,19 +188,13 @@ class PurchaseOrderController extends Controller
                 $totalDiscount += $rowDisc;
                 $totalTaxable += $rowTaxable;
 
-                $cgst = 0;
-                $sgst = 0;
-                $igst = 0;
-
                 if ($isInterstate) {
-                    $igst = $rowGst;
-                    $totalIgst += $igst;
+                    $totalIgst += $rowGst;
                 } else {
-                    $cgst = $rowGst / 2;
-                    $sgst = $rowGst / 2;
-                    $totalCgst += $cgst;
-                    $totalSgst += $sgst;
+                    $totalCgst += ($rowGst / 2);
+                    $totalSgst += ($rowGst / 2);
                 }
+                $grandTotal += $rowTotal;
 
                 PurchaseOrderItem::create([
                     'purchase_order_id' => $po->id,
@@ -198,15 +202,10 @@ class PurchaseOrderController extends Controller
                     'qty'               => $qty,
                     'rate'              => $rate,
                     'discount_pct'      => $discPct,
-                    'discount_amount'   => $rowDisc,
-                    'taxable_amount'    => $rowTaxable,
                     'gst_pct'           => $gstPct,
-                    'gst_amount'        => $rowGst,
-                    'line_total'        => $rowTotal,
+                    'total_amount'      => $rowTotal,
                 ]);
             }
-
-            $grandTotal = $totalTaxable + $totalCgst + $totalSgst + $totalIgst;
 
             $po->update([
                 'sub_total'       => $subTotal,
@@ -222,22 +221,30 @@ class PurchaseOrderController extends Controller
             return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order created successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withInput()->with('error', 'Error creating Purchase Order: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Failed to create Purchase Order: ' . $e->getMessage());
         }
     }
 
     public function show(PurchaseOrder $purchaseOrder)
     {
-        $purchaseOrder->load(['firm', 'vendor', 'creator', 'items.material']);
         $this->authorise($purchaseOrder);
+        $purchaseOrder->load(['firm', 'vendor', 'creator', 'project.propertyMaster', 'items.material']);
         return view('admin.purchase-orders.show', compact('purchaseOrder'));
+    }
+
+    public function print(PurchaseOrder $purchaseOrder)
+    {
+        $this->authorise($purchaseOrder);
+        $purchaseOrder->load(['firm', 'vendor', 'creator', 'project.propertyMaster', 'items.material']);
+        return view('admin.purchase-orders.show', compact('purchaseOrder'))->with('printMode', true);
     }
 
     public function edit(PurchaseOrder $purchaseOrder)
     {
-        $purchaseOrder->load(['items']);
         $this->authorise($purchaseOrder);
-        return view('admin.purchase-orders.edit', array_merge(['purchaseOrder' => $purchaseOrder], $this->dropdowns($purchaseOrder->firm_id)));
+        $purchaseOrder->load(['items.material']);
+        $dropdowns = $this->dropdowns($purchaseOrder->firm_id);
+        return view('admin.purchase-orders.edit', array_merge(['purchaseOrder' => $purchaseOrder], $dropdowns));
     }
 
     public function update(Request $request, PurchaseOrder $purchaseOrder)
@@ -246,6 +253,7 @@ class PurchaseOrderController extends Controller
 
         $request->validate([
             'firm_id'       => 'required|exists:firms,id',
+            'project_id'    => 'nullable|exists:projects,id',
             'vendor_id'     => 'required|exists:vendors,id',
             'po_date'       => 'required|date',
             'delivery_date' => 'nullable|date|after_or_equal:po_date',
@@ -262,6 +270,7 @@ class PurchaseOrderController extends Controller
         try {
             $purchaseOrder->update([
                 'firm_id'       => $request->firm_id,
+                'project_id'    => $request->project_id ?: null,
                 'vendor_id'     => $request->vendor_id,
                 'po_date'       => $request->po_date,
                 'delivery_date' => $request->delivery_date,
@@ -269,7 +278,7 @@ class PurchaseOrderController extends Controller
                 'remarks'       => $request->remarks,
             ]);
 
-            // Clear old items
+            // Sync items
             $purchaseOrder->items()->delete();
 
             $subTotal = 0;
@@ -280,7 +289,6 @@ class PurchaseOrderController extends Controller
             $totalIgst = 0;
             $grandTotal = 0;
 
-            // Load vendor state for tax calculation
             $vendor = Vendor::find($request->vendor_id);
             $firm = Firm::find($purchaseOrder->firm_id);
             $isInterstate = false;
@@ -308,19 +316,13 @@ class PurchaseOrderController extends Controller
                 $totalDiscount += $rowDisc;
                 $totalTaxable += $rowTaxable;
 
-                $cgst = 0;
-                $sgst = 0;
-                $igst = 0;
-
                 if ($isInterstate) {
-                    $igst = $rowGst;
-                    $totalIgst += $igst;
+                    $totalIgst += $rowGst;
                 } else {
-                    $cgst = $rowGst / 2;
-                    $sgst = $rowGst / 2;
-                    $totalCgst += $cgst;
-                    $totalSgst += $sgst;
+                    $totalCgst += ($rowGst / 2);
+                    $totalSgst += ($rowGst / 2);
                 }
+                $grandTotal += $rowTotal;
 
                 PurchaseOrderItem::create([
                     'purchase_order_id' => $purchaseOrder->id,
@@ -328,15 +330,10 @@ class PurchaseOrderController extends Controller
                     'qty'               => $qty,
                     'rate'              => $rate,
                     'discount_pct'      => $discPct,
-                    'discount_amount'   => $rowDisc,
-                    'taxable_amount'    => $rowTaxable,
                     'gst_pct'           => $gstPct,
-                    'gst_amount'        => $rowGst,
-                    'line_total'        => $rowTotal,
+                    'total_amount'      => $rowTotal,
                 ]);
             }
-
-            $grandTotal = $totalTaxable + $totalCgst + $totalSgst + $totalIgst;
 
             $purchaseOrder->update([
                 'sub_total'       => $subTotal,
@@ -352,92 +349,14 @@ class PurchaseOrderController extends Controller
             return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withInput()->with('error', 'Error updating Purchase Order: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Failed to update Purchase Order: ' . $e->getMessage());
         }
     }
 
     public function destroy(PurchaseOrder $purchaseOrder)
     {
         $this->authorise($purchaseOrder);
-        DB::beginTransaction();
-        try {
-            $purchaseOrder->items()->delete();
-            $purchaseOrder->delete();
-            DB::commit();
-            return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order deleted successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error deleting Purchase Order: ' . $e->getMessage());
-        }
-    }
-
-    public function print(PurchaseOrder $purchaseOrder)
-    {
-        $purchaseOrder->load(['firm', 'vendor', 'creator', 'items.material']);
-        $this->authorise($purchaseOrder);
-        return view('admin.purchase-orders.pdf', compact('purchaseOrder'))->with('printMode', true);
-    }
-
-    public function downloadPdf(PurchaseOrder $purchaseOrder)
-    {
-        $purchaseOrder->load(['firm', 'vendor', 'creator', 'items.material']);
-        $this->authorise($purchaseOrder);
-        return view('admin.purchase-orders.pdf', compact('purchaseOrder'))->with('printMode', true);
-    }
-
-    public function exportPdf(Request $request)
-    {
-        $query = PurchaseOrder::with(['firm', 'vendor']);
-        $user = Auth::user();
-        $isAdmin = $user && $user->isAdmin();
-        if (!$isAdmin) {
-            $firmId = $user ? $user->firm_id : session('firm_id');
-            $query->forFirms([$firmId]);
-        }
-        $purchaseOrders = $query->orderBy('po_date', 'desc')->get();
-        return view('admin.purchase-orders.pdf', compact('purchaseOrders'))->with('listMode', true)->with('printMode', true);
-    }
-
-    public function exportExcel(Request $request)
-    {
-        $query = PurchaseOrder::with(['firm', 'vendor']);
-        $user = Auth::user();
-        $isAdmin = $user && $user->isAdmin();
-        if (!$isAdmin) {
-            $firmId = $user ? $user->firm_id : session('firm_id');
-            $query->forFirms([$firmId]);
-        }
-        $purchaseOrders = $query->orderBy('po_date', 'desc')->get();
-
-        $filename = 'purchase-orders-' . date('Y-m-d') . '.csv';
-        $headers = [
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=$filename",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
-        ];
-
-        $columns = ['PO Number', 'Firm', 'Supplier', 'PO Date', 'Delivery Date', 'Status', 'Grand Total'];
-
-        $callback = function() use($purchaseOrders, $columns) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, $columns);
-
-            foreach ($purchaseOrders as $po) {
-                fputcsv($file, [
-                    $po->po_number,
-                    $po->firm->firm_name ?? '',
-                    $po->vendor->name ?? '',
-                    $po->po_date->format('Y-m-d'),
-                    $po->delivery_date ? $po->delivery_date->format('Y-m-d') : '',
-                    $po->status,
-                    $po->grand_total
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        $purchaseOrder->delete();
+        return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order deleted successfully.');
     }
 }

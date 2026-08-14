@@ -30,8 +30,7 @@
         border-radius: 12px;
         padding: 30px;
         box-shadow: var(--soft-shadow);
-        max-width: 800px;
-        margin: 0 auto;
+        max-width: 900px;
     }
 
     .form-group {
@@ -44,7 +43,7 @@
         gap: 20px;
     }
 
-    @media (max-width: 576px) {
+    @media (max-width: 768px) {
         .form-row {
             grid-template-columns: 1fr;
             gap: 0;
@@ -135,6 +134,9 @@
         font-size: 14px;
         font-weight: 600;
         transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .btn-outline:hover {
@@ -147,8 +149,11 @@
 <div class="crud-header">
     <div class="crud-title">
         <h2>Add Project</h2>
-        <p>Introduce a new project details to start managing its properties.</p>
+        <p>Introduce a new project under a Property Master.</p>
     </div>
+    <a href="{{ route('projects.index') }}" class="btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> Back to Projects
+    </a>
 </div>
 
 <div class="card-box">
@@ -158,25 +163,42 @@
 
         <div class="form-row">
             <div class="form-group">
-                <label class="form-label" for="project_name">Project Name <span>*</span></label>
-                <input type="text" name="project_name" id="project_name" value="{{ old('project_name') }}" class="form-control @error('project_name') is-invalid @enderror" placeholder="Enter project name" required>
-                @error('project_name') <div class="text-error">{{ $message }}</div> @enderror
+                <label class="form-label" for="property_id">Property Master <span>*</span></label>
+                <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required>
+                    <option value="">Select Property Master</option>
+                    @if(isset($properties))
+                        @foreach($properties as $prop)
+                            <option value="{{ $prop->id }}" {{ (old('property_id', $selectedPropertyId ?? '') == $prop->id) ? 'selected' : '' }}>
+                                {{ $prop->property_name }} ({{ $prop->property_code }})
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+                @error('property_id') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="project_code">Project Code (Leave blank to auto-generate)</label>
-                <input type="text" name="project_code" id="project_code" value="{{ old('project_code') }}" class="form-control @error('project_code') is-invalid @enderror" placeholder="Auto-generated if empty">
-                @error('project_code') <div class="text-error">{{ $message }}</div> @enderror
+                <label class="form-label" for="project_name">Project Name <span>*</span></label>
+                <input type="text" name="project_name" id="project_name" value="{{ old('project_name') }}" class="form-control @error('project_name') is-invalid @enderror" placeholder="Enter project name" required>
+                @error('project_name') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>
 
         <div class="form-row">
             <div class="form-group">
+                <label class="form-label" for="project_code">Project Code (Leave blank to auto-generate)</label>
+                <input type="text" name="project_code" id="project_code" value="{{ old('project_code') }}" class="form-control @error('project_code') is-invalid @enderror" placeholder="Auto-generated if empty">
+                @error('project_code') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="form-group">
                 <label class="form-label" for="project_type">Project Type <span>*</span></label>
                 <input type="text" name="project_type" id="project_type" value="{{ old('project_type') }}" class="form-control @error('project_type') is-invalid @enderror" placeholder="e.g. Residential, Commercial" required>
                 @error('project_type') <div class="text-error">{{ $message }}</div> @enderror
             </div>
+        </div>
 
+        <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="status">Status <span>*</span></label>
                 <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
@@ -234,7 +256,9 @@
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn-gold">Save Project</button>
+            <button type="submit" class="btn-gold">
+                <i class="fa-solid fa-check"></i> Save Project
+            </button>
             <a href="{{ route('projects.index') }}" class="btn-outline">Back</a>
         </div>
     </form>

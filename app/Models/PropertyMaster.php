@@ -4,16 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Project extends Model
+class PropertyMaster extends Model
 {
     use \App\Traits\HasFirms;
 
+    protected $table = 'property_masters';
+
     protected $fillable = [
         'firm_id',
-        'property_id',
-        'project_name',
-        'project_code',
-        'project_type',
+        'property_name',
+        'property_code',
+        'location',
         'address',
         'city',
         'state',
@@ -21,7 +22,8 @@ class Project extends Model
         'pincode',
         'description',
         'status',
-        'project_image',
+        'main_image',
+        'document_file',
         'created_by',
         'updated_by',
     ];
@@ -31,24 +33,9 @@ class Project extends Model
         return $this->belongsTo(Firm::class);
     }
 
-    public function property()
+    public function projects()
     {
-        return $this->belongsTo(PropertyMaster::class, 'property_id');
-    }
-
-    public function propertyMaster()
-    {
-        return $this->belongsTo(PropertyMaster::class, 'property_id');
-    }
-
-    public function properties()
-    {
-        return $this->hasMany(Property::class, 'project_id');
-    }
-
-    public function bulks()
-    {
-        return $this->hasMany(Property::class, 'project_id');
+        return $this->hasMany(Project::class, 'property_id');
     }
 
     public function creator()

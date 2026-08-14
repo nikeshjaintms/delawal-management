@@ -242,13 +242,28 @@
     }
 </style>
 
+{{-- Breadcrumb --}}
+<div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">
+    Property Management &nbsp;&gt;&nbsp; 
+    @if(isset($propertyMaster) && $propertyMaster)
+        <a href="{{ route('property-masters.show', $propertyMaster->id) }}" style="color: var(--gold); text-decoration: none; font-weight: 600;">{{ $propertyMaster->property_name }}</a> &nbsp;&gt;&nbsp; 
+    @endif
+    <span style="color: var(--text-primary); font-weight: 600;">Projects</span>
+</div>
+
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Project Management</h2>
-        <p>Create and manage projects, firms, and location details.</p>
+        <h2>
+            @if(isset($propertyMaster) && $propertyMaster)
+                Projects under {{ $propertyMaster->property_name }}
+            @else
+                Project Management
+            @endif
+        </h2>
+        <p>Manage projects associated with Property Masters.</p>
     </div>
     @if($authUser && $authUser->hasPermission('project_add'))
-        <a href="{{ route('projects.create') }}" class="btn-gold">
+        <a href="{{ route('projects.create', isset($propertyMaster) && $propertyMaster ? ['property_id' => $propertyMaster->id] : []) }}" class="btn-gold">
             <i class="fa-solid fa-plus"></i> Add Project
         </a>
     @endif
@@ -257,6 +272,10 @@
 <div class="card-box">
     <div class="filter-bar">
         <form method="GET" action="{{ route('projects.index') }}" class="search-form">
+            @if(request('property_id'))
+                <input type="hidden" name="property_id" value="{{ request('property_id') }}">
+            @endif
+
             @if($authUser && $authUser->isAdmin())
                 <select name="firm_id" class="filter-select">
                     <option value="">All Firms</option>
@@ -292,6 +311,7 @@
                 <tr>
                     <th>Image</th>
                     <th>Project Name</th>
+                    <th>Property Master</th>
                     <th>Project Code</th>
                     @if($authUser && $authUser->isAdmin())
                         <th>Firm</th>
@@ -318,6 +338,15 @@
                             <a href="{{ route('projects.show', $project->id) }}" style="color: var(--gold); font-weight: 600; text-decoration: none;">
                                 {{ $project->project_name }}
                             </a>
+                        </td>
+                        <td>
+                            @if($project->propertyMaster)
+                                <a href="{{ route('property-masters.show', $project->propertyMaster->id) }}" style="color: var(--text-primary); font-weight: 500; text-decoration: none;">
+                                    <i class="fa-solid fa-building" style="color: var(--gold);"></i> {{ $project->propertyMaster->property_name }}
+                                </a>
+                            @else
+                                <span style="color: var(--text-secondary);">-</span>
+                            @endif
                         </td>
                         <td><code style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-weight: 600;">{{ $project->project_code }}</code></td>
                         @if($authUser && $authUser->isAdmin())
@@ -356,7 +385,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ $authUser && $authUser->isAdmin() ? 8 : 7 }}">
+                        <td colspan="{{ $authUser && $authUser->isAdmin() ? 9 : 8 }}">
                             <div class="empty-state">
                                 <i class="fa-solid fa-city"></i>
                                 <p>No projects found. Add your first project to get started!</p>

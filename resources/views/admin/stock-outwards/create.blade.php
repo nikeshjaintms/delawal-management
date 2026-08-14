@@ -124,11 +124,11 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Destination Site (Property) <span>*</span></label>
-                        <select name="property_id" class="form-control" required>
-                            <option value="">Select Site</option>
-                            @foreach($properties as $prop)
-                                <option value="{{ $prop->id }}">{{ $prop->property_name }}</option>
+                        <label class="form-label">Destination Project <span>*</span></label>
+                        <select name="project_id" class="form-control">
+                            <option value="">Select Project</option>
+                            @foreach($projects as $prop)
+                                <option value="{{ $prop->id }}" {{ old('project_id', $selectedProjectId ?? '')==$prop->id?'selected':'' }}>{{ $prop->project_name }} ({{ $prop->propertyMaster->property_name ?? 'Property' }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -227,10 +227,10 @@
                     <div style="font-size:12px;color:var(--text-secondary);margin-top:5px;">Cannot exceed available stock.</div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="property_id">Property <small style="font-weight:400;">(optional)</small></label>
-                    <select name="property_id" class="form-control @error('property_id') is-invalid @enderror">
-                        <option value="">-- Not property-specific --</option>
-                        @foreach($properties as $p)<option value="{{ $p->id }}" {{ old('property_id')==$p->id?'selected':'' }}>{{ $p->property_name }}</option>@endforeach
+                    <label class="form-label" for="project_id">Project <small style="font-weight:400;">(optional)</small></label>
+                    <select name="project_id" class="form-control @error('project_id') is-invalid @enderror">
+                        <option value="">-- Select Project --</option>
+                        @foreach($projects as $p)<option value="{{ $p->id }}" {{ old('project_id', $selectedProjectId ?? '')==$p->id?'selected':'' }}>{{ $p->project_name }} ({{ $p->propertyMaster->property_name ?? 'Property' }})</option>@endforeach
                     </select>
                 </div>
             </div>

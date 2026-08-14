@@ -10,6 +10,7 @@ use App\Http\Controllers\TenantController;
 use App\Http\Controllers\PropertyTypeController;
 use App\Http\Controllers\PaymentModeController;
 use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\PropertyMasterController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PropertySaleController;
@@ -66,8 +67,13 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::resource('payment-modes', PaymentModeController::class)->middleware(['permission:payment_mode_view']);
     Route::resource('expense-categories', ExpenseCategoryController::class)->middleware(['permission:expense_category_view']);
 
-    // ── Property ─────────────────────────────────────────────────────
+    // ── Property Management ──────────────────────────────────────────
+    Route::resource('property-masters', PropertyMasterController::class)->middleware(['permission:property_view']);
     Route::resource('projects', ProjectController::class)->middleware(['permission:project_view']);
+    Route::get('properties/import/template', [PropertyController::class, 'downloadTemplate'])->name('properties.import.template')->middleware(['permission:property_view']);
+    Route::post('properties/import/validate', [PropertyController::class, 'validateImport'])->name('properties.import.validate')->middleware(['permission:property_view']);
+    Route::post('properties/import/process', [PropertyController::class, 'processImport'])->name('properties.import.process')->middleware(['permission:property_view']);
+    Route::post('properties/bulk-delete', [PropertyController::class, 'bulkDelete'])->name('properties.bulk-delete')->middleware(['permission:property_view']);
     Route::resource('properties', PropertyController::class)->middleware(['permission:property_view']);
     Route::resource('property-sales', PropertySaleController::class)->middleware(['permission:property_sales_view']);
     Route::resource('property-documents', PropertyDocumentController::class)->middleware(['permission:property_documents_view']);

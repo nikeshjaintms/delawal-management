@@ -93,6 +93,14 @@
         </div>
 
         <div class="filter-group">
+            <span class="filter-label">Project</span>
+            <select name="filter_project" class="filter-control">
+                <option value="">All Projects</option>
+                @foreach($projects as $p)<option value="{{ $p->id }}" {{ request('filter_project')==$p->id?'selected':'' }}>{{ $p->project_name }} ({{ $p->propertyMaster->property_name ?? 'Property' }})</option>@endforeach
+            </select>
+        </div>
+
+        <div class="filter-group">
             <span class="filter-label">Start Date</span>
             <input type="date" name="start_date" value="{{ request('start_date') }}" class="filter-control">
         </div>
@@ -123,6 +131,7 @@
                 <tr>
                     <th>PO Number</th>
                     <th>Firm</th>
+                    <th>Project</th>
                     <th>Supplier</th>
                     <th>PO Date</th>
                     <th>Delivery Date</th>
@@ -136,6 +145,7 @@
                 <tr>
                     <td><strong>{{ $po->po_number }}</strong></td>
                     <td>{{ $po->firm->firm_name ?? '-' }}</td>
+                    <td>{{ $po->project->project_name ?? '—' }}</td>
                     <td>{{ $po->vendor->name ?? '-' }}</td>
                     <td>{{ $po->po_date ? $po->po_date->format('d M Y') : '-' }}</td>
                     <td>{{ $po->delivery_date ? $po->delivery_date->format('d M Y') : '—' }}</td>

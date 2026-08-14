@@ -9,11 +9,12 @@ class Material extends Model
     use \App\Traits\HasFirms;
 
     protected $fillable = [
-        'firm_id', 'material_category_id', 'material_name',
+        'firm_id', 'project_id', 'material_category_id', 'material_name',
         'unit', 'opening_stock', 'current_stock', 'damaged_stock', 'minimum_stock', 'status',
     ];
 
     public function firm()             { return $this->belongsTo(Firm::class); }
+    public function project()          { return $this->belongsTo(Project::class); }
     public function materialCategory() { return $this->belongsTo(MaterialCategory::class); }
     public function stockInwards()     { return $this->hasMany(StockInward::class); }
     public function stockOutwards()    { return $this->hasMany(StockOutward::class); }

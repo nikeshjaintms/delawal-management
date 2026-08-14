@@ -58,10 +58,10 @@
             </select>
         </div>
         <div class="filter-group">
-            <span class="filter-label">Property</span>
-            <select name="filter_property" class="filter-control">
-                <option value="">All Properties</option>
-                @foreach($properties as $p)<option value="{{ $p->id }}" {{ request('filter_property')==$p->id?'selected':'' }}>{{ $p->property_name }}</option>@endforeach
+            <span class="filter-label">Project</span>
+            <select name="filter_project" class="filter-control">
+                <option value="">All Projects</option>
+                @foreach($projects as $p)<option value="{{ $p->id }}" {{ request('filter_project')==$p->id?'selected':'' }}>{{ $p->project_name }} ({{ $p->propertyMaster->property_name ?? 'Property' }})</option>@endforeach
             </select>
         </div>
         <div class="filter-group">
@@ -69,7 +69,7 @@
             <input type="date" name="filter_date" value="{{ request('filter_date') }}" class="filter-control">
         </div>
         <button type="submit" class="btn-search">Filter</button>
-        @if(request()->hasAny(['search','filter_material','filter_property','filter_date']))<a href="{{ route('stock-inwards.index') }}" class="btn-reset">Reset</a>@endif
+        @if(request()->hasAny(['search','filter_material','filter_project','filter_date']))<a href="{{ route('stock-inwards.index') }}" class="btn-reset">Reset</a>@endif
     </form>
 
     <div class="table-container">
@@ -81,7 +81,7 @@
                     <th>Ref. PO</th>
                     <th>Supplier</th>
                     <th>Bill / Invoice No</th>
-                    <th>Property</th>
+                    <th>Project</th>
                     <th>Material (Sample)</th>
                     <th>Total items</th>
                     <th style="width:220px; text-align:center;">Action</th>
@@ -103,7 +103,7 @@
                     <td>{{ $inw->purchaseOrder ? $inw->purchaseOrder->po_number : 'Manual' }}</td>
                     <td>{{ $inw->supplier_name ?: '—' }}</td>
                     <td>{{ $inw->bill_no ?: '—' }}</td>
-                    <td>{{ $inw->property->property_name ?? 'General' }}</td>
+                    <td>{{ $inw->project->project_name ?? ($inw->property->property_name ?? 'General') }}</td>
                     <td>{{ $sampleMaterial }}</td>
                     <td style="font-weight:700; text-align:center;">{{ $itemCount }}</td>
                     <td>

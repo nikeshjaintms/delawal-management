@@ -651,6 +651,116 @@
     }
 
     /* ================================================================
+       PREMIUM PAGINATION DESIGN SYSTEM
+    ================================================================ */
+    .pagination-wrapper, .pagination-wrap {
+        margin-top: 24px !important;
+        padding-top: 16px !important;
+        border-top: 1px solid var(--border-color) !important;
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
+
+    .pagination-nav-container {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        flex-wrap: wrap !important;
+        gap: 16px !important;
+    }
+
+    .pagination-info-text {
+        font-size: 13.5px !important;
+        color: var(--text-secondary) !important;
+        font-weight: 500 !important;
+    }
+
+    .pagination-info-text strong {
+        color: var(--text-primary) !important;
+        font-weight: 700 !important;
+    }
+
+    .pagination-buttons {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-wrap: wrap !important;
+    }
+
+    .page-item,
+    .pagination-wrapper nav a, .pagination-wrapper nav span,
+    .pagination-wrap nav a, .pagination-wrap nav span {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 36px !important;
+        height: 36px !important;
+        padding: 0 12px !important;
+        border-radius: 8px !important;
+        font-size: 13.5px !important;
+        font-weight: 600 !important;
+        font-family: var(--font-primary) !important;
+        color: var(--text-primary) !important;
+        background: #FFFFFF !important;
+        border: 1px solid var(--border-color) !important;
+        text-decoration: none !important;
+        transition: var(--transition) !important;
+        cursor: pointer !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+    }
+
+    .page-item:hover,
+    .pagination-wrapper nav a:hover,
+    .pagination-wrap nav a:hover {
+        background: #F1F5F9 !important;
+        color: #1E40AF !important;
+        border-color: #CBD5E1 !important;
+        transform: translateY(-1px) !important;
+    }
+
+    .page-item.active,
+    .pagination-wrapper nav span[aria-current="page"],
+    .pagination-wrap nav span[aria-current="page"] {
+        background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+        color: #FFFFFF !important;
+        border-color: #2563EB !important;
+        box-shadow: 0 2px 8px rgba(59,130,246,0.35) !important;
+    }
+
+    .page-item.disabled,
+    .pagination-wrapper nav span[aria-disabled="true"],
+    .pagination-wrap nav span[aria-disabled="true"] {
+        opacity: 0.45 !important;
+        cursor: not-allowed !important;
+        background: #F8FAFC !important;
+        color: var(--text-muted) !important;
+        border-color: var(--border-color) !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    /* Fix un-styled SVG elements in default Laravel pagination */
+    .pagination-wrapper svg, .pagination-wrap svg, nav[role="navigation"] svg {
+        width: 14px !important;
+        height: 14px !important;
+        max-width: 14px !important;
+        max-height: 14px !important;
+        display: inline-block !important;
+        vertical-align: middle !important;
+        fill: currentColor !important;
+        flex-shrink: 0 !important;
+    }
+
+    @media (max-width: 640px) {
+        .pagination-nav-container {
+            justify-content: center !important;
+            text-align: center !important;
+        }
+    }
+
+    /* ================================================================
        DESKTOP SIDEBAR COLLAPSED STATE
     ================================================================ */
 
@@ -1159,106 +1269,16 @@
             </ul>
         </li>
 
-        @if($authUser->hasPermission('project_view'))
+        {{-- 1. Property Management --}}
         <li class="menu-item">
-            <a href="{{ route('projects.index') }}" class="menu-link {{ str_starts_with($currentRoute ?? '', 'projects.') ? 'active' : '' }}" data-label="Project Management">
-                <i class="fa-solid fa-city"></i><span>Project Management</span>
-            </a>
-        </li>
-        @endif
-
-        {{-- 1. Masters --}}
-        <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="1. Masters">
-                <i class="fa-solid fa-layer-group"></i><span>1. Masters</span>
-                <i class="fa-solid fa-chevron-right submenu-arrow"></i>
-            </a>
-            <ul class="submenu-list">
-                @if(!session('login_type') === 'firm' || session('login_type') !== 'firm')
-                <li class="submenu-item">
-                    <a href="{{ route('financial-years.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'financial-years.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-calendar-days"></i><span>Financial Years</span>
-                    </a>
-                </li>
-                @if($authUser->hasPermission('user_management_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('users.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'users.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-users-gear"></i><span>Users</span>
-                    </a>
-                </li>
-                @endif
-                @if($authUser->hasPermission('role_permission_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('roles.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'roles.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-shield-halved"></i><span>Roles & Permissions</span>
-                    </a>
-                </li>
-                @endif
-                @endif
-
-                @if($authUser->hasPermission('customer_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('customers.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'customers.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-users"></i><span>Customer</span>
-                    </a>
-                </li>
-                @endif
-                @if($authUser->hasPermission('vendor_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('vendors.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'vendors.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-truck-field"></i><span>Vendor</span>
-                    </a>
-                </li>
-                @endif
-                @if($authUser->hasPermission('broker_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('brokers.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'brokers.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-user-tie"></i><span>Broker</span>
-                    </a>
-                </li>
-                @endif
-
-                @if($authUser->hasPermission('property_type_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('property-types.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'property-types.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-layer-group"></i><span>Property Type</span>
-                    </a>
-                </li>
-                @endif
-
-                @if($authUser->hasPermission('expense_category_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('expense-categories.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'expense-categories.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-tags"></i><span>Expense Category</span>
-                    </a>
-                </li>
-                @endif
-
-                @if($authUser->hasPermission('payment_mode_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('payment-modes.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'payment-modes.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-wallet"></i><span>Payment Mode</span>
-                    </a>
-                </li>
-                @endif
-                <li class="submenu-item">
-                    <a href="{{ route('invoice-settings.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'invoice-settings.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-sliders"></i><span>Tax / GST Settings</span>
-                    </a>
-                </li>
-            </ul>
-        </li>
-
-        {{-- 2. Property Management --}}
-        <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="2. Property Management">
-                <i class="fa-solid fa-building"></i><span>2. Property Management</span>
+            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="1. Property Management">
+                <i class="fa-solid fa-building"></i><span>1. Property Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">
                 @if($authUser->hasPermission('property_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('properties.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'properties.') ? 'active' : '' }}">
+                    <a href="{{ route('property-masters.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'property-masters.') ? 'active' : '' }}">
                         <i class="fa-solid fa-building"></i><span>Property Master</span>
                     </a>
                 </li>
@@ -1278,6 +1298,22 @@
                     </a>
                 </li>
                 @endif
+            </ul>
+        </li>
+
+        {{-- 2. Project Management --}}
+        @if($authUser->hasPermission('project_view'))
+        <li class="menu-item">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="2. Project Management">
+                <i class="fa-solid fa-city"></i><span>2. Project Management</span>
+                <i class="fa-solid fa-chevron-right submenu-arrow"></i>
+            </a>
+            <ul class="submenu-list">
+                <li class="submenu-item">
+                    <a href="{{ route('projects.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'projects.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-city"></i><span>Projects</span>
+                    </a>
+                </li>
 
                 @if($authUser->hasPermission('inventory_view'))
                 <li class="submenu-item">
@@ -1323,6 +1359,7 @@
                 @endif
             </ul>
         </li>
+        @endif
 
         {{-- 3. Customer Process --}}
         <li class="menu-item">

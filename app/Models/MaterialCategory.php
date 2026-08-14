@@ -8,8 +8,9 @@ class MaterialCategory extends Model
 {
     use \App\Traits\HasFirms;
 
-    protected $fillable = ['firm_id', 'category_name', 'description', 'status'];
+    protected $fillable = ['firm_id', 'project_id', 'category_name', 'description', 'status'];
 
-    public function firm() { return $this->belongsTo(Firm::class); }
+    public function firm()    { return $this->belongsTo(Firm::class); }
+    public function project() { return $this->belongsTo(Project::class); }
     public function materials() { return $this->hasMany(Material::class); }
 }

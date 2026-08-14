@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title','Current Stock Report')
 @section('page-title','Inventory Management')
 @section('content')
@@ -103,8 +103,19 @@
                 @endforeach
             </select>
         </div>
+        <div class="filter-group">
+            <span class="filter-label">Project</span>
+            <select name="filter_project" class="filter-control @error('filter_project') is-invalid @enderror">
+                <option value="">All Projects</option>
+                @foreach($projects as $p)
+                    <option value="{{ $p->id }}" {{ request('filter_project') == $p->id ? 'selected' : '' }}>
+                        {{ $p->project_name }} ({{ $p->propertyMaster->property_name ?? 'Property' }})
+                    </option>
+                @endforeach
+            </select>
+        </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_category']))
+        @if(request()->hasAny(['search','filter_category','filter_project']))
             <a href="{{ route('stock-report.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
