@@ -1123,7 +1123,7 @@
     }
     
     /* Glass Cards & Containers */
-    .card-box, .card, .modal-box, .modal-content, .crud-box, .stat-card, .kpi-card, .sum-card, .section-card, .form-card, .summary-card, .rpt-box, .dash-welcome {
+    .card-box, .card, .modal-box, .modal-content, .crud-box, .stat-card, .kpi-card, .sum-card, .section-card, .form-card, .summary-card, .rpt-box, .dash-welcome, .rpt-card {
         background: rgba(15, 20, 32, 0.65) !important;
         background-color: rgba(15, 20, 32, 0.65) !important;
         backdrop-filter: blur(28px) !important;
@@ -1139,10 +1139,67 @@
         --text-muted:    rgba(255, 255, 255, 0.55);
         --border-color:  rgba(255, 255, 255, 0.20);
     }
-    .card-box:hover, .card:hover, .crud-box:hover, .stat-card:hover, .kpi-card:hover, .sum-card:hover, .section-card:hover, .form-card:hover, .summary-card:hover, .dash-welcome:hover {
+    .card-box:hover, .card:hover, .crud-box:hover, .stat-card:hover, .kpi-card:hover, .sum-card:hover, .section-card:hover, .form-card:hover, .summary-card:hover, .dash-welcome:hover, .rpt-card:hover {
         border-color: rgba(255, 255, 255, 0.40) !important;
         transform: translateY(-3px) !important;
         box-shadow: 0 18px 48px rgba(0, 0, 0, 0.48), 0 0 24px rgba(255, 255, 255, 0.12) !important;
+    }
+
+    /* ULTRA-HIGH CONTRAST & PURE WHITE BOLD TYPOGRAPHY OVERRIDES */
+    .kpi-label, .card-label, .stat-label {
+        color: #FFFFFF !important;
+        font-weight: 800 !important;
+        font-size: 11px !important;
+        letter-spacing: 0.8px !important;
+        text-transform: uppercase !important;
+        opacity: 1 !important;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6) !important;
+    }
+    .kpi-value, .card-value, .stat-value {
+        color: #FFFFFF !important;
+        font-weight: 800 !important;
+        font-size: 24px !important;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6) !important;
+    }
+    .kpi-badge, .card-subtext, .stat-subtext, .bk-blue, .bk-green, .bk-red, .bk-teal, .bk-rose, .bk-indigo, .bk-purple, .bk-amber, .bk-orange, .bk-sky {
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        font-size: 12px !important;
+        opacity: 0.95 !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+    }
+    .kpi-section-header h3, .summary-section-header h3, .section-title, .rpt-section-title {
+        color: #FFFFFF !important;
+        font-weight: 800 !important;
+        font-size: 14px !important;
+        letter-spacing: 1.6px !important;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7) !important;
+    }
+
+    /* Reports Hub Specific Overrides */
+    .rpt-hub-header h2 { font-size: 26px !important; font-weight: 800 !important; color: #FFFFFF !important; margin-bottom: 6px !important; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7) !important; }
+    .rpt-hub-header h2 i { color: #60A5FA !important; }
+    .rpt-hub-header p { font-size: 14.5px !important; color: rgba(255, 255, 255, 0.85) !important; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5) !important; }
+    .rpt-section-title { font-size: 14px !important; font-weight: 800 !important; color: #FFFFFF !important; text-transform: uppercase !important; letter-spacing: 1.6px !important; margin: 36px 0 18px !important; display: flex !important; align-items: center !important; gap: 10px !important; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6) !important; }
+    .rpt-section-title i { color: #60A5FA !important; font-size: 16px !important; }
+    .rpt-card-info h3 { font-size: 16px !important; font-weight: 800 !important; color: #FFFFFF !important; margin-bottom: 6px !important; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important; }
+    .rpt-card-info p { font-size: 13px !important; color: rgba(255, 255, 255, 0.80) !important; line-height: 1.55 !important; }
+    .rpt-icon, .rpt-icon.blue, .rpt-icon.green, .rpt-icon.amber, .rpt-icon.purple, .rpt-icon.red, .rpt-icon.sky, .rpt-icon.teal, .rpt-icon.orange {
+        background: rgba(59, 130, 246, 0.18) !important;
+        color: #60A5FA !important;
+        border: 1.5px solid rgba(59, 130, 246, 0.40) !important;
+        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25) !important;
+    }
+    .rpt-open-btn {
+        background: rgba(255, 255, 255, 0.14) !important;
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        color: #FFFFFF !important;
+        backdrop-filter: blur(8px) !important;
+    }
+    .rpt-open-btn:hover {
+        background: rgba(255, 255, 255, 0.25) !important;
+        border-color: rgba(255, 255, 255, 0.60) !important;
+        color: #FFFFFF !important;
     }
     
     /* Glass Sidebar & Navigation */
