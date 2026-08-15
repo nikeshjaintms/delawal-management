@@ -190,9 +190,9 @@ class PropertyMasterController extends Controller
 
     private function authorise(PropertyMaster $propertyMaster)
     {
-        $user = auth()->user();
-        if ($user && !$user->isAdmin()) {
-            $firmId = $user->firm_id ?: session('firm_id');
+        $isAdmin = auth()->user() && auth()->user()->isAdmin();
+        if (!$isAdmin) {
+            $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
             if ($propertyMaster->firm_id != $firmId) {
                 abort(403, 'Unauthorized access to Property Master.');
             }

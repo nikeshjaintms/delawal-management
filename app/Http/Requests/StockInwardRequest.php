@@ -25,7 +25,7 @@ class StockInwardRequest extends FormRequest
     public function rules(): array
     {
         $user = auth()->user();
-        $firmId = $user ? $user->firm_id : 0;
+        $firmId = $user ? $user->firm_id : session('firm_id');
 
         $rules = [
             'inward_date'   => 'required|date',

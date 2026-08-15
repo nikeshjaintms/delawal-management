@@ -93,7 +93,8 @@ class StockInwardController extends Controller
         if ($poId) {
             $selectedPo = PurchaseOrder::with(['vendor', 'firm', 'items.material'])->find($poId);
             if ($selectedPo) {
-                if ($user && !$user->isAdmin() && $selectedPo->firm_id != $firmId) {
+                $isAdmin = $user && $user->isAdmin();
+                if (!$isAdmin && $selectedPo->firm_id != $firmId) {
                     abort(403);
                 }
                 foreach ($selectedPo->items as $poItem) {
@@ -132,7 +133,8 @@ class StockInwardController extends Controller
     {
         $user = Auth::user();
         $firmId = $user ? $user->firm_id : session('firm_id');
-        if ($user && !$user->isAdmin() && $purchaseOrder->firm_id != $firmId) {
+        $isAdmin = $user && $user->isAdmin();
+        if (!$isAdmin && $purchaseOrder->firm_id != $firmId) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 

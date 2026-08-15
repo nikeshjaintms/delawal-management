@@ -93,7 +93,12 @@ class PurchaseOrderController extends Controller
         $totalAmount = (clone $query)->sum('grand_total');
         $purchaseOrders = $query->orderBy('po_date', 'desc')->paginate(15)->withQueryString();
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
-        $projects = Project::with('propertyMaster')->orderBy('project_name')->get();
+        if ($isAdmin) {
+            $projects = Project::with('propertyMaster')->orderBy('project_name')->get();
+        } else {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $projects = Project::where('firm_id', $firmId)->with('propertyMaster')->orderBy('project_name')->get();
+        }
 
         return view('admin.purchase-orders.index', compact('purchaseOrders', 'firms', 'projects', 'totalAmount'));
     }

@@ -101,7 +101,8 @@ class StockOutwardController extends Controller
         if ($siNumber) {
             $selectedInward = StockInward::where('inward_number', $siNumber)->first();
             if ($selectedInward) {
-                if ($user && !$user->isAdmin() && $selectedInward->firm_id != $firmId) {
+                $isAdmin = $user && $user->isAdmin();
+                if (!$isAdmin && $selectedInward->firm_id != $firmId) {
                     abort(403);
                 }
 
@@ -199,7 +200,8 @@ class StockOutwardController extends Controller
                 return back()->with('error', 'Reference Inward not found.');
             }
 
-            if ($user && !$user->isAdmin() && $inwGroup->firm_id != $firmId) {
+            $isAdmin = $user && $user->isAdmin();
+            if (!$isAdmin && $inwGroup->firm_id != $firmId) {
                 abort(403);
             }
 
