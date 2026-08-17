@@ -82,11 +82,15 @@
            LOGIN CONTAINER
         ════════════════════════════════════════ */
         .login-card {
-            background: transparent;
-            border: 1px solid rgba(197, 168, 126, 0.45);
-            border-radius: 22px;
-            padding: 32px 40px 28px;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.20);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+            border-radius: 24px;
+            padding: 36px 42px 32px;
             position: relative;
+            overflow: hidden;
         }
 
         /* ════════════════════════════════════════

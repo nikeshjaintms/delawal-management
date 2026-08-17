@@ -1563,8 +1563,16 @@
         color: #FFFFFF !important;
     }
     </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
+
+<!-- Ambient Glow Nodes Background -->
+<div class="ambient-glow-wrapper">
+    <div class="ambient-glow-orb ambient-glow-orb-1"></div>
+    <div class="ambient-glow-orb ambient-glow-orb-2"></div>
+    <div class="ambient-glow-orb ambient-glow-orb-3"></div>
+</div>
 
 <!-- Sidebar Overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
