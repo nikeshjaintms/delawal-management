@@ -20,7 +20,7 @@ class BookingController extends Controller
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        $propQuery = Property::orderBy('property_name');
+        $propQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
         $custQuery = Customer::where('status', 'active')->orderBy('name');
         $brokQuery = Broker::where('status', 'active')->orderBy('name');
 

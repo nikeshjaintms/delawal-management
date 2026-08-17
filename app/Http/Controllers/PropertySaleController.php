@@ -20,7 +20,7 @@ class PropertySaleController extends Controller
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        $propertiesQuery = Property::orderBy('property_name');
+        $propertiesQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
         $customersQuery  = Customer::where('status', 'active')->orderBy('name');
         $brokersQuery    = Broker::where('status', 'active')->orderBy('name');
 

@@ -74,6 +74,7 @@ textarea.form-control{resize:vertical;min-height:90px}
             {{-- Live property info preview --}}
             <div class="prop-info-box" id="propInfoBox">
                 <div class="pi-row">
+                    <div class="pi-item">Project: <strong id="piProject">—</strong></div>
                     <div class="pi-item">Type: <strong id="piType">—</strong></div>
                     <div class="pi-item">Unit No: <strong id="piUnit">—</strong></div>
                     <div class="pi-item">Current Status: <strong id="piStatus">—</strong></div>
@@ -120,6 +121,7 @@ textarea.form-control{resize:vertical;min-height:90px}
 const propData = {
     @foreach($properties as $p)
     {{ $p->id }}: {
+        project: "{{ $p->project->project_name ?? ($p->project->propertyMaster->property_name ?? 'No Project Assigned') }}",
         type:   "{{ $p->propertyType->name ?? '—' }}",
         unit:   "{{ $p->unit_no ?? '—' }}",
         status: "{{ ucfirst(str_replace('_',' ',$p->status)) }}"
@@ -132,9 +134,10 @@ function showPropInfo(sel) {
     const id  = parseInt(sel.value);
     if (!id || !propData[id]) { box.style.display = 'none'; return; }
     const d = propData[id];
-    document.getElementById('piType').textContent   = d.type;
-    document.getElementById('piUnit').textContent   = d.unit;
-    document.getElementById('piStatus').textContent = d.status;
+    document.getElementById('piProject').textContent = d.project;
+    document.getElementById('piType').textContent    = d.type;
+    document.getElementById('piUnit').textContent    = d.unit;
+    document.getElementById('piStatus').textContent  = d.status;
     box.style.display = 'block';
 }
 

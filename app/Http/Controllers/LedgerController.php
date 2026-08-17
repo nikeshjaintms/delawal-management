@@ -27,7 +27,7 @@ class LedgerController extends Controller
     {
         $firmId = Auth::user()->firm_id;
         return [
-            'properties'   => Property::where('firm_id', $firmId)->orderBy('property_name')->get(),
+            'properties'   => Property::with(['project.propertyMaster'])->where('firm_id', $firmId)->orderBy('property_name')->get(),
             'customers'    => Customer::where('firm_id', $firmId)->where('status', 'active')->orderBy('name')->get(),
             'vendors'      => Vendor::where('firm_id', $firmId)->where('status', 'active')->orderBy('name')->get(),
             'brokers'      => Broker::where('firm_id', $firmId)->where('status', 'active')->orderBy('name')->get(),

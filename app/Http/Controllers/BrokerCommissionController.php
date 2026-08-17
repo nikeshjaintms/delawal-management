@@ -34,7 +34,7 @@ class BrokerCommissionController extends Controller
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
         $brokerQuery   = Broker::where('status', 'active')->orderBy('name');
-        $propertyQuery = Property::orderBy('property_name');
+        $propertyQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
         $customerQuery = Customer::where('status', 'active')->orderBy('name');
         $bookingQuery  = Booking::with(['property', 'customer'])->latest();
 

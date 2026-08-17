@@ -85,9 +85,9 @@ class PropertyStatusController extends Controller
         $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
 
         if ($isAdmin) {
-            $properties = Property::with('propertyType')->orderBy('property_name')->get();
+            $properties = Property::with(['propertyType', 'project.propertyMaster'])->orderBy('property_name')->get();
         } else {
-            $properties = $this->firmProperties($firmId)->with('propertyType')->orderBy('property_name')->get();
+            $properties = $this->firmProperties($firmId)->with(['propertyType', 'project.propertyMaster'])->orderBy('property_name')->get();
         }
         $statuses = PropertyStatus::statuses();
 
@@ -148,9 +148,9 @@ class PropertyStatusController extends Controller
 
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         if ($isAdmin) {
-            $properties = Property::with('propertyType')->orderBy('property_name')->get();
+            $properties = Property::with(['propertyType', 'project.propertyMaster'])->orderBy('property_name')->get();
         } else {
-            $properties = $this->firmProperties($propertyAvailability->firm_id)->with('propertyType')->orderBy('property_name')->get();
+            $properties = $this->firmProperties($propertyAvailability->firm_id)->with(['propertyType', 'project.propertyMaster'])->orderBy('property_name')->get();
         }
         $statuses = PropertyStatus::statuses();
 

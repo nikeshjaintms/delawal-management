@@ -51,7 +51,7 @@ class RentalPaymentController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
-        $propQuery = Property::with('propertyType')->orderBy('property_name');
+        $propQuery = Property::with(['propertyType', 'project.propertyMaster'])->orderBy('property_name');
         if (!$isAdmin) {
             $propQuery->where('firm_id', $firmId);
         }
@@ -113,7 +113,7 @@ class RentalPaymentController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
-        $propQuery = Property::with('propertyType')->orderBy('property_name');
+        $propQuery = Property::with(['propertyType', 'project.propertyMaster'])->orderBy('property_name');
         if (!$isAdmin) {
             $propQuery->where('firm_id', $firmId);
         }

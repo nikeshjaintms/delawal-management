@@ -45,20 +45,28 @@
         {{-- Property --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-building"></i> Property Details</div>
-            <div class="form-group">
-                <label class="form-label" for="property_id">Property <span>*</span></label>
-                <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
-                    <option value="">-- Select Property --</option>
-                    @foreach($properties as $property)
-                        <option value="{{ $property->id }}" {{ old('property_id') == $property->id ? 'selected' : '' }}>
-                            {{ $property->property_name }}
-                            @if($property->property_code) ({{ $property->property_code }}) @endif
-                            @if($property->unit_no) — Unit {{ $property->unit_no }} @endif
-                            — {{ ucfirst($property->status) }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('property_id') <div class="text-error">{{ $message }}</div> @enderror
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="property_id">Property <span>*</span></label>
+                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
+                        <option value="">-- Select Property --</option>
+                        @foreach($properties as $property)
+                            <option value="{{ $property->id }}"
+                                    data-project="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
+                                    {{ old('property_id') == $property->id ? 'selected' : '' }}>
+                                {{ $property->property_name }}
+                                @if($property->property_code) ({{ $property->property_code }}) @endif
+                                @if($property->unit_no) — Unit {{ $property->unit_no }} @endif
+                                — {{ ucfirst($property->status) }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('property_id') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="project_display">Project</label>
+                    <input type="text" id="project_display" class="form-control" readonly placeholder="Auto-determined" style="background-color:#F9FAFB; cursor:not-allowed;">
+                </div>
             </div>
         </div>
 
@@ -174,4 +182,32 @@
         </div>
     </form>
 </div>
+
+<script>
+function updateProjectMapping() {
+    const select = document.getElementById('property_id');
+    if (!select) return;
+    const selectedOption = select.options[select.selectedIndex];
+    const projectDisplay = document.getElementById('project_display');
+    if (projectDisplay) {
+        if (!select.value || !selectedOption) {
+            projectDisplay.value = 'Auto-determined';
+        } else {
+            const projName = selectedOption.getAttribute('data-project');
+            projectDisplay.value = projName || 'No Project Assigned';
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const propSelect = document.getElementById('property_id');
+    if (propSelect) {
+        propSelect.addEventListener('change', updateProjectMapping);
+        if (window.jQuery) {
+            jQuery('#property_id').on('change select2:select select2:unselect', updateProjectMapping);
+        }
+        updateProjectMapping();
+    }
+});
+</script>
 @endsection

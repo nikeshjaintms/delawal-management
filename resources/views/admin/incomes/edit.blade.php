@@ -48,7 +48,10 @@
                     <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required>
                         <option value="">— Select Property —</option>
                         @foreach($properties as $property)
-                            <option value="{{ $property->id }}" data-type="{{ $property->propertyType->name ?? 'No Property Type Assigned' }}" {{ old('property_id', $income->property_id) == $property->id ? 'selected' : '' }}>
+                            <option value="{{ $property->id }}"
+                                    data-type="{{ $property->propertyType->name ?? 'No Property Type Assigned' }}"
+                                    data-project="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
+                                    {{ old('property_id', $income->property_id) == $property->id ? 'selected' : '' }}>
                                 {{ $property->property_name }} @if($property->property_code) ({{ $property->property_code }}) @endif
                             </option>
                         @endforeach
@@ -58,6 +61,12 @@
                 <div class="form-group">
                     <label class="form-label" for="property_type_display">Property Type</label>
                     <input type="text" id="property_type_display" class="form-control form-control-readonly" readonly placeholder="Auto-determined">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="project_display">Project</label>
+                    <input type="text" id="project_display" class="form-control form-control-readonly" readonly placeholder="Auto-determined" style="background-color:#F9FAFB; cursor:not-allowed;">
                 </div>
             </div>
 
@@ -164,25 +173,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function updatePropertyType() {
+    function updatePropertyInfo() {
         const select = document.getElementById('property_id');
+        if (!select) return;
         const selectedOption = select.options[select.selectedIndex];
         const propType = selectedOption ? selectedOption.getAttribute('data-type') : '';
+        const projName = selectedOption ? selectedOption.getAttribute('data-project') : '';
         const val = select.value;
-        if (!val) {
+        if (!val || !selectedOption) {
             document.getElementById('property_type_display').value = 'Auto-determined';
+            if (document.getElementById('project_display')) document.getElementById('project_display').value = 'Auto-determined';
         } else {
             document.getElementById('property_type_display').value = propType || 'No Property Type Assigned';
+            if (document.getElementById('project_display')) document.getElementById('project_display').value = projName || 'No Project Assigned';
         }
     }
 
     if (window.jQuery) {
-        jQuery('#property_id').on('change', updatePropertyType);
-        jQuery('#property_id').on('select2:select', updatePropertyType);
-        jQuery('#property_id').on('select2:unselect', updatePropertyType);
+        jQuery('#property_id').on('change select2:select select2:unselect', updatePropertyInfo);
     }
-    document.getElementById('property_id').addEventListener('change', updatePropertyType);
-    updatePropertyType();
+    document.getElementById('property_id')?.addEventListener('change', updatePropertyInfo);
+    updatePropertyInfo();
 });
 </script>
 @endsection

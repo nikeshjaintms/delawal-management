@@ -61,9 +61,9 @@ class PropertyDocumentController extends Controller
         $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
 
         if ($isAdmin) {
-            $properties = Property::orderBy('property_name')->get();
+            $properties = Property::with(['project.propertyMaster'])->orderBy('property_name')->get();
         } else {
-            $properties = Property::where('firm_id', $firmId)->orderBy('property_name')->get();
+            $properties = Property::with(['project.propertyMaster'])->where('firm_id', $firmId)->orderBy('property_name')->get();
         }
         $documentTypes = PropertyDocument::documentTypes();
 
@@ -129,9 +129,9 @@ class PropertyDocumentController extends Controller
 
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         if ($isAdmin) {
-            $properties = Property::orderBy('property_name')->get();
+            $properties = Property::with(['project.propertyMaster'])->orderBy('property_name')->get();
         } else {
-            $properties = Property::where('firm_id', $propertyDocument->firm_id)->orderBy('property_name')->get();
+            $properties = Property::with(['project.propertyMaster'])->where('firm_id', $propertyDocument->firm_id)->orderBy('property_name')->get();
         }
         $documentTypes = PropertyDocument::documentTypes();
 

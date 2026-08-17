@@ -39,7 +39,7 @@ class IncomeController extends Controller
             });
         }
 
-        $propQuery = \App\Models\Property::with('propertyType')->orderBy('property_name');
+        $propQuery = \App\Models\Property::with(['propertyType', 'project.propertyMaster'])->orderBy('property_name');
         if ($firmId && (!$user || !$user->isAdmin())) {
             $propQuery->where('firm_id', $firmId);
         }

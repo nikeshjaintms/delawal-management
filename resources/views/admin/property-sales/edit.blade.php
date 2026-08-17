@@ -56,6 +56,7 @@
                         <option value="">-- Select Property --</option>
                         @foreach($properties as $property)
                             <option value="{{ $property->id }}"
+                                data-project="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
                                 {{ old('property_id', $propertySale->property_id) == $property->id ? 'selected' : '' }}>
                                 {{ $property->property_name }}
                                 @if($property->property_code) ({{ $property->property_code }}) @endif
@@ -65,6 +66,12 @@
                     </select>
                     @error('property_id') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
+                <div class="form-group">
+                    <label class="form-label" for="project_display">Project</label>
+                    <input type="text" id="project_display" class="form-control" readonly placeholder="Auto-determined" style="background-color:#F9FAFB; cursor:not-allowed;">
+                </div>
+            </div>
+            <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="customer_id">Customer <span>*</span></label>
                     <select name="customer_id" id="customer_id" class="form-control @error('customer_id') is-invalid @enderror">
@@ -195,5 +202,31 @@ function calcRemaining() {
     const remaining = sale - booking;
     document.getElementById('remaining_amount').value = remaining >= 0 ? remaining.toFixed(2) : '';
 }
+
+function updateProjectMapping() {
+    const select = document.getElementById('property_id');
+    if (!select) return;
+    const selectedOption = select.options[select.selectedIndex];
+    const projectDisplay = document.getElementById('project_display');
+    if (projectDisplay) {
+        if (!select.value || !selectedOption) {
+            projectDisplay.value = 'Auto-determined';
+        } else {
+            const projName = selectedOption.getAttribute('data-project');
+            projectDisplay.value = projName || 'No Project Assigned';
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const propSelect = document.getElementById('property_id');
+    if (propSelect) {
+        propSelect.addEventListener('change', updateProjectMapping);
+        if (window.jQuery) {
+            jQuery('#property_id').on('change select2:select select2:unselect', updateProjectMapping);
+        }
+        updateProjectMapping();
+    }
+});
 </script>
 @endsection
