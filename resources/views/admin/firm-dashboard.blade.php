@@ -6,19 +6,20 @@
     /* --- Welcome Banner --- */
     .dash-welcome {
         position: relative;
-        background: rgba(15, 20, 32, 0.65);
-        backdrop-filter: blur(28px);
-        -webkit-backdrop-filter: blur(28px);
-        border: 1px solid rgba(255, 255, 255, 0.20);
+        background: #050508 !important;
+        background-color: #050508 !important;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 22px; padding: 34px 38px; margin-bottom: 28px; overflow: hidden;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.38), 0 0 24px rgba(255, 255, 255, 0.10);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95);
         transition: box-shadow 0.3s ease;
     }
-    .dash-welcome:hover { box-shadow: 0 18px 48px rgba(0, 0, 0, 0.48), 0 0 32px rgba(255, 255, 255, 0.18); }
+    .dash-welcome:hover { box-shadow: 0 14px 36px rgba(0, 0, 0, 1); }
     .dash-welcome-inner { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 22px; }
     .dash-welcome-tag {
-        display: inline-flex; align-items: center; gap: 7px; background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.20); color: #FFFFFF; font-size: 11px; font-weight: 700;
+        display: inline-flex; align-items: center; gap: 7px; background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.15); color: #FFFFFF; font-size: 11px; font-weight: 700;
         letter-spacing: 1.3px; text-transform: uppercase; padding: 5px 13px; border-radius: 20px;
         margin-bottom: 11px; backdrop-filter: blur(4px);
     }
@@ -27,21 +28,21 @@
     .dash-quick-actions { display: flex; gap: 10px; flex-wrap: wrap; }
     .dqa-btn {
         display: inline-flex; align-items: center; gap: 7px;
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(255, 255, 255, 0.30); color: #FFFFFF; padding: 9px 17px; border-radius: 11px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.20); color: #FFFFFF; padding: 9px 17px; border-radius: 11px;
         font-size: 13px; font-weight: 700; text-decoration: none;
         transition: all 0.22s cubic-bezier(0.4,0,0.2,1); white-space: nowrap;
         font-family: inherit; cursor: pointer; backdrop-filter: blur(8px);
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
     }
     .dqa-btn i { font-size: 13px; transition: transform 0.2s ease; }
-    .dqa-btn:hover { background: rgba(255, 255, 255, 0.22); border-color: rgba(255, 255, 255, 0.50); color: #FFFFFF; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35); }
+    .dqa-btn:hover { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.35); color: #FFFFFF; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35); }
     .dqa-btn:hover i { transform: scale(1.15); }
 
     /* --- KPI Section Header --- */
     .kpi-section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
     .kpi-section-header h3 { font-size: 13px; font-weight: 800; color: #FFFFFF; text-transform: uppercase; letter-spacing: 1.4px; margin: 0; }
-    .kpi-section-divider { flex: 1; height: 1px; background: rgba(255, 255, 255, 0.14); }
+    .kpi-section-divider { flex: 1; height: 1px; background: rgba(255, 255, 255, 0.10); }
 
     /* --- KPI Grid --- */
     .kpi-grid {
@@ -57,46 +58,35 @@
 
     /* --- KPI Cards --- */
     .kpi-card {
-        background: rgba(15, 20, 32, 0.65);
-        backdrop-filter: blur(28px);
-        -webkit-backdrop-filter: blur(28px);
-        border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 18px;
+        background: #050508 !important;
+        background-color: #050508 !important;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px;
         padding: 20px 18px; position: relative; overflow: hidden;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.38);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.95);
         transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
         display: flex; align-items: center; gap: 16px;
     }
-    .kpi-card:hover { transform: translateY(-4px); border-color: rgba(255, 255, 255, 0.35); box-shadow: 0 18px 48px rgba(0,0,0,0.48), 0 0 24px rgba(255, 255, 255, 0.10); }
-    .kpi-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; height: 3px;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-        opacity: 0;
-        transition: opacity 0.26s;
-        z-index: 3;
-    }
-    .kpi-card::after {
-        content: '';
-        position: absolute;
-        bottom: -20px; right: -20px;
-        width: 85px; height: 85px;
-        border-radius: 50%;
-        opacity: 0.15;
-        transition: opacity 0.26s, transform 0.32s;
-        pointer-events: none;
-        z-index: 1;
-    }
-    .kpi-card:hover::before { opacity: 1; }
-    .kpi-card:hover::after  { opacity: 0.35; transform: scale(1.2); }
+    .kpi-card:hover { transform: translateY(-4px); background: #0C0C10 !important; border-color: rgba(255, 255, 255, 0.18); box-shadow: 0 14px 36px rgba(0,0,0,1); }
+    .kpi-card::before, .kpi-card::after { display: none !important; }
 
     .kpi-card:hover .kpi-icon-box i { transform: scale(1.12); }
-    .kpi-deco { position: absolute; width: 110px; height: 110px; border-radius: 50%; top: -32px; right: -32px; opacity: 0.45; pointer-events: none; }
+    .kpi-deco { display: none !important; }
     .kpi-info { display: flex; flex-direction: column; z-index: 2; flex: 1; min-width: 0; }
     .kpi-label { font-size: 11px; font-weight: 800; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); }
     .kpi-value { font-size: 24px; font-weight: 800; color: #FFFFFF; line-height: 1.1; margin-bottom: 2px; font-variant-numeric: tabular-nums; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
-    .kpi-badge { font-size: 12px; font-weight: 700; color: #FFFFFF; display: inline-block; width: fit-content; white-space: nowrap; opacity: 0.95; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
-    .bk-blue, .bk-green, .bk-red, .bk-teal, .bk-rose, .bk-indigo, .bk-purple, .bk-amber, .bk-orange, .bk-sky { background: transparent; color: #FFFFFF; padding: 0; }
+    .kpi-badge { font-size: 12px; font-weight: 700; display: inline-block; width: fit-content; white-space: nowrap; opacity: 0.95; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
+    .bk-blue   { color: #60A5FA !important; }
+    .bk-green  { color: #34D399 !important; }
+    .bk-red    { color: #FCA5A5 !important; }
+    .bk-purple { color: #C084FC !important; }
+    .bk-teal   { color: #2DD4BF !important; }
+    .bk-amber  { color: #FBBF24 !important; }
+    .bk-orange { color: #FB923C !important; }
+    .bk-sky    { color: #38BDF8 !important; }
+    .bk-indigo { color: #818CF8 !important; }
+    .bk-rose   { color: #FB7185 !important; }
 
     /* --- Dashboard Bottom Grid --- */
     .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 22px; margin-bottom: 24px; }
@@ -104,28 +94,29 @@
 
     /* --- Section Cards --- */
     .section-card {
-        background: rgba(15, 20, 32, 0.65);
-        backdrop-filter: blur(28px);
-        -webkit-backdrop-filter: blur(28px);
-        border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 18px; padding: 24px;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.38); margin-bottom: 20px;
+        background: #050508 !important;
+        background-color: #050508 !important;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95); margin-bottom: 20px;
         transition: box-shadow 0.22s ease, border-color 0.22s ease;
     }
-    .section-card:hover { border-color: rgba(255, 255, 255, 0.35); box-shadow: 0 18px 48px rgba(0,0,0,0.48); }
-    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.10); }
+    .section-card:hover { background: #0C0C10 !important; border-color: rgba(255, 255, 255, 0.18); box-shadow: 0 14px 36px rgba(0,0,0,1); }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
     .section-title { font-size: 15px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 9px; }
     .section-title-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-    .btn-view-all { font-size: 12px; font-weight: 600; color: #FFFFFF; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.20); transition: all 0.18s ease; }
-    .btn-view-all:hover { background: rgba(255, 255, 255, 0.20); color: #FFFFFF; transform: translateX(2px); }
+    .btn-view-all { font-size: 12px; font-weight: 600; color: #FFFFFF; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14); transition: all 0.18s ease; }
+    .btn-view-all:hover { background: rgba(255, 255, 255, 0.15); color: #FFFFFF; transform: translateX(2px); }
 
     /* --- Tables --- */
     .erp-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-    .erp-table th { padding: 11px 14px; background: rgba(255, 255, 255, 0.06); color: #FFFFFF; font-weight: 700; border-bottom: 1.5px solid rgba(255, 255, 255, 0.16); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; }
-    .erp-table td { padding: 13px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); color: #FFFFFF; vertical-align: middle; }
+    .erp-table th { padding: 11px 14px; background: rgba(255, 255, 255, 0.04); color: #FFFFFF; font-weight: 700; border-bottom: 1.5px solid rgba(255, 255, 255, 0.12); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; }
+    .erp-table td { padding: 13px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: #FFFFFF; vertical-align: middle; }
     .erp-table tr:last-child td { border-bottom: none; }
     .erp-table tbody tr { transition: background 0.15s ease; }
-    .erp-table tbody tr:hover { background: rgba(255, 255, 255, 0.08); }
-    .table-container { width: 100%; overflow-x: auto; background: rgba(15, 20, 32, 0.50); backdrop-filter: blur(28px); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; }
+    .erp-table tbody tr:hover { background: rgba(255, 255, 255, 0.06); }
+    .table-container { width: 100%; overflow-x: auto; background: #050508 !important; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; }
 
     /* --- Badges --- */
     .ds-badge { display: inline-block; padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.3px; }
@@ -143,13 +134,13 @@
     .progress-fill { height: 100%; border-radius: 10px; }
 
     /* --- Alerts --- */
-    .task-item { display: flex; gap: 12px; padding: 13px 14px; border-radius: 12px; margin-bottom: 10px; align-items: flex-start; border-left: 4px solid; transition: all 0.2s ease; background: rgba(255,255,255,0.04); backdrop-filter: blur(8px); }
+    .task-item { display: flex; gap: 12px; padding: 13px 14px; border-radius: 12px; margin-bottom: 10px; align-items: flex-start; border-left: 4px solid; transition: all 0.2s ease; background: #050508 !important; border: 1px solid rgba(255, 255, 255, 0.08); }
     .task-item:last-child { margin-bottom: 0; }
-    .task-item:hover { transform: translateX(3px); }
-    .task-item.danger  { background: rgba(239,68,68,0.08);  border-left-color: #EF4444; }
-    .task-item.warning { background: rgba(245,158,11,0.08); border-left-color: #F59E0B; }
-    .task-item.info    { background: rgba(59,130,246,0.10); border-left-color: #60A5FA; }
-    .task-item.success { background: rgba(16,185,129,0.08); border-left-color: #10B981; }
+    .task-item:hover { transform: translateX(3px); background: #0C0C10 !important; }
+    .task-item.danger  { border-left-color: #EF4444; }
+    .task-item.warning { border-left-color: #F59E0B; }
+    .task-item.info    { border-left-color: #60A5FA; }
+    .task-item.success { border-left-color: #10B981; }
     .task-icon-wrap { width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; }
     .task-item.danger  .task-icon-wrap { background: rgba(239,68,68,0.18); color: #FCA5A5; }
     .task-item.warning .task-icon-wrap { background: rgba(245,158,11,0.18); color: #FBBF24; }
@@ -279,13 +270,13 @@
             <div class="kpi-deco deco-teal"></div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-icon-box ik-indigo"><i class="fa-solid fa-clock-rotate-left"></i></div>
+            <div class="kpi-icon-box {{ $totalPendingAmt > 0 ? 'ik-red' : 'ik-green' }}"><i class="fa-solid fa-clock-rotate-left"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Pending Amount</span>
-                <span class="kpi-value" style="color:#EF4444;">₹{{ number_format($totalPendingAmt, 0) }}</span>
-                <span class="kpi-badge bk-indigo">Outstanding dues</span>
+                <span class="kpi-value" style="color:{{ $totalPendingAmt > 0 ? '#EF4444' : '#34D399' }};">₹{{ number_format($totalPendingAmt, 0) }}</span>
+                <span class="kpi-badge {{ $totalPendingAmt > 0 ? 'bk-red' : 'bk-green' }}">{{ $totalPendingAmt > 0 ? 'Outstanding Dues' : 'All Payments Cleared' }}</span>
             </div>
-            <div class="kpi-deco deco-indigo"></div>
+            <div class="kpi-deco deco-{{ $totalPendingAmt > 0 ? 'red' : 'green' }}"></div>
         </div>
         <div class="kpi-card">
             <div class="kpi-icon-box ik-sky"><i class="fa-solid fa-sack-dollar"></i></div>

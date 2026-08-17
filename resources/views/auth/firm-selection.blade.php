@@ -25,25 +25,14 @@
             align-items: center;
             position: relative;
             overflow: hidden;
-            background-image: url("{{ asset('assets/login.png') }}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background: #000000 !important;
+            background-color: #000000 !important;
+            background-image: none !important;
         }
 
         /* Dark overlay */
-        .page::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(
-                90deg,
-                rgba(10, 20, 45, 0.82) 0%,
-                rgba(10, 20, 45, 0.58) 38%,
-                rgba(10, 20, 45, 0.22) 68%,
-                rgba(0, 0, 0, 0.05) 100%
-            );
-            z-index: 1;
+        .page::before, .page::after {
+            display: none !important;
         }
 
         /* Vignette top/bottom */
