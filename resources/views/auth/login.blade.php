@@ -24,14 +24,25 @@
             align-items: center;
             position: relative;
             overflow: hidden;
-            background: #000000 !important;
-            background-color: #000000 !important;
-            background-image: none !important;
+            background-image: url("{{ asset('assets/login.png') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
-        /* Dark overlay */
-        .page::before, .page::after {
-            display: none !important;
+        /* Dark overlay — denser on left for card readability */
+        .page::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                90deg,
+                rgba(10, 20, 45, 0.78) 0%,
+                rgba(10, 20, 45, 0.52) 38%,
+                rgba(10, 20, 45, 0.15) 68%,
+                rgba(0, 0, 0, 0.04) 100%
+            );
+            z-index: 1;
         }
 
         /* Vignette top/bottom */

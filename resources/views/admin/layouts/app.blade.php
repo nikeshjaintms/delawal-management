@@ -1264,13 +1264,14 @@
         color: #60A5FA !important;
     }
 
-    /* Pitch-Black Glass Topbar */
+    /* Solid Dark Topbar */
     .topbar {
-        background: rgba(12, 12, 16, 0.80) !important;
-        backdrop-filter: blur(28px) saturate(180%) !important;
-        -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.85) !important;
+        background: #09090D !important;
+        background-color: #09090D !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border-bottom: 1px solid #1F1F26 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
     }
     .topbar-title-wrap, .page-header-title {
         position: relative !important;
@@ -1280,19 +1281,19 @@
         white-space: nowrap !important;
     }
     .sidebar-toggle-btn {
-        background: rgba(255, 255, 255, 0.10) !important;
-        border: 1px solid rgba(255, 255, 255, 0.20) !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.16) !important;
         color: #FFFFFF !important;
     }
     .sidebar-toggle-btn:hover {
-        background: rgba(255, 255, 255, 0.20) !important;
+        background: rgba(255, 255, 255, 0.16) !important;
         color: #FFFFFF !important;
-        border-color: rgba(255, 255, 255, 0.35) !important;
+        border-color: rgba(255, 255, 255, 0.28) !important;
     }
     .page-header-title { color: #FFFFFF !important; font-weight: 800 !important; }
     .user-avatar {
-        background: rgba(255, 255, 255, 0.15) !important;
-        border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+        background: rgba(255, 255, 255, 0.12) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.30) !important;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25) !important;
         color: #FFFFFF !important;
         font-weight: 800 !important;
@@ -1303,7 +1304,6 @@
         background: rgba(239, 68, 68, 0.20) !important;
         color: #FFFFFF !important;
         border: 1px solid rgba(239, 68, 68, 0.40) !important;
-        backdrop-filter: blur(8px) !important;
         font-weight: 700 !important;
     }
     .logout-btn:hover {
@@ -1313,14 +1313,15 @@
         box-shadow: 0 4px 16px rgba(220, 38, 38, 0.40) !important;
     }
 
-    /* Pitch-Black Glass Tables */
+    /* Solid Dark Tables */
     .table-container, .table-wrap, .table-responsive, div:has(> table) {
-        background: rgba(18, 18, 24, 0.75) !important;
-        backdrop-filter: blur(28px) !important;
-        -webkit-backdrop-filter: blur(28px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        background: #0D0D12 !important;
+        background-color: #0D0D12 !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border: 1px solid #22222A !important;
         border-radius: 16px !important;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.85) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
     }
     .premium-table th, .erp-table th, table th {
         background: rgba(255, 255, 255, 0.08) !important;

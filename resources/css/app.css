@@ -13,28 +13,28 @@
    WHITE GLASSMORPHISM (FROSTED WHITE GLASS) DESIGN SYSTEM
 ================================================================ */
 :root {
-    --glass-bg:              #09090C;
-    --glass-bg-hover:        #121218;
-    --glass-bg-card:         #09090C;
-    --glass-bg-panel:        #09090C;
-    --glass-border:          rgba(255, 255, 255, 0.08);
-    --glass-border-light:    rgba(255, 255, 255, 0.15);
-    --glass-blur:            none;
-    --glass-blur-lg:         none;
-    --glass-blur-sm:         none;
-    --glass-shadow:          0 10px 30px rgba(0, 0, 0, 0.95);
-    --glass-shadow-hover:    0 14px 36px rgba(0, 0, 0, 1);
+    --glass-bg:              #111116;
+    --glass-bg-hover:        #181820;
+    --glass-bg-card:         #111116;
+    --glass-bg-panel:        #111116;
+    --glass-border:          #22222A;
+    --glass-border-light:    #333340;
+    --glass-blur:            none !important;
+    --glass-blur-lg:         none !important;
+    --glass-blur-sm:         none !important;
+    --glass-shadow:          0 4px 20px rgba(0, 0, 0, 0.6);
+    --glass-shadow-hover:    0 6px 24px rgba(0, 0, 0, 0.8);
     
-    --sidebar-bg:            #000000;
-    --sidebar-border:        rgba(255, 255, 255, 0.08);
-    --topbar-bg:             #000000;
-    --topbar-border:         rgba(255, 255, 255, 0.08);
+    --sidebar-bg:            #09090D;
+    --sidebar-border:        #1F1F26;
+    --topbar-bg:             #09090D;
+    --topbar-border:         #1F1F26;
     
     --main-bg:               #000000;
     --text-primary:          #FFFFFF;
     --text-secondary:        rgba(255, 255, 255, 0.85);
     --text-muted:            rgba(255, 255, 255, 0.55);
-    --border-color:          rgba(255, 255, 255, 0.08);
+    --border-color:          #22222A;
 
     --blue:                  #60A5FA;
     --green:                 #34D399;
