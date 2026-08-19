@@ -235,7 +235,7 @@
         @if($project->project_image)
             <img src="{{ asset('storage/' . $project->project_image) }}" alt="{{ $project->project_name }}" class="project-large-img">
         @else
-            <div style="width: 100%; height: 180px; background: #F3F4F6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #9CA3AF; border: 1px solid var(--border-color); margin-bottom: 20px;">
+            <div style="width: 100%; height: 180px; background: rgba(59, 130, 246, 0.14); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #60A5FA; border: 1px solid rgba(96, 165, 250, 0.35); margin-bottom: 20px;">
                 <i class="fa-solid fa-city" style="font-size: 48px;"></i>
             </div>
         @endif
@@ -305,11 +305,11 @@
             <div class="section-title">
                 <span>Bulk Management ({{ $project->properties->count() }} Records)</span>
                 <div style="display: flex; gap: 8px;">
-                    <a href="{{ route('properties.index', ['project_id' => $project->id]) }}" class="btn-outline" style="padding: 6px 12px; font-size: 12.5px;">
+                    <a href="{{ route('properties.index', ['project_id' => $project->id]) }}" class="btn-excel-custom" style="padding: 7px 14px; font-size: 12.5px;">
                         <i class="fa-solid fa-file-excel"></i> Manage Bulk Excel
                     </a>
                     @if($authUser && $authUser->hasPermission('property_add'))
-                        <a href="{{ route('properties.create', ['project_id' => $project->id]) }}" class="btn-gold" style="padding: 6px 12px; font-size: 12.5px;">
+                        <a href="{{ route('properties.create', ['project_id' => $project->id]) }}" class="btn-gold" style="padding: 7px 14px; font-size: 12.5px;">
                             <i class="fa-solid fa-plus"></i> Add Bulk Record
                         </a>
                     @endif
@@ -338,15 +338,15 @@
                                 </td>
                                 <td><code>{{ $property->property_code }}</code></td>
                                 <td>
-                                    <span class="badge" style="background: #F3F4F6; color: #374151;">
-                                        {{ $property->status }}
+                                    <span class="badge badge-{{ strtolower($property->status ?? 'available') }}">
+                                        {{ ucfirst($property->status ?? 'Available') }}
                                     </span>
                                 </td>
                                 <td>{{ $property->price ? '₹' . number_format($property->price, 2) : '-' }}</td>
                                 <td>{{ $property->size }} {{ $property->size_unit }}</td>
                                 <td style="text-align: right;">
-                                    <a href="{{ route('properties.show', $property->id) }}" class="btn-outline" style="padding: 4px 10px; font-size: 12px;">
-                                        View
+                                    <a href="{{ route('properties.show', $property->id) }}" class="btn-view" style="padding: 6px 12px; font-size: 12px;">
+                                        <i class="fa-regular fa-eye"></i> View
                                     </a>
                                 </td>
                             </tr>

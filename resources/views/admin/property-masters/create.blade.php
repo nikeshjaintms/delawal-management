@@ -225,7 +225,7 @@
         </div>
 
         <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: flex-end;">
-            <a href="{{ route('property-masters.index') }}" class="btn-outline">Cancel</a>
+            <a href="{{ route('property-masters.index') }}" class="btn-cancel-custom">Cancel</a>
             <button type="submit" class="btn-gold">Save Property Master</button>
         </div>
     </form>

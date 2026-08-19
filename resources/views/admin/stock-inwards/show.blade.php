@@ -6,48 +6,60 @@
     <title>Stock Inward - {{ isset($inwardGroup) ? $inwardGroup->inward_number : 'Manual Inward' }}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11.5px; color: #0F1F35; background: #fff; padding: 30px; }
+        body { font-family: 'Outfit', 'Segoe UI', Arial, sans-serif; font-size: 11.5px; color: #FFFFFF; background: #0D0D14; padding: 30px; }
 
-        .report-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #C5A87E; }
-        .company-block .company-name { font-size: 24px; font-weight: 800; color: #0F1F35; letter-spacing: 0.5px; }
-        .company-block .company-sub  { font-size: 11px; color: #C5A87E; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-top: 3px; }
+        .report-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid rgba(96, 165, 250, 0.40); }
+        .company-block .company-name { font-size: 24px; font-weight: 800; color: #FFFFFF; letter-spacing: 0.5px; }
+        .company-block .company-sub  { font-size: 11px; color: #60A5FA; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-top: 3px; }
         .report-meta { text-align: right; }
-        .report-meta .report-title { font-size: 18px; font-weight: 800; color: #0F1F35; margin-bottom: 4px; }
-        .report-meta .report-date  { font-size: 11px; color: #64748B; }
+        .report-meta .report-title { font-size: 18px; font-weight: 800; color: #FFFFFF; margin-bottom: 4px; }
+        .report-meta .report-date  { font-size: 11px; color: rgba(255, 255, 255, 0.70); }
 
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .info-box { border: 1px solid #E5E7EB; border-radius: 8px; padding: 14px 18px; background: #FAFAFA; }
-        .info-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; margin-bottom: 8px; border-bottom: 1px dashed #E5E7EB; padding-bottom: 4px;}
-        .info-row { display: flex; margin-bottom: 4px; }
-        .info-label { width: 110px; font-weight: 600; color: #64748B; }
-        .info-value { flex: 1; color: #0F1F35; font-weight: 500; }
+        .info-box { border: 1px solid #22222E; border-radius: 10px; padding: 16px 20px; background: #0D0D14; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); }
+        .info-title { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #60A5FA; margin-bottom: 10px; border-bottom: 1px dashed #2A2A38; padding-bottom: 6px;}
+        .info-row { display: flex; margin-bottom: 6px; }
+        .info-label { width: 130px; font-weight: 600; color: rgba(255, 255, 255, 0.65); }
+        .info-value { flex: 1; color: #FFFFFF; font-weight: 600; }
 
-        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
-        thead tr { background: #0F1F35; }
-        thead th { padding: 8px 10px; color: #FFFFFF; font-weight: 600; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; background: #08080C; border: 1px solid #22222E; border-radius: 10px; overflow: hidden; }
+        thead tr { background: #14141C; }
+        thead th { padding: 12px 14px; color: #FFFFFF; font-weight: 700; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; border-bottom: 1.5px solid #2A2A36; }
         thead th.num { text-align: right; }
-        tbody tr:nth-child(even) { background: #F9FAFB; }
-        tbody td { padding: 9px 10px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
+        tbody tr { background: transparent; }
+        tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+        tbody td { padding: 12px 14px; border-bottom: 1px solid #1E1E28; vertical-align: middle; color: #FFFFFF; }
         tbody td.num { text-align: right; }
         tbody tr:last-child td { border-bottom: none; }
 
         .summary-wrapper { display: flex; justify-content: flex-end; margin-top: 20px; }
-        .summary-box { width: 280px; border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px; background: #FAFAFA; }
-        .summary-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #E5E7EB; font-size: 11px; }
-        .summary-row:last-child { border-bottom: none; font-weight: 700; font-size: 13px; color: #059669; }
+        .summary-box { width: 320px; border: 1px solid #262636; border-radius: 12px; padding: 18px; background: #0D0D14; color: #FFFFFF; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4); }
+        .summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1E1E2A; font-size: 12.5px; color: rgba(255, 255, 255, 0.75); }
+        .summary-row span:last-child { color: #FFFFFF; font-weight: 700; }
+        .summary-row:last-child { border-bottom: none; border-top: 1px dashed #3B82F6; margin-top: 4px; padding-top: 10px; font-weight: 800; font-size: 15px; }
+        .summary-row:last-child span:first-child { color: #60A5FA; }
+        .summary-row:last-child span:last-child { color: #34D399; font-size: 17px; }
 
-        .remarks-box { margin-top: 30px; border: 1px solid #E5E7EB; border-radius: 8px; padding: 14px; background: #FAFAFA; }
-        .remarks-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; margin-bottom: 6px; }
+        .remarks-box { margin-top: 30px; border: 1px solid #22222E; border-radius: 10px; padding: 16px; background: #0D0D14; color: #FFFFFF; }
+        .remarks-title { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #60A5FA; margin-bottom: 6px; }
 
-        .report-footer { margin-top: 40px; padding-top: 14px; border-top: 1px solid #E5E7EB; display: flex; justify-content: space-between; color: #9CA3AF; font-size: 9.5px; }
+        .report-footer { margin-top: 40px; padding-top: 14px; border-top: 1px solid #22222E; display: flex; justify-content: space-between; color: rgba(255, 255, 255, 0.50); font-size: 10px; }
 
-        .btn-outline { border:1px solid #C5A87E; background:#fff; color:#C5A87E; padding:8px 16px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; font-weight:600; margin-bottom: 20px; }
-        .btn-outline:hover { background:#FAFAFA; }
+        .btn-outline { border:1px solid rgba(248,113,113,0.38); background:rgba(239,68,68,0.16); color:#FCA5A5; padding:10px 20px; border-radius:9px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; font-weight:700; margin-bottom: 24px; transition: all 0.2s ease; }
+        .btn-outline:hover { background:#DC2626; color:#FFFFFF; border-color:#EF4444; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.45); }
 
         @media print {
-            body { padding: 15px; }
+            body { background: #fff !important; color: #0F1F35 !important; padding: 15px !important; }
+            .company-block .company-name, .report-meta .report-title, .info-value { color: #0F1F35 !important; }
+            .info-box, .remarks-box { background: #FAFAFA !important; border-color: #E5E7EB !important; color: #0F1F35 !important; }
+            table { background: #fff !important; border-color: #E5E7EB !important; }
+            thead tr { background: #0F1F35 !important; }
+            tbody td { color: #0F1F35 !important; border-color: #E5E7EB !important; }
+            .summary-box { background: #fff !important; color: #000 !important; border-color: #000 !important; }
+            .summary-row { color: #000 !important; border-color: #eee !important; }
+            .summary-row span:last-child { color: #000 !important; }
             @page { margin: 10mm; }
-            .no-print { display: none; }
+            .no-print { display: none !important; }
         }
     </style>
 </head>

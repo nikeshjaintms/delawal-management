@@ -231,7 +231,7 @@
         </div>
 
         <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: flex-end;">
-            <a href="{{ route('property-masters.show', $propertyMaster->id) }}" class="btn-outline">Cancel</a>
+            <a href="{{ route('property-masters.show', $propertyMaster->id) }}" class="btn-cancel-custom">Cancel</a>
             <button type="submit" class="btn-gold">Update Property Master</button>
         </div>
     </form>

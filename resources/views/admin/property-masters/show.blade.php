@@ -208,7 +208,7 @@
         @if($propertyMaster->main_image)
             <img src="{{ asset('storage/' . $propertyMaster->main_image) }}" alt="{{ $propertyMaster->property_name }}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
         @else
-            <div style="width: 100%; height: 180px; background: #F3F4F6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #9CA3AF; border: 1px solid var(--border-color); margin-bottom: 20px;">
+            <div style="width: 100%; height: 180px; background: rgba(59, 130, 246, 0.14); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #60A5FA; border: 1px solid rgba(96, 165, 250, 0.35); margin-bottom: 20px;">
                 <i class="fa-solid fa-building" style="font-size: 48px;"></i>
             </div>
         @endif

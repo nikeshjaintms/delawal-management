@@ -21,225 +21,107 @@
 
 @section('content')
 <style>
-    .crud-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 28px; flex-wrap: wrap; gap: 15px; }
+.crud-title h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
 
-    .crud-title h2 {
-        font-size: 22px;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 4px;
-    }
+.btn-gold {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 11px 22px;
+    border-radius: 12px; text-decoration: none !important; font-size: 14px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 8px; border: 1px solid #3B82F6 !important;
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 18px rgba(37,99,235,0.38);
+}
+.btn-gold:hover { background: #1D4ED8 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(37,99,235,0.52); }
 
-    .crud-title p {
-        font-size: 13.5px;
-        color: var(--text-secondary);
-    }
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 24px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 28px;
+}
 
-    .btn-gold {
-        background-color: var(--gold);
-        color: #FFFFFF;
-        padding: 10px 20px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border: none;
-        cursor: pointer;
-        transition: var(--transition);
-        box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);
-    }
+.filter-bar {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.04) !important; padding: 16px 20px !important;
+    border-radius: 16px !important; border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    width: 100%; overflow-x: auto;
+}
+.search-form { display: flex; gap: 12px; flex: 1; width: 100%; align-items: center; flex-wrap: nowrap !important; max-width: 100% !important; }
+.filter-select { flex-shrink: 0; min-width: 140px; }
+.search-input, .filter-select {
+    padding: 11px 16px; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 13.5px; color: #FFFFFF !important; outline: none; transition: all .2s ease;
+}
+.filter-select option { background: #101622 !important; color: #FFFFFF !important; }
+.search-input { flex: 1; min-width: 200px; }
+.search-input::placeholder { color: #94A3B8 !important; }
+.search-input:focus, .filter-select:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
 
-    .btn-gold:hover {
-        background-color: #B58D1B;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 14px rgba(212, 175, 55, 0.3);
-    }
+.btn-search {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 11px 22px;
+    border-radius: 10px; border: 1px solid #3B82F6 !important; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    flex-shrink: 0; white-space: nowrap !important;
+}
+.btn-search:hover { background: #1D4ED8 !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50); }
 
-    .card-box {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: var(--soft-shadow);
-    }
+.btn-reset { color: #CBD5E1 !important; text-decoration: none; font-size: 13.5px; font-weight: 600; padding: 10px 14px; transition: color .2s ease; flex-shrink: 0; white-space: nowrap !important; }
+.btn-reset:hover { color: #FFFFFF !important; }
 
-    .filter-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
+.table-responsive-wrapper { width: 100%; overflow-x: auto; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.10); }
 
-    .search-form {
-        display: flex;
-        gap: 10px;
-        flex: 1;
-        max-width: 600px;
-    }
+.premium-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+.premium-table th {
+    padding: 16px 22px !important; background: rgba(255, 255, 255, 0.05) !important;
+    color: #94A3B8 !important; font-weight: 800; font-size: 11.5px;
+    text-transform: uppercase; letter-spacing: 0.9px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    white-space: nowrap !important;
+}
+.premium-table td {
+    padding: 18px 22px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    font-size: 14px; color: #E2E8F0 !important; font-weight: 500; vertical-align: middle;
+    white-space: nowrap !important;
+}
+.premium-table tbody tr:hover { background: rgba(255, 255, 255, 0.05) !important; }
 
-    .search-input, .filter-select {
-        padding: 10px 14px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 13.5px;
-        font-family: var(--font-primary);
-        color: var(--text-primary);
-        outline: none;
-        transition: var(--transition);
-        background-color: #FFFFFF;
-    }
+.badge { display: inline-block; padding: 5px 14px; font-size: 11.5px; font-weight: 700; border-radius: 20px; text-transform: uppercase; white-space: nowrap !important; }
+.badge-active { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-inactive { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
 
-    .search-input {
-        flex: 1;
-    }
+.table-action-buttons { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 10px !important; flex-wrap: nowrap !important; white-space: nowrap !important; justify-content: flex-end; }
+.table-action-buttons form { display: inline-flex !important; margin: 0 !important; padding: 0 !important; }
 
-    .search-input:focus, .filter-select:focus {
-        border-color: var(--gold);
-        box-shadow: 0 0 0 3px var(--gold-light);
-    }
+.action-link-view {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px !important;
+    background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important;
+    border: 1px solid rgba(96, 165, 250, 0.30) !important; border-radius: 10px; text-decoration: none !important;
+    font-size: 13px !important; font-weight: 700 !important; transition: all .2s ease; white-space: nowrap !important;
+}
+.action-link-view:hover { background: #2563EB !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 4px 14px rgba(37, 99, 235, 0.40); }
 
-    .btn-search {
-        background-color: var(--text-primary);
-        color: #FFFFFF;
-        padding: 10px 18px;
-        border-radius: 8px;
-        border: none;
-        font-size: 13.5px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-    }
+.action-link-edit {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px !important;
+    background: rgba(245, 158, 11, 0.15) !important; color: #FBBF24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.30) !important; border-radius: 10px; text-decoration: none !important;
+    font-size: 13px !important; font-weight: 700 !important; transition: all .2s ease; white-space: nowrap !important;
+}
+.action-link-edit:hover { background: #D97706 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 4px 14px rgba(217, 119, 6, 0.40); }
 
-    .btn-search:hover {
-        background-color: #1E293B;
-    }
+.action-link-delete {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px !important;
+    background: rgba(239, 68, 68, 0.15) !important; color: #F87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.30) !important; border-radius: 10px; text-decoration: none !important;
+    font-size: 13px !important; font-weight: 700 !important; transition: all .2s ease; cursor: pointer; white-space: nowrap !important;
+}
+.action-link-delete:hover { background: #DC2626 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 4px 14px rgba(220, 38, 38, 0.40); }
 
-    .btn-reset {
-        padding: 10px 14px;
-        color: var(--text-secondary);
-        text-decoration: none;
-        font-size: 13.5px;
-        font-weight: 500;
-        transition: var(--transition);
-    }
-
-    .btn-reset:hover {
-        color: var(--text-primary);
-    }
-
-    .table-container {
-        width: 100%;
-        overflow-x: auto;
-    }
-
-    .premium-table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-        font-size: 14px;
-    }
-
-    .premium-table th {
-        padding: 14px 16px;
-        background: #F9FAFB;
-        color: var(--text-secondary);
-        font-weight: 600;
-        border-bottom: 1px solid var(--border-color);
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .premium-table td {
-        padding: 16px;
-        border-bottom: 1px solid #F1F5F9;
-        color: var(--text-primary);
-        vertical-align: middle;
-    }
-
-    .premium-table tr:last-child td {
-        border-bottom: none;
-    }
-
-    .premium-table tbody tr:hover {
-        background-color: #F9FAFB;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 4px 10px;
-        font-size: 11px;
-        font-weight: 600;
-        border-radius: 20px;
-        text-transform: uppercase;
-    }
-
-    .badge-active {
-        background: rgba(34, 197, 94, 0.1);
-        color: #16803D;
-    }
-
-    .badge-inactive {
-        background: rgba(239, 68, 68, 0.1);
-        color: #B91C1C;
-    }
-
-    .action-links {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-    }
-
-    .action-link {
-        color: var(--text-secondary);
-        text-decoration: none;
-        font-size: 13.5px;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        transition: var(--transition);
-    }
-
-    .action-link:hover {
-        color: var(--text-primary);
-    }
-
-    .action-link.delete:hover {
-        color: #EF4444;
-    }
-
-    .project-img-thumb {
-        width: 48px;
-        height: 48px;
-        object-fit: cover;
-        border-radius: 6px;
-        border: 1px solid var(--border-color);
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 40px 20px;
-        color: var(--text-secondary);
-    }
-
-    .empty-state i {
-        font-size: 40px;
-        color: var(--border-color);
-        margin-bottom: 12px;
-    }
+.project-img-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.15); }
+.empty-state { text-align: center; padding: 40px 20px; color: #CBD5E1; }
+.empty-state i { font-size: 40px; color: #94A3B8; margin-bottom: 12px; }
 </style>
 
 {{-- Breadcrumb --}}
@@ -305,7 +187,7 @@
         </div>
     @endif
 
-    <div class="table-container">
+    <div class="table-responsive-wrapper">
         <table class="premium-table">
             <thead>
                 <tr>
@@ -329,45 +211,45 @@
                             @if($project->project_image)
                                 <img src="{{ asset('storage/' . $project->project_image) }}" alt="Project" class="project-img-thumb">
                             @else
-                                <div style="width: 48px; height: 48px; background: #F3F4F6; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #9CA3AF; border: 1px solid var(--border-color);">
+                                <div style="width: 44px; height: 44px; background: rgba(59, 130, 246, 0.14); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #60A5FA; border: 1px solid rgba(96, 165, 250, 0.35);">
                                     <i class="fa-solid fa-building" style="font-size: 18px;"></i>
                                 </div>
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('projects.show', $project->id) }}" style="color: var(--gold); font-weight: 600; text-decoration: none;">
+                            <a href="{{ route('projects.show', $project->id) }}" style="color: #60A5FA !important; font-weight: 700; text-decoration: none; white-space: nowrap !important;">
                                 {{ $project->project_name }}
                             </a>
                         </td>
                         <td>
                             @if($project->propertyMaster)
-                                <a href="{{ route('property-masters.show', $project->propertyMaster->id) }}" style="color: var(--text-primary); font-weight: 500; text-decoration: none;">
-                                    <i class="fa-solid fa-building" style="color: var(--gold);"></i> {{ $project->propertyMaster->property_name }}
+                                <a href="{{ route('property-masters.show', $project->propertyMaster->id) }}" style="color: #FFFFFF !important; font-weight: 700; text-decoration: none; white-space: nowrap !important;">
+                                    <i class="fa-solid fa-building" style="color: #FBBF24;"></i> {{ $project->propertyMaster->property_name }}
                                 </a>
                             @else
-                                <span style="color: var(--text-secondary);">-</span>
+                                <span style="color: rgba(255, 255, 255, 0.5);">-</span>
                             @endif
                         </td>
-                        <td><code style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-weight: 600;">{{ $project->project_code }}</code></td>
+                        <td><code style="background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(96, 165, 250, 0.35); padding: 5px 10px; border-radius: 6px; font-weight: 700; font-family: monospace; white-space: nowrap !important; display: inline-block;">{{ $project->project_code }}</code></td>
                         @if($authUser && $authUser->isAdmin())
-                            <td>{{ $project->firm->firm_name ?? '-' }}</td>
+                            <td style="white-space: nowrap !important; font-weight: 600; color: #E2E8F0;">{{ $project->firm->firm_name ?? '-' }}</td>
                         @endif
-                        <td>{{ $project->project_type }}</td>
-                        <td>{{ $project->city ?? '-' }}</td>
+                        <td style="white-space: nowrap !important;">{{ ucfirst($project->project_type) }}</td>
+                        <td style="white-space: nowrap !important;">{{ $project->city ?? '-' }}</td>
                         <td>
                             <span class="badge {{ $project->status === 'active' ? 'badge-active' : 'badge-inactive' }}">
-                                {{ $project->status }}
+                                {{ ucfirst($project->status) }}
                             </span>
                         </td>
                         <td style="text-align: right;">
-                            <div class="action-links" style="justify-content: flex-end;">
+                            <div class="table-action-buttons">
                                 @if($authUser && $authUser->hasPermission('project_view'))
-                                    <a href="{{ route('projects.show', $project->id) }}" class="action-link">
+                                    <a href="{{ route('projects.show', $project->id) }}" class="action-link-view">
                                         <i class="fa-regular fa-eye"></i> View
                                     </a>
                                 @endif
                                 @if($authUser && $authUser->hasPermission('project_edit'))
-                                    <a href="{{ route('projects.edit', $project->id) }}" class="action-link">
+                                    <a href="{{ route('projects.edit', $project->id) }}" class="action-link-edit">
                                         <i class="fa-regular fa-pen-to-square"></i> Edit
                                     </a>
                                 @endif
@@ -375,7 +257,7 @@
                                     <form action="{{ route('projects.destroy', $project->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this project?')" style="display: inline;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="action-link delete" style="background: none; border: none; cursor: pointer; padding: 0;">
+                                        <button type="submit" class="action-link-delete">
                                             <i class="fa-regular fa-trash-can"></i> Delete
                                         </button>
                                     </form>

@@ -3,28 +3,63 @@
 @section('page-title','Inventory Management')
 @section('content')
 <style>
-    .crud-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
-    .crud-title h2{font-size:22px;font-weight:700;color:var(--text-primary);margin-bottom:4px;}
-    .crud-title p{font-size:13.5px;color:var(--text-secondary);}
-    .card-box{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:30px;box-shadow:var(--soft-shadow);max-width:800px;margin:0 auto;}
-    .section-title{font-size:13px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border-color);}
-    .form-section{margin-bottom:28px;}
-    .form-group{margin-bottom:20px;}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-    .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
-    @media(max-width:768px){.form-row-3{grid-template-columns:1fr 1fr;}}
-    @media(max-width:576px){.form-row,.form-row-3{grid-template-columns:1fr;gap:0;}}
-    .form-label{display:block;font-size:13.5px;font-weight:600;color:var(--text-primary);margin-bottom:8px;}
-    .form-label span{color:#EF4444;}
-    .form-control{width:100%;padding:10px 14px;border:1px solid var(--border-color);border-radius:8px;font-size:14px;font-family:var(--font-primary);color:var(--text-primary);outline:none;transition:var(--transition);background-color:#FFF;}
-    .form-control:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-light);}
-    .text-error{color:#EF4444;font-size:12.5px;margin-top:6px;font-weight:500;}
-    .form-hint{font-size:12px;color:var(--text-secondary);margin-top:5px;}
-    .form-actions{display:flex;align-items:center;gap:15px;margin-top:30px;padding-top:20px;border-top:1px solid var(--border-color);}
-    .btn-gold{background-color:var(--gold);color:#FFF;padding:11px 24px;border-radius:8px;font-size:14px;font-weight:600;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:var(--transition);box-shadow:0 4px 10px rgba(212,175,55,0.2);font-family:var(--font-primary);}
-    .btn-gold:hover{background-color:#B58D1B;transform:translateY(-1px);}
-    .btn-outline{border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);padding:11px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;transition:var(--transition);}
-    .btn-outline:hover{background:#F9FAFB;color:var(--text-primary);border-color:#D1D5DB;}
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.crud-title h2 { font-size: 24px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 4px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 13.5px; color: #CBD5E1 !important; font-weight: 500; }
+
+.btn-gold {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 22px; min-height: 42px; background: #2563EB !important;
+    color: #FFFFFF !important; font-size: 14px; font-weight: 700; border: 1px solid #3B82F6 !important;
+    border-radius: 10px; text-decoration: none !important; box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+    transition: all .25s ease; cursor: pointer;
+}
+.btn-gold:hover { background: #1D4ED8 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(37,99,235,0.50); }
+
+.btn-outline {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; min-height: 42px; background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important; font-size: 14px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+}
+.btn-outline:hover { background: rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; transform: translateY(-2px); }
+
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 20px !important; padding: 30px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; max-width: 860px; margin: 0 auto 28px;
+}
+
+.section-title {
+    font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+    color: #60A5FA !important; margin-bottom: 20px; padding-bottom: 10px;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important; display: flex; align-items: center; gap: 8px;
+}
+.form-section { margin-bottom: 24px; }
+.form-group { margin-bottom: 18px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+@media(max-width:768px) { .form-row-3 { grid-template-columns: 1fr 1fr; } }
+@media(max-width:576px) { .form-row, .form-row-3 { grid-template-columns: 1fr; gap: 0; } }
+
+.form-label { display: block; font-size: 13px; font-weight: 700; color: #FFFFFF !important; margin-bottom: 7px; }
+.form-label span { color: #F87171; }
+
+.form-control {
+    width: 100%; padding: 10px 14px; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 13.5px; color: #FFFFFF !important; outline: none; transition: border-color .18s, box-shadow .18s;
+}
+.form-control option { background: #101622 !important; color: #FFFFFF !important; }
+.form-control:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
+
+.text-error { color: #F87171; font-size: 12px; margin-top: 5px; font-weight: 500; }
+.form-hint { font-size: 11.5px; color: #CBD5E1 !important; margin-top: 5px; }
+.form-actions { display: flex; align-items: center; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
 </style>
 <div class="crud-header"><div class="crud-title"><h2>Add Material</h2><p>Register a new material item in inventory.</p></div></div>
 <div class="card-box">  

@@ -150,7 +150,7 @@
                         @endif
                     </td>
                     <td>{{ $m->materialCategory->category_name ?? '—' }}</td>
-                    <td><span style="background:#F1F5F9;padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600;color:var(--text-secondary);">{{ $m->unit ?? '—' }}</span></td>
+                    <td><span class="badge-unit">{{ $m->unit ?? '—' }}</span></td>
                     <td class="num-col" style="text-align:right;">{{ number_format($m->opening_stock, 3) }}</td>
                     <td class="num-col" style="text-align:right;color:#16803D;">+{{ number_format($m->total_inward, 3) }}</td>
                     <td class="num-col" style="text-align:right;color:#DC2626;">-{{ number_format($m->total_outward, 3) }}</td>

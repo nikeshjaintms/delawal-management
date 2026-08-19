@@ -4,41 +4,103 @@
 
 @section('content')
 <style>
-/* ── Common button system ── */
-.btn-primary-custom,a.btn-primary-custom,button.btn-primary-custom{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;min-height:42px;background:linear-gradient(135deg,#1E5AA8,#2F6FE4);color:#fff !important;font-size:14px;font-weight:600;line-height:1;border:none;border-radius:10px;text-decoration:none !important;box-shadow:0 8px 20px rgba(47,111,228,.25);transition:all .25s ease;cursor:pointer;font-family:var(--font-primary)}
-.btn-primary-custom:hover{color:#fff !important;text-decoration:none !important;transform:translateY(-2px);box-shadow:0 12px 28px rgba(47,111,228,.35)}
-.btn-secondary-custom,a.btn-secondary-custom,button.btn-secondary-custom{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;min-height:42px;background:#fff;color:#1E5AA8 !important;font-size:14px;font-weight:600;line-height:1;border:1px solid rgba(30,90,168,.25);border-radius:10px;text-decoration:none !important;box-shadow:0 6px 16px rgba(30,90,168,.12);transition:all .25s ease;cursor:pointer;font-family:var(--font-primary)}
-.btn-secondary-custom:hover{background:#EEF3FA;color:#10233F !important;text-decoration:none !important;transform:translateY(-2px)}
-.btn-danger-custom,a.btn-danger-custom,button.btn-danger-custom{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;min-height:38px;background:linear-gradient(135deg,#dc3545,#b02a37);color:#fff !important;font-size:13px;font-weight:600;line-height:1;border:none;border-radius:9px;text-decoration:none !important;box-shadow:0 6px 16px rgba(220,53,69,.2);transition:all .25s ease;cursor:pointer;font-family:var(--font-primary)}
-.btn-danger-custom:hover{color:#fff !important;text-decoration:none !important;transform:translateY(-2px)}
-.btn-action-custom,a.btn-action-custom,button.btn-action-custom{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 12px;min-height:34px;background:#F4F7FB;color:#1E5AA8 !important;font-size:13px;font-weight:600;line-height:1;border:1px solid rgba(30,90,168,.18);border-radius:8px;text-decoration:none !important;transition:all .25s ease;cursor:pointer;font-family:var(--font-primary)}
-.btn-action-custom:hover{background:#1E5AA8;color:#fff !important;text-decoration:none !important}
-.btn-primary-custom i,.btn-secondary-custom i,.btn-danger-custom i,.btn-action-custom i{font-size:14px;line-height:1}
-/* ── Layout ── */
-.crud-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:15px}
-.crud-title h2{font-size:22px;font-weight:700;color:var(--text-primary);margin-bottom:4px}
-.crud-title p{font-size:13.5px;color:var(--text-secondary)}
-.filter-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
-.search-input{padding:10px 14px;border:1.5px solid var(--border-color);border-radius:8px;font-size:13.5px;font-family:var(--font-primary);color:var(--text-primary);outline:none;min-width:240px;transition:border-color .18s}
-.search-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow)}
-.filter-select{padding:10px 14px;border:1.5px solid var(--border-color);border-radius:8px;font-size:13.5px;font-family:var(--font-primary);color:var(--text-primary);outline:none;background:#fff}
-.btn-search{background:var(--text-primary);color:#fff;padding:10px 18px;border-radius:8px;border:none;font-size:13.5px;font-weight:600;cursor:pointer;transition:var(--transition);display:inline-flex;align-items:center;gap:6px}
-.btn-search:hover{background:#1E293B}
-.btn-reset{padding:10px 14px;color:var(--text-secondary);text-decoration:none;font-size:13.5px;font-weight:500;display:inline-flex;align-items:center;gap:5px}
-.btn-reset:hover{color:var(--text-primary)}
-.table-container{width:100%;overflow-x:auto}
-.premium-table{width:100%;border-collapse:collapse;font-size:13.5px}
-.premium-table th{padding:12px 16px;background:#F8FAFC;color:#475569;font-weight:700;border-bottom:2px solid var(--border-color);font-size:11px;text-transform:uppercase;letter-spacing:.8px}
-.premium-table td{padding:14px 16px;border-bottom:1px solid #F1F5F9;vertical-align:middle;color:var(--text-primary)}
-.premium-table tbody tr:hover{background:#F0F7FF}
-.badge{display:inline-block;padding:4px 10px;font-size:11px;font-weight:600;border-radius:20px;text-transform:uppercase}
-.badge-active{background:rgba(16,185,129,.1);color:#059669}
-.badge-inactive{background:rgba(239,68,68,.1);color:#DC2626}
-.action-col{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.firm-logo-sm{width:36px;height:36px;object-fit:cover;border-radius:6px;border:1px solid var(--border-color)}
-.pagination-wrap{margin-top:20px;display:flex;justify-content:center}
-.alert-success{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);color:#065F46;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13.5px;display:flex;align-items:center;gap:8px}
-.alert-danger{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);color:#991B1B;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13.5px;display:flex;align-items:center;gap:8px}
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+.crud-title h2 { font-size: 24px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 13.5px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
+
+.btn-primary-custom, a.btn-primary-custom, button.btn-primary-custom {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; min-height: 42px; background: #2563EB !important;
+    color: #FFFFFF !important; font-size: 14px; font-weight: 700; border: 1px solid #3B82F6 !important;
+    border-radius: 10px; text-decoration: none !important; box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+    transition: all .25s ease; cursor: pointer;
+}
+.btn-primary-custom:hover { background: #1D4ED8 !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(37,99,235,0.50); }
+
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 24px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+}
+
+.filter-bar {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; align-items: center;
+    background: rgba(255, 255, 255, 0.04) !important; padding: 14px 18px !important;
+    border-radius: 14px !important; border: 1px solid rgba(255, 255, 255, 0.10) !important;
+}
+.search-input {
+    padding: 10px 16px; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 13.5px; color: #FFFFFF !important; outline: none; min-width: 280px;
+}
+.search-input::placeholder { color: #94A3B8 !important; }
+.search-input:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
+
+.filter-select {
+    padding: 10px 16px; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 13.5px; color: #FFFFFF !important; outline: none;
+}
+.filter-select option { background: #101622 !important; color: #FFFFFF !important; }
+
+.btn-search {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 20px;
+    border-radius: 10px; border: 1px solid #3B82F6 !important; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; transition: all .25s ease; display: inline-flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+.btn-search:hover { background: #1D4ED8 !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50); }
+
+.btn-reset { padding: 10px 14px; color: #CBD5E1 !important; text-decoration: none; font-size: 13.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: color .2s ease; }
+.btn-reset:hover { color: #FFFFFF !important; }
+
+.table-container { width: 100%; overflow-x: auto; background: rgba(16, 22, 34, 0.70) !important; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.10); }
+.premium-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.premium-table th { padding: 14px 16px; background: rgba(255, 255, 255, 0.05) !important; color: #94A3B8 !important; font-weight: 800; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important; font-size: 11px; text-transform: uppercase; letter-spacing: .8px; }
+.premium-table td { padding: 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important; vertical-align: middle; color: #E2E8F0 !important; font-weight: 500; }
+.premium-table tbody tr:hover { background: rgba(255, 255, 255, 0.05) !important; }
+
+.badge { display: inline-block; padding: 4px 12px; font-size: 11px; font-weight: 700; border-radius: 20px; text-transform: uppercase; }
+.badge-active { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-inactive { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+
+.table-action-buttons {
+    display: flex !important; flex-direction: row !important; align-items: center !important;
+    gap: 8px !important; flex-wrap: nowrap !important; white-space: nowrap !important;
+}
+.table-action-buttons form { display: inline-flex !important; margin: 0 !important; padding: 0 !important; }
+
+.btn-action-custom, a.btn-action-custom {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 13px;
+    min-height: 34px; background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important;
+    font-size: 12.5px; font-weight: 700; border: 1px solid rgba(96, 165, 250, 0.30) !important;
+    border-radius: 8px; text-decoration: none !important; transition: all .2s ease; cursor: pointer;
+}
+.btn-action-custom:hover { background: #2563EB !important; color: #FFFFFF !important; border-color: #2563EB !important; transform: translateY(-2px); box-shadow: 0 4px 14px rgba(37, 99, 235, 0.40); }
+
+.btn-edit-custom, a.btn-edit-custom {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 13px;
+    min-height: 34px; background: rgba(245, 158, 11, 0.15) !important; color: #FBBF24 !important;
+    font-size: 12.5px; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.30) !important;
+    border-radius: 8px; text-decoration: none !important; transition: all .2s ease; cursor: pointer;
+}
+.btn-edit-custom:hover { background: #D97706 !important; color: #FFFFFF !important; border-color: #D97706 !important; transform: translateY(-2px); box-shadow: 0 4px 14px rgba(217, 119, 6, 0.40); }
+
+.btn-danger-custom, button.btn-danger-custom {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 13px;
+    min-height: 34px; background: rgba(239, 68, 68, 0.15) !important; color: #F87171 !important;
+    font-size: 12.5px; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.30) !important;
+    border-radius: 8px; text-decoration: none !important; transition: all .2s ease; cursor: pointer;
+}
+.btn-danger-custom:hover { background: #DC2626 !important; color: #FFFFFF !important; border-color: #DC2626 !important; transform: translateY(-2px); box-shadow: 0 4px 14px rgba(220, 38, 38, 0.40); }
+
+.pagination-wrap { margin-top: 20px; display: flex; justify-content: center; }
+.alert-success { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; color: #34D399 !important; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.alert-danger { background: rgba(239, 68, 68, 0.15) !important; border: 1px solid rgba(239, 68, 68, 0.30) !important; color: #F87171 !important; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
 </style>
 
 <div class="crud-header">
@@ -76,7 +138,7 @@
         <table class="premium-table">
             <thead>
                 <tr>
-                    <th>#</th><th>Logo</th><th>Firm Name</th><th>Owner</th>
+                    <th>#</th><th>Firm Name</th><th>Owner</th>
                     <th>Email</th><th>Mobile</th><th>GST No</th><th>City / State</th>
                     <th>Status</th><th>Actions</th>
                 </tr>
@@ -85,15 +147,6 @@
             @forelse($firms as $i => $firm)
                 <tr>
                     <td>{{ $firms->firstItem() + $i }}</td>
-                    <td>
-                        @if($firm->firm_logo)
-                            <img src="{{ Storage::url($firm->firm_logo) }}" class="firm-logo-sm" alt="Logo">
-                        @else
-                            <div style="width:36px;height:36px;background:var(--blue-light);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--blue)">
-                                {{ strtoupper(substr($firm->firm_name,0,1)) }}
-                            </div>
-                        @endif
-                    </td>
                     <td><strong>{{ $firm->firm_name }}</strong></td>
                     <td>{{ $firm->owner_name ?? '—' }}</td>
                     <td>{{ $firm->email ?? '—' }}</td>
@@ -104,7 +157,7 @@
                     <td>
                         <div class="table-action-buttons">
                             <a href="{{ route('firm-master.show', $firm) }}" class="btn-action-custom"><i class="fa fa-eye"></i> View</a>
-                            <a href="{{ route('firm-master.edit', $firm) }}" class="btn-action-custom"><i class="fa fa-edit"></i> Edit</a>
+                            <a href="{{ route('firm-master.edit', $firm) }}" class="btn-edit-custom"><i class="fa fa-edit"></i> Edit</a>
                             <form action="{{ route('firm-master.destroy', $firm) }}" method="POST" onsubmit="return confirm('Delete firm \'{{ addslashes($firm->firm_name) }}\'? This cannot be undone.')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn-danger-custom"><i class="fa fa-trash"></i> Delete</button>

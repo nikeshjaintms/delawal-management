@@ -5,112 +5,75 @@
 
 @section('content')
 <style>
-    .crud-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-    .crud-title h2 { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
-    .crud-title p  { font-size: 13.5px; color: var(--text-secondary); }
-    .btn-gold {
-        background-color: var(--gold);
-        color: #FFFFFF;
-        padding: 10px 20px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border: none;
-        cursor: pointer;
-        transition: var(--transition);
-        box-shadow: 0 4px 10px rgba(212,175,55,0.2);
-    }
-    .btn-gold:hover { background-color: #B58D1B; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(212,175,55,0.3); }
-    .card-box {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: var(--soft-shadow);
-    }
-    .filter-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-    .search-form { display: flex; gap: 10px; flex: 1; max-width: 560px; }
-    .search-input {
-        flex: 1;
-        padding: 10px 14px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 13.5px;
-        font-family: var(--font-primary);
-        color: var(--text-primary);
-        outline: none;
-        transition: var(--transition);
-    }
-    .search-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-light); }
-    .btn-search {
-        background-color: var(--text-primary);
-        color: #FFFFFF;
-        padding: 10px 18px;
-        border-radius: 8px;
-        border: none;
-        font-size: 13.5px;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: var(--font-primary);
-        transition: var(--transition);
-    }
-    .btn-search:hover { background-color: #1E293B; }
-    .btn-reset { padding: 10px 14px; color: var(--text-secondary); text-decoration: none; font-size: 13.5px; font-weight: 500; }
-    .btn-reset:hover { color: var(--text-primary); }
-    .table-container { width: 100%; overflow-x: auto; }
-    .premium-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-    .premium-table th {
-        padding: 14px 16px;
-        background: #F9FAFB;
-        color: var(--text-secondary);
-        font-weight: 600;
-        border-bottom: 1px solid var(--border-color);
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        white-space: nowrap;
-    }
-    .premium-table td { padding: 14px 16px; border-bottom: 1px solid #F1F5F9; color: var(--text-primary); vertical-align: middle; }
-    .premium-table tr:last-child td { border-bottom: none; }
-    .premium-table tbody tr:hover { background-color: #F9FAFB; }
-    .prop-thumb {
-        width: 48px;
-        height: 40px;
-        border-radius: 6px;
-        object-fit: cover;
-        border: 1px solid var(--border-color);
-    }
-    .prop-thumb-placeholder {
-        width: 48px;
-        height: 40px;
-        border-radius: 6px;
-        background: var(--gold-light);
-        border: 1px solid rgba(212,175,55,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--gold);
-        font-size: 16px;
-    }
-    .badge {
-        display: inline-block;
-        padding: 4px 10px;
-        font-size: 11px;
-        font-weight: 600;
-        border-radius: 20px;
-        text-transform: uppercase;
-    }
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+.crud-title h2 { font-size: 24px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 13.5px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
+
+.btn-gold {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 20px;
+    border-radius: 10px; text-decoration: none !important; font-size: 14px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 8px; border: 1px solid #3B82F6 !important;
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+}
+.btn-gold:hover { background: #1D4ED8 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(37,99,235,0.50); }
+
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 24px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 24px;
+}
+
+.filter-bar {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 15px;
+    background: rgba(255, 255, 255, 0.04) !important; padding: 14px 18px !important;
+    border-radius: 14px !important; border: 1px solid rgba(255, 255, 255, 0.10) !important;
+}
+.search-form { display: flex; gap: 10px; flex: 1; max-width: 560px; }
+.search-input {
+    flex: 1; padding: 10px 16px; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 13.5px; color: #FFFFFF !important; outline: none; transition: all .2s ease;
+}
+.search-input::placeholder { color: #94A3B8 !important; }
+.search-input:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
+
+.btn-search {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 20px;
+    border-radius: 10px; border: 1px solid #3B82F6 !important; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+.btn-search:hover { background: #1D4ED8 !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50); }
+
+.btn-reset { color: #CBD5E1 !important; text-decoration: none; font-size: 13.5px; font-weight: 600; padding: 10px 14px; transition: color .2s ease; }
+.btn-reset:hover { color: #FFFFFF !important; }
+
+.table-container { width: 100%; overflow-x: auto; background: rgba(16, 22, 34, 0.70) !important; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.10); }
+.premium-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; }
+.premium-table th {
+    padding: 14px 16px; background: rgba(255, 255, 255, 0.05) !important;
+    color: #94A3B8 !important; font-weight: 800; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .8px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    white-space: nowrap;
+}
+.premium-table td {
+    padding: 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    color: #E2E8F0 !important; font-weight: 500; vertical-align: middle;
+}
+.premium-table tbody tr:hover { background: rgba(255, 255, 255, 0.05) !important; }
+
+.prop-thumb { width: 48px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid rgba(255, 255, 255, 0.15); }
+.prop-thumb-placeholder {
+    width: 48px; height: 40px; border-radius: 6px; background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(96, 165, 250, 0.3); display: flex; align-items: center;
+    justify-content: center; color: #60A5FA; font-size: 16px;
+}
+.badge { display: inline-block; padding: 4px 12px; font-size: 11px; font-weight: 700; border-radius: 20px; text-transform: uppercase; }
+.badge-active { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-inactive { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
     .badge-available { background: rgba(34,197,94,0.1);  color: #16803D; }
     .badge-booked    { background: rgba(234,179,8,0.12);  color: #92710A; }
     .badge-sold      { background: rgba(239,68,68,0.1);   color: #B91C1C; }

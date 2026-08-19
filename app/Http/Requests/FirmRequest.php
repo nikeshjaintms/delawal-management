@@ -49,8 +49,8 @@ class FirmRequest extends FormRequest
             'city' => 'nullable|string|max:255',
             'state' => 'nullable|string|max:255',
             'pincode' => 'nullable|string|max:10',
-            'gst_no' => 'nullable|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
-            'pan_number' => 'nullable|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i',
+            'gst_no' => 'nullable|string|max:50',
+            'pan_number' => 'nullable|string|max:50',
             'firm_logo' => 'nullable|image|max:2048',
             'bank_name' => 'nullable|string|max:255',
             'account_number' => 'nullable|string|max:255',
@@ -60,11 +60,16 @@ class FirmRequest extends FormRequest
         ];
 
         if ($this->isMethod('post')) {
-            $rules['password'] = 'required|string|min:8|same:confirm_password';
+            $rules['password'] = 'required|string|min:6|same:confirm_password';
             $rules['confirm_password'] = 'required';
         } else {
-            $rules['password'] = 'nullable|string|min:8|same:confirm_password';
-            $rules['confirm_password'] = 'nullable';
+            if ($this->filled('password')) {
+                $rules['password'] = 'required|string|min:6|same:confirm_password';
+                $rules['confirm_password'] = 'required';
+            } else {
+                $rules['password'] = 'nullable';
+                $rules['confirm_password'] = 'nullable';
+            }
         }
 
         return $rules;

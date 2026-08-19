@@ -190,21 +190,5 @@ function previewLogo(input) {
         reader.readAsDataURL(input.files[0]);
     }
 }
-
-$(document).ready(function() {
-    $('.btn-toggle-pwd').on('click', function() {
-        const targetId = $(this).data('target');
-        const targetInput = $('#' + targetId);
-        const icon = $(this).find('i');
-        
-        if (targetInput.attr('type') === 'password') {
-            targetInput.attr('type', 'text');
-            icon.removeClass('fa-regular fa-eye').addClass('fa-solid fa-eye-slash');
-        } else {
-            targetInput.attr('type', 'password');
-            icon.removeClass('fa-solid fa-eye-slash').addClass('fa-regular fa-eye');
-        }
-    });
-});
 </script>
 @endsection
