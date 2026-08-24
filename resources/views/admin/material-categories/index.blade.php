@@ -129,7 +129,7 @@
             <tbody>
                 @forelse($categories as $key => $cat)
                 <tr>
-                    <td>{{ $categories->firstItem() + $key }}</td>
+                    <td>{{ method_exists($categories, 'firstItem') ? ($categories->firstItem() + $key) : ($key + 1) }}</td>
                     <td><strong style="color: #FFFFFF !important; font-weight: 700; white-space: nowrap !important;">{{ $cat->category_name }}</strong></td>
                     <td style="color: #CBD5E1 !important; font-size: 13.5px;">{{ $cat->description ? \Illuminate\Support\Str::limit($cat->description, 60) : '-' }}</td>
                     <td><span class="badge badge-{{ $cat->status }}">{{ ucfirst($cat->status) }}</span></td>
@@ -150,7 +150,9 @@
             </tbody>
         </table>
     </div>
-    <div class="pagination-wrapper">{{ $categories->appends(request()->query())->links() }}</div>
+    @if(method_exists($categories, 'links'))
+        <div class="pagination-wrapper">{{ $categories->appends(request()->query())->links() }}</div>
+    @endif
 </div>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>

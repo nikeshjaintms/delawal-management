@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title','Ledger Management')
 @section('page-title','GST / Accounts')
 @section('content')
@@ -182,7 +182,7 @@
             <tbody>
                 @forelse($ledgers as $key => $ledger)
                 <tr>
-                    <td style="color:var(--text-secondary);">{{ $ledgers->firstItem() + $key }}</td>
+                    <td style="color:var(--text-secondary);">{{ method_exists($ledgers, 'firstItem') ? ($ledgers->firstItem() + $key) : ($key + 1) }}</td>
                     <td style="white-space:nowrap;font-size:13px;">{{ \Carbon\Carbon::parse($ledger->ledger_date)->format('d M Y') }}</td>
                     <td>
                         <div style="font-weight:600;">{{ $ledger->transaction_title }}</div>
@@ -265,7 +265,9 @@
             @endif
         </table>
     </div>
-    <div class="pagination-wrapper">{{ $ledgers->appends(request()->query())->links() }}</div>
+    @if(method_exists($ledgers, 'links'))
+        <div class="pagination-wrapper">{{ $ledgers->appends(request()->query())->links() }}</div>
+    @endif
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

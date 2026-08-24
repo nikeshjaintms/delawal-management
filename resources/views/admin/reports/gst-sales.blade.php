@@ -3,88 +3,136 @@
 @section('page-title','Reports')
 @section('content')
 <style>
-/* ── Header ── */
-.rpt-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:14px;}
-.rpt-title-block h2{font-size:22px;font-weight:800;color:#0F172A;margin-bottom:4px;}
-.rpt-title-block p{font-size:13.5px;color:#64748B;}
-.rpt-action-btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-/* Buttons */
-.btn-pdf{padding:9px 16px;border:1px solid #EF4444;border-radius:8px;font-size:13px;font-weight:600;
-    display:inline-flex;align-items:center;gap:7px;color:#EF4444;background:rgba(239,68,68,0.05);
-    text-decoration:none;transition:all .2s ease;}
-.btn-pdf:hover{background:rgba(239,68,68,0.12);transform:translateY(-1px);}
-.btn-excel{padding:9px 16px;border:1px solid #16803D;border-radius:8px;font-size:13px;font-weight:600;
-    display:inline-flex;align-items:center;gap:7px;color:#16803D;background:rgba(34,197,94,0.05);
-    text-decoration:none;transition:all .2s ease;}
-.btn-excel:hover{background:rgba(34,197,94,0.12);transform:translateY(-1px);}
-.btn-print{padding:9px 16px;border:1px solid #6366F1;border-radius:8px;font-size:13px;font-weight:600;
-    display:inline-flex;align-items:center;gap:7px;color:#6366F1;background:rgba(99,102,241,0.05);
-    cursor:pointer;font-family:inherit;transition:all .2s ease;}
-.btn-print:hover{background:rgba(99,102,241,0.12);transform:translateY(-1px);}
+/* ── Luxury Dark Glass System ── */
+.rpt-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 14px; }
+.rpt-title-block h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.rpt-title-block p { font-size: 14px; color: #FFFFFF !important; font-weight: 700 !important; margin: 0; }
+.rpt-action-btns { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.btn-pdf {
+    padding: 10px 18px; border: 1px solid #EF4444 !important; border-radius: 10px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;
+    color: #FFFFFF !important; background: #DC2626 !important; text-decoration: none !important;
+    transition: all .2s ease; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.40);
+}
+.btn-pdf:hover { background: #B91C1C !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220, 38, 38, 0.60); }
+
+.btn-excel {
+    padding: 10px 18px; border: 1px solid #10B981 !important; border-radius: 10px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;
+    color: #FFFFFF !important; background: #059669 !important; text-decoration: none !important;
+    transition: all .2s ease; box-shadow: 0 4px 14px rgba(5, 150, 105, 0.40);
+}
+.btn-excel:hover { background: #047857 !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(5, 150, 105, 0.60); }
+
+.btn-print {
+    padding: 10px 18px; border: 1px solid #6366F1 !important; border-radius: 10px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;
+    color: #FFFFFF !important; background: #4F46E5 !important; cursor: pointer;
+    font-family: inherit; transition: all .2s ease; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.40);
+}
+.btn-print:hover { background: #4338CA !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.60); }
+
 /* Summary cards */
-.gst-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:22px;}
-.gst-stat-card{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:16px 18px;
-    box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 18px rgba(0,0,0,0.04);
-    transition:transform .2s ease,box-shadow .2s ease;}
-.gst-stat-card:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(0,0,0,0.07),0 16px 36px rgba(0,0,0,0.09);}
-.gst-stat-card .sc-label{font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
-.gst-stat-card .sc-value{font-size:18px;font-weight:800;color:#0F172A;}
-.gst-stat-card .sc-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;
-    justify-content:center;font-size:15px;margin-bottom:10px;}
-.sc-blue  {background:rgba(59,130,246,0.1); color:#3B82F6;}
-.sc-green {background:rgba(16,185,129,0.1); color:#10B981;}
-.sc-amber {background:rgba(245,158,11,0.1); color:#F59E0B;}
-.sc-purple{background:rgba(139,92,246,0.1); color:#8B5CF6;}
-.sc-red   {background:rgba(239,68,68,0.1);  color:#EF4444;}
-.sc-sky   {background:rgba(14,165,233,0.1); color:#0EA5E9;}
-.sc-teal  {background:rgba(20,184,166,0.1); color:#14B8A6;}
+.gst-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.gst-stat-card {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 20px !important; padding: 18px 20px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.30);
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+.gst-stat-card:hover { transform: translateY(-3px); border-color: rgba(59, 130, 246, 0.40) !important; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); }
+.gst-stat-card .sc-label { font-size: 11px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
+.gst-stat-card .sc-value { font-size: 22px; font-weight: 800; color: #FFFFFF !important; }
+.gst-stat-card .sc-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 12px; }
+.sc-blue   { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35); }
+.sc-amber  { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35); }
+.sc-sky    { background: rgba(56, 189, 248, 0.18) !important; color: #38BDF8 !important; border: 1px solid rgba(56, 189, 248, 0.35); }
+.sc-teal   { background: rgba(45, 212, 191, 0.18) !important; color: #2DD4BF !important; border: 1px solid rgba(45, 212, 191, 0.35); }
+.sc-purple { background: rgba(167, 139, 250, 0.18) !important; color: #C084FC !important; border: 1px solid rgba(167, 139, 250, 0.35); }
+.sc-red    { background: rgba(239, 68, 68, 0.18) !important;  color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35); }
+.sc-green  { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35); }
+
 /* Filter */
-.card-box{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:20px 22px;
-    box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 18px rgba(0,0,0,0.04);margin-bottom:18px;}
-.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
-.filter-group{display:flex;flex-direction:column;gap:5px;}
-.filter-label{font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.6px;}
-.filter-ctrl{padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;
-    font-family:inherit;outline:none;background:#fff;transition:border-color .18s ease;min-width:150px;}
-.filter-ctrl:focus{border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,0.15);}
-.btn-filter{background:#0F172A;color:#fff;padding:9px 16px;border-radius:8px;border:none;
-    font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;align-self:flex-end;
-    display:inline-flex;align-items:center;gap:6px;transition:background .18s ease;}
-.btn-filter:hover{background:#1E293B;}
-.btn-reset{padding:9px 10px;color:#64748B;text-decoration:none;font-size:13px;align-self:flex-end;
-    display:inline-flex;align-items:center;gap:5px;transition:color .18s ease;}
-.btn-reset:hover{color:#0F172A;}
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 24px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 24px;
+}
+.filter-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.filter-group { display: flex; flex-direction: column; gap: 6px; }
+.filter-label { font-size: 11px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: .8px; }
+.filter-ctrl {
+    padding: 10px 14px !important; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 13.5px; color: #FFFFFF !important; outline: none; transition: all .2s ease; min-width: 150px;
+    box-sizing: border-box;
+}
+select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !important; }
+.filter-ctrl:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
+
+.btn-filter {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 20px !important;
+    border-radius: 10px; border: 1px solid #3B82F6 !important; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; font-family: inherit; align-self: flex-end; display: inline-flex; align-items: center;
+    gap: 6px; transition: all .25s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); height: 42px; white-space: nowrap !important;
+}
+.btn-filter:hover { background: #1D4ED8 !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50); }
+
+.btn-reset {
+    color: #CBD5E1 !important; text-decoration: none; font-size: 13.5px; font-weight: 700; padding: 10px 12px;
+    align-self: flex-end; display: inline-flex; align-items: center; gap: 5px; transition: color .15s; height: 42px; white-space: nowrap !important;
+}
+.btn-reset:hover { color: #FFFFFF !important; }
+
 /* Table */
-.table-wrap{width:100%;overflow-x:auto;}
-.gst-table{width:100%;border-collapse:collapse;font-size:13px;}
-.gst-table thead th{padding:11px 13px;background:#F8FAFC;color:#475569;font-weight:700;
-    border-bottom:2px solid #E2E8F0;font-size:11px;text-transform:uppercase;letter-spacing:.7px;
-    white-space:nowrap;}
-.gst-table tbody td{padding:12px 13px;border-bottom:1px solid #F1F5F9;color:#0F172A;vertical-align:middle;}
-.gst-table tbody tr:last-child td{border-bottom:none;}
-.gst-table tbody tr{transition:background .14s ease;}
-.gst-table tbody tr:hover{background:#F0F9FF;}
-.gst-table tfoot td{padding:11px 13px;background:#F8FAFC;font-weight:800;border-top:2px solid #E2E8F0;}
+.table-wrap { width: 100%; overflow-x: auto; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.10); background: rgba(16, 22, 34, 0.70); }
+.gst-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.gst-table thead th {
+    padding: 13px 14px !important; background: rgba(255, 255, 255, 0.05) !important;
+    color: #94A3B8 !important; font-weight: 800; font-size: 11.5px;
+    text-transform: uppercase; letter-spacing: .8px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    white-space: nowrap !important;
+}
+.gst-table tbody td {
+    padding: 13px 14px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    font-size: 13.5px; color: #FFFFFF !important; font-weight: 600; vertical-align: middle; white-space: nowrap !important;
+}
+.gst-table tbody tr:hover { background: rgba(255, 255, 255, 0.04) !important; }
+.gst-table tfoot td {
+    padding: 14px 16px !important; background: rgba(255, 255, 255, 0.08) !important;
+    font-weight: 800; border-top: 2px solid rgba(255, 255, 255, 0.15) !important;
+    color: #FFFFFF !important; white-space: nowrap !important;
+}
+
 /* Badges */
-.pay-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;}
-.pb-paid{background:rgba(16,185,129,0.1);color:#065F46;}
-.pb-pending{background:rgba(245,158,11,0.1);color:#92400E;}
-.pb-partial{background:rgba(59,130,246,0.1);color:#1E40AF;}
-.pb-cancelled{background:rgba(239,68,68,0.1);color:#991B1B;}
-/* Empty state */
-.empty-state{text-align:center;padding:52px 20px;color:#94A3B8;}
-.empty-state i{font-size:40px;margin-bottom:14px;display:block;opacity:.3;}
-.empty-state p{font-size:14px;}
+.pay-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .3px; }
+.pb-paid      { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35); }
+.pb-pending   { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35); }
+.pb-partial   { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35); }
+.pb-cancelled { background: rgba(239, 68, 68, 0.18) !important;  color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35); }
+
 /* Amount cells */
-.amt{text-align:right;font-variant-numeric:tabular-nums;}
-.amt-gst{color:#8B5CF6;font-weight:700;}
-.amt-total{color:#0F172A;font-weight:800;}
-.amt-grand{color:#059669;font-weight:800;font-size:14px;}
-/* Footer meta */
-.rpt-footer-bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
-    gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid #F1F5F9;}
-.rpt-footer-bar span{font-size:12px;color:#64748B;}
-/* Print */
+.amt { text-align: right; font-variant-numeric: tabular-nums; font-family: monospace; }
+.amt-gst { font-weight: 700; }
+.amt-grand { color: #34D399 !important; font-weight: 800; font-size: 14.5px; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 52px 20px; color: #94A3B8; }
+.empty-state i { font-size: 40px; margin-bottom: 14px; display: block; opacity: .4; color: #FBBF24; }
+.empty-state p { font-size: 14.5px; color: #CBD5E1; }
+
+.rpt-footer-bar {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+    gap: 12px; margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 @media print{
     .sidebar,.topbar,.rpt-action-btns,.filter-bar,.btn-filter,.btn-reset,.card-box:has(.filter-bar){display:none!important;}
     .main-content{margin-left:0!important;}
@@ -97,7 +145,7 @@
 {{-- Header --}}
 <div class="rpt-header">
     <div class="rpt-title-block">
-        <h2><i class="fa-solid fa-file-invoice-dollar" style="color:#F59E0B;margin-right:9px;"></i>GST Sales Report</h2>
+        <h2><i class="fa-solid fa-file-invoice-dollar" style="color:#FBBF24;margin-right:9px;"></i>GST Sales Report</h2>
         <p>Sales invoice GST summary with taxable amount, CGST, SGST, IGST breakup and grand total.</p>
     </div>
     <div class="rpt-action-btns">
@@ -118,37 +166,37 @@
     <div class="gst-stat-card">
         <div class="sc-icon sc-blue"><i class="fa-solid fa-receipt"></i></div>
         <div class="sc-label">Total Invoices</div>
-        <div class="sc-value">{{ $totalInvoices }}</div>
+        <div class="sc-value" style="color:#FFFFFF !important;">{{ $totalInvoices }}</div>
     </div>
     <div class="gst-stat-card">
         <div class="sc-icon sc-amber"><i class="fa-solid fa-indian-rupee-sign"></i></div>
         <div class="sc-label">Taxable Amount</div>
-        <div class="sc-value" style="color:#D97706;">₹{{ number_format($totalTaxable,2) }}</div>
+        <div class="sc-value" style="color:#FBBF24 !important;">₹{{ number_format($totalTaxable,2) }}</div>
     </div>
     <div class="gst-stat-card">
-        <div class="sc-icon sc-sky"><i class="fa-solid fa-c"></i></div>
+        <div class="sc-icon sc-sky"><i class="fa-solid fa-coins"></i></div>
         <div class="sc-label">Total CGST</div>
-        <div class="sc-value" style="color:#0EA5E9;">₹{{ number_format($totalCgst,2) }}</div>
+        <div class="sc-value" style="color:#38BDF8 !important;">₹{{ number_format($totalCgst,2) }}</div>
     </div>
     <div class="gst-stat-card">
-        <div class="sc-icon sc-teal"><i class="fa-solid fa-s"></i></div>
+        <div class="sc-icon sc-teal"><i class="fa-solid fa-landmark"></i></div>
         <div class="sc-label">Total SGST</div>
-        <div class="sc-value" style="color:#14B8A6;">₹{{ number_format($totalSgst,2) }}</div>
+        <div class="sc-value" style="color:#2DD4BF !important;">₹{{ number_format($totalSgst,2) }}</div>
     </div>
     <div class="gst-stat-card">
-        <div class="sc-icon sc-purple"><i class="fa-solid fa-i"></i></div>
+        <div class="sc-icon sc-purple"><i class="fa-solid fa-globe"></i></div>
         <div class="sc-label">Total IGST</div>
-        <div class="sc-value" style="color:#8B5CF6;">₹{{ number_format($totalIgst,2) }}</div>
+        <div class="sc-value" style="color:#C084FC !important;">₹{{ number_format($totalIgst,2) }}</div>
     </div>
     <div class="gst-stat-card">
         <div class="sc-icon sc-red"><i class="fa-solid fa-percent"></i></div>
         <div class="sc-label">Total GST</div>
-        <div class="sc-value" style="color:#EF4444;">₹{{ number_format($totalGst,2) }}</div>
+        <div class="sc-value" style="color:#F87171 !important;">₹{{ number_format($totalGst,2) }}</div>
     </div>
     <div class="gst-stat-card">
         <div class="sc-icon sc-green"><i class="fa-solid fa-circle-check"></i></div>
         <div class="sc-label">Grand Total</div>
-        <div class="sc-value" style="color:#059669;">₹{{ number_format($grandTotal,2) }}</div>
+        <div class="sc-value" style="color:#34D399 !important;">₹{{ number_format($grandTotal,2) }}</div>
     </div>
 </div>
 
@@ -198,17 +246,17 @@
 
 {{-- Data Table --}}
 <div class="card-box">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-        <div style="font-size:13.5px;font-weight:700;color:#0F172A;">
-            <i class="fa-solid fa-table-list" style="color:#F59E0B;margin-right:7px;"></i>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:16px;font-weight:800;color:#FFFFFF !important;">
+            <i class="fa-solid fa-table-list" style="color:#FBBF24;margin-right:8px;"></i>
             GST Invoice Records
-            <span style="font-size:12px;font-weight:500;color:#64748B;margin-left:8px;">
+            <span style="font-size:13px;font-weight:700;color:#94A3B8;margin-left:8px;">
                 {{ $totalInvoices }} record{{ $totalInvoices!=1?'s':'' }}
             </span>
         </div>
         @if(request()->hasAny(['from_date','to_date','filter_customer','filter_status']))
-        <span style="font-size:12px;color:#64748B;display:flex;align-items:center;gap:5px;">
-            <i class="fa-solid fa-filter" style="color:#F59E0B;"></i> Filtered results
+        <span style="font-size:13px;font-weight:700;color:#FBBF24;display:flex;align-items:center;gap:5px;">
+            <i class="fa-solid fa-filter" style="color:#FBBF24;"></i> Filtered results
         </span>
         @endif
     </div>
@@ -217,7 +265,7 @@
         <table class="gst-table">
             <thead>
                 <tr>
-                    <th>#</th>
+                    <th style="width:36px;">#</th>
                     <th>Invoice No</th>
                     <th>Date</th>
                     <th>Customer</th>
@@ -244,51 +292,51 @@
                     };
                 @endphp
                 <tr>
-                    <td style="color:#94A3B8;font-size:12px;">{{ $i + 1 }}</td>
+                    <td style="color:#94A3B8;font-size:12.5px;font-weight:700;">{{ $i + 1 }}</td>
                     <td>
-                        <span style="font-weight:600;font-size:13px;">
+                        <strong style="color:#60A5FA !important;font-size:13px;">
                             {{ $sale->invoice_no ?? '—' }}
-                        </span>
+                        </strong>
                     </td>
-                    <td style="white-space:nowrap;font-size:13px;">
+                    <td style="white-space:nowrap;font-size:13px;color:#CBD5E1;font-weight:600;">
                         {{ $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date)->format('d M Y') : '—' }}
                     </td>
                     <td>
-                        <div style="font-weight:600;font-size:13px;">{{ $sale->customer?->name ?? '—' }}</div>
+                        <div style="font-weight:700;font-size:13.5px;color:#FFFFFF;">{{ $sale->customer?->name ?? '—' }}</div>
                         @if($sale->customer?->mobile)
-                            <div style="font-size:11px;color:#64748B;">{{ $sale->customer->mobile }}</div>
+                            <div style="font-size:11.5px;color:#94A3B8;font-weight:500;">{{ $sale->customer->mobile }}</div>
                         @endif
                     </td>
-                    <td style="font-size:13px;">{{ $sale->property?->property_name ?? '—' }}</td>
+                    <td style="font-size:13.5px;color:#CBD5E1;font-weight:600;">{{ $sale->property?->property_name ?? '—' }}</td>
                     <td>
                         @if($sale->hsn_code)
-                            <span style="background:#F1F5F9;padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600;color:#475569;">
+                            <span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);padding:3px 8px;border-radius:6px;font-size:12px;font-weight:700;color:#CBD5E1;">
                                 {{ $sale->hsn_code }}
                             </span>
                         @else
-                            <span style="color:#CBD5E1;">—</span>
+                            <span style="color:#94A3B8;">—</span>
                         @endif
                     </td>
-                    <td class="amt">₹{{ number_format($sale->computed_taxable,2) }}</td>
-                    <td class="amt amt-gst" style="color:#0EA5E9;">
+                    <td class="amt" style="color:#FBBF24 !important;font-weight:700;">₹{{ number_format($sale->computed_taxable,2) }}</td>
+                    <td class="amt amt-gst" style="color:#38BDF8 !important;">
                         ₹{{ number_format($sale->computed_cgst,2) }}
                         @if($sale->cgst_rate)
-                            <div style="font-size:11px;color:#94A3B8;font-weight:400;">({{ $sale->cgst_rate }}%)</div>
+                            <div style="font-size:11px;color:#94A3B8;font-weight:500;">({{ $sale->cgst_rate }}%)</div>
                         @endif
                     </td>
-                    <td class="amt amt-gst" style="color:#14B8A6;">
+                    <td class="amt amt-gst" style="color:#2DD4BF !important;">
                         ₹{{ number_format($sale->computed_sgst,2) }}
                         @if($sale->sgst_rate)
-                            <div style="font-size:11px;color:#94A3B8;font-weight:400;">({{ $sale->sgst_rate }}%)</div>
+                            <div style="font-size:11px;color:#94A3B8;font-weight:500;">({{ $sale->sgst_rate }}%)</div>
                         @endif
                     </td>
-                    <td class="amt amt-gst" style="color:#8B5CF6;">
+                    <td class="amt amt-gst" style="color:#C084FC !important;">
                         ₹{{ number_format($sale->computed_igst,2) }}
                         @if($sale->igst_rate)
-                            <div style="font-size:11px;color:#94A3B8;font-weight:400;">({{ $sale->igst_rate }}%)</div>
+                            <div style="font-size:11px;color:#94A3B8;font-weight:500;">({{ $sale->igst_rate }}%)</div>
                         @endif
                     </td>
-                    <td class="amt" style="color:#EF4444;font-weight:700;">
+                    <td class="amt" style="color:#F87171 !important;font-weight:800;">
                         ₹{{ number_format($sale->computed_total_gst,2) }}
                     </td>
                     <td class="amt amt-grand">
@@ -301,7 +349,7 @@
                     </td>
                     <td style="text-align:center;">
                         <a href="{{ route('property-sales.show', $sale->id) }}"
-                           style="color:#3B82F6;font-size:13px;display:inline-flex;align-items:center;gap:4px;text-decoration:none;transition:color .15s ease;"
+                           style="color:#60A5FA;font-size:14px;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.30);text-decoration:none;transition:all .2s ease;"
                            title="View Sale">
                             <i class="fa-regular fa-eye"></i>
                         </a>
@@ -315,7 +363,7 @@
                             <p>No GST sales records found for the selected filters.</p>
                             @if(request()->hasAny(['from_date','to_date','filter_customer','filter_status']))
                                 <a href="{{ route('reports.gst-sales') }}"
-                                   style="color:#3B82F6;font-size:13px;margin-top:8px;display:inline-block;">
+                                   style="color:#60A5FA;font-weight:700;font-size:13px;margin-top:8px;display:inline-block;text-decoration:none;">
                                     Clear all filters
                                 </a>
                             @endif
@@ -327,16 +375,16 @@
             @if($sales->count() > 0)
             <tfoot>
                 <tr>
-                    <td colspan="6" style="font-size:13px;color:#0F172A;">
-                        <i class="fa-solid fa-sigma" style="color:#F59E0B;margin-right:6px;"></i>
+                    <td colspan="6" style="font-size:13.5px;color:#FFFFFF !important;font-weight:800;">
+                        <i class="fa-solid fa-calculator" style="color:#FBBF24;margin-right:6px;"></i>
                         Total ({{ $totalInvoices }} invoice{{ $totalInvoices!=1?'s':'' }})
                     </td>
-                    <td class="amt" style="color:#D97706;font-size:14px;">₹{{ number_format($totalTaxable,2) }}</td>
-                    <td class="amt" style="color:#0EA5E9;font-size:14px;">₹{{ number_format($totalCgst,2) }}</td>
-                    <td class="amt" style="color:#14B8A6;font-size:14px;">₹{{ number_format($totalSgst,2) }}</td>
-                    <td class="amt" style="color:#8B5CF6;font-size:14px;">₹{{ number_format($totalIgst,2) }}</td>
-                    <td class="amt" style="color:#EF4444;font-size:14px;">₹{{ number_format($totalGst,2) }}</td>
-                    <td class="amt amt-grand" style="font-size:15px;">₹{{ number_format($grandTotal,2) }}</td>
+                    <td class="amt" style="color:#FBBF24 !important;font-size:14px;font-weight:800;">₹{{ number_format($totalTaxable,2) }}</td>
+                    <td class="amt" style="color:#38BDF8 !important;font-size:14px;font-weight:800;">₹{{ number_format($totalCgst,2) }}</td>
+                    <td class="amt" style="color:#2DD4BF !important;font-size:14px;font-weight:800;">₹{{ number_format($totalSgst,2) }}</td>
+                    <td class="amt" style="color:#C084FC !important;font-size:14px;font-weight:800;">₹{{ number_format($totalIgst,2) }}</td>
+                    <td class="amt" style="color:#F87171 !important;font-size:14px;font-weight:800;">₹{{ number_format($totalGst,2) }}</td>
+                    <td class="amt amt-grand" style="font-size:15px;color:#34D399 !important;font-weight:800;">₹{{ number_format($grandTotal,2) }}</td>
                     <td colspan="2"></td>
                 </tr>
             </tfoot>
@@ -346,12 +394,12 @@
 
     @if($sales->count() > 0)
     <div class="rpt-footer-bar">
-        <span>
+        <span style="font-size:13.5px;color:#FFFFFF !important;font-weight:700 !important;">
             <strong>{{ $totalInvoices }}</strong> record{{ $totalInvoices!=1?'s':'' }}
-            &nbsp;·&nbsp; Grand Total: <strong style="color:#059669;">₹{{ number_format($grandTotal,2) }}</strong>
-            &nbsp;·&nbsp; Total GST: <strong style="color:#EF4444;">₹{{ number_format($totalGst,2) }}</strong>
+            &nbsp;·&nbsp; Grand Total: <strong style="color:#34D399 !important;">₹{{ number_format($grandTotal,2) }}</strong>
+            &nbsp;·&nbsp; Total GST: <strong style="color:#F87171 !important;">₹{{ number_format($totalGst,2) }}</strong>
         </span>
-        <span><i class="fa-regular fa-clock"></i> Generated: {{ now()->format('d M Y, h:i A') }}</span>
+        <span style="font-size:13px;color:#FFFFFF !important;font-weight:700 !important;"><i class="fa-regular fa-clock" style="color:#FBBF24;"></i> Generated: {{ now()->format('d M Y, h:i A') }}</span>
     </div>
     @endif
 </div>

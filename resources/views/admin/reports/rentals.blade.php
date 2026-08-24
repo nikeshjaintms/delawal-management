@@ -3,127 +3,152 @@
 @section('page-title','Reports')
 @section('content')
 <style>
-/* ── Header ── */
-.rpt-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:14px;}
-.rpt-title-block h2{font-size:22px;font-weight:800;color:#0F172A;margin-bottom:4px;}
-.rpt-title-block p{font-size:13.5px;color:#64748B;}
-.rpt-action-btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-/* ── Buttons ── */
-.btn-pdf{padding:9px 16px;border:1px solid #EF4444;border-radius:8px;font-size:13px;font-weight:600;
-    display:inline-flex;align-items:center;gap:7px;color:#EF4444;background:rgba(239,68,68,0.05);
-    text-decoration:none;transition:all .2s ease;}
-.btn-pdf:hover{background:rgba(239,68,68,0.12);transform:translateY(-1px);}
-.btn-excel{padding:9px 16px;border:1px solid #16803D;border-radius:8px;font-size:13px;font-weight:600;
-    display:inline-flex;align-items:center;gap:7px;color:#16803D;background:rgba(34,197,94,0.05);
-    text-decoration:none;transition:all .2s ease;}
-.btn-excel:hover{background:rgba(34,197,94,0.12);transform:translateY(-1px);}
-.btn-print{padding:9px 16px;border:1px solid #6366F1;border-radius:8px;font-size:13px;font-weight:600;
-    display:inline-flex;align-items:center;gap:7px;color:#6366F1;background:rgba(99,102,241,0.05);
-    cursor:pointer;font-family:inherit;transition:all .2s ease;}
-.btn-print:hover{background:rgba(99,102,241,0.12);transform:translateY(-1px);}
-/* ── Summary Cards ── */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;margin-bottom:24px;}
-.stat-card{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:20px 22px;
-    box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 18px rgba(0,0,0,0.04);
-    transition:transform .22s ease,box-shadow .22s ease;}
-.stat-card:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(0,0,0,0.07),0 16px 36px rgba(0,0,0,0.09);}
-.stat-card .sc-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;
-    justify-content:center;font-size:18px;margin-bottom:12px;}
-.sc-teal  {background:rgba(20,184,166,0.1);color:#14B8A6;}
-.sc-green {background:rgba(16,185,129,0.1);color:#10B981;}
-.sc-red   {background:rgba(239,68,68,0.1); color:#EF4444;}
-.sc-blue  {background:rgba(59,130,246,0.1);color:#3B82F6;}
-.stat-card .sc-label{font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
-.stat-card .sc-value{font-size:20px;font-weight:800;}
-/* ── Filter ── */
-.card-box{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:20px 22px;
-    box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 18px rgba(0,0,0,0.04);margin-bottom:18px;}
-.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
-.filter-group{display:flex;flex-direction:column;gap:5px;}
-.filter-label{font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.6px;}
-.filter-ctrl{padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;
-    font-family:inherit;outline:none;background:#fff;transition:border-color .18s;min-width:148px;}
-.filter-ctrl:focus{border-color:#14B8A6;box-shadow:0 0 0 3px rgba(20,184,166,0.12);}
-.search-input{padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;
-    font-family:inherit;outline:none;background:#fff;transition:border-color .18s;min-width:180px;}
-.search-input:focus{border-color:#14B8A6;box-shadow:0 0 0 3px rgba(20,184,166,0.12);}
-.btn-filter{background:#0F172A;color:#fff;padding:9px 16px;border-radius:8px;border:none;font-size:13px;
-    font-weight:600;cursor:pointer;font-family:inherit;align-self:flex-end;
-    display:inline-flex;align-items:center;gap:6px;transition:background .18s;}
-.btn-filter:hover{background:#1E293B;}
-.btn-reset{padding:9px 10px;color:#64748B;text-decoration:none;font-size:13px;align-self:flex-end;
-    display:inline-flex;align-items:center;gap:5px;transition:color .15s;}
-.btn-reset:hover{color:#0F172A;}
-/* ── Table ── */
-.table-wrap{width:100%;overflow-x:auto;}
-.rent-table{width:100%;border-collapse:collapse;font-size:13px;}
-.rent-table thead th{padding:11px 14px;background:#F8FAFC;color:#475569;font-weight:700;
-    border-bottom:2px solid #E2E8F0;font-size:11px;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap;}
-.rent-table tbody td{padding:12px 14px;border-bottom:1px solid #F1F5F9;vertical-align:middle;}
-.rent-table tbody tr{transition:background .14s ease;}
-.rent-table tbody tr:hover{background:#F0FDFA;}
-.rent-table tfoot td{padding:12px 14px;background:#F8FAFC;font-weight:800;border-top:2px solid #E2E8F0;}
-.amt{text-align:right;font-variant-numeric:tabular-nums;}
-/* ── Status Badges ── */
-.pay-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
-.pb-paid     {background:rgba(16,185,129,0.1);color:#065F46;}
-.pb-pending  {background:rgba(245,158,11,0.1);color:#92400E;}
-.pb-partial  {background:rgba(59,130,246,0.1);color:#1E40AF;}
-.pb-cancelled{background:rgba(239,68,68,0.1);color:#991B1B;}
-/* ── Mode chip ── */
-.mode-chip{background:#F1F5F9;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#475569;}
-/* ── Action ── */
-.tbl-action{color:#14B8A6;font-size:13px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:color .15s;}
-.tbl-action:hover{color:#0D9488;}
-/* ── Empty ── */
-.empty-state{text-align:center;padding:52px 20px;color:#94A3B8;}
-.empty-state i{font-size:40px;margin-bottom:14px;display:block;opacity:.3;}
-/* ── Date badge ── */
-.date-badge{display:inline-flex;align-items:center;gap:6px;background:#F0FDFA;border:1px solid #99F6E4;
-    border-radius:8px;padding:6px 12px;font-size:12.5px;color:#0D9488;font-weight:600;margin-top:8px;}
+/* ── Luxury Dark Glass System ── */
+.rpt-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 14px; }
+.rpt-title-block h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.rpt-title-block p { font-size: 14px; color: #FFFFFF !important; font-weight: 700 !important; margin: 0; }
+.rpt-action-btns { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.btn-pdf {
+    padding: 10px 18px; border: 1px solid rgba(239, 68, 68, 0.40) !important; border-radius: 10px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;
+    color: #F87171 !important; background: rgba(239, 68, 68, 0.15) !important; text-decoration: none !important;
+    transition: all .2s ease; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.20);
+}
+.btn-pdf:hover { background: rgba(239, 68, 68, 0.28) !important; color: #FFFFFF !important; transform: translateY(-1px); }
+
+.btn-excel {
+    padding: 10px 18px; border: 1px solid rgba(16, 185, 129, 0.40) !important; border-radius: 10px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;
+    color: #34D399 !important; background: rgba(16, 185, 129, 0.15) !important; text-decoration: none !important;
+    transition: all .2s ease; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.20);
+}
+.btn-excel:hover { background: rgba(16, 185, 129, 0.28) !important; color: #FFFFFF !important; transform: translateY(-1px); }
+
+.btn-print {
+    padding: 10px 18px; border: 1px solid rgba(99, 102, 241, 0.40) !important; border-radius: 10px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;
+    color: #A5B4FC !important; background: rgba(99, 102, 241, 0.15) !important; cursor: pointer;
+    font-family: inherit; transition: all .2s ease; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.20);
+}
+.btn-print:hover { background: rgba(99, 102, 241, 0.28) !important; color: #FFFFFF !important; transform: translateY(-1px); }
+
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 20px !important; padding: 20px 22px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.30); transition: all .25s ease;
+}
+.stat-card:hover { transform: translateY(-3px); border-color: rgba(59, 130, 246, 0.40) !important; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); }
+.stat-card .sc-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 19px; margin-bottom: 12px; }
+.sc-teal   { background: rgba(20, 184, 166, 0.18) !important; color: #2DD4BF !important; border: 1px solid rgba(20, 184, 166, 0.35) !important; }
+.sc-green  { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.sc-amber  { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.sc-red    { background: rgba(239, 68, 68, 0.18) !important;  color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+.sc-blue   { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
+.stat-card .sc-label { font-size: 11.5px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 5px; }
+.stat-card .sc-value { font-size: 24px; font-weight: 800; color: #FFFFFF !important; }
+
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 24px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 24px;
+}
+
+.filter-bar {
+    display: flex; gap: 12px; align-items: flex-end;
+    background: rgba(255, 255, 255, 0.04); padding: 16px 20px;
+    border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.10);
+    width: 100%; flex-wrap: wrap;
+}
+.filter-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 130px; }
+.filter-label { font-size: 11px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: .8px; }
+.filter-ctrl, .search-input {
+    padding: 10px 14px !important; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 13.5px; color: #FFFFFF !important; outline: none; transition: all .2s ease; width: 100%; box-sizing: border-box;
+}
+select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !important; }
+.filter-ctrl:focus, .search-input:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
+
+.btn-filter {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 20px !important;
+    border-radius: 10px; border: 1px solid #3B82F6 !important; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; font-family: inherit; align-self: flex-end; display: inline-flex; align-items: center;
+    gap: 6px; transition: all .25s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); height: 42px; white-space: nowrap !important;
+}
+.btn-filter:hover { background: #1D4ED8 !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50); }
+
+.btn-reset {
+    color: #CBD5E1 !important; text-decoration: none; font-size: 13.5px; font-weight: 700; padding: 10px 12px;
+    align-self: flex-end; display: inline-flex; align-items: center; gap: 5px; transition: color .15s; height: 42px; white-space: nowrap !important;
+}
+.btn-reset:hover { color: #FFFFFF !important; }
+
+.table-wrap { width: 100%; overflow-x: auto; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.10); background: rgba(16, 22, 34, 0.70); }
+.rent-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.rent-table thead th {
+    padding: 13px 14px !important; background: rgba(255, 255, 255, 0.05) !important;
+    color: #94A3B8 !important; font-weight: 800; font-size: 11.5px;
+    text-transform: uppercase; letter-spacing: .8px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    white-space: nowrap !important;
+}
+.rent-table tbody td {
+    padding: 13px 14px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    font-size: 13.5px; color: #FFFFFF !important; font-weight: 600; vertical-align: middle;
+}
+.rent-table tbody tr:hover { background: rgba(255, 255, 255, 0.04) !important; }
+
+/* ── TFOOT LUXURY DARK GLASS STYLING ── */
+.rent-table tfoot td {
+    padding: 14px 16px !important; background: rgba(255, 255, 255, 0.08) !important;
+    font-weight: 800; border-top: 2px solid rgba(255, 255, 255, 0.15) !important;
+    color: #FFFFFF !important; white-space: nowrap !important;
+}
+.amt { text-align: right; font-variant-numeric: tabular-nums; font-family: monospace; }
+
+.pay-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap !important; }
+.pb-paid      { background: rgba(34, 197, 94, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(34, 197, 94, 0.35) !important; }
+.pb-pending   { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.pb-partial   { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
+.pb-cancelled { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+
+.month-badge { display: inline-flex; align-items: center; background: rgba(45, 212, 191, 0.15) !important; color: #2DD4BF !important; border: 1px solid rgba(45, 212, 191, 0.30) !important; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.mode-chip { background: rgba(255, 255, 255, 0.08) !important; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; color: #CBD5E1 !important; border: 1px solid rgba(255, 255, 255, 0.12); }
+.tbl-action { color: #60A5FA !important; font-size: 12.5px; font-weight: 700; text-decoration: none !important; display: inline-flex; align-items: center; gap: 5px; transition: all .2s; padding: 5px 10px; border-radius: 6px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.30); }
+.tbl-action:hover { background: #2563EB !important; color: #FFFFFF !important; transform: translateY(-1px); }
+.empty-state { text-align: center; padding: 52px 20px; color: #94A3B8; }
+.empty-state i { font-size: 40px; margin-bottom: 14px; display: block; opacity: .4; color: #2DD4BF; }
+.date-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(20, 184, 166, 0.15) !important; border: 1px solid rgba(20, 184, 166, 0.30) !important; border-radius: 8px; padding: 6px 12px; font-size: 12.5px; color: #2DD4BF !important; font-weight: 700; margin-top: 8px; }
+
 /* ── Print header (screen: hidden, print: visible) ── */
 .print-header{display:none;border-bottom:2.5px solid #14B8A6;padding-bottom:12px;margin-bottom:20px;flex-direction:row;justify-content:space-between;align-items:flex-start;}
 .print-header .ph-left .ph-company{font-size:20px;font-weight:800;color:#0F172A;}
-.print-header .ph-left .ph-sub{font-size:10px;color:#14B8A6;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.print-header .ph-sub{font-size:10px;color:#14B8A6;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
 .print-header .ph-right{text-align:right;}
 .print-header .ph-right .ph-title{font-size:15px;font-weight:700;color:#0F172A;margin-bottom:3px;}
 .print-header .ph-right .ph-meta{font-size:11px;color:#64748B;}
 .print-header .ph-filter-strip{width:100%;margin-top:10px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:5px;padding:7px 12px;font-size:11px;color:#0D9488;font-weight:600;}
-/* ── Print ── */
-@media print{
-    /* ── Hide all chrome ── */
-    .sidebar, .topbar, .rpt-action-btns,
-    .card-box.filter-card,
-    .btn-action, .tbl-action, .btn-filter, .btn-reset,
-    .empty-state a { display: none !important; }
 
-    /* ── Full-width layout ── */
+@media print{
+    .sidebar, .topbar, .rpt-action-btns, .card-box.filter-card, .btn-action, .tbl-action, .btn-filter, .btn-reset, .empty-state a { display: none !important; }
     .main-content { margin-left: 0 !important; }
     .content-body  { padding: 6px 0 0 !important; }
     body           { background: #fff !important; }
-
-    /* ── Strip decorative chrome ── */
-    .stat-card, .gst-stat-card, .card-box {
-        box-shadow: none !important;
-        border: 1px solid #E2E8F0 !important;
-    }
-
-    /* ── Force 4-column stat grid ── */
-    .stat-grid, .gst-stat-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 10px !important;
-    }
-
-    /* ── Table fixes ── */
+    .stat-card, .gst-stat-card, .card-box { box-shadow: none !important; border: 1px solid #E2E8F0 !important; }
+    .stat-grid, .gst-stat-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 10px !important; }
     .table-wrap  { overflow: visible !important; }
     .rent-table  { font-size: 10.5px !important; }
     thead tr { background: #0F172A !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     thead th { color: #fff !important; }
-
-    /* ── Show print-only header, hide screen date badge ── */
     .print-header { display: flex !important; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
     .date-badge   { display: none !important; }
-
     @page { margin: 12mm; }
 }
 </style>
@@ -154,7 +179,7 @@
 {{-- ── Header ── --}}
 <div class="rpt-header">
     <div class="rpt-title-block">
-        <h2><i class="fa-solid fa-house-circle-check" style="color:#14B8A6;margin-right:9px;"></i>Rental Report</h2>
+        <h2><i class="fa-solid fa-house-circle-check" style="color:#2DD4BF;margin-right:9px;"></i>Rental Report</h2>
         <p>Tenant-wise rent payments with received amount, pending balance, and payment status.</p>
         @if(request('from_date') || request('to_date'))
             <div>
@@ -185,22 +210,22 @@
     <div class="stat-card">
         <div class="sc-icon sc-teal"><i class="fa-solid fa-indian-rupee-sign"></i></div>
         <div class="sc-label">Total Rent Amount</div>
-        <div class="sc-value" style="color:#0D9488;">₹{{ number_format($totalRentAmt,2) }}</div>
+        <div class="sc-value" style="color:#2DD4BF;">₹{{ number_format($totalRentAmt,2) }}</div>
     </div>
     <div class="stat-card">
         <div class="sc-icon sc-green"><i class="fa-solid fa-circle-check"></i></div>
         <div class="sc-label">Total Rent Received</div>
-        <div class="sc-value" style="color:#059669;">₹{{ number_format($totalReceived,2) }}</div>
+        <div class="sc-value" style="color:#34D399;">₹{{ number_format($totalReceived,2) }}</div>
     </div>
     <div class="stat-card">
         <div class="sc-icon sc-red"><i class="fa-solid fa-clock"></i></div>
         <div class="sc-label">Total Pending Rent</div>
-        <div class="sc-value" style="color:#DC2626;">₹{{ number_format($totalPending,2) }}</div>
+        <div class="sc-value" style="color:#F87171;">₹{{ number_format($totalPending,2) }}</div>
     </div>
     <div class="stat-card">
         <div class="sc-icon sc-blue"><i class="fa-solid fa-house-user"></i></div>
         <div class="sc-label">Total Active Rentals</div>
-        <div class="sc-value" style="color:#3B82F6;">{{ $totalActive }}</div>
+        <div class="sc-value" style="color:#60A5FA;">{{ $totalActive }}</div>
     </div>
 </div>
 
@@ -284,17 +309,17 @@
 
 {{-- ── Data Table ── --}}
 <div class="card-box">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-        <div style="font-size:13.5px;font-weight:700;color:#0F172A;">
-            <i class="fa-solid fa-table-list" style="color:#14B8A6;margin-right:7px;"></i>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:16px;font-weight:800;color:#FFFFFF !important;">
+            <i class="fa-solid fa-table-list" style="color:#2DD4BF;margin-right:7px;"></i>
             Rental Payment Records
-            <span style="font-size:12px;font-weight:500;color:#64748B;margin-left:8px;">
+            <span style="font-size:13px;font-weight:700;color:#94A3B8;margin-left:8px;">
                 {{ $records->count() }} record{{ $records->count()!=1?'s':'' }}
             </span>
         </div>
         @if(request()->hasAny(['from_date','to_date','firm_id','filter_tenant','filter_property','filter_status','filter_mode']))
-            <span style="font-size:12px;color:#64748B;display:flex;align-items:center;gap:5px;">
-                <i class="fa-solid fa-filter" style="color:#14B8A6;"></i> Filtered results
+            <span style="font-size:12.5px;color:#94A3B8;font-weight:700;display:flex;align-items:center;gap:5px;">
+                <i class="fa-solid fa-filter" style="color:#2DD4BF;"></i> Filtered results
             </span>
         @endif
     </div>
@@ -332,55 +357,53 @@
                     };
                 @endphp
                 <tr>
-                    <td style="color:#94A3B8;font-size:12px;">{{ $i + 1 }}</td>
+                    <td style="color:#94A3B8;font-size:12.5px;font-weight:700;">{{ $i + 1 }}</td>
                     @if(auth()->user() && auth()->user()->isAdmin())
-                        <td style="font-weight:600;font-size:13px;">{{ $rp->firm->firm_name ?? $rp->rental?->firm?->firm_name ?? '—' }}</td>
+                        <td style="font-weight:700;font-size:13.5px;color:#FFFFFF;">{{ $rp->firm->firm_name ?? $rp->rental?->firm?->firm_name ?? '—' }}</td>
                     @endif
-                    <td style="white-space:nowrap;font-weight:600;font-size:13px;">
+                    <td style="white-space:nowrap;font-weight:700;font-size:13px;color:#CBD5E1;">
                         {{ $rp->payment_date
                             ? \Carbon\Carbon::parse($rp->payment_date)->format('d M Y')
                             : '—' }}
                     </td>
-                    <td style="font-size:13px;">
-                        <span style="background:#F0FDFA;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700;color:#0D9488;">
+                    <td>
+                        <span class="month-badge">
                             {{ $rp->payment_month }} {{ $rp->payment_year }}
                         </span>
                     </td>
                     <td>
-                        <div style="font-weight:600;font-size:13px;">{{ $rp->rental?->tenant_name ?? '—' }}</div>
+                        <div style="font-weight:700;font-size:13.5px;color:#FFFFFF;">{{ $rp->rental?->tenant_name ?? '—' }}</div>
                         @if($rp->rental?->tenant_mobile)
-                            <div style="font-size:11px;color:#64748B;">{{ $rp->rental->tenant_mobile }}</div>
+                            <div style="font-size:11.5px;color:#94A3B8;font-weight:600;">{{ $rp->rental->tenant_mobile }}</div>
                         @endif
                     </td>
                     <td>
-                        <div style="font-weight:600;font-size:13px;">
+                        <div style="font-weight:700;font-size:13.5px;color:#FFFFFF;">
                             {{ $rp->property->property_name ?? $rp->rental?->property?->property_name ?? '—' }}
                         </div>
                     </td>
                     <td>
-                        <div style="font-size:13px;">
+                        <div style="font-size:13px;color:#CBD5E1;font-weight:600;">
                             {{ $rp->property->propertyType->name ?? $rp->rental?->property?->propertyType->name ?? '—' }}
                         </div>
                     </td>
                     <td>
-                        <div style="font-size:13px;font-family:monospace;">
-                            {{ $rp->property->property_code ?? $rp->rental?->property?->property_code ?? '—' }}
-                        </div>
+                        <code class="code-chip">{{ $rp->property->property_code ?? $rp->rental?->property?->property_code ?? '—' }}</code>
                     </td>
-                    <td class="amt" style="color:#0D9488;font-weight:700;">
+                    <td class="amt" style="color:#2DD4BF !important;font-weight:800;font-size:14px;">
                         ₹{{ number_format($rp->rent_amount, 2) }}
                     </td>
-                    <td class="amt" style="color:#059669;font-weight:700;">
+                    <td class="amt" style="color:#34D399 !important;font-weight:800;font-size:14px;">
                         ₹{{ number_format($rp->paid_amount, 2) }}
                     </td>
-                    <td class="amt" style="color:#DC2626;font-weight:700;">
+                    <td class="amt" style="color:#F87171 !important;font-weight:800;font-size:14px;">
                         ₹{{ number_format($rp->pending_amount, 2) }}
                     </td>
                     <td style="text-align:center;">
                         @if($rp->payment_mode)
                             <span class="mode-chip">{{ $rp->payment_mode }}</span>
                         @else
-                            <span style="color:#CBD5E1;">—</span>
+                            <span style="color:#94A3B8;">—</span>
                         @endif
                     </td>
                     <td style="text-align:center;">
@@ -397,13 +420,13 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="11">
+                    <td colspan="{{ (auth()->user() && auth()->user()->isAdmin()) ? 14 : 13 }}">
                         <div class="empty-state">
                             <i class="fa-solid fa-house-circle-check"></i>
                             <p>No rental payment records found for the selected filters.</p>
                             @if(request()->hasAny(['from_date','to_date','filter_tenant','filter_property','filter_status','filter_mode']))
                                 <a href="{{ route('reports.rentals') }}"
-                                   style="color:#14B8A6;font-size:13px;margin-top:8px;display:inline-block;">
+                                   style="color:#2DD4BF;font-weight:700;font-size:13px;margin-top:8px;display:inline-block;text-decoration:none;">
                                     Clear all filters
                                 </a>
                             @endif
@@ -415,13 +438,13 @@
             @if($records->count() > 0)
             <tfoot>
                 <tr>
-                    <td colspan="5" style="font-size:13px;color:#0F172A;">
-                        <i class="fa-solid fa-sigma" style="color:#14B8A6;margin-right:6px;"></i>
+                    <td colspan="{{ (auth()->user() && auth()->user()->isAdmin()) ? 8 : 7 }}" style="font-size:13.5px;color:#FFFFFF !important;font-weight:800;">
+                        <i class="fa-solid fa-calculator" style="color:#2DD4BF;margin-right:6px;"></i>
                         Total ({{ $records->count() }} record{{ $records->count()!=1?'s':'' }})
                     </td>
-                    <td class="amt" style="color:#0D9488;font-size:14px;">₹{{ number_format($totalRentAmt,2) }}</td>
-                    <td class="amt" style="color:#059669;font-size:14px;">₹{{ number_format($totalReceived,2) }}</td>
-                    <td class="amt" style="color:#DC2626;font-size:14px;">₹{{ number_format($totalPending,2) }}</td>
+                    <td class="amt" style="color:#2DD4BF !important;font-size:14px;font-weight:800;">₹{{ number_format($totalRentAmt,2) }}</td>
+                    <td class="amt" style="color:#34D399 !important;font-size:14px;font-weight:800;">₹{{ number_format($totalReceived,2) }}</td>
+                    <td class="amt" style="color:#F87171 !important;font-size:14px;font-weight:800;">₹{{ number_format($totalPending,2) }}</td>
                     <td colspan="3"></td>
                 </tr>
             </tfoot>
@@ -430,16 +453,16 @@
     </div>
 
     @if($records->count() > 0)
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
-                margin-top:16px;padding-top:14px;border-top:1px solid #F1F5F9;">
-        <span style="font-size:12px;color:#64748B;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+                margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.12);">
+        <span style="font-size:13.5px;color:#FFFFFF !important;font-weight:700 !important;">
             <strong>{{ $records->count() }}</strong> record{{ $records->count()!=1?'s':'' }}
-            &nbsp;·&nbsp; Received: <strong style="color:#059669;">₹{{ number_format($totalReceived,2) }}</strong>
-            &nbsp;·&nbsp; Pending: <strong style="color:#DC2626;">₹{{ number_format($totalPending,2) }}</strong>
-            &nbsp;·&nbsp; Active Rentals: <strong style="color:#3B82F6;">{{ $totalActive }}</strong>
+            &nbsp;·&nbsp; Received: <strong style="color:#34D399 !important;">₹{{ number_format($totalReceived,2) }}</strong>
+            &nbsp;·&nbsp; Pending: <strong style="color:#F87171 !important;">₹{{ number_format($totalPending,2) }}</strong>
+            &nbsp;·&nbsp; Active Rentals: <strong style="color:#60A5FA !important;">{{ $totalActive }}</strong>
         </span>
-        <span style="font-size:12px;color:#64748B;">
-            <i class="fa-regular fa-clock"></i> Generated: {{ now()->format('d M Y, h:i A') }}
+        <span style="font-size:13px;color:#FFFFFF !important;font-weight:700 !important;">
+            <i class="fa-regular fa-clock" style="color:#60A5FA;"></i> Generated: {{ now()->format('d M Y, h:i A') }}
         </span>
     </div>
     @endif

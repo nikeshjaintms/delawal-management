@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Backup System')
 @section('page-title', 'System Settings')
@@ -221,7 +221,7 @@
             </thead>
             <tbody>
                 @php
-                    $startNo = $backups->firstItem() ?? 1;
+                    $startNo = method_exists($backups, 'firstItem') ? ($backups->firstItem() ?? 1) : 1;
                 @endphp
                 @forelse($backups as $index => $backup)
                     <tr>
@@ -268,7 +268,7 @@
         </table>
     </div>
 
-    @if($backups->hasPages())
+    @if(method_exists($backups, 'hasPages') && $backups->hasPages())
         <div style="margin-top: 20px;">
             {{ $backups->links() }}
         </div>

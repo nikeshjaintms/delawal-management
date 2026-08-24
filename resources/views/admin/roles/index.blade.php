@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Role & Permission Management')
 @section('page-title', 'Role & Permission')
@@ -275,7 +275,7 @@
             <tbody>
                 @forelse($roles as $key => $role)
                     <tr>
-                        <td>{{ $roles->firstItem() + $key }}</td>
+                        <td>{{ method_exists($roles, 'firstItem') ? ($roles->firstItem() + $key) : ($key + 1) }}</td>
                         <td><strong>{{ $role->role_name ?? $role->name }}</strong></td>
                         <td>{{ $role->description ?? '-' }}</td>
                         <td>
@@ -332,9 +332,11 @@
         </table>
     </div>
 
-    <div class="pagination-wrapper">
-        {{ $roles->appends(request()->query())->links() }}
-    </div>
+    @if(method_exists($roles, 'links'))
+        <div class="pagination-wrapper">
+            {{ $roles->appends(request()->query())->links() }}
+        </div>
+    @endif
 </div>
 @endsection
 

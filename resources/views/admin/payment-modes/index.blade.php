@@ -236,7 +236,7 @@
             <tbody>
                 @forelse($paymentModes as $key => $mode)
                     <tr>
-                        <td>{{ $paymentModes->firstItem() + $key }}</td>
+                        <td>{{ method_exists($paymentModes, 'firstItem') ? ($paymentModes->firstItem() + $key) : ($key + 1) }}</td>
                         <td>{{ $mode->firm_names }}</td>
                         <td><strong>{{ $mode->name }}</strong></td>
                         <td>
@@ -280,9 +280,11 @@
         </table>
     </div>
 
-    <div class="pagination-wrapper">
-        {{ $paymentModes->appends(request()->query())->links() }}
-    </div>
+    @if(method_exists($paymentModes, 'links'))
+        <div class="pagination-wrapper">
+            {{ $paymentModes->appends(request()->query())->links() }}
+        </div>
+    @endif
 </div>
 @endsection
 

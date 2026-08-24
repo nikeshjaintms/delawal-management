@@ -5,143 +5,124 @@
 
 @section('content')
 <style>
-    .crud-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-    }
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+.crud-title h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 14px; color: #FFFFFF !important; font-weight: 700 !important; margin: 0; }
 
-    .crud-title h2 {
-        font-size: 22px;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 4px;
-    }
+.header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
-    .crud-title p {
-        font-size: 13.5px;
-        color: var(--text-secondary);
-    }
+.btn-primary-custom, a.btn-primary-custom, button.btn-primary-custom {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; min-height: 42px; background: #2563EB !important;
+    color: #FFFFFF !important; font-size: 14px; font-weight: 700; border: 1px solid #3B82F6 !important;
+    border-radius: 10px; text-decoration: none !important; box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+    transition: all .25s ease; cursor: pointer;
+}
+.btn-primary-custom:hover { background: #1D4ED8 !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(37,99,235,0.50); }
 
-    .card-box {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 30px;
-        box-shadow: var(--soft-shadow);
-        max-width: 800px;
-        margin: 0 auto;
-    }
+.btn-secondary-custom, a.btn-secondary-custom, button.btn-secondary-custom {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; min-height: 42px; background: rgba(255, 255, 255, 0.06) !important;
+    color: #CBD5E1 !important; font-size: 14px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+}
+.btn-secondary-custom:hover { background: rgba(255, 255, 255, 0.12) !important; color: #FFFFFF !important; transform: translateY(-2px); }
 
-    .details-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 25px;
-    }
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 20px !important;
+    padding: 30px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+    max-width: 850px;
+    margin: 0 auto;
+}
 
-    .details-table th, .details-table td {
-        padding: 14px 16px;
-        text-align: left;
-        border-bottom: 1px solid #F1F5F9;
-    }
+.details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+}
 
-    .details-table th {
-        width: 250px;
-        font-weight: 600;
-        color: var(--text-secondary);
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
+.details-table th, .details-table td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
 
-    .details-table td {
-        font-size: 14px;
-        color: var(--text-primary);
-    }
+.details-table th {
+    width: 240px;
+    font-weight: 800;
+    color: #94A3B8 !important;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
 
-    .badge {
-        display: inline-block;
-        padding: 4px 10px;
-        font-size: 11px;
-        font-weight: 700;
-        border-radius: 20px;
-        text-transform: uppercase;
-    }
+.details-table td {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #FFFFFF !important;
+}
 
-    .badge-pending { background: rgba(245, 158, 11, 0.1); color: #B45309; }
-    .badge-partial { background: rgba(59, 130, 246, 0.1); color: #1D4ED8; }
-    .badge-paid { background: rgba(34, 197, 94, 0.1); color: #16803D; }
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 20px;
+    text-transform: uppercase;
+}
 
-    .badge-active { background: rgba(34, 197, 94, 0.1); color: #16803D; }
-    .badge-inactive { background: rgba(239, 68, 68, 0.1); color: #B91C1C; }
+.badge-pending { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.badge-partial { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
+.badge-paid { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-active { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-inactive { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
 
-    .commission-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        background: rgba(252, 105, 0, 0.08);
-        color: #e05c00;
-        font-size: 12px;
-        font-weight: 700;
-        padding: 3px 9px;
-        border-radius: 20px;
-        border: 1px solid rgba(252, 105, 0, 0.2);
-    }
+.commission-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(245, 158, 11, 0.15) !important;
+    color: #FBBF24 !important;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(245, 158, 11, 0.30) !important;
+}
 
-    .btn-outline {
-        border: 1px solid var(--border-color);
-        background: transparent;
-        color: var(--text-secondary);
-        padding: 11px 24px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
-        transition: var(--transition);
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .btn-outline:hover {
-        background: #F9FAFB;
-        color: var(--text-primary);
-        border-color: #D1D5DB;
-    }
-
-    .btn-gold {
-        background-color: #fc6900ff;
-        color: #FFFFFF;
-        padding: 11px 24px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: var(--transition);
-    }
-
-    .btn-gold:hover {
-        background-color: #e05c00;
-    }
-
-    .form-actions {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-top: 30px;
-        padding-top: 20px;
-        border-top: 1px solid var(--border-color);
-    }
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    flex-wrap: wrap;
+}
 </style>
 
 <div class="crud-header">
     <div class="crud-title">
         <h2>Commission Payment Details</h2>
         <p>Detailed view of recorded broker commission payout.</p>
+    </div>
+    <div class="header-actions">
+        @if(Auth::user()->hasPermission('broker_commission_edit'))
+        <a href="{{ route('broker-commissions.edit', $commission->id) }}" class="btn-primary-custom">
+            <i class="fa-solid fa-edit"></i> Edit Details
+        </a>
+        @endif
+        <a href="{{ route('broker-commissions.index') }}" class="btn-secondary-custom">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
     </div>
 </div>
 
@@ -175,7 +156,7 @@
             <th>Associated Booking</th>
             <td>
                 @if($commission->booking_id)
-                    <a href="{{ route('bookings.show', $commission->booking_id) }}" style="color:#fc6900ff; text-decoration:none; font-weight:600;">
+                    <a href="{{ route('bookings.show', $commission->booking_id) }}" style="color:#60A5FA; text-decoration:none; font-weight:700;">
                         Booking #{{ $commission->booking_id }}
                     </a>
                 @else
@@ -201,13 +182,13 @@
         </tr>
         <tr>
             <th>Calculated Payout</th>
-            <td><strong style="font-size:16px; color:#e05c00;">₹{{ number_format($commission->commission_amount, 2) }}</strong></td>
+            <td><strong style="font-size:18px; color:#34D399;">₹{{ number_format($commission->commission_amount, 2) }}</strong></td>
         </tr>
         <tr>
             <th>Payment Status</th>
             <td>
                 <span class="badge badge-{{ $commission->payment_status }}">
-                    {{ ucfirst($commission->payment_status) }}
+                    <i class="fa-solid fa-circle-dot"></i> {{ ucfirst($commission->payment_status) }}
                 </span>
             </td>
         </tr>
@@ -219,7 +200,7 @@
             <th>Status</th>
             <td>
                 <span class="badge badge-{{ $commission->status }}">
-                    {{ ucfirst($commission->status) }}
+                    <i class="fa-solid fa-circle-dot"></i> {{ ucfirst($commission->status) }}
                 </span>
             </td>
         </tr>
@@ -243,11 +224,11 @@
 
     <div class="form-actions">
         @if(Auth::user()->hasPermission('broker_commission_edit'))
-        <a href="{{ route('broker-commissions.edit', $commission->id) }}" class="btn-gold">
+        <a href="{{ route('broker-commissions.edit', $commission->id) }}" class="btn-primary-custom">
             <i class="fa-solid fa-edit"></i> Edit Details
         </a>
         @endif
-        <a href="{{ route('broker-commissions.index') }}" class="btn-outline">
+        <a href="{{ route('broker-commissions.index') }}" class="btn-secondary-custom">
             <i class="fa-solid fa-arrow-left"></i> Back to List
         </a>
     </div>

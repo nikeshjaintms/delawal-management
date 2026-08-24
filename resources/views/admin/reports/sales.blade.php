@@ -3,124 +3,167 @@
 @section('page-title','Reports')
 @section('content')
 <style>
-/* ── Header ── */
-.rpt-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:14px;}
-.rpt-title-block h2{font-size:22px;font-weight:800;color:#0F172A;margin-bottom:4px;}
-.rpt-title-block p{font-size:13.5px;color:#64748B;}
-.rpt-action-btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-/* ── Buttons ── */
-.btn-pdf{padding:9px 16px;border:1px solid #EF4444;border-radius:8px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;color:#EF4444;background:rgba(239,68,68,0.05);text-decoration:none;transition:all .2s ease;}
-.btn-pdf:hover{background:rgba(239,68,68,0.12);transform:translateY(-1px);}
-.btn-excel{padding:9px 16px;border:1px solid #16803D;border-radius:8px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;color:#16803D;background:rgba(34,197,94,0.05);text-decoration:none;transition:all .2s ease;}
-.btn-excel:hover{background:rgba(34,197,94,0.12);transform:translateY(-1px);}
-.btn-print{padding:9px 16px;border:1px solid #6366F1;border-radius:8px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;color:#6366F1;background:rgba(99,102,241,0.05);cursor:pointer;font-family:inherit;transition:all .2s ease;}
-.btn-print:hover{background:rgba(99,102,241,0.12);transform:translateY(-1px);}
-/* ── Summary Cards ── */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;margin-bottom:24px;}
-.stat-card{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:20px 22px;
-    box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 18px rgba(0,0,0,0.04);
-    transition:transform .22s ease,box-shadow .22s ease;}
-.stat-card:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(0,0,0,0.07),0 16px 36px rgba(0,0,0,0.09);}
-.stat-card .sc-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px;}
-.sc-blue  {background:rgba(59,130,246,0.1);color:#3B82F6;}
-.sc-green {background:rgba(16,185,129,0.1);color:#10B981;}
-.sc-amber {background:rgba(245,158,11,0.1);color:#F59E0B;}
-.sc-red   {background:rgba(239,68,68,0.1); color:#EF4444;}
-.sc-purple{background:rgba(139,92,246,0.1);color:#8B5CF6;}
-.stat-card .sc-label{font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
-.stat-card .sc-value{font-size:20px;font-weight:800;}
-/* ── Filter ── */
-.card-box{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:20px 22px;
-    box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 18px rgba(0,0,0,0.04);margin-bottom:18px;}
-.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
-.filter-group{display:flex;flex-direction:column;gap:5px;}
-.filter-label{font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.6px;}
-.filter-ctrl{padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;
-    font-family:inherit;outline:none;background:#fff;transition:border-color .18s;min-width:150px;}
-.filter-ctrl:focus{border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,0.12);}
-.btn-filter{background:#0F172A;color:#fff;padding:9px 16px;border-radius:8px;border:none;font-size:13px;
-    font-weight:600;cursor:pointer;font-family:inherit;align-self:flex-end;display:inline-flex;align-items:center;gap:6px;transition:background .18s;}
-.btn-filter:hover{background:#1E293B;}
-.btn-reset{padding:9px 10px;color:#64748B;text-decoration:none;font-size:13px;align-self:flex-end;
-    display:inline-flex;align-items:center;gap:5px;transition:color .15s;}
-.btn-reset:hover{color:#0F172A;}
-/* ── Table ── */
-.table-wrap{width:100%;overflow-x:auto;}
-.sales-table{width:100%;border-collapse:collapse;font-size:13px;}
-.sales-table thead th{padding:11px 14px;background:#F8FAFC;color:#475569;font-weight:700;
-    border-bottom:2px solid #E2E8F0;font-size:11px;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap;}
-.sales-table tbody td{padding:12px 14px;border-bottom:1px solid #F1F5F9;vertical-align:middle;}
-.sales-table tbody tr{transition:background .14s ease;}
-.sales-table tbody tr:hover{background:#F0FDF4;}
-.sales-table tfoot td{padding:12px 14px;background:#F8FAFC;font-weight:800;border-top:2px solid #E2E8F0;}
-.amt{text-align:right;font-variant-numeric:tabular-nums;}
-/* ── Status Badges ── */
-.pay-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
-.pb-paid     {background:rgba(16,185,129,0.1);color:#065F46;}
-.pb-pending  {background:rgba(245,158,11,0.1);color:#92400E;}
-.pb-partial  {background:rgba(59,130,246,0.1);color:#1E40AF;}
-.pb-cancelled{background:rgba(239,68,68,0.1);color:#991B1B;}
-/* ── Action link ── */
-.tbl-action{color:#3B82F6;font-size:13px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:color .15s;}
-.tbl-action:hover{color:#1D4ED8;}
-/* ── Empty state ── */
-.empty-state{text-align:center;padding:52px 20px;color:#94A3B8;}
-.empty-state i{font-size:40px;margin-bottom:14px;display:block;opacity:.3;}
-/* ── Date badge ── */
-.date-badge{display:inline-flex;align-items:center;gap:6px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:6px 12px;font-size:12.5px;color:#065F46;font-weight:600;margin-top:8px;}
-/* ── Print header (screen: hidden, print: visible) ── */
-.print-header{display:none;border-bottom:2.5px solid #10B981;padding-bottom:12px;margin-bottom:20px;flex-direction:row;justify-content:space-between;align-items:flex-start;}
-.print-header .ph-left .ph-company{font-size:20px;font-weight:800;color:#0F172A;}
-.print-header .ph-left .ph-sub{font-size:10px;color:#10B981;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
-.print-header .ph-right{text-align:right;}
-.print-header .ph-right .ph-title{font-size:15px;font-weight:700;color:#0F172A;margin-bottom:3px;}
-.print-header .ph-right .ph-meta{font-size:11px;color:#64748B;}
-.print-header .ph-filter-strip{width:100%;margin-top:10px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:5px;padding:7px 12px;font-size:11px;color:#166534;font-weight:600;}
-@media print{
-    /* ── Hide all chrome ── */
-    .sidebar, .topbar, .rpt-action-btns,
-    .card-box.filter-card,
-    .btn-action, .tbl-action, .btn-filter, .btn-reset,
-    .empty-state a { display: none !important; }
+/* ── Luxury Dark Glass System ── */
+.rpt-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 14px; }
+.rpt-title-block h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.rpt-title-block p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
+.rpt-action-btns { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
-    /* ── Full-width layout ── */
+/* ── Action Buttons ── */
+.btn-pdf {
+    padding: 10px 18px; border: 1px solid rgba(239, 68, 68, 0.40) !important; border-radius: 10px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;
+    color: #F87171 !important; background: rgba(239, 68, 68, 0.15) !important; text-decoration: none !important;
+    transition: all .2s ease; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.20);
+}
+.btn-pdf:hover { background: rgba(239, 68, 68, 0.28) !important; color: #FFFFFF !important; transform: translateY(-1px); }
+
+.btn-excel {
+    padding: 10px 18px; border: 1px solid rgba(16, 185, 129, 0.40) !important; border-radius: 10px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;
+    color: #34D399 !important; background: rgba(16, 185, 129, 0.15) !important; text-decoration: none !important;
+    transition: all .2s ease; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.20);
+}
+.btn-excel:hover { background: rgba(16, 185, 129, 0.28) !important; color: #FFFFFF !important; transform: translateY(-1px); }
+
+.btn-print {
+    padding: 10px 18px; border: 1px solid rgba(99, 102, 241, 0.40) !important; border-radius: 10px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;
+    color: #A5B4FC !important; background: rgba(99, 102, 241, 0.15) !important; cursor: pointer;
+    font-family: inherit; transition: all .2s ease; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.20);
+}
+.btn-print:hover { background: rgba(99, 102, 241, 0.28) !important; color: #FFFFFF !important; transform: translateY(-1px); }
+
+/* ── Summary Cards ── */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 20px !important; padding: 20px 22px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.30); transition: all .25s ease;
+}
+.stat-card:hover { transform: translateY(-3px); border-color: rgba(59, 130, 246, 0.40) !important; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); }
+.stat-card .sc-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 19px; margin-bottom: 12px; }
+.sc-blue   { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
+.sc-green  { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.sc-amber  { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.sc-red    { background: rgba(239, 68, 68, 0.18) !important;  color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+.sc-purple { background: rgba(139, 92, 246, 0.18) !important; color: #C084FC !important; border: 1px solid rgba(139, 92, 246, 0.35) !important; }
+.stat-card .sc-label { font-size: 11px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 5px; }
+.stat-card .sc-value { font-size: 20px; font-weight: 800; color: #FFFFFF !important; }
+
+/* ── Card Container & Filter ── */
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 24px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 24px;
+}
+
+.filter-bar {
+    display: flex !important; gap: 12px !important; align-items: flex-end !important;
+    background: rgba(255, 255, 255, 0.04) !important; padding: 16px 20px !important;
+    border-radius: 16px !important; border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    width: 100% !important; flex-wrap: nowrap !important; overflow-x: auto !important;
+}
+.filter-group { display: flex; flex-direction: column; gap: 6px; }
+.filter-label { font-size: 11px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: .8px; }
+.filter-ctrl {
+    padding: 10px 14px !important; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 13.5px; color: #FFFFFF !important; outline: none; transition: all .2s ease; min-width: 140px;
+}
+select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !important; }
+.filter-ctrl:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
+
+.btn-filter {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 20px !important;
+    border-radius: 10px; border: 1px solid #3B82F6 !important; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; font-family: inherit; align-self: flex-end; display: inline-flex; align-items: center;
+    gap: 6px; transition: all .25s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); height: 42px; white-space: nowrap !important;
+}
+.btn-filter:hover { background: #1D4ED8 !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50); }
+
+.btn-reset {
+    color: #CBD5E1 !important; text-decoration: none; font-size: 13.5px; font-weight: 600; padding: 10px 12px;
+    align-self: flex-end; display: inline-flex; align-items: center; gap: 5px; transition: color .15s; height: 42px; white-space: nowrap !important;
+}
+.btn-reset:hover { color: #FFFFFF !important; }
+
+/* ── Table & Footer Total Row ── */
+.table-wrap { width: 100%; overflow-x: auto; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.10); }
+.sales-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.sales-table thead th {
+    padding: 16px 18px !important; background: rgba(255, 255, 255, 0.05) !important;
+    color: #94A3B8 !important; font-weight: 800; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .9px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    white-space: nowrap !important;
+}
+.sales-table tbody td {
+    padding: 16px 18px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    font-size: 13.5px; color: #E2E8F0 !important; font-weight: 500; vertical-align: middle; white-space: nowrap !important;
+}
+.sales-table tbody tr { transition: background .14s ease; }
+.sales-table tbody tr:hover { background: rgba(255, 255, 255, 0.05) !important; }
+
+/* ── TFOOT LUXURY DARK GLASS STYLING ── */
+.sales-table tfoot td {
+    padding: 16px 18px !important; background: rgba(255, 255, 255, 0.08) !important;
+    font-weight: 800; border-top: 2px solid rgba(255, 255, 255, 0.15) !important;
+    color: #FFFFFF !important; white-space: nowrap !important;
+}
+.amt { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ── Status Badges ── */
+.pay-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap !important; }
+.pb-paid      { background: rgba(34, 197, 94, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(34, 197, 94, 0.35) !important; }
+.pb-pending   { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.pb-partial   { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
+.pb-cancelled { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+
+/* ── Action link ── */
+.tbl-action { color: #60A5FA !important; font-size: 13px; font-weight: 600; text-decoration: none !important; display: inline-flex; align-items: center; gap: 5px; transition: color .15s; }
+.tbl-action:hover { color: #93C5FD !important; }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 52px 20px; color: #CBD5E1; }
+.empty-state i { font-size: 40px; margin-bottom: 14px; display: block; opacity: .3; }
+
+/* ── Date badge ── */
+.date-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; border-radius: 8px; padding: 6px 12px; font-size: 12.5px; color: #34D399 !important; font-weight: 600; margin-top: 8px; }
+
+/* ── Print header ── */
+.print-header { display: none; border-bottom: 2.5px solid #10B981; padding-bottom: 12px; margin-bottom: 20px; flex-direction: row; justify-content: space-between; align-items: flex-start; }
+.print-header .ph-left .ph-company { font-size: 20px; font-weight: 800; color: #0F172A; }
+.print-header .ph-left .ph-sub { font-size: 10px; color: #10B981; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+.print-header .ph-right { text-align: right; }
+.print-header .ph-right .ph-title { font-size: 15px; font-weight: 700; color: #0F172A; margin-bottom: 3px; }
+.print-header .ph-right .ph-meta { font-size: 11px; color: #64748B; }
+.print-header .ph-filter-strip { width: 100%; margin-top: 10px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 5px; padding: 7px 12px; font-size: 11px; color: #166534; font-weight: 600; }
+
+@media print {
+    .sidebar, .topbar, .rpt-action-btns, .card-box.filter-card, .btn-action, .tbl-action, .btn-filter, .btn-reset, .empty-state a { display: none !important; }
     .main-content { margin-left: 0 !important; }
     .content-body  { padding: 6px 0 0 !important; }
     body           { background: #fff !important; }
-
-    /* ── Strip decorative chrome from cards/boxes ── */
-    .stat-card, .gst-stat-card, .card-box, .section-card {
-        box-shadow: none !important;
-        border: 1px solid #E2E8F0 !important;
-    }
-
-    /* ── Force 4-column stat grid ── */
-    .stat-grid, .gst-stat-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 10px !important;
-    }
-
-    /* ── Keep summary charts for context ── */
+    .stat-card, .gst-stat-card, .card-box, .section-card { box-shadow: none !important; border: 1px solid #E2E8F0 !important; background: #FFF !important; }
+    .stat-grid, .gst-stat-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 10px !important; }
     .summary-grid  { grid-template-columns: repeat(2, 1fr) !important; }
-
-    /* ── Table fixes ── */
     .table-wrap    { overflow: visible !important; }
-    .sales-table, .pay-table, .rent-table, .r-table {
-        font-size: 10.5px !important;
-    }
+    .sales-table, .pay-table, .rent-table, .r-table { font-size: 10.5px !important; color: #000 !important; }
     thead tr { background: #0F172A !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     thead th { color: #fff !important; }
-
-    /* ── Show print-only header, hide screen-only date badge ── */
     .print-header  { display: flex !important; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
     .date-badge    { display: none !important; }
-
-    /* ── Page settings ── */
     @page { margin: 12mm; }
 }
 </style>
 
-{{-- ── Print-only Header (hidden on screen) ── --}}
+{{-- ── Print-only Header ── --}}
 <div class="print-header">
     <div class="ph-left">
         <div class="ph-company">Delawala</div>
@@ -175,22 +218,22 @@
     <div class="stat-card">
         <div class="sc-icon sc-blue"><i class="fa-solid fa-file-contract"></i></div>
         <div class="sc-label">Total Bookings</div>
-        <div class="sc-value" style="color:#3B82F6;">{{ $totalBookings }}</div>
+        <div class="sc-value" style="color:#60A5FA !important;">{{ $totalBookings }}</div>
     </div>
     <div class="stat-card">
         <div class="sc-icon sc-purple"><i class="fa-solid fa-building"></i></div>
         <div class="sc-label">Total Sale Value</div>
-        <div class="sc-value" style="color:#8B5CF6;">₹{{ number_format($totalSale,2) }}</div>
+        <div class="sc-value" style="color:#C084FC !important;">₹{{ number_format($totalSale,2) }}</div>
     </div>
     <div class="stat-card">
         <div class="sc-icon sc-green"><i class="fa-solid fa-circle-check"></i></div>
         <div class="sc-label">Total Received</div>
-        <div class="sc-value" style="color:#059669;">₹{{ number_format($totalReceived,2) }}</div>
+        <div class="sc-value" style="color:#34D399 !important;">₹{{ number_format($totalReceived,2) }}</div>
     </div>
     <div class="stat-card">
         <div class="sc-icon sc-red"><i class="fa-solid fa-clock"></i></div>
         <div class="sc-label">Total Pending</div>
-        <div class="sc-value" style="color:#DC2626;">₹{{ number_format($totalPending,2) }}</div>
+        <div class="sc-value" style="color:#F87171 !important;">₹{{ number_format($totalPending,2) }}</div>
     </div>
 </div>
 
@@ -246,15 +289,15 @@
 {{-- ── Data Table ── --}}
 <div class="card-box">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-        <div style="font-size:13.5px;font-weight:700;color:#0F172A;">
+        <div style="font-size:14px;font-weight:700;color:#FFFFFF !important;">
             <i class="fa-solid fa-table-list" style="color:#10B981;margin-right:7px;"></i>
             Sales Records
-            <span style="font-size:12px;font-weight:500;color:#64748B;margin-left:8px;">
+            <span style="font-size:12.5px;font-weight:600;color:#94A3B8;margin-left:8px;">
                 {{ $totalBookings }} record{{ $totalBookings!=1?'s':'' }}
             </span>
         </div>
         @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status']))
-            <span style="font-size:12px;color:#64748B;display:flex;align-items:center;gap:5px;">
+            <span style="font-size:12px;color:#94A3B8;display:flex;align-items:center;gap:5px;">
                 <i class="fa-solid fa-filter" style="color:#10B981;"></i> Filtered results
             </span>
         @endif
@@ -290,29 +333,29 @@
                 @endphp
                 <tr>
                     <td style="color:#94A3B8;font-size:12px;">{{ $i + 1 }}</td>
-                    <td style="white-space:nowrap;font-size:13px;font-weight:600;">
+                    <td style="white-space:nowrap;font-size:13px;font-weight:600;color:#FFFFFF !important;">
                         {{ $s->sale_date ? \Carbon\Carbon::parse($s->sale_date)->format('d M Y') : '—' }}
                     </td>
                     <td>
-                        <div style="font-weight:600;font-size:13px;">{{ $s->customer?->name ?? '—' }}</div>
+                        <div style="font-weight:700;font-size:13.5px;color:#FFFFFF !important;">{{ $s->customer?->name ?? '—' }}</div>
                         @if($s->customer?->mobile)
-                            <div style="font-size:11px;color:#64748B;">{{ $s->customer->mobile }}</div>
+                            <div style="font-size:11.5px;color:#94A3B8;">{{ $s->customer->mobile }}</div>
                         @endif
                     </td>
                     <td>
-                        <div style="font-weight:600;font-size:13px;">{{ $s->property?->property_name ?? '—' }}</div>
+                        <div style="font-weight:700;font-size:13.5px;color:#FFFFFF !important;">{{ $s->property?->property_name ?? '—' }}</div>
                         @if($s->invoice_no)
-                            <div style="font-size:11px;color:#64748B;">INV: {{ $s->invoice_no }}</div>
+                            <div style="font-size:11.5px;color:#94A3B8;">INV: {{ $s->invoice_no }}</div>
                         @endif
                     </td>
-                    <td style="font-size:13px;color:#64748B;">{{ $s->broker?->name ?? '—' }}</td>
-                    <td class="amt" style="color:#8B5CF6;font-weight:700;">
+                    <td style="font-size:13px;color:#CBD5E1;">{{ $s->broker?->name ?? '—' }}</td>
+                    <td class="amt" style="color:#C084FC !important;font-weight:700;">
                         ₹{{ number_format($s->booking_amount ?? 0, 2) }}
                     </td>
-                    <td class="amt" style="color:#059669;font-weight:700;">
+                    <td class="amt" style="color:#34D399 !important;font-weight:700;">
                         ₹{{ number_format($received, 2) }}
                     </td>
-                    <td class="amt" style="color:#DC2626;font-weight:700;">
+                    <td class="amt" style="color:#F87171 !important;font-weight:700;">
                         ₹{{ number_format($pending, 2) }}
                     </td>
                     <td style="text-align:center;">
@@ -333,7 +376,7 @@
                             <i class="fa-solid fa-handshake"></i>
                             <p>No sales records found for the selected filters.</p>
                             @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status']))
-                                <a href="{{ route('reports.sales') }}" style="color:#3B82F6;font-size:13px;margin-top:8px;display:inline-block;">
+                                <a href="{{ route('reports.sales') }}" style="color:#60A5FA;font-size:13px;margin-top:8px;display:inline-block;">
                                     Clear all filters
                                 </a>
                             @endif
@@ -345,13 +388,13 @@
             @if($records->count() > 0)
             <tfoot>
                 <tr>
-                    <td colspan="5" style="font-size:13px;color:#0F172A;">
-                        <i class="fa-solid fa-sigma" style="color:#10B981;margin-right:6px;"></i>
+                    <td colspan="5" style="font-size:13.5px;color:#FFFFFF !important;font-weight:800;">
+                        <i class="fa-solid fa-sigma" style="color:#34D399;margin-right:6px;"></i>
                         Total ({{ $totalBookings }} sale{{ $totalBookings!=1?'s':'' }})
                     </td>
-                    <td class="amt" style="color:#8B5CF6;font-size:14px;">₹{{ number_format($records->sum('booking_amount'),2) }}</td>
-                    <td class="amt" style="color:#059669;font-size:14px;">₹{{ number_format($totalReceived,2) }}</td>
-                    <td class="amt" style="color:#DC2626;font-size:14px;">₹{{ number_format($totalPending,2) }}</td>
+                    <td class="amt" style="color:#C084FC !important;font-size:14px;font-weight:800;">₹{{ number_format($records->sum('booking_amount'),2) }}</td>
+                    <td class="amt" style="color:#34D399 !important;font-size:14px;font-weight:800;">₹{{ number_format($totalReceived,2) }}</td>
+                    <td class="amt" style="color:#F87171 !important;font-size:14px;font-weight:800;">₹{{ number_format($totalPending,2) }}</td>
                     <td colspan="2"></td>
                 </tr>
             </tfoot>
@@ -361,13 +404,13 @@
 
     @if($records->count() > 0)
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
-                margin-top:16px;padding-top:14px;border-top:1px solid #F1F5F9;">
-        <span style="font-size:12px;color:#64748B;">
+                margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.10);">
+        <span style="font-size:12.5px;color:#94A3B8;">
             <strong>{{ $totalBookings }}</strong> record{{ $totalBookings!=1?'s':'' }}
-            &nbsp;·&nbsp; Received: <strong style="color:#059669;">₹{{ number_format($totalReceived,2) }}</strong>
-            &nbsp;·&nbsp; Pending: <strong style="color:#DC2626;">₹{{ number_format($totalPending,2) }}</strong>
+            &nbsp;·&nbsp; Received: <strong style="color:#34D399 !important;">₹{{ number_format($totalReceived,2) }}</strong>
+            &nbsp;·&nbsp; Pending: <strong style="color:#F87171 !important;">₹{{ number_format($totalPending,2) }}</strong>
         </span>
-        <span style="font-size:12px;color:#64748B;">
+        <span style="font-size:12.5px;color:#94A3B8;">
             <i class="fa-regular fa-clock"></i> Generated: {{ now()->format('d M Y, h:i A') }}
         </span>
     </div>
@@ -375,3 +418,4 @@
 </div>
 
 @endsection
+

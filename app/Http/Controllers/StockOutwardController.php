@@ -55,9 +55,9 @@ class StockOutwardController extends Controller
         if ($request->filter_project)  $query->where('project_id', $request->filter_project);
         if ($request->filter_date)     $query->where('outward_date', $request->filter_date);
 
-        // Group by outward_number / ID to show representative transactions
+        // Group by firm_id and outward_number / ID to show representative transactions
         $subQuery = StockOutward::select(DB::raw('MIN(id) as id'))
-            ->groupBy(DB::raw('COALESCE(outward_number, CAST(id AS CHAR))'));
+            ->groupBy('firm_id', DB::raw('COALESCE(outward_number, CAST(id AS CHAR))'));
         $query->whereIn('id', $subQuery);
 
         $outwards = $query->orderBy('outward_date', 'desc')->paginate(15)->withQueryString();
@@ -234,9 +234,9 @@ class StockOutwardController extends Controller
 
             // Generate Outward Number
             $year = date('Y', strtotime($request->outward_date));
-            $count = StockOutward::whereYear('outward_date', $year)->whereNotNull('outward_number')->distinct('outward_number')->count('outward_number') + 1;
+            $count = StockOutward::withoutGlobalScopes()->whereYear('outward_date', $year)->whereNotNull('outward_number')->distinct('outward_number')->count('outward_number') + 1;
             $outwardNumber = 'SO-' . $year . '-' . str_pad($count, 6, '0', STR_PAD_LEFT);
-            while (StockOutward::where('outward_number', $outwardNumber)->exists()) {
+            while (StockOutward::withoutGlobalScopes()->where('outward_number', $outwardNumber)->exists()) {
                 $count++;
                 $outwardNumber = 'SO-' . $year . '-' . str_pad($count, 6, '0', STR_PAD_LEFT);
             }
@@ -304,9 +304,9 @@ class StockOutwardController extends Controller
 
             // Generate Outward Number
             $year = date('Y', strtotime($request->outward_date));
-            $count = StockOutward::whereYear('outward_date', $year)->whereNotNull('outward_number')->distinct('outward_number')->count('outward_number') + 1;
+            $count = StockOutward::withoutGlobalScopes()->whereYear('outward_date', $year)->whereNotNull('outward_number')->distinct('outward_number')->count('outward_number') + 1;
             $outwardNumber = 'SO-' . $year . '-' . str_pad($count, 6, '0', STR_PAD_LEFT);
-            while (StockOutward::where('outward_number', $outwardNumber)->exists()) {
+            while (StockOutward::withoutGlobalScopes()->where('outward_number', $outwardNumber)->exists()) {
                 $count++;
                 $outwardNumber = 'SO-' . $year . '-' . str_pad($count, 6, '0', STR_PAD_LEFT);
             }

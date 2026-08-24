@@ -148,7 +148,7 @@
             <tbody>
                 @forelse($materials as $key => $mat)
                 <tr>
-                    <td>{{ $materials->firstItem() + $key }}</td>
+                    <td>{{ method_exists($materials, 'firstItem') ? ($materials->firstItem() + $key) : ($key + 1) }}</td>
                     <td>
                         <strong style="color: #FFFFFF !important; font-weight: 700; white-space: nowrap !important;">{{ $mat->material_name }}</strong>
                         @if($mat->current_stock <= $mat->minimum_stock && $mat->minimum_stock > 0)
@@ -180,7 +180,9 @@
             </tbody>
         </table>
     </div>
-    <div class="pagination-wrapper">{{ $materials->appends(request()->query())->links() }}</div>
+    @if(method_exists($materials, 'links'))
+        <div class="pagination-wrapper">{{ $materials->appends(request()->query())->links() }}</div>
+    @endif
 </div>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>

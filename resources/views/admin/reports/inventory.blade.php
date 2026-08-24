@@ -3,109 +3,145 @@
 @section('page-title', 'Reports')
 @section('content')
 <style>
-.rpt-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:14px;}
-.rpt-title-block h2{font-size:22px;font-weight:800;color:#0F172A;margin-bottom:4px;}
-.rpt-title-block p{font-size:13.5px;color:#64748B;}
-.rpt-action-btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-.btn-pdf{padding:9px 16px;border:1px solid #EF4444;border-radius:8px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;color:#EF4444;background:rgba(239,68,68,0.05);text-decoration:none;transition:all .2s ease;}
-.btn-pdf:hover{background:rgba(239,68,68,0.12);transform:translateY(-1px);}
-.btn-excel{padding:9px 16px;border:1px solid #16803D;border-radius:8px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;color:#16803D;background:rgba(34,197,94,0.05);text-decoration:none;transition:all .2s ease;}
-.btn-excel:hover{background:rgba(34,197,94,0.12);transform:translateY(-1px);}
-.btn-print{padding:9px 16px;border:1px solid #6366F1;border-radius:8px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;color:#6366F1;background:rgba(99,102,241,0.05);cursor:pointer;font-family:inherit;transition:all .2s ease;}
-.btn-print:hover{background:rgba(99,102,241,0.12);transform:translateY(-1px);}
+/* ── Luxury Dark Glass System ── */
+.rpt-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 14px; }
+.rpt-title-block h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.rpt-title-block p { font-size: 14px; color: #FFFFFF !important; font-weight: 700 !important; margin: 0; }
+.rpt-action-btns { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.btn-pdf {
+    padding: 10px 18px; border: 1px solid #EF4444 !important; border-radius: 10px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;
+    color: #FFFFFF !important; background: #DC2626 !important; text-decoration: none !important;
+    transition: all .2s ease; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.40);
+}
+.btn-pdf:hover { background: #B91C1C !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220, 38, 38, 0.60); }
+
+.btn-excel {
+    padding: 10px 18px; border: 1px solid #10B981 !important; border-radius: 10px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;
+    color: #FFFFFF !important; background: #059669 !important; text-decoration: none !important;
+    transition: all .2s ease; box-shadow: 0 4px 14px rgba(5, 150, 105, 0.40);
+}
+.btn-excel:hover { background: #047857 !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(5, 150, 105, 0.60); }
+
+.btn-print {
+    padding: 10px 18px; border: 1px solid #6366F1 !important; border-radius: 10px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px;
+    color: #FFFFFF !important; background: #4F46E5 !important; cursor: pointer;
+    font-family: inherit; transition: all .2s ease; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.40);
+}
+.btn-print:hover { background: #4338CA !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.60); }
 
 /* Stat cards */
-.gst-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:22px;}
-.gst-stat-card{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 18px rgba(0,0,0,0.04);transition:transform .2s ease,box-shadow .2s ease;}
-.gst-stat-card:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(0,0,0,0.07),0 16px 36px rgba(0,0,0,0.09);}
-.gst-stat-card .sc-label{font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
-.gst-stat-card .sc-value{font-size:18px;font-weight:800;color:#0F172A;}
-.gst-stat-card .sc-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:10px;}
-.sc-blue  {background:rgba(59,130,246,0.1); color:#3B82F6;}
-.sc-green {background:rgba(16,185,129,0.1); color:#10B981;}
-.sc-amber {background:rgba(245,158,11,0.1); color:#F59E0B;}
-.sc-red   {background:rgba(239,68,68,0.1);  color:#EF4444;}
+.gst-stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.gst-stat-card {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 20px !important; padding: 20px 22px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.30);
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+.gst-stat-card:hover { transform: translateY(-3px); border-color: rgba(59, 130, 246, 0.40) !important; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); }
+.gst-stat-card .sc-label { font-size: 11.5px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
+.gst-stat-card .sc-value { font-size: 24px; font-weight: 800; color: #FFFFFF !important; }
+.gst-stat-card .sc-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 19px; margin-bottom: 12px; }
+.sc-blue  { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35); }
+.sc-green { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35); }
+.sc-amber { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35); }
+.sc-red   { background: rgba(239, 68, 68, 0.18) !important;  color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35); }
 
 /* Filter */
-.card-box{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:20px 22px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 18px rgba(0,0,0,0.04);margin-bottom:18px;}
-.filter-bar{display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:15px;align-items:flex-end;}
-.filter-group{display:flex;flex-direction:column;gap:5px;}
-.filter-label{font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.6px;}
-.filter-ctrl{padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;transition:border-color .18s ease;width:100%;}
-.filter-ctrl:focus{border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,0.15);}
-.filter-actions{display:flex;gap:10px;justify-content:flex-end;}
-.btn-filter{background:#0F172A;color:#fff;padding:10px 20px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:background .18s ease;justify-content:center;}
-.btn-filter:hover{background:#1E293B;}
-.btn-reset{padding:10px 14px;border:1px solid #E2E8F0;background:#fff;color:#64748B;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:all .18s ease;justify-content:center;}
-.btn-reset:hover{color:#0F172A;border-color:#94A3B8;background:#F8FAFC;}
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 24px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 24px;
+}
+.filter-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; align-items: flex-end; }
+.filter-group { display: flex; flex-direction: column; gap: 6px; }
+.filter-label { font-size: 11px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: .8px; }
+.filter-ctrl {
+    padding: 10px 14px !important; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 13.5px; color: #FFFFFF !important; outline: none; transition: all .2s ease; width: 100%; box-sizing: border-box;
+}
+select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !important; }
+.filter-ctrl:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
+
+.filter-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-filter {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 20px !important;
+    border-radius: 10px; border: 1px solid #3B82F6 !important; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+    transition: all .25s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); height: 42px; justify-content: center;
+}
+.btn-filter:hover { background: #1D4ED8 !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50); }
+
+.btn-reset {
+    padding: 10px 14px !important; border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    background: rgba(255, 255, 255, 0.06) !important; color: #CBD5E1 !important; border-radius: 10px !important;
+    font-size: 13.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+    transition: all .2s ease; justify-content: center; height: 42px; box-sizing: border-box;
+}
+.btn-reset:hover { background: rgba(255, 255, 255, 0.12) !important; color: #FFFFFF !important; }
 
 /* Table */
-.table-wrap{width:100%;overflow-x:auto;}
-.r-table{width:100%;border-collapse:collapse;font-size:13px;}
-.r-table thead th{padding:11px 13px;background:#F8FAFC;color:#475569;font-weight:700;border-bottom:2px solid #E2E8F0;font-size:11px;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap;}
-.r-table tbody td{padding:12px 13px;border-bottom:1px solid #F1F5F9;color:#0F172A;vertical-align:middle;}
-.r-table tbody tr:last-child td{border-bottom:none;}
-.r-table tbody tr{transition:background .14s ease;}
-.r-table tbody tr:hover{background:#F0F7FF;}
-.r-table tfoot td{padding:11px 13px;background:#F8FAFC;font-weight:800;border-top:2px solid #E2E8F0;}
-.amt{text-align:right;font-variant-numeric:tabular-nums;}
+.table-wrap { width: 100%; overflow-x: auto; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.10); background: rgba(16, 22, 34, 0.70); }
+.r-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.r-table thead th {
+    padding: 13px 14px !important; background: rgba(255, 255, 255, 0.05) !important;
+    color: #94A3B8 !important; font-weight: 800; font-size: 11.5px;
+    text-transform: uppercase; letter-spacing: .8px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    white-space: nowrap !important;
+}
+.r-table tbody td {
+    padding: 13px 14px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    font-size: 13.5px; color: #FFFFFF !important; font-weight: 600; vertical-align: middle;
+}
+.r-table tbody tr:hover { background: rgba(255, 255, 255, 0.04) !important; }
+.r-table tfoot td {
+    padding: 14px 16px !important; background: rgba(255, 255, 255, 0.08) !important;
+    font-weight: 800; border-top: 2px solid rgba(255, 255, 255, 0.15) !important;
+    color: #FFFFFF !important; white-space: nowrap !important;
+}
+.amt { text-align: right; font-variant-numeric: tabular-nums; font-family: monospace; }
 
 /* Badges */
-.status-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;text-align:center;}
-.sb-approved{background:rgba(16,185,129,0.1);color:#065F46;}
-.sb-pending{background:rgba(245,158,11,0.1);color:#92400E;}
-.sb-rejected{background:rgba(239,68,68,0.1);color:#991B1B;}
+.status-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; text-align: center; letter-spacing: .3px; }
+.sb-approved { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35); }
+.sb-pending  { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35); }
+.sb-rejected { background: rgba(239, 68, 68, 0.18) !important;  color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35); }
 
 /* Empty state */
-.empty-state{text-align:center;padding:52px 20px;color:#94A3B8;}
-.empty-state i{font-size:40px;margin-bottom:14px;display:block;opacity:.3;}
-.empty-state p{font-size:14px;}
+.empty-state { text-align: center; padding: 52px 20px; color: #94A3B8; }
+.empty-state i { font-size: 40px; margin-bottom: 14px; display: block; opacity: .4; color: #60A5FA; }
+.empty-state p { font-size: 14.5px; color: #CBD5E1; }
 
-.btn-action{width:28px;height:28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:#64748B;border:1px solid #E2E8F0;background:#fff;transition:all .18s;text-decoration:none;}
-.btn-action:hover{color:#3B82F6;border-color:#3B82F6;background:#F0F7FF;}
+.btn-action {
+    width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
+    color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.30) !important; background: rgba(59, 130, 246, 0.15) !important;
+    transition: all .2s ease; text-decoration: none;
+}
+.btn-action:hover { background: #2563EB !important; color: #FFFFFF !important; transform: translateY(-1px); }
 
-/* ── Print header (screen: hidden, print: visible) ── */
-.print-header{display:none;border-bottom:2.5px solid #3B82F6;padding-bottom:12px;margin-bottom:20px;flex-direction:row;justify-content:space-between;align-items:flex-start;}
-.print-header .ph-left .ph-company{font-size:20px;font-weight:800;color:#0F172A;}
-.print-header .ph-left .ph-sub{font-size:10px;color:#3B82F6;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
-.print-header .ph-right{text-align:right;}
-.print-header .ph-right .ph-title{font-size:15px;font-weight:700;color:#0F172A;margin-bottom:3px;}
-.print-header .ph-right .ph-meta{font-size:11px;color:#64748B;}
-.print-header .ph-filter-strip{width:100%;margin-top:10px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:5px;padding:7px 12px;font-size:11px;color:#1E40AF;font-weight:600;}
-
+/* Print */
 @media print{
-    /* ── Hide all chrome ── */
-    .sidebar, .topbar, .rpt-action-btns,
-    .card-box.filter-card,
-    .btn-action, .btn-filter, .btn-reset,
-    .empty-state a { display: none !important; }
-
-    /* ── Full-width layout ── */
+    .sidebar, .topbar, .rpt-action-btns, .card-box.filter-card, .btn-action, .btn-filter, .btn-reset, .empty-state a { display: none !important; }
     .main-content { margin-left: 0 !important; }
     .content-body  { padding: 6px 0 0 !important; }
     body           { background: #fff !important; }
-
-    /* ── Strip decorative chrome ── */
-    .gst-stat-card, .card-box {
-        box-shadow: none !important;
-        border: 1px solid #E2E8F0 !important;
-    }
-
-    /* ── Force 4-column stat grid ── */
-    .gst-stat-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 10px !important;
-    }
-
-    /* ── Table fixes ── */
+    .gst-stat-card, .card-box { box-shadow: none !important; border: 1px solid #E2E8F0 !important; }
+    .gst-stat-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 10px !important; }
     .table-wrap    { overflow: visible !important; }
     .r-table       { font-size: 10.5px !important; }
     thead tr { background: #0F172A !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     thead th { color: #fff !important; }
-
-    /* ── Show print-only header ── */
     .print-header  { display: flex !important; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
-
     @page { margin: 12mm; }
 }
 </style>
@@ -136,7 +172,7 @@
 {{-- Header --}}
 <div class="rpt-header">
     <div class="rpt-title-block">
-        <h2><i class="fa-solid fa-boxes-stacked" style="color:#3B82F6;margin-right:9px;"></i>Inventory Report</h2>
+        <h2><i class="fa-solid fa-boxes-stacked" style="color:#60A5FA;margin-right:9px;"></i>Inventory Report</h2>
         <p>Comprehensive overview of material inventory stock levels, category metrics, and suppliers.</p>
     </div>
     <div class="rpt-action-btns">
@@ -157,22 +193,22 @@
     <div class="gst-stat-card">
         <div class="sc-icon sc-blue"><i class="fa-solid fa-cubes"></i></div>
         <div class="sc-label">Total Materials</div>
-        <div class="sc-value">{{ $totalMaterials }}</div>
+        <div class="sc-value" style="color:#FFFFFF !important;">{{ $totalMaterials }}</div>
     </div>
     <div class="gst-stat-card">
         <div class="sc-icon sc-green"><i class="fa-solid fa-warehouse"></i></div>
         <div class="sc-label">Total Stock Quantity</div>
-        <div class="sc-value" style="color:#10B981;">{{ number_format($totalStockQty, 2) }}</div>
+        <div class="sc-value" style="color:#34D399 !important;">{{ number_format($totalStockQty, 2) }}</div>
     </div>
     <div class="gst-stat-card">
         <div class="sc-icon sc-amber"><i class="fa-solid fa-triangle-exclamation"></i></div>
         <div class="sc-label">Low Stock Items</div>
-        <div class="sc-value" style="color:#F59E0B;">{{ $lowStockItems }}</div>
+        <div class="sc-value" style="color:#FBBF24 !important;">{{ $lowStockItems }}</div>
     </div>
     <div class="gst-stat-card">
         <div class="sc-icon sc-red"><i class="fa-solid fa-circle-xmark"></i></div>
         <div class="sc-label">Out of Stock Items</div>
-        <div class="sc-value" style="color:#EF4444;">{{ $outOfStockItems }}</div>
+        <div class="sc-value" style="color:#F87171 !important;">{{ $outOfStockItems }}</div>
     </div>
 </div>
 
@@ -235,9 +271,9 @@
 
 {{-- Data Table --}}
 <div class="card-box">
-    <div style="font-size:13.5px;font-weight:700;color:#0F172A;margin-bottom:16px;">
-        <i class="fa-solid fa-list" style="color:#3B82F6;margin-right:7px;"></i>
-        Inventory Stock Records <span style="font-size:12px;font-weight:500;color:#64748B;margin-left:8px;">Showing {{ $materials->count() }} items</span>
+    <div style="font-size:16px;font-weight:800;color:#FFFFFF !important;margin-bottom:18px;">
+        <i class="fa-solid fa-list" style="color:#60A5FA;margin-right:7px;"></i>
+        Inventory Stock Records <span style="font-size:13px;font-weight:700;color:#94A3B8;margin-left:8px;">Showing {{ $materials->count() }} items</span>
     </div>
     <div class="table-wrap">
         <table class="r-table">
@@ -266,16 +302,16 @@
                         }
                     @endphp
                     <tr>
-                        <td style="color:#94A3B8; font-size:12px;">{{ $index + 1 }}</td>
-                        <td>{{ $m->latest_date }}</td>
-                        <td style="font-weight: 600; color: #0F172A;">
-                            {{ $m->material_name }}
+                        <td style="color:#94A3B8; font-size:12.5px; font-weight:700;">{{ $index + 1 }}</td>
+                        <td style="color:#CBD5E1; font-weight:600;">{{ $m->latest_date }}</td>
+                        <td>
+                            <strong style="color: #FFFFFF !important; font-size:13.5px;">{{ $m->material_name }}</strong>
                         </td>
-                        <td>{{ $m->materialCategory?->category_name ?? '—' }}</td>
-                        <td class="amt" style="color:#64748B;">{{ number_format($m->computed_opening, 2) }} <small>{{ $m->unit }}</small></td>
-                        <td class="amt" style="color:#0EA5E9;">+{{ number_format($m->computed_inward, 2) }}</td>
-                        <td class="amt" style="color:#EF4444;">-{{ number_format($m->computed_outward, 2) }}</td>
-                        <td class="amt" style="font-weight: 700; color:#0F172A;">{{ number_format($m->computed_available, 2) }} <small>{{ $m->unit }}</small></td>
+                        <td style="color:#CBD5E1; font-weight:600;">{{ $m->materialCategory?->category_name ?? '—' }}</td>
+                        <td class="amt" style="color:#CBD5E1; font-weight:600;">{{ number_format($m->computed_opening, 2) }} <small style="color:#94A3B8;">{{ $m->unit }}</small></td>
+                        <td class="amt" style="color:#38BDF8 !important; font-weight:700;">+{{ number_format($m->computed_inward, 2) }}</td>
+                        <td class="amt" style="color:#F87171 !important; font-weight:700;">-{{ number_format($m->computed_outward, 2) }}</td>
+                        <td class="amt" style="font-weight: 800; font-size:14px; color:#FFFFFF !important;">{{ number_format($m->computed_available, 2) }} <small style="color:#94A3B8;">{{ $m->unit }}</small></td>
                         <td style="text-align: center;">
                             <span class="status-badge {{ $badgeClass }}">{{ $m->stock_status }}</span>
                         </td>
@@ -299,11 +335,13 @@
             @if($materials->count() > 0)
                 <tfoot>
                     <tr>
-                        <td colspan="4" style="text-align: left;">Total Summary</td>
-                        <td class="amt">{{ number_format($materials->sum('computed_opening'), 2) }}</td>
-                        <td class="amt" style="color:#0EA5E9;">+{{ number_format($materials->sum('computed_inward'), 2) }}</td>
-                        <td class="amt" style="color:#EF4444;">-{{ number_format($materials->sum('computed_outward'), 2) }}</td>
-                        <td class="amt" style="color:#10B981; font-weight: 800;">{{ number_format($materials->sum('computed_available'), 2) }}</td>
+                        <td colspan="4" style="text-align: left; color: #FFFFFF !important; font-size: 13.5px; font-weight:800;">
+                            <i class="fa-solid fa-calculator" style="color:#60A5FA;margin-right:6px;"></i> Total Summary
+                        </td>
+                        <td class="amt" style="color: #CBD5E1 !important; font-weight:700;">{{ number_format($materials->sum('computed_opening'), 2) }}</td>
+                        <td class="amt" style="color: #38BDF8 !important; font-weight:800;">+{{ number_format($materials->sum('computed_inward'), 2) }}</td>
+                        <td class="amt" style="color: #F87171 !important; font-weight:800;">-{{ number_format($materials->sum('computed_outward'), 2) }}</td>
+                        <td class="amt" style="color: #34D399 !important; font-weight: 800; font-size:14.5px;">{{ number_format($materials->sum('computed_available'), 2) }}</td>
                         <td colspan="2"></td>
                     </tr>
                 </tfoot>

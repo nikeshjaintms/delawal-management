@@ -225,7 +225,7 @@
             <tbody>
                 @forelse($expenseCategories as $key => $category)
                     <tr>
-                        <td>{{ $expenseCategories->firstItem() + $key }}</td>
+                        <td>{{ method_exists($expenseCategories, 'firstItem') ? ($expenseCategories->firstItem() + $key) : ($key + 1) }}</td>
                         <td>{{ $category->firm_names }}</td>
                         <td><strong>{{ $category->name }}</strong></td>
                         <td>
@@ -269,9 +269,11 @@
         </table>
     </div>
 
-    <div class="pagination-wrapper">
-        {{ $expenseCategories->appends(request()->query())->links() }}
-    </div>
+    @if(method_exists($expenseCategories, 'links'))
+        <div class="pagination-wrapper">
+            {{ $expenseCategories->appends(request()->query())->links() }}
+        </div>
+    @endif
 </div>
 @endsection
 

@@ -7,7 +7,7 @@
 /* ── Luxury Dark Glass System ── */
 .crud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
 .crud-title h2 { font-size: 24px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 4px; letter-spacing: -0.3px; }
-.crud-title p { font-size: 13.5px; color: #CBD5E1 !important; font-weight: 500; }
+.crud-title p { font-size: 13.5px; color: #FFFFFF !important; font-weight: 700 !important; margin: 0; }
 
 .btn-primary-custom, a.btn-primary-custom, button.btn-primary-custom {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;

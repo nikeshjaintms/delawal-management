@@ -75,7 +75,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $request->session()->put('login_type', 'admin');
             AuditLog::log('Auth', 'Login', 'Admin logged in: ' . $request->email);
-            return redirect()->intended(route('dashboard'));
+            return $this->getIntendedOrDashboard();
         }
 
         return back()
@@ -121,6 +121,7 @@ class AuthController extends Controller
 
         // ✅ Authenticated — store temporary authenticated firm session
         $request->session()->regenerate();
+        session()->forget('url.intended');
         $request->session()->put([
             'login_type'              => 'firm',
             'firm_temp_authenticated' => true,
@@ -201,6 +202,22 @@ class AuthController extends Controller
 
         AuditLog::log('Auth', 'Firm Login Complete', 'Firm ' . $firm->firm_name . ' selected Financial Year: ' . $fy->year_name);
 
+        return $this->getIntendedOrDashboard();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Helper: Safely resolve intended URL or fallback to dashboard
+    // ─────────────────────────────────────────────────────────────
+    private function getIntendedOrDashboard()
+    {
+        $intended = session('url.intended');
+        if ($intended) {
+            $path = parse_url($intended, PHP_URL_PATH);
+            if (in_array($path, ['/login', '/firm-selection', '/logout', '/'])) {
+                session()->forget('url.intended');
+                return redirect()->route('dashboard');
+            }
+        }
         return redirect()->intended(route('dashboard'));
     }
 

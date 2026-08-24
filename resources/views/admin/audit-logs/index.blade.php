@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 
 @section('title', 'Audit Logs')
 @section('page-title', 'System Logs')
@@ -338,7 +338,7 @@
             </thead>
             <tbody>
                 @php
-                    $startNo = $logs->firstItem() ?? 1;
+                    $startNo = method_exists($logs, 'firstItem') ? ($logs->firstItem() ?? 1) : 1;
                 @endphp
                 @forelse($logs as $index => $log)
                     <tr>
@@ -389,7 +389,7 @@
         </table>
     </div>
 
-    @if($logs->hasPages())
+    @if(method_exists($logs, 'hasPages') && $logs->hasPages())
         <div style="margin-top: 20px;">
             {{ $logs->links() }}
         </div>

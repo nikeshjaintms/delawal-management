@@ -220,23 +220,25 @@
 
         @error('fields') <div class="text-error" style="margin-bottom:15px;">{{ $message }}</div> @enderror
 
-        <table class="builder-table" id="fields-table">
-            <thead>
-                <tr>
-                    <th style="width: 180px;">Label <span>*</span></th>
-                    <th style="width: 150px;">Field Name <span>*</span></th>
-                    <th style="width: 130px;">Type <span>*</span></th>
-                    <th style="width: 90px; text-align: center;">Required</th>
-                    <th>Options (comma-separated)</th>
-                    <th style="width: 90px;">Sort Order</th>
-                    <th style="width: 110px;">Status</th>
-                    <th style="width: 50px; text-align: center;">Action</th>
-                </tr>
-            </thead>
-            <tbody id="fields-container">
-                {{-- Dynamic rows loaded via JS --}}
-            </tbody>
-        </table>
+        <div style="width: 100%; overflow-x: auto; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(16, 22, 34, 0.60);">
+            <table class="builder-table" id="fields-table" style="width: 100%; min-width: 860px; margin: 0;">
+                <thead>
+                    <tr>
+                        <th style="width: 180px; padding: 12px 14px;">Label <span style="color:#EF4444;">*</span></th>
+                        <th style="width: 160px; padding: 12px 14px;">Field Name <span style="color:#EF4444;">*</span></th>
+                        <th style="width: 130px; padding: 12px 14px;">Type <span style="color:#EF4444;">*</span></th>
+                        <th style="width: 75px; text-align:center; padding: 12px 8px;">Required</th>
+                        <th style="min-width: 150px; padding: 12px 14px;">Options (comma-sep.)</th>
+                        <th style="width: 85px; padding: 12px 10px;">Sort</th>
+                        <th style="width: 110px; padding: 12px 10px;">Status</th>
+                        <th style="width: 50px; text-align:center; padding: 12px 8px;">Del</th>
+                    </tr>
+                </thead>
+                <tbody id="fields-container">
+                    {{-- Dynamic rows loaded via JS --}}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="form-actions" style="margin-top: 20px; padding: 20px 0; display: flex; gap: 15px; max-width: 800px;">
@@ -270,14 +272,14 @@
             const isOptionsDisabled = !(typeVal === 'select' || typeVal === 'radio' || typeVal === 'checkbox');
 
             row.innerHTML = `
-                <td>
-                    <input type="text" name="fields[${fieldIndex}][label]" value="${labelVal}" class="form-control field-label-input @error('fields') is-invalid @enderror" placeholder="e.g. Phone Number" required style="padding: 7px 10px; font-size: 13px;">
+                <td style="padding: 8px 10px;">
+                    <input type="text" name="fields[${fieldIndex}][label]" value="${labelVal}" class="form-control field-label-input" placeholder="e.g. Full Name" required style="padding: 8px 12px; font-size: 13px; width: 100%; box-sizing: border-box;">
                 </td>
-                <td>
-                    <input type="text" name="fields[${fieldIndex}][field_name]" value="${nameVal}" class="form-control field-name-input @error('fields') is-invalid @enderror" placeholder="e.g. phone_number" required style="padding: 7px 10px; font-size: 13px;">
+                <td style="padding: 8px 10px;">
+                    <input type="text" name="fields[${fieldIndex}][field_name]" value="${nameVal}" class="form-control field-name-input" placeholder="e.g. full_name" required style="padding: 8px 12px; font-size: 13px; width: 100%; box-sizing: border-box;">
                 </td>
-                <td>
-                    <select name="fields[${fieldIndex}][field_type]" class="form-control field-type-select @error('fields') is-invalid @enderror" required style="padding: 7px 10px; font-size: 13px;">
+                <td style="padding: 8px 10px;">
+                    <select name="fields[${fieldIndex}][field_type]" class="form-control field-type-select" required style="padding: 8px 10px; font-size: 13px; width: 100%; box-sizing: border-box;">
                         <option value="text" ${typeVal === 'text' ? 'selected' : ''}>Text</option>
                         <option value="number" ${typeVal === 'number' ? 'selected' : ''}>Number</option>
                         <option value="email" ${typeVal === 'email' ? 'selected' : ''}>Email</option>
@@ -289,23 +291,23 @@
                         <option value="file" ${typeVal === 'file' ? 'selected' : ''}>File Upload</option>
                     </select>
                 </td>
-                <td style="text-align: center;">
-                    <input type="checkbox" name="fields[${fieldIndex}][is_required]" value="1" ${isReq} style="transform: scale(1.2); cursor: pointer;" class="@error('fields') is-invalid @enderror">
+                <td style="text-align: center; padding: 8px 6px;">
+                    <input type="checkbox" name="fields[${fieldIndex}][is_required]" value="1" ${isReq} style="width: 18px; height: 18px; cursor: pointer; accent-color: #2563EB;">
                 </td>
-                <td>
-                    <input type="text" name="fields[${fieldIndex}][options]" value="${optVal}" class="form-control field-options-input @error('fields') is-invalid @enderror" placeholder="Option A, Option B" ${isOptionsDisabled ? 'disabled' : ''} style="padding: 7px 10px; font-size: 13px;">
+                <td style="padding: 8px 10px;">
+                    <input type="text" name="fields[${fieldIndex}][options]" value="${optVal}" class="form-control field-options-input" placeholder="Option A, Option B" ${isOptionsDisabled ? 'disabled' : ''} style="padding: 8px 12px; font-size: 13px; width: 100%; box-sizing: border-box;">
                 </td>
-                <td>
-                    <input type="number" name="fields[${fieldIndex}][sort_order]" value="${sortVal}" class="form-control @error('fields') is-invalid @enderror" required style="padding: 7px 10px; font-size: 13px;">
+                <td style="padding: 8px 8px;">
+                    <input type="number" name="fields[${fieldIndex}][sort_order]" value="${sortVal}" class="form-control" required style="padding: 8px 10px; font-size: 13px; width: 100%; min-width: 60px; box-sizing: border-box;">
                 </td>
-                <td>
-                    <select name="fields[${fieldIndex}][status]" class="form-control @error('fields') is-invalid @enderror" required style="padding: 7px 10px; font-size: 13px;">
+                <td style="padding: 8px 8px;">
+                    <select name="fields[${fieldIndex}][status]" class="form-control" required style="padding: 8px 10px; font-size: 13px; width: 100%; min-width: 90px; box-sizing: border-box;">
                         <option value="active" ${statusActive}>Active</option>
                         <option value="inactive" ${statusInactive}>Inactive</option>
                     </select>
                 </td>
-                <td style="text-align: center;">
-                    <button type="button" class="btn-danger-icon remove-row-btn"><i class="fa-regular fa-trash-can"></i></button>
+                <td style="text-align: center; padding: 8px 6px;">
+                    <button type="button" class="btn-danger-icon remove-row-btn" title="Delete Field"><i class="fa fa-trash"></i></button>
                 </td>
             `;
 

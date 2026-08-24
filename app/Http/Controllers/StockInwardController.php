@@ -56,9 +56,9 @@ class StockInwardController extends Controller
         if ($request->filter_project)   $query->where('project_id', $request->filter_project);
         if ($request->filter_date)      $query->where('inward_date', $request->filter_date);
 
-        // Group by inward_number / ID to show representative transactions
+        // Group by firm_id and inward_number / ID to show representative transactions
         $subQuery = StockInward::select(DB::raw('MIN(id) as id'))
-            ->groupBy(DB::raw('COALESCE(inward_number, CAST(id AS CHAR))'));
+            ->groupBy('firm_id', DB::raw('COALESCE(inward_number, CAST(id AS CHAR))'));
         $query->whereIn('id', $subQuery);
 
         $inwards = $query->orderBy('inward_date', 'desc')->paginate(15)->withQueryString();
@@ -211,9 +211,9 @@ class StockInwardController extends Controller
             }
 
             // Generate IMIR Number
-            $count = StockInward::whereNotNull('inward_number')->where('inward_number', 'like', 'IMIR-%')->distinct('inward_number')->count('inward_number') + 1;
+            $count = StockInward::withoutGlobalScopes()->whereNotNull('inward_number')->where('inward_number', 'like', 'IMIR-%')->distinct('inward_number')->count('inward_number') + 1;
             $inwardNumber = 'IMIR-' . str_pad($count, 6, '0', STR_PAD_LEFT);
-            while (StockInward::where('inward_number', $inwardNumber)->exists()) {
+            while (StockInward::withoutGlobalScopes()->where('inward_number', $inwardNumber)->exists()) {
                 $count++;
                 $inwardNumber = 'IMIR-' . str_pad($count, 6, '0', STR_PAD_LEFT);
             }
@@ -309,9 +309,9 @@ class StockInwardController extends Controller
             }
         } else {
             // Manual Inward
-            $count = StockInward::whereNotNull('inward_number')->where('inward_number', 'like', 'IMIR-%')->distinct('inward_number')->count('inward_number') + 1;
+            $count = StockInward::withoutGlobalScopes()->whereNotNull('inward_number')->where('inward_number', 'like', 'IMIR-%')->distinct('inward_number')->count('inward_number') + 1;
             $inwardNumber = 'IMIR-' . str_pad($count, 6, '0', STR_PAD_LEFT);
-            while (StockInward::where('inward_number', $inwardNumber)->exists()) {
+            while (StockInward::withoutGlobalScopes()->where('inward_number', $inwardNumber)->exists()) {
                 $count++;
                 $inwardNumber = 'IMIR-' . str_pad($count, 6, '0', STR_PAD_LEFT);
             }

@@ -5,6 +5,7 @@
 
 @section('content')
 <style>
+    /* ── Luxury Dark Glass System ── */
     .crud-header {
         display: flex;
         justify-content: space-between;
@@ -14,42 +15,47 @@
         gap: 15px;
     }
     .crud-title h2 {
-        font-size: 22px;
-        font-weight: 700;
-        color: var(--text-primary);
+        font-size: 26px;
+        font-weight: 800;
+        color: #FFFFFF !important;
         margin-bottom: 4px;
+        letter-spacing: -0.3px;
     }
     .crud-title p {
-        font-size: 13.5px;
-        color: var(--text-secondary);
+        font-size: 14px;
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        margin: 0;
     }
-    .btn-gold {
-        background-color: var(--gold);
-        color: #FFFFFF;
+    .btn-gold, .btn-add-primary {
+        background: #2563EB !important;
+        color: #FFFFFF !important;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         text-decoration: none;
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 700;
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        border: none;
+        border: 1px solid #3B82F6 !important;
         cursor: pointer;
-        transition: var(--transition);
-        box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
     }
-    .btn-gold:hover {
-        background-color: #B58D1B;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 14px rgba(212, 175, 55, 0.3);
+    .btn-gold:hover, .btn-add-primary:hover {
+        background: #1D4ED8 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50);
     }
     .card-box {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: var(--soft-shadow);
+        background: rgba(20, 27, 41, 0.60) !important;
+        backdrop-filter: blur(20px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 24px !important;
+        padding: 24px !important;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
     }
     .filter-bar {
         display: flex;
@@ -63,134 +69,163 @@
         display: flex;
         gap: 10px;
         flex: 1;
-        max-width: 500px;
+        max-width: 520px;
     }
     .search-input {
         flex: 1;
-        padding: 10px 14px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
+        padding: 10px 16px;
+        background: rgba(16, 22, 34, 0.65) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 10px !important;
         font-size: 13.5px;
-        font-family: var(--font-primary);
-        color: var(--text-primary);
+        color: #FFFFFF !important;
         outline: none;
-        transition: var(--transition);
+        transition: all 0.2s ease;
     }
     .search-input:focus {
-        border-color: var(--blue);
-        box-shadow: 0 0 0 3px var(--blue-glow);
+        border-color: #3B82F6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
     }
     .btn-search {
-        background-color: var(--text-primary);
-        color: #FFFFFF;
-        padding: 10px 18px;
-        border-radius: 8px;
-        border: none;
+        background: #2563EB !important;
+        color: #FFFFFF !important;
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: 1px solid #3B82F6 !important;
         font-size: 13.5px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
-        transition: var(--transition);
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
     }
-    .btn-search:hover { background-color: #1E293B; }
+    .btn-search:hover {
+        background: #1D4ED8 !important;
+        transform: translateY(-2px);
+    }
     .btn-reset {
-        padding: 10px 14px;
-        color: var(--text-secondary);
+        padding: 10px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: #CBD5E1 !important;
+        border-radius: 10px !important;
         text-decoration: none;
         font-size: 13.5px;
-        font-weight: 500;
-        transition: var(--transition);
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s ease;
     }
-    .btn-reset:hover { color: var(--text-primary); }
-    .table-container { width: 100%; overflow-x: auto; }
+    .btn-reset:hover {
+        background: rgba(255, 255, 255, 0.12) !important;
+        color: #FFFFFF !important;
+    }
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        background: rgba(16, 22, 34, 0.70);
+    }
     .premium-table {
         width: 100%;
         border-collapse: collapse;
         text-align: left;
-        font-size: 14px;
+        font-size: 13.5px;
     }
     .premium-table th {
-        padding: 14px 16px;
-        background: #F9FAFB;
-        color: var(--text-secondary);
-        font-weight: 600;
-        border-bottom: 1px solid var(--border-color);
-        font-size: 12px;
+        padding: 14px 16px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: #94A3B8 !important;
+        font-weight: 800;
+        border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+        font-size: 11.5px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.8px;
+        white-space: nowrap !important;
     }
     .premium-table td {
-        padding: 16px;
-        border-bottom: 1px solid #F1F5F9;
-        color: var(--text-primary);
-        vertical-align: middle;
-    }
-    .premium-table tr:last-child td { border-bottom: none; }
-    .premium-table tbody tr:hover { background-color: #F9FAFB; }
-    .badge {
-        display: inline-block;
-        padding: 4px 10px;
-        font-size: 11px;
+        padding: 14px 16px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        color: #FFFFFF !important;
         font-weight: 600;
-        border-radius: 20px;
-        text-transform: uppercase;
+        vertical-align: middle;
+        white-space: nowrap !important;
     }
-    .badge-active { background: rgba(34,197,94,0.1); color: #16803D; }
-    .badge-inactive { background: rgba(239,68,68,0.1); color: #B91C1C; }
-    .action-links {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        flex-wrap: wrap;
+    .premium-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.04) !important;
     }
-    .action-link {
-        color: var(--text-secondary);
-        text-decoration: none;
-        font-size: 13px;
-        transition: var(--transition);
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-    .action-link:hover { color: var(--text-primary); }
-    .action-link.view:hover { color: #0EA5E9; }
-    .action-link.edit:hover { color: #2563EB; }
-    .action-link.toggle-active { color: var(--text-secondary); background: none; border: none; cursor: pointer; font-family: var(--font-primary); font-size: 13px; display: inline-flex; align-items: center; gap: 4px; padding: 0; }
-    .action-link.toggle-active:hover { color: #16803D; }
-    .action-link.toggle-inactive { color: var(--text-secondary); background: none; border: none; cursor: pointer; font-family: var(--font-primary); font-size: 13px; display: inline-flex; align-items: center; gap: 4px; padding: 0; }
-    .action-link.toggle-inactive:hover { color: #B91C1C; }
-    .action-link.delete-btn {
+
+    .badge-status-btn {
         background: none;
         border: none;
+        padding: 0;
         cursor: pointer;
-        color: var(--text-secondary);
-        font-family: var(--font-primary);
-        font-size: 13px;
+        outline: none;
+    }
+    .badge-status-btn .badge {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        padding: 0;
+        gap: 5px;
+        padding: 5px 12px;
+        font-size: 11.5px;
+        font-weight: 800;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        transition: all 0.2s ease;
     }
-    .action-link.delete-btn:hover { color: #EF4444; }
+    .badge-status-btn .badge:hover {
+        transform: scale(1.05);
+    }
+    .badge-active {
+        background: rgba(16, 185, 129, 0.18) !important;
+        color: #34D399 !important;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .badge-inactive {
+        background: rgba(239, 68, 68, 0.18) !important;
+        color: #F87171 !important;
+        border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+
+    .table-action-buttons {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex-wrap: nowrap !important;
+        white-space: nowrap !important;
+        justify-content: flex-start !important;
+    }
+    .table-action-buttons form {
+        display: inline-flex !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
     .alert-success {
-        background: rgba(34,197,94,0.08);
-        border: 1px solid rgba(34,197,94,0.2);
-        color: #16803D;
-        padding: 12px 16px;
-        border-radius: 8px;
+        background: rgba(16, 185, 129, 0.16) !important;
+        border: 1px solid rgba(16, 185, 129, 0.38) !important;
+        color: #34D399 !important;
+        padding: 14px 18px !important;
+        border-radius: 12px !important;
         margin-bottom: 20px;
-        font-size: 13.5px;
+        font-size: 14px;
+        font-weight: 700 !important;
         display: flex;
         align-items: center;
         gap: 8px;
     }
     .alert-danger {
-        background: rgba(239,68,68,0.08);
-        border: 1px solid rgba(239,68,68,0.2);
-        color: #B91C1C;
-        padding: 12px 16px;
-        border-radius: 8px;
+        background: rgba(239, 68, 68, 0.16) !important;
+        border: 1px solid rgba(239, 68, 68, 0.38) !important;
+        color: #F87171 !important;
+        padding: 14px 18px !important;
+        border-radius: 12px !important;
         margin-bottom: 20px;
-        font-size: 13.5px;
+        font-size: 14px;
+        font-weight: 700 !important;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -206,22 +241,24 @@
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.55);
+        background: rgba(0, 0, 0, 0.75);
         z-index: 1000;
         align-items: center;
         justify-content: center;
-        backdrop-filter: blur(2px);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
     }
     .modal-backdrop.active { display: flex; }
     .modal-box {
-        background: var(--card-bg);
-        border-radius: 14px;
-        padding: 32px;
+        background: rgba(16, 22, 34, 0.95) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 24px !important;
+        padding: 32px !important;
         width: 100%;
         max-width: 760px;
         max-height: 90vh;
         overflow-y: auto;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.50) !important;
         position: relative;
         animation: modalIn 0.22s cubic-bezier(0.4,0,0.2,1) both;
     }
@@ -231,25 +268,29 @@
     }
     .modal-close {
         position: absolute;
-        top: 16px; right: 18px;
-        background: none;
-        border: none;
-        font-size: 20px;
-        color: var(--text-secondary);
+        top: 20px; right: 22px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        font-size: 16px;
+        color: #CBD5E1;
         cursor: pointer;
-        transition: color 0.18s;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.18s;
     }
-    .modal-close:hover { color: #EF4444; }
+    .modal-close:hover { background: #EF4444; color: #FFFFFF; border-color: #EF4444; }
     .modal-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--text-primary);
+        font-size: 20px;
+        font-weight: 800;
+        color: #FFFFFF !important;
         margin-bottom: 6px;
     }
     .modal-subtitle {
-        font-size: 13px;
-        color: var(--text-secondary);
+        font-size: 13.5px;
+        color: #94A3B8 !important;
         margin-bottom: 24px;
+        font-weight: 600;
     }
     .form-row {
         display: grid;
@@ -261,48 +302,48 @@
     .form-label {
         display: block;
         font-size: 13px;
-        font-weight: 600;
-        color: var(--text-primary);
+        font-weight: 700;
+        color: #FFFFFF !important;
         margin-bottom: 7px;
     }
     .form-label span { color: #EF4444; }
     .form-control {
         width: 100%;
         padding: 10px 14px;
-        border: 1.5px solid var(--border-color);
-        border-radius: 8px;
+        border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 10px !important;
         font-size: 13.5px;
-        font-family: var(--font-primary);
-        color: var(--text-primary);
+        color: #FFFFFF !important;
         outline: none;
-        transition: var(--transition);
-        background-color: #FFFFFF;
+        transition: all 0.2s ease;
+        background: rgba(20, 27, 41, 0.70) !important;
+        box-sizing: border-box;
     }
+    select.form-control option { background: #101622 !important; color: #FFFFFF !important; }
     .form-control:focus {
-        border-color: var(--blue);
-        box-shadow: 0 0 0 3px var(--blue-glow);
+        border-color: #3B82F6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
     }
-    .text-error { color: #EF4444; font-size: 12px; margin-top: 5px; font-weight: 500; }
-    .form-hint { font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; }
+    .text-error { color: #F87171; font-size: 12px; margin-top: 5px; font-weight: 600; }
     .modal-actions {
         display: flex;
         gap: 12px;
         margin-top: 24px;
         padding-top: 20px;
-        border-top: 1px solid var(--border-color);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
     }
     .btn-cancel {
-        border: 1px solid var(--border-color);
-        background: transparent;
-        color: var(--text-secondary);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.06);
+        color: #CBD5E1;
         padding: 10px 22px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: 13.5px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
-        transition: var(--transition);
+        transition: all 0.2s ease;
     }
-    .btn-cancel:hover { background: #F9FAFB; color: var(--text-primary); border-color: #D1D5DB; }
+    .btn-cancel:hover { background: rgba(255, 255, 255, 0.12); color: #FFFFFF; }
 </style>
 
 <div class="crud-header">
@@ -333,9 +374,13 @@
     <div class="filter-bar">
         <form method="GET" action="{{ route('users.index') }}" class="search-form">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, email, mobile" class="search-input @error('search') is-invalid @enderror">
-            <button type="submit" class="btn-search">Search</button>
+            <button type="submit" class="btn-search">
+                <i class="fa-solid fa-magnifying-glass" style="margin-right:4px;"></i> Search
+            </button>
             @if(request('search'))
-                <a href="{{ route('users.index') }}" class="btn-reset">Reset</a>
+                <a href="{{ route('users.index') }}" class="btn-reset">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </a>
             @endif
         </form>
     </div>
@@ -344,7 +389,7 @@
         <table class="premium-table">
             <thead>
                 <tr>
-                    <th>No</th>
+                    <th style="width: 50px;">No</th>
                     <th>Name</th>
                     <th>Email</th>
                     <th>Mobile</th>
@@ -357,16 +402,27 @@
             <tbody>
                 @forelse($users as $key => $user)
                     <tr>
-                        <td>{{ $users->firstItem() + $key }}</td>
-                        <td><strong>{{ $user->name }}</strong></td>
-                        <td>{{ $user->email }}</td>
-                        <td>{{ $user->mobile_number ?? '-' }}</td>
-                        <td>{{ is_object($user->role) ? ($user->role->role_name ?? $user->role->name) : ucfirst($user->role ?? '-') }}</td>
-                        <td>{{ $user->firm->firm_name ?? '-' }}</td>
+                        <td style="color:#94A3B8; font-weight:700;">{{ method_exists($users, 'firstItem') ? ($users->firstItem() + $key) : ($key + 1) }}</td>
+                        <td><strong style="color: #FFFFFF !important; font-size:14px;">{{ $user->name }}</strong></td>
+                        <td style="color: #CBD5E1;">{{ $user->email }}</td>
+                        <td style="color: #CBD5E1;">{{ $user->mobile_number ?? '-' }}</td>
                         <td>
-                            <span class="badge badge-{{ $user->status }}">
-                                {{ ucfirst($user->status) }}
+                            <span style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.30); color: #60A5FA; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+                                {{ is_object($user->role) ? ($user->role->role_name ?? $user->role->name) : ucfirst($user->role ?? '-') }}
                             </span>
+                        </td>
+                        <td style="color: #CBD5E1; font-weight: 600;">{{ $user->firm->firm_name ?? '-' }}</td>
+                        <td>
+                            <form action="{{ route('users.toggle-status', $user->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="badge-status-btn" title="Click to toggle status">
+                                    <span class="badge badge-{{ $user->status }}">
+                                        <i class="fa-solid {{ $user->status === 'active' ? 'fa-circle-check' : 'fa-circle-xmark' }}"></i>
+                                        {{ ucfirst($user->status) }}
+                                    </span>
+                                </button>
+                            </form>
                         </td>
                         <td>
                             <div class="table-action-buttons">
@@ -376,20 +432,6 @@
                                 <a href="{{ route('users.edit', $user->id) }}" class="btn-edit">
                                     <i class="fa fa-edit"></i> Edit
                                 </a>
-                                {{-- Status Toggle --}}
-                                <form action="{{ route('users.toggle-status', $user->id) }}" method="POST" style="display:inline;">
-                                    @csrf
-                                    @method('PATCH')
-                                    @if($user->status === 'active')
-                                        <button type="submit" class="action-link toggle-inactive" title="Set Inactive">
-                                            <i class="fa-solid fa-toggle-on" style="color:#16803D;"></i> Active
-                                        </button>
-                                    @else
-                                        <button type="submit" class="action-link toggle-active" title="Set Active">
-                                            <i class="fa-solid fa-toggle-off" style="color:#94A3B8;"></i> Inactive
-                                        </button>
-                                    @endif
-                                </form>
                                 @if($user->id !== Auth::id())
                                     <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?')">
                                         @csrf
@@ -404,16 +446,18 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" align="center" style="padding: 30px; color: var(--text-secondary);">No users found.</td>
+                        <td colspan="8" align="center" style="padding: 36px; color: #94A3B8; font-weight:600;">No users found.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 
-    <div class="pagination-wrapper">
-        {{ $users->appends(request()->query())->links() }}
-    </div>
+    @if(method_exists($users, 'links'))
+        <div class="pagination-wrapper">
+            {{ $users->appends(request()->query())->links() }}
+        </div>
+    @endif
 </div>
 
 {{-- ── Add User Modal ── --}}
@@ -518,4 +562,3 @@
     });
 </script>
 @endsection
-

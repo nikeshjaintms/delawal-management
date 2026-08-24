@@ -3,30 +3,65 @@
 @section('page-title', 'Purchase Management')
 @section('content')
 <style>
-    .crud-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:15px;}
-    .crud-title h2{font-size:22px;font-weight:700;color:var(--text-primary);margin-bottom:4px;}
-    .crud-title p{font-size:13.5px;color:var(--text-secondary);}
-    .card-box{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:30px;box-shadow:var(--soft-shadow);max-width:860px;margin:0 auto;}
-    .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-    @media(max-width:576px){.detail-grid{grid-template-columns:1fr;}}
-    .detail-item{padding:16px;background:#F9FAFB;border:1px solid var(--border-color);border-radius:10px;transition:var(--transition);}
-    .detail-item:hover{border-color:rgba(212,175,55,0.2);box-shadow:0 4px 12px rgba(15,31,53,0.04);background:#FFF;}
-    .detail-item-full{grid-column:1 / -1;}
-    .detail-label{font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
-    .detail-label i{color:var(--gold);font-size:12px;}
-    .detail-value{font-size:15px;font-weight:600;color:var(--text-primary);word-break:break-word;}
-    .detail-value.empty{color:#9CA3AF;font-weight:400;font-style:italic;}
-    .badge{display:inline-block;padding:4px 12px;font-size:11px;font-weight:600;border-radius:20px;text-transform:uppercase;}
-    .badge-unpaid{background:rgba(239,68,68,0.1);color:#DC2626;}
-    .badge-partial{background:rgba(245,158,11,0.1);color:#B45309;}
-    .badge-paid{background:rgba(16,185,129,0.1);color:#059669;}
-    .badge-active{background:rgba(16,185,129,0.1);color:#059669;}
-    .badge-inactive{background:rgba(239,68,68,0.1);color:#DC2626;}
-    .form-actions{display:flex;align-items:center;gap:15px;margin-top:28px;padding-top:20px;border-top:1px solid var(--border-color);}
-    .btn-gold{background-color:var(--gold);color:#FFF;padding:11px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;transition:var(--transition);box-shadow:0 4px 10px rgba(212,175,55,0.2);}
-    .btn-gold:hover{background-color:#B58D1B;transform:translateY(-1px);}
-    .btn-outline{border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);padding:11px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:var(--transition);}
-    .btn-outline:hover{background:#F9FAFB;color:var(--text-primary);border-color:#D1D5DB;}
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+.crud-title h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
+
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 32px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 28px;
+    max-width: 860px; margin-left: auto; margin-right: auto;
+}
+
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media(max-width:576px){ .detail-grid { grid-template-columns: 1fr; } }
+
+.detail-item {
+    padding: 16px 18px; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.12) !important; border-radius: 16px !important;
+    transition: all .25s ease;
+}
+.detail-item:hover { border-color: rgba(59, 130, 246, 0.40) !important; transform: translateY(-2px); }
+.detail-item-full { grid-column: 1 / -1; }
+
+.detail-label {
+    font-size: 11px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase;
+    letter-spacing: 0.8px; margin-bottom: 7px; display: flex; align-items: center; gap: 6px;
+}
+.detail-label i { color: #60A5FA !important; font-size: 12px; }
+
+.detail-value { font-size: 14.5px; font-weight: 700; color: #FFFFFF !important; word-break: break-word; }
+.detail-value.empty { color: #94A3B8 !important; font-weight: 400; font-style: italic; }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 20px; text-transform: uppercase; white-space: nowrap !important; }
+.badge-unpaid   { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+.badge-partial  { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.badge-paid     { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-active   { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-inactive { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+
+.form-actions { display: flex; align-items: center; gap: 14px; margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
+
+.btn-gold {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 11px 24px;
+    border-radius: 12px; font-size: 14px; font-weight: 700; border: 1px solid #3B82F6 !important;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all .25s ease;
+    box-shadow: 0 4px 18px rgba(37,99,235,0.38); text-decoration: none !important;
+}
+.btn-gold:hover { background: #1D4ED8 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(37,99,235,0.52); }
+
+.btn-outline {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 22px; background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important; font-size: 13.5px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+}
+.btn-outline:hover { background: rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; transform: translateY(-2px); }
 </style>
 
 <div class="crud-header">
@@ -68,12 +103,18 @@
 
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Purchase Amount</div>
-            <div class="detail-value">₹{{ number_format($purchase->purchase_amount, 2) }}</div>
+            <div class="detail-value" style="color:#FBBF24 !important;">₹{{ number_format($purchase->purchase_amount, 2) }}</div>
         </div>
 
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-wallet"></i> Payment Mode</div>
-            <div class="detail-value">{{ $purchase->payment_mode ?? '—' }}</div>
+            <div class="detail-value">
+                @if($purchase->payment_mode)
+                    <span style="background:rgba(255,255,255,0.08);color:#E2E8F0;padding:4px 10px;border-radius:6px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,0.10);display:inline-block;">{{ $purchase->payment_mode }}</span>
+                @else
+                    <span style="color:#94A3B8;">—</span>
+                @endif
+            </div>
         </div>
 
         <div class="detail-item">
@@ -102,7 +143,7 @@
         <div class="detail-item detail-item-full">
             <div class="detail-label"><i class="fa-solid fa-note-sticky"></i> Remarks</div>
             @if($purchase->remarks)
-                <div class="detail-value" style="font-weight:400;font-size:14px;line-height:1.6;">{{ $purchase->remarks }}</div>
+                <div class="detail-value" style="font-weight:400;font-size:14px;line-height:1.6;color:#CBD5E1 !important;">{{ $purchase->remarks }}</div>
             @else
                 <div class="detail-value empty">No remarks provided</div>
             @endif

@@ -81,6 +81,8 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\PaymentMode::class,
             \App\Models\ExpenseCategory::class,
             \App\Models\Property::class,
+            \App\Models\PropertyMaster::class,
+            \App\Models\Project::class,
             \App\Models\PropertySale::class,
             \App\Models\Payment::class,
             \App\Models\Rental::class,
@@ -88,9 +90,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\Expense::class,
             \App\Models\MaterialCategory::class,
             \App\Models\Material::class,
+            \App\Models\PurchaseOrder::class,
             \App\Models\StockInward::class,
             \App\Models\StockOutward::class,
+            \App\Models\StockMovement::class,
             \App\Models\Loan::class,
+            \App\Models\LoanEmiSchedule::class,
             \App\Models\Ledger::class,
             \App\Models\CreditNote::class,
             \App\Models\DebitNote::class,
@@ -115,53 +120,6 @@ class AppServiceProvider extends ServiceProvider
                         $instance = new $modelClass();
                         if (in_array('firm_id', $instance->getFillable()) || \Illuminate\Support\Facades\Schema::hasColumn($instance->getTable(), 'firm_id')) {
                             $builder->where($instance->getTable() . '.firm_id', session('firm_id'));
-                        }
-                    }
-
-                    // Filter by Financial Year Date Range (where applicable for transaction models)
-                    if (session('login_type') === 'firm' && session('financial_year_id')) {
-                        $fy = \App\Models\FinancialYear::find(session('financial_year_id'));
-                        if ($fy) {
-                            $startDate = $fy->start_date->format('Y-m-d');
-                            $endDate = $fy->end_date->format('Y-m-d');
-                            $instance = new $modelClass();
-                            $table = $instance->getTable();
-                            $fillables = $instance->getFillable();
-
-                            $dateColumn = null;
-                            if (in_array('sale_date', $fillables)) {
-                                $dateColumn = 'sale_date';
-                            } elseif (in_array('payment_date', $fillables)) {
-                                $dateColumn = 'payment_date';
-                            } elseif (in_array('rent_start_date', $fillables)) {
-                                $dateColumn = 'rent_start_date';
-                            } elseif (in_array('expense_date', $fillables)) {
-                                $dateColumn = 'expense_date';
-                            } elseif (in_array('loan_start_date', $fillables)) {
-                                $dateColumn = 'loan_start_date';
-                            } elseif (in_array('inward_date', $fillables)) {
-                                $dateColumn = 'inward_date';
-                            } elseif (in_array('outward_date', $fillables)) {
-                                $dateColumn = 'outward_date';
-                            } elseif (in_array('booking_date', $fillables)) {
-                                $dateColumn = 'booking_date';
-                            } elseif (in_array('purchase_date', $fillables)) {
-                                $dateColumn = 'purchase_date';
-                            } elseif (in_array('income_date', $fillables)) {
-                                $dateColumn = 'income_date';
-                            } elseif (in_array('receipt_date', $fillables)) {
-                                $dateColumn = 'receipt_date';
-                            } elseif (in_array('credit_note_date', $fillables)) {
-                                $dateColumn = 'credit_note_date';
-                            } elseif (in_array('debit_note_date', $fillables)) {
-                                $dateColumn = 'debit_note_date';
-                            } elseif (in_array('ledger_date', $fillables)) {
-                                $dateColumn = 'ledger_date';
-                            }
-
-                            if ($dateColumn) {
-                                $builder->whereBetween($table . '.' . $dateColumn, [$startDate, $endDate]);
-                            }
                         }
                     }
                 });

@@ -5,62 +5,95 @@
 
 @section('content')
 <style>
-    .crud-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:15px; }
-    .crud-title h2 { font-size:22px; font-weight:700; color:var(--text-primary); margin-bottom:4px; }
-    .crud-title p  { font-size:13.5px; color:var(--text-secondary); }
-    .btn-gold { background-color:var(--gold); color:#FFF; padding:10px 20px; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600; display:inline-flex; align-items:center; gap:8px; border:none; cursor:pointer; transition:var(--transition); box-shadow:0 4px 10px rgba(212,175,55,0.2); }
-    .btn-gold:hover { background-color:#B58D1B; transform:translateY(-1px); }
-    .btn-outline { border:1px solid var(--border-color); background:transparent; color:var(--text-secondary); padding:9px 18px; border-radius:8px; text-decoration:none; font-size:13.5px; font-weight:600; display:inline-flex; align-items:center; gap:8px; transition:var(--transition); }
-    .btn-outline:hover { background:#F9FAFB; color:var(--text-primary); border-color:#D1D5DB; }
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+.crud-title h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
 
-    /* Rental Summary Card */
-    .rental-summary {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 20px 24px;
-        box-shadow: var(--soft-shadow);
-        margin-bottom: 24px;
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        flex-wrap: wrap;
-    }
-    .summary-icon { width:52px; height:52px; border-radius:10px; background:var(--gold-light); border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:22px; color:var(--gold); flex-shrink:0; }
-    .summary-info { flex:1; min-width:200px; }
-    .summary-info h3 { font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:3px; }
-    .summary-info p  { font-size:13px; color:var(--text-secondary); }
-    .summary-stats { display:flex; gap:20px; flex-wrap:wrap; }
-    .stat-chip { text-align:center; }
-    .stat-chip .stat-label { font-size:10.5px; font-weight:700; color:#9CA3AF; text-transform:uppercase; letter-spacing:0.7px; display:block; margin-bottom:3px; }
-    .stat-chip .stat-value { font-size:15px; font-weight:800; color:var(--text-primary); }
-    .stat-chip .stat-value.gold { color:var(--gold); }
+.btn-gold {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 22px;
+    border-radius: 10px; text-decoration: none !important; font-size: 14px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 8px; border: 1px solid #3B82F6 !important;
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+}
+.btn-gold:hover { background: #1D4ED8 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(37,99,235,0.50); }
 
-    .card-box { background:var(--card-bg); border:1px solid var(--border-color); border-radius:12px; padding:24px; box-shadow:var(--soft-shadow); }
-    .table-container { width:100%; overflow-x:auto; }
-    .premium-table { width:100%; border-collapse:collapse; text-align:left; font-size:13.5px; }
-    .premium-table th { padding:13px 14px; background:#F9FAFB; color:var(--text-secondary); font-weight:600; border-bottom:1px solid var(--border-color); font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
-    .premium-table td { padding:14px; border-bottom:1px solid #F1F5F9; color:var(--text-primary); vertical-align:middle; }
-    .premium-table tr:last-child td { border-bottom:none; }
-    .premium-table tbody tr:hover { background-color:#F9FAFB; }
-    .badge { display:inline-block; padding:4px 10px; font-size:11px; font-weight:600; border-radius:20px; text-transform:uppercase; }
-    .badge-pending  { background:rgba(234,179,8,0.12); color:#92710A; }
-    .badge-partial  { background:rgba(59,130,246,0.1);  color:#1D4ED8; }
-    .badge-paid     { background:rgba(34,197,94,0.1);   color:#16803D; }
-    .month-chip { background:var(--gold-light); color:#92710A; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:700; border:1px solid rgba(212,175,55,0.25); display:inline-block; white-space:nowrap; }
-    .mode-chip  { background:#F1F5F9; color:#475569; padding:3px 8px; border-radius:5px; font-size:12px; font-weight:600; display:inline-block; }
-    .amount-fw  { font-weight:700; }
-    .pending-red  { color:#B91C1C; font-weight:700; }
-    .paid-green   { color:#16803D; font-weight:700; }
-    .action-links { display:flex; gap:10px; align-items:center; }
-    .action-link { color:var(--text-secondary); text-decoration:none; font-size:13px; transition:var(--transition); display:inline-flex; align-items:center; gap:4px; }
-    .action-link.delete-btn { background:none; border:none; cursor:pointer; color:var(--text-secondary); font-family:var(--font-primary); font-size:13px; padding:0; }
-    .action-link.delete-btn:hover { color:#EF4444; }
-    .alert-success { background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); color:#16803D; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:13.5px; display:flex; align-items:center; gap:8px; }
-    .pagination-wrapper { margin-top:20px; display:flex; justify-content:center; }
-    .empty-state { text-align:center; padding:40px 20px; color:var(--text-secondary); }
-    .empty-state i { font-size:36px; color:#D1D5DB; margin-bottom:12px; display:block; }
-    .empty-state p { font-size:14px; }
+.btn-outline {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important; font-size: 13.5px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+}
+.btn-outline:hover { background: rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; transform: translateY(-2px); }
+
+/* Rental Summary Card */
+.rental-summary {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 20px !important; padding: 22px 26px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+}
+.summary-icon {
+    width: 54px; height: 54px; border-radius: 14px;
+    background: rgba(59, 130, 246, 0.20) !important; border: 2px solid #3B82F6 !important;
+    display: flex; align-items: center; justify-content: center; font-size: 24px; color: #60A5FA !important; flex-shrink: 0;
+}
+.summary-info { flex: 1; min-width: 200px; }
+.summary-info h3 { font-size: 20px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 4px; }
+.summary-info p { font-size: 13.5px; color: #CBD5E1 !important; margin: 0; }
+
+.summary-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+.stat-chip { text-align: center; }
+.stat-chip .stat-label { font-size: 10.5px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: 0.8px; display: block; margin-bottom: 3px; }
+.stat-chip .stat-value { font-size: 15px; font-weight: 800; color: #FFFFFF !important; }
+.stat-chip .stat-value.gold { color: #60A5FA !important; }
+
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 24px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 28px;
+}
+
+.table-container { width: 100%; overflow-x: auto; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.10); }
+
+.premium-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; }
+.premium-table th {
+    padding: 16px 18px !important; background: rgba(255, 255, 255, 0.05) !important;
+    color: #94A3B8 !important; font-weight: 800; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.9px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    white-space: nowrap !important;
+}
+.premium-table td {
+    padding: 16px 18px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    font-size: 13.5px; color: #E2E8F0 !important; font-weight: 500; vertical-align: middle;
+    white-space: nowrap !important;
+}
+.premium-table tbody tr:hover { background: rgba(255, 255, 255, 0.05) !important; }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 20px; text-transform: uppercase; white-space: nowrap !important; }
+.badge-pending  { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.badge-partial  { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
+.badge-paid     { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+
+.month-chip { background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; border: 1px solid rgba(59, 130, 246, 0.30) !important; display: inline-block; white-space: nowrap; }
+.mode-chip { background: rgba(255, 255, 255, 0.08) !important; color: #E2E8F0 !important; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block; border: 1px solid rgba(255, 255, 255, 0.10); }
+
+.amount-fw { font-weight: 800; color: #60A5FA !important; }
+.pending-red { color: #F87171 !important; font-weight: 800; }
+.paid-green { color: #34D399 !important; font-weight: 800; }
+
+.action-buttons-wrap { display: flex !important; gap: 8px !important; align-items: center !important; white-space: nowrap !important; }
+.alert-success { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; color: #34D399 !important; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.pagination-wrapper { margin-top: 20px; display: flex; justify-content: center; }
+.empty-state { text-align: center; padding: 40px 20px; color: #CBD5E1 !important; }
+.empty-state i { font-size: 36px; color: #94A3B8 !important; margin-bottom: 12px; display: block; }
+.empty-state p { font-size: 14px; }
 </style>
 
 <div class="crud-header">
@@ -89,7 +122,7 @@
 <div class="rental-summary">
     <div class="summary-icon"><i class="fa-solid fa-key"></i></div>
     <div class="summary-info">
-        <h3>{{ $rental->tenant_name }} <span style="font-size:13px;font-weight:400;color:var(--text-secondary);">— {{ $rental->tenant_mobile }}</span></h3>
+        <h3>{{ $rental->tenant_name }} <span style="font-size:13px;font-weight:400;color:#94A3B8;">— {{ $rental->tenant_mobile }}</span></h3>
         <p>
             Firm: <strong>{{ $rental->firm->firm_name ?? '-' }}</strong> &nbsp;·&nbsp;
             {{ $rental->property->property_name ?? '' }}
@@ -143,16 +176,16 @@
                         <th>Payment Date</th>
                         <th>Status</th>
                         <th>Remarks</th>
-                        <th>Action</th>
+                        <th style="width: 160px;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($payments as $key => $pay)
                         <tr>
-                            <td>{{ $payments->firstItem() + $key }}</td>
-                            <td>{{ $pay->property->property_name ?? '—' }}</td>
-                            <td>{{ $pay->property->propertyType->name ?? '—' }}</td>
-                            <td>{{ $pay->property->property_code ?? '—' }}</td>
+                            <td>{{ method_exists($payments, 'firstItem') ? ($payments->firstItem() + $key) : ($key + 1) }}</td>
+                            <td><strong style="color:#FFFFFF !important;">{{ $pay->property->property_name ?? '—' }}</strong></td>
+                            <td style="color:#CBD5E1;">{{ $pay->property->propertyType->name ?? '—' }}</td>
+                            <td style="color:#CBD5E1;">{{ $pay->property->property_code ?? '—' }}</td>
                             <td><span class="month-chip">{{ $pay->payment_month }} {{ $pay->payment_year }}</span></td>
                             <td class="amount-fw">₹{{ number_format($pay->rent_amount, 0) }}</td>
                             <td class="paid-green">₹{{ number_format($pay->paid_amount, 0) }}</td>
@@ -163,17 +196,17 @@
                                 @if($pay->payment_mode)
                                     <span class="mode-chip">{{ $pay->payment_mode }}</span>
                                 @else
-                                    <span style="color:var(--text-secondary);">-</span>
+                                    <span style="color:#94A3B8;">-</span>
                                 @endif
                             </td>
-                            <td>{{ $pay->payment_date ? \Carbon\Carbon::parse($pay->payment_date)->format('d M Y') : '-' }}</td>
+                            <td style="color:#CBD5E1;">{{ $pay->payment_date ? \Carbon\Carbon::parse($pay->payment_date)->format('d M Y') : '-' }}</td>
                             <td><span class="badge badge-{{ $pay->payment_status }}">{{ ucfirst($pay->payment_status) }}</span></td>
-                            <td style="max-width:160px;font-size:12.5px;color:var(--text-secondary);">
+                            <td style="max-width:160px;font-size:12.5px;color:#CBD5E1;">
                                 {{ $pay->remarks ? \Illuminate\Support\Str::limit($pay->remarks, 40) : '-' }}
                             </td>
                             <td>
-                                <div class="table-action-buttons">
-                                    <a href="{{ route('rental-payments.edit', [$rental->id, $pay->id]) }}" class="btn-edit" style="margin-right: 5px;">
+                                <div class="action-buttons-wrap">
+                                    <a href="{{ route('rental-payments.edit', [$rental->id, $pay->id]) }}" class="btn-edit">
                                         <i class="fa fa-edit"></i> Edit
                                     </a>
                                     <form action="{{ route('rental-payments.destroy', [$rental->id, $pay->id]) }}"
@@ -194,9 +227,11 @@
             </table>
         </div>
 
-        <div class="pagination-wrapper">
-            {{ $payments->links() }}
-        </div>
+        @if(method_exists($payments, 'links'))
+            <div class="pagination-wrapper">
+                {{ $payments->links() }}
+            </div>
+        @endif
     @endif
 </div>
 

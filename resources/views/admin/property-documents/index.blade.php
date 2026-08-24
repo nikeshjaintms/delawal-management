@@ -218,7 +218,7 @@
             <tbody>
             @forelse($documents as $i => $doc)
                 <tr>
-                    <td>{{ $documents->firstItem() + $i }}</td>
+                    <td>{{ method_exists($documents, 'firstItem') ? ($documents->firstItem() + $i) : ($i + 1) }}</td>
                     @if(auth()->user() && auth()->user()->isAdmin())
                         <td><strong>{{ $doc->firm->firm_name ?? 'N/A' }}</strong></td>
                     @endif
@@ -274,7 +274,9 @@
             </tbody>
         </table>
     </div>
-    <div class="pagination-wrap">{{ $documents->links() }}</div>
+    @if(method_exists($documents, 'links'))
+        <div class="pagination-wrap">{{ $documents->links() }}</div>
+    @endif
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

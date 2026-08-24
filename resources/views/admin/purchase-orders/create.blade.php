@@ -3,56 +3,110 @@
 @section('page-title', 'Create Purchase Order')
 @section('content')
 <style>
-    .form-card {background:var(--card-bg); border:1px solid var(--border-color); border-radius:16px; padding:28px 32px; box-shadow:var(--card-shadow); margin-bottom:24px;}
-    .form-control {
-        width: 100% !important;
-        height: 42px !important;
-        padding: 10px 14px !important;
-        border: 1.5px solid var(--border-color) !important;
-        border-radius: 8px !important;
-        font-size: 13.5px !important;
-        font-family: var(--font-primary) !important;
-        color: var(--text-primary) !important;
-        outline: none !important;
-        transition: border-color 0.18s, box-shadow 0.18s !important;
-        background: #fff !important;
-        display: block !important;
-    }
-    .form-control:focus {
-        border-color: var(--blue) !important;
-        box-shadow: 0 0 0 3px var(--blue-glow) !important;
-    }
-    select.form-control {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>") !important;
-        background-repeat: no-repeat !important;
-        background-position: right 12px center !important;
-        background-size: 16px !important;
-        padding-right: 36px !important;
-    }
-    textarea.form-control {
-        height: auto !important;
-        min-height: 90px !important;
-    }
-    .section-heading {font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--blue); margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid var(--blue-light); display:flex; align-items:center; gap:8px;}
-    .form-grid {display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-bottom: 20px;}
-    @media(max-width:768px){.form-grid{grid-template-columns:1fr}}
-    .form-group {margin-bottom:0}
-    .form-label {display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:7px}
-    .btn-gold {background-color:var(--gold); color:#FFF; padding:10px 20px; border-radius:8px; border:none; font-size:14px; font-weight:600; cursor:pointer;}
-    .btn-gold:hover {background-color:#B58D1B;}
-    .btn-outline {border:1px solid var(--border-color); background:#fff; color:var(--text-secondary); padding:10px 20px; border-radius:8px; text-decoration:none; cursor:pointer;}
-    .btn-outline:hover {background:#f9fafb;}
-    
-    .items-table {width:100%; border-collapse:collapse; margin-top:15px; font-size:13px;}
-    .items-table th {background:#F9FAFB; padding:10px; font-weight:600; border-bottom:1.5px solid var(--border-color); text-transform:uppercase; font-size:11px; letter-spacing:0.5px;}
-    .items-table td {padding:10px 8px; border-bottom:1px solid #F1F5F9; vertical-align:middle;}
-    
-    .summary-box {width:320px; margin-left:auto; margin-top:20px; border:1px solid var(--border-color); border-radius:8px; padding:16px; background:#F9FAFB;}
-    .summary-row {display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #E2E8F0; font-size:13px;}
-    .summary-row:last-child {border-bottom:none; font-weight:700; font-size:15px; color:#059669;}
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+.crud-title h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
+
+.form-card {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 32px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 24px;
+}
+
+.section-heading {
+    font-size: 13.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+    color: #60A5FA !important; margin-bottom: 20px; padding-bottom: 10px;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important; display: flex; align-items: center; gap: 8px;
+}
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+@media(max-width:768px){ .form-grid { grid-template-columns: 1fr; } }
+.form-group { margin-bottom: 0; }
+.form-label { display: block; font-size: 13.5px; font-weight: 700; color: #FFFFFF !important; margin-bottom: 8px; }
+
+.form-control {
+    width: 100% !important;
+    padding: 11px 16px !important;
+    background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px !important;
+    font-size: 13.5px !important;
+    font-family: var(--font-primary) !important;
+    color: #FFFFFF !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+}
+input.form-control, select.form-control {
+    height: 44px !important;
+}
+select.form-control option {
+    background: #101622 !important;
+    color: #FFFFFF !important;
+}
+textarea.form-control {
+    min-height: 100px !important;
+    height: auto !important;
+    resize: vertical !important;
+    background: rgba(16, 22, 34, 0.65) !important;
+    color: #FFFFFF !important;
+}
+.form-control::placeholder { color: #94A3B8 !important; }
+.form-control:focus {
+    border-color: #3B82F6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8) sepia(1) saturate(5) hue-rotate(185deg);
+    cursor: pointer;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+input[type=number] {
+    -moz-appearance: textfield !important;
+}
+
+.btn-gold {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 11px 24px;
+    border-radius: 12px; text-decoration: none !important; font-size: 14px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 8px; border: 1px solid #3B82F6 !important;
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 18px rgba(37,99,235,0.38);
+}
+.btn-gold:hover { background: #1D4ED8 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(37,99,235,0.52); }
+
+.btn-outline {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important; font-size: 13.5px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+}
+.btn-outline:hover { background: rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; transform: translateY(-2px); }
+
+.table-container { width: 100%; overflow-x: auto; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.10); }
+.items-table { width: 100%; border-collapse: collapse; margin-top: 0; font-size: 13.5px; }
+.items-table th { background: rgba(255, 255, 255, 0.05) !important; color: #94A3B8 !important; padding: 12px 14px; font-weight: 800; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10); text-transform: uppercase; font-size: 11px; letter-spacing: 0.8px; }
+.items-table td { padding: 10px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); color: #E2E8F0 !important; vertical-align: middle; }
+
+.remove-row-btn {
+    width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(239, 68, 68, 0.15) !important; color: #F87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.30) !important; border-radius: 8px;
+    cursor: pointer; transition: all .2s ease;
+}
+.remove-row-btn:hover { background: #DC2626 !important; color: #FFFFFF !important; transform: translateY(-1px); }
+
+.summary-box { width: 320px; margin-left: auto; margin-top: 24px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 20px; background: rgba(16, 22, 34, 0.65); }
+.summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 13.5px; color: #CBD5E1; }
+.summary-row:last-child { border-bottom: none; font-weight: 800; font-size: 16px; color: #34D399; }
 </style>
 
 <div class="crud-header" style="margin-bottom:20px;">
@@ -63,19 +117,19 @@
 </div>
 
 @if(session('error'))
-<div class="alert alert-danger" style="background:#FEE2E2; color:#B91C1C; padding:12px; border-radius:8px; margin-bottom:20px;">
+<div class="alert alert-danger" style="background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.30); padding:12px 16px; border-radius:10px; margin-bottom:20px;">
     {{ session('error') }}
 </div>
 @endif
 
-<form action="{{ route('purchase-orders.store') }}" method="POST" id="po-form">
+<form action="{{ route('purchase-orders.store') }}" method="POST" id="po-form" autocomplete="off">
     @csrf
     <div class="form-card">
         <div class="section-heading"><i class="fa-solid fa-file-invoice"></i> General Information</div>
         
         <div class="form-grid">
             <div class="form-group">
-                <label class="form-label">Firm <span style="color:red;">*</span></label>
+                <label class="form-label">Firm <span style="color:#F87171;">*</span></label>
                 <select name="firm_id" id="firm_id" class="form-control" required>
                     <option value="">Select Firm</option>
                     @foreach($firms as $firm)
@@ -86,7 +140,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Supplier / Vendor <span style="color:red;">*</span></label>
+                <label class="form-label">Supplier / Vendor <span style="color:#F87171;">*</span></label>
                 <select name="vendor_id" id="vendor_id" class="form-control" required>
                     <option value="">Select Supplier</option>
                     @foreach($vendors as $vendor)
@@ -97,7 +151,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">PO Date <span style="color:red;">*</span></label>
+                <label class="form-label">PO Date <span style="color:#F87171;">*</span></label>
                 <input type="date" name="po_date" id="po_date" class="form-control" value="{{ old('po_date', date('Y-m-d')) }}" required>
                 @error('po_date') <span class="text-error show">{{ $message }}</span> @enderror
             </div>
@@ -122,7 +176,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Status <span style="color:red;">*</span></label>
+                <label class="form-label">Status <span style="color:#F87171;">*</span></label>
                 <select name="status" class="form-control" required>
                     <option value="Draft" {{ old('status') == 'Draft' ? 'selected' : '' }}>Draft</option>
                     <option value="Pending" {{ old('status') == 'Pending' ? 'selected' : '' }}>Pending</option>
@@ -139,9 +193,9 @@
             <table class="items-table" id="items-table">
                 <thead>
                     <tr>
-                        <th style="width:30%;">Material <span style="color:red;">*</span></th>
-                        <th style="width:10%;">Qty <span style="color:red;">*</span></th>
-                        <th style="width:12%;">Rate <span style="color:red;">*</span></th>
+                        <th style="width:30%;">Material <span style="color:#F87171;">*</span></th>
+                        <th style="width:10%;">Qty <span style="color:#F87171;">*</span></th>
+                        <th style="width:12%;">Rate <span style="color:#F87171;">*</span></th>
                         <th style="width:10%;">Disc %</th>
                         <th style="width:10%;">GST %</th>
                         <th style="width:12%;">GST Amount</th>
@@ -159,19 +213,19 @@
                                 @endforeach
                             </select>
                         </td>
-                        <td><input type="number" name="items[0][qty]" class="form-control qty-input" value="1" step="0.01" min="0.01" required></td>
-                        <td><input type="number" name="items[0][rate]" class="form-control rate-input" value="0.00" step="0.01" min="0.00" required></td>
-                        <td><input type="number" name="items[0][discount_pct]" class="form-control discount-pct-input" value="0" step="0.01" min="0" max="100"></td>
-                        <td><input type="number" name="items[0][gst_pct]" class="form-control gst-pct-input" value="18" step="0.01" min="0" max="100"></td>
-                        <td><input type="text" class="form-control gst-amount-input" value="0.00" readonly></td>
-                        <td><input type="text" class="form-control line-total-input" value="0.00" readonly></td>
-                        <td style="text-align:center;"><button type="button" class="btn-delete remove-row-btn" style="color:red; background:none; border:none; cursor:pointer;"><i class="fa fa-trash"></i></button></td>
+                        <td><input type="number" name="items[0][qty]" class="form-control qty-input" value="1" step="0.01" min="0.01" autocomplete="off" required></td>
+                        <td><input type="number" name="items[0][rate]" class="form-control rate-input" value="0.00" step="0.01" min="0.00" autocomplete="off" required></td>
+                        <td><input type="number" name="items[0][discount_pct]" class="form-control discount-pct-input" value="0" step="0.01" min="0" max="100" autocomplete="off"></td>
+                        <td><input type="number" name="items[0][gst_pct]" class="form-control gst-pct-input" value="18" step="0.01" min="0" max="100" autocomplete="off"></td>
+                        <td><input type="text" class="form-control gst-amount-input" value="0.00" style="background:rgba(255,255,255,0.06) !important; cursor:default;" readonly></td>
+                        <td><input type="text" class="form-control line-total-input" value="0.00" style="background:rgba(255,255,255,0.06) !important; cursor:default;" readonly></td>
+                        <td style="text-align:center;"><button type="button" class="remove-row-btn" title="Remove Item"><i class="fa-solid fa-trash-can"></i></button></td>
                     </tr>
                 </tbody>
             </table>
         </div>
         
-        <button type="button" class="btn-outline" id="add-row-btn" style="margin-top:15px; padding:6px 12px; font-size:12px;"><i class="fa fa-plus"></i> Add Item</button>
+        <button type="button" class="btn-outline" id="add-row-btn" style="margin-top:16px;"><i class="fa-solid fa-plus"></i> Add Item</button>
 
         <div class="summary-box">
             <div class="summary-row">
@@ -204,14 +258,14 @@
             </div>
         </div>
 
-        <div class="form-group" style="margin-top:20px;">
+        <div class="form-group" style="margin-top:24px;">
             <label class="form-label">Remarks / Terms &amp; Conditions</label>
             <textarea name="remarks" class="form-control" rows="3" placeholder="Enter any extra details or terms..."></textarea>
         </div>
 
-        <div style="margin-top:30px; display:flex; gap:10px; justify-content:flex-end;">
+        <div style="margin-top:32px; display:flex; gap:12px; justify-content:flex-end;">
             <a href="{{ route('purchase-orders.index') }}" class="btn-outline">Cancel</a>
-            <button type="submit" class="btn-gold">Save Purchase Order</button>
+            <button type="submit" class="btn-gold"><i class="fa-solid fa-check"></i> Save Purchase Order</button>
         </div>
     </div>
 </form>
@@ -295,13 +349,13 @@
                             @endforeach
                         </select>
                     </td>
-                    <td><input type="number" name="items[${rowCount}][qty]" class="form-control qty-input" value="1" step="0.01" min="0.01" required></td>
-                    <td><input type="number" name="items[${rowCount}][rate]" class="form-control rate-input" value="0.00" step="0.01" min="0.00" required></td>
-                    <td><input type="number" name="items[${rowCount}][discount_pct]" class="form-control discount-pct-input" value="0" step="0.01" min="0" max="100"></td>
-                    <td><input type="number" name="items[${rowCount}][gst_pct]" class="form-control gst-pct-input" value="18" step="0.01" min="0" max="100"></td>
-                    <td><input type="text" class="form-control gst-amount-input" value="0.00" readonly></td>
-                    <td><input type="text" class="form-control line-total-input" value="0.00" readonly></td>
-                    <td style="text-align:center;"><button type="button" class="btn-delete remove-row-btn" style="color:red; background:none; border:none; cursor:pointer;"><i class="fa fa-trash"></i></button></td>
+                    <td><input type="number" name="items[${rowCount}][qty]" class="form-control qty-input" value="1" step="0.01" min="0.01" autocomplete="off" required></td>
+                    <td><input type="number" name="items[${rowCount}][rate]" class="form-control rate-input" value="0.00" step="0.01" min="0.00" autocomplete="off" required></td>
+                    <td><input type="number" name="items[${rowCount}][discount_pct]" class="form-control discount-pct-input" value="0" step="0.01" min="0" max="100" autocomplete="off"></td>
+                    <td><input type="number" name="items[${rowCount}][gst_pct]" class="form-control gst-pct-input" value="18" step="0.01" min="0" max="100" autocomplete="off"></td>
+                    <td><input type="text" class="form-control gst-amount-input" value="0.00" style="background:rgba(255,255,255,0.06) !important; cursor:default;" readonly></td>
+                    <td><input type="text" class="form-control line-total-input" value="0.00" style="background:rgba(255,255,255,0.06) !important; cursor:default;" readonly></td>
+                    <td style="text-align:center;"><button type="button" class="remove-row-btn" title="Remove Item"><i class="fa-solid fa-trash-can"></i></button></td>
                 </tr>
             `;
             itemRows.insertAdjacentHTML('beforeend', template);

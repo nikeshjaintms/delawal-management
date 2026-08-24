@@ -1,4 +1,4 @@
-﻿@extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title','Financial Year Setup')
 @section('page-title','Firm Management')
 
@@ -78,7 +78,7 @@
             <tbody>
             @forelse($years as $i => $year)
                 <tr>
-                    <td>{{ $years->firstItem() + $i }}</td>
+                    <td>{{ method_exists($years, 'firstItem') ? ($years->firstItem() + $i) : ($i + 1) }}</td>
                     <td>
                         <strong>{{ $year->year_name }}</strong>
                         @if($year->is_active)
@@ -118,7 +118,9 @@
             </tbody>
         </table>
     </div>
-    <div class="pagination-wrap">{{ $years->links() }}</div>
+    @if(method_exists($years, 'links'))
+        <div class="pagination-wrap">{{ $years->links() }}</div>
+    @endif
 </div>
 @endsection
 

@@ -72,7 +72,7 @@
             <tbody>
             @forelse($settings as $i => $setting)
                 <tr>
-                    <td>{{ $settings->firstItem() + $i }}</td>
+                    <td>{{ method_exists($settings, 'firstItem') ? ($settings->firstItem() + $i) : ($i + 1) }}</td>
                     <td>{{ $setting->firm_names }}</td>
                     <td>{{ $setting->financialYear->year_name ?? '—' }}</td>
                     <td>
@@ -102,7 +102,9 @@
             </tbody>
         </table>
     </div>
-    <div class="pagination-wrap">{{ $settings->links() }}</div>
+    @if(method_exists($settings, 'links'))
+        <div class="pagination-wrap">{{ $settings->links() }}</div>
+    @endif
 </div>
 @endsection
 

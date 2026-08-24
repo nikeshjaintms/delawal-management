@@ -7,7 +7,7 @@
 /* ── Luxury Dark Glass System ── */
 .crud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
 .crud-title h2 { font-size: 24px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
-.crud-title p { font-size: 13.5px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
+.crud-title p { font-size: 13.5px; color: #FFFFFF !important; font-weight: 700 !important; margin: 0; }
 
 .btn-primary-custom, a.btn-primary-custom, button.btn-primary-custom {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -146,7 +146,7 @@
             <tbody>
             @forelse($firms as $i => $firm)
                 <tr>
-                    <td>{{ $firms->firstItem() + $i }}</td>
+                    <td>{{ method_exists($firms, 'firstItem') ? ($firms->firstItem() + $i) : ($i + 1) }}</td>
                     <td><strong>{{ $firm->firm_name }}</strong></td>
                     <td>{{ $firm->owner_name ?? '—' }}</td>
                     <td>{{ $firm->email ?? '—' }}</td>
@@ -171,7 +171,9 @@
             </tbody>
         </table>
     </div>
-    <div class="pagination-wrap">{{ $firms->links() }}</div>
+    @if(method_exists($firms, 'links'))
+        <div class="pagination-wrap">{{ $firms->links() }}</div>
+    @endif
 </div>
 @endsection
 

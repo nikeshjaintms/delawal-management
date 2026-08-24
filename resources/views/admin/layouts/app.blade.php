@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') - Delawala Management</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -211,16 +212,20 @@
     .menu-link:hover {
         color: #FFFFFF;
         background: rgba(255, 255, 255, 0.06);
+        transform: translateX(3px);
+        border-left: 2px solid rgba(255, 255, 255, 0.3);
     }
     .menu-link:hover i {
-        color: #FFFFFF;
+        color: #60A5FA;
+        transform: scale(1.08);
     }
     .menu-link.active, .menu-link.parent-active {
         color: #FFFFFF;
-        background: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.08);
         font-weight: 700;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) inset;
+        border: none;
+        border-left: 3px solid #3B82F6;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.20);
     }
     .menu-link.active::before, .menu-link.parent-active::before {
         opacity: 1;
@@ -268,17 +273,19 @@
     }
     .submenu-link:hover {
         color: #FFFFFF;
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.05);
+        transform: translateX(3px);
+        border-left: 2px solid rgba(255, 255, 255, 0.25);
     }
     .submenu-link:hover i {
-        color: #FFFFFF;
+        color: #60A5FA;
     }
     .submenu-link.active {
         color: #FFFFFF;
-        background: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.08);
         font-weight: 700;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) inset;
+        border: none;
+        border-left: 3px solid #3B82F6;
     }
     .submenu-link.active i {
         color: #FFFFFF;
@@ -788,48 +795,50 @@
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        min-width: 36px !important;
-        height: 36px !important;
+        min-width: 38px !important;
+        height: 38px !important;
         padding: 0 12px !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
         font-size: 13.5px !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         font-family: var(--font-primary) !important;
-        color: var(--text-primary) !important;
-        background: #FFFFFF !important;
-        border: 1px solid var(--border-color) !important;
+        color: #FFFFFF !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
         text-decoration: none !important;
-        transition: var(--transition) !important;
+        transition: all 0.2s ease !important;
         cursor: pointer !important;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.20) !important;
     }
 
     .page-item:hover,
     .pagination-wrapper nav a:hover,
     .pagination-wrap nav a:hover {
-        background: #F1F5F9 !important;
-        color: #1E40AF !important;
-        border-color: #CBD5E1 !important;
-        transform: translateY(-1px) !important;
+        background: rgba(59, 130, 246, 0.25) !important;
+        color: #FFFFFF !important;
+        border-color: #3B82F6 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35) !important;
     }
 
     .page-item.active,
     .pagination-wrapper nav span[aria-current="page"],
     .pagination-wrap nav span[aria-current="page"] {
-        background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+        background: #2563EB !important;
         color: #FFFFFF !important;
-        border-color: #2563EB !important;
-        box-shadow: 0 2px 8px rgba(59,130,246,0.35) !important;
+        border-color: #3B82F6 !important;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45) !important;
+        font-weight: 800 !important;
     }
 
     .page-item.disabled,
     .pagination-wrapper nav span[aria-disabled="true"],
     .pagination-wrap nav span[aria-disabled="true"] {
-        opacity: 0.45 !important;
+        opacity: 0.40 !important;
         cursor: not-allowed !important;
-        background: #F8FAFC !important;
-        color: var(--text-muted) !important;
-        border-color: var(--border-color) !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        color: rgba(255, 255, 255, 0.35) !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
         box-shadow: none !important;
         transform: none !important;
     }
@@ -1230,6 +1239,121 @@
         --text-muted:    #94A3B8;
         --border-color:  rgba(255, 255, 255, 0.12);
     }
+
+    /* Webkit / Chrome / Edge Browser Autofill & Autocomplete Dark Mode Overrides */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active,
+    textarea:-webkit-autofill,
+    select:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0 1000px #101622 inset !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        caret-color: #FFFFFF !important;
+        transition: background-color 50000s ease-in-out 0s !important;
+    }
+
+    /* Remove ugly white background spin box on Chrome/Edge number inputs */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0 !important;
+    }
+    input[type=number] {
+        -moz-appearance: textfield !important;
+    }
+
+    /* Uniform Export & Print Buttons System (Always Vibrant Solid Colors with Premium Glow) */
+    .btn-export-pdf, .btn-pdf {
+        background: #DC2626 !important;
+        color: #FFFFFF !important;
+        border: 1px solid #EF4444 !important;
+        border-radius: 10px !important;
+        padding: 9px 18px !important;
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        text-decoration: none !important;
+        white-space: nowrap !important;
+        transition: all 0.25s ease !important;
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.40) !important;
+        cursor: pointer !important;
+    }
+    .btn-export-pdf:hover, .btn-pdf:hover {
+        background: #B91C1C !important;
+        color: #FFFFFF !important;
+        border-color: #F87171 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(220, 38, 38, 0.60) !important;
+    }
+
+    .btn-excel, .btn-export, .btn-export-excel {
+        background: #059669 !important;
+        color: #FFFFFF !important;
+        border: 1px solid #10B981 !important;
+        border-radius: 10px !important;
+        padding: 9px 18px !important;
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        text-decoration: none !important;
+        white-space: nowrap !important;
+        transition: all 0.25s ease !important;
+        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.40) !important;
+        cursor: pointer !important;
+    }
+    .btn-excel:hover, .btn-export:hover, .btn-export-excel:hover {
+        background: #047857 !important;
+        color: #FFFFFF !important;
+        border-color: #34D399 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(5, 150, 105, 0.60) !important;
+    }
+
+    .btn-print {
+        background: #4F46E5 !important;
+        color: #FFFFFF !important;
+        border: 1px solid #6366F1 !important;
+        border-radius: 10px !important;
+        padding: 9px 18px !important;
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        text-decoration: none !important;
+        white-space: nowrap !important;
+        transition: all 0.25s ease !important;
+        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.40) !important;
+        cursor: pointer !important;
+    }
+    .btn-print:hover {
+        background: #4338CA !important;
+        color: #FFFFFF !important;
+        border-color: #818CF8 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.60) !important;
+    }
+
+    /* Global Table Text & Firm Name Override for Dark Theme */
+    .table td, .premium-table td, table td {
+        color: #E2E8F0 !important;
+    }
+    .table td strong, .premium-table td strong, table td strong,
+    td strong[style*="color:#0F172A"], td strong[style*="color: #0F172A"] {
+        color: #FFFFFF !important;
+    }
+    .card-box div[style*="color:#0F172A"],
+    .card-box div[style*="color: #0F172A"],
+    .card-box h2, .card-box h3, .card-box h4,
+    .rpt-title-block h2 {
+        color: #FFFFFF !important;
+    }
+
     .card-box:hover, .card:hover, .crud-box:hover, .stat-card:hover, .kpi-card:hover, .sum-card:hover, .section-card:hover, .form-card:hover, .summary-card:hover, .dash-welcome:hover, .rpt-card:hover, .task-item:hover, .pl-stat-card:hover, .gst-stat-card:hover {
         background: rgba(20, 27, 41, 0.80) !important;
         background-color: rgba(20, 27, 41, 0.80) !important;
@@ -1252,13 +1376,15 @@
         font-weight: 800 !important;
         font-size: 32px !important;
     }
-    .dash-welcome-title, .page-header-title, .crud-title h2, .crud-title h3, h1, h2, h3, h4, h5, h6 {
+    .dash-welcome-title, .page-header-title, .crud-title h2, .crud-title h3, .crud-title h1, h1, h2, h3, h4, h5, h6 {
         color: #FFFFFF !important;
         font-weight: 800 !important;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.40);
     }
-    .dash-welcome-sub, .crud-title p, .text-muted, .help-block, p {
-        color: #CBD5E1 !important;
-        font-weight: 500 !important;
+    .dash-welcome-sub, .crud-title p, .crud-header p, .page-header-sub, .page-subtitle, .rpt-title-block p, .crud-title span {
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.40);
     }
     .dash-welcome-tag {
         background: rgba(255, 255, 255, 0.08) !important;
@@ -1302,57 +1428,89 @@
         font-size: 9.5px !important;
     }
     .menu-link {
-        color: #FFFFFF !important;
-        border-radius: 14px !important;
-        transition: all 0.25s ease !important;
-        font-size: 14px !important;
-        font-weight: 700 !important;
+        color: #E2E8F0 !important;
+        border-radius: 10px !important;
+        transition: all 0.2s ease !important;
+        font-size: 13.5px !important;
+        font-weight: 600 !important;
+        border: none !important;
     }
     .menu-link i, .menu-link span, .menu-link .submenu-arrow {
-        color: #FFFFFF !important;
+        color: #94A3B8 !important;
+        transition: all 0.2s ease !important;
     }
     .menu-link:hover {
         color: #FFFFFF !important;
-        background: rgba(255, 255, 255, 0.08) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+        border: none !important;
+        border-left: 2px solid rgba(255, 255, 255, 0.3) !important;
+        transform: translateX(3px) !important;
+        box-shadow: none !important;
     }
-    .menu-link:hover i, .menu-link:hover span, .menu-link:hover .submenu-arrow {
+    .menu-link:hover i {
+        color: #60A5FA !important;
+        transform: scale(1.08) !important;
+        filter: none !important;
+    }
+    .menu-link:hover span {
         color: #FFFFFF !important;
+    }
+    .menu-link:hover .submenu-arrow {
+        color: #60A5FA !important;
+        transform: translateX(2px) !important;
     }
     .menu-link.active, .menu-link.parent-active {
-        background: rgba(255, 255, 255, 0.12) !important;
+        background: rgba(255, 255, 255, 0.08) !important;
         color: #FFFFFF !important;
-        border: 1px solid rgba(255, 255, 255, 0.22) !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) inset !important;
-        border-radius: 14px !important;
+        border: none !important;
+        border-left: 3px solid #3B82F6 !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.20) !important;
+        border-radius: 10px !important;
         font-weight: 700 !important;
     }
-    .menu-link.active i, .menu-link.parent-active i, .menu-link.active span, .menu-link.parent-active span {
+    .menu-link.active i, .menu-link.parent-active i {
+        color: #60A5FA !important;
+        filter: none !important;
+    }
+    .menu-link.active span, .menu-link.parent-active span {
         color: #FFFFFF !important;
     }
     .submenu-link {
-        color: #F8FAFC !important;
-        border-radius: 10px !important;
+        color: #94A3B8 !important;
+        border-radius: 8px !important;
         font-size: 13px !important;
-        font-weight: 600 !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
+        border: none !important;
     }
     .submenu-link i, .submenu-link span {
-        color: #F8FAFC !important;
+        color: #94A3B8 !important;
+        transition: all 0.2s ease !important;
     }
     .submenu-link:hover {
         color: #FFFFFF !important;
-        background: rgba(255, 255, 255, 0.08) !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: none !important;
+        border-left: 2px solid rgba(255, 255, 255, 0.25) !important;
+        transform: translateX(3px) !important;
     }
-    .submenu-link:hover i, .submenu-link:hover span {
+    .submenu-link:hover i {
+        color: #60A5FA !important;
+    }
+    .submenu-link:hover span {
         color: #FFFFFF !important;
     }
     .submenu-link.active {
         color: #FFFFFF !important;
-        background: rgba(255, 255, 255, 0.15) !important;
-        border: 1px solid rgba(255, 255, 255, 0.20) !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: none !important;
+        border-left: 3px solid #3B82F6 !important;
         font-weight: 700 !important;
     }
-    .submenu-link.active i, .submenu-link.active span {
+    .submenu-link.active i {
+        color: #60A5FA !important;
+    }
+    .submenu-link.active span {
         color: #FFFFFF !important;
     }
 
@@ -1778,21 +1936,21 @@
         </li>
 
         {{-- Firm Management --}}
+        @if(session('login_type') !== 'firm' && empty($authUser->firm_id))
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="Firm Management">
                 <i class="fa-solid fa-building"></i><span>Firm Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">
-                @if(!session('login_type') === 'firm' || session('login_type') !== 'firm')
                 <li class="submenu-item">
                     <a href="{{ route('firm-master.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'firm-master.') ? 'active' : '' }}">
                         <i class="fa-solid fa-building"></i><span>Firms</span>
                     </a>
                 </li>
-                @endif
             </ul>
         </li>
+        @endif
 
         {{-- 1. Property Management --}}
         <li class="menu-item">
@@ -1857,6 +2015,13 @@
                                 <i class="fa-solid fa-box"></i><span>Material Master</span>
                             </a>
                         </li>
+                        @if($authUser->hasPermission('purchase_order_view'))
+                        <li class="submenu-item">
+                            <a href="{{ route('purchase-orders.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'purchase-orders.') ? 'active' : '' }}">
+                                <i class="fa-solid fa-file-invoice"></i><span>Purchase Order</span>
+                            </a>
+                        </li>
+                        @endif
                         <li class="submenu-item">
                             <a href="{{ route('stock-inwards.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'stock-inwards.') ? 'active' : '' }}">
                                 <i class="fa-solid fa-arrow-down-to-bracket"></i><span>Stock Inward</span>
@@ -1867,13 +2032,6 @@
                                 <i class="fa-solid fa-arrow-up-from-bracket"></i><span>Stock Outward</span>
                             </a>
                         </li>
-                        @if($authUser->hasPermission('purchase_order_view'))
-                        <li class="submenu-item">
-                            <a href="{{ route('purchase-orders.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'purchase-orders.') ? 'active' : '' }}">
-                                <i class="fa-solid fa-file-invoice"></i><span>Purchase Order</span>
-                            </a>
-                        </li>
-                        @endif
                         <li class="submenu-item">
                             <a href="{{ route('stock-report.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'stock-report.') ? 'active' : '' }}">
                                 <i class="fa-solid fa-chart-bar"></i><span>Current Stock Report</span>
@@ -2127,7 +2285,7 @@
         @endif
 
         {{-- 9. Utilities --}}
-        @if(session('login_type') !== 'firm')
+        @if(session('login_type') !== 'firm' && empty($authUser->firm_id))
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="9. Utilities">
                 <i class="fa-solid fa-screwdriver-wrench"></i><span>9. Utilities</span>
@@ -2154,7 +2312,7 @@
         @endif
 
         {{-- 10. Settings --}}
-        @if(session('login_type') !== 'firm')
+        @if(session('login_type') !== 'firm' && empty($authUser->firm_id))
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="10. Settings">
                 <i class="fa-solid fa-gears"></i><span>10. Settings</span>
@@ -2525,6 +2683,234 @@ $(document).ready(function() {
     }
 });
 </script>
-<script src="{{ asset('js/validation.js') }}?v={{ time() }}"></script>
+<style>
+/* ── UNIVERSAL HEADER & SUBTITLE WHITE BOLD STYLING ACROSS ALL MODULES ── */
+html body .crud-title h2,
+html body .crud-title h1,
+html body .crud-title h3,
+html body .page-header-title,
+html body .dash-welcome-title,
+html body .rpt-title-block h2 {
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
+}
+
+html body .crud-title p,
+html body .crud-header p,
+html body .page-header-sub,
+html body .page-subtitle,
+html body .dash-welcome-sub,
+html body .rpt-title-block p,
+html body .crud-title span,
+html body .card-title-sub,
+html body .page-header p,
+html body .panel-subtitle {
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.50) !important;
+}
+
+/* ── UNIVERSAL DARK GLASS TABLE HEADER ── */
+html body .card-box table thead th,
+html body table.projects-table thead th,
+html body table.table thead th,
+html body .table thead th {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #94A3B8 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10) !important;
+}
+
+/* ── UNIVERSAL DARK GLASS PAGINATION ── */
+html body .page-item,
+html body .pagination-wrapper nav a,
+html body .pagination-wrapper nav span,
+html body .pagination-wrap nav a,
+html body .pagination-wrap nav span,
+html body .pagination-buttons .page-item {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20) !important;
+}
+
+html body .page-item:hover,
+html body .pagination-wrapper nav a:hover,
+html body .pagination-wrap nav a:hover,
+html body .pagination-buttons a.page-item:hover {
+    background: rgba(59, 130, 246, 0.25) !important;
+    color: #FFFFFF !important;
+    border-color: #3B82F6 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35) !important;
+}
+
+html body .page-item.active,
+html body .pagination-wrapper nav span[aria-current="page"],
+html body .pagination-wrap nav span[aria-current="page"],
+html body .pagination-buttons span.page-item.active {
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+    border-color: #3B82F6 !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45) !important;
+    font-weight: 800 !important;
+}
+
+html body .page-item.disabled,
+html body .pagination-wrapper nav span[aria-disabled="true"],
+html body .pagination-wrap nav span[aria-disabled="true"],
+html body .pagination-buttons span.page-item.disabled {
+    opacity: 0.40 !important;
+    cursor: not-allowed !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: rgba(255, 255, 255, 0.35) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+/* ── UNIVERSAL CODE CHIP BADGES ── */
+html body code,
+html body .code-chip {
+    background: rgba(59, 130, 246, 0.15) !important;
+    color: #60A5FA !important;
+    border: 1px solid rgba(59, 130, 246, 0.30) !important;
+    padding: 3px 8px !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    font-family: monospace !important;
+    display: inline-block !important;
+}
+
+/* ── UNIVERSAL PROPERTY PREVIEW INFO BOX ── */
+html body .prop-info-box,
+html body .property-preview-box,
+html body .info-preview-box {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 14px !important;
+    padding: 14px 18px !important;
+    margin-top: 14px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20) !important;
+}
+
+html body .prop-info-box .pi-item,
+html body .property-preview-box .pi-item {
+    color: #94A3B8 !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+}
+
+html body .prop-info-box .pi-item strong,
+html body .property-preview-box .pi-item strong {
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
+}
+/* ── UNIVERSAL LUXURY DARK GLASS ALERTS ── */
+html body .alert-success,
+html body .alert-succ {
+    background: rgba(16, 185, 129, 0.16) !important;
+    border: 1px solid rgba(16, 185, 129, 0.38) !important;
+    color: #34D399 !important;
+    border-radius: 12px !important;
+    padding: 14px 18px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.20) !important;
+}
+
+html body .alert-err,
+html body .alert-danger,
+html body .alert-error {
+    background: rgba(239, 68, 68, 0.16) !important;
+    border: 1px solid rgba(239, 68, 68, 0.38) !important;
+    color: #F87171 !important;
+    border-radius: 12px !important;
+    padding: 14px 18px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.20) !important;
+}
+
+/* ── UNIVERSAL WHITE CALENDAR & TIME ICONS FOR ALL DATE INPUTS ── */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+.form-control[type="date"]::-webkit-calendar-picker-indicator,
+.form-control[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.m-form-control[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(100%) saturate(0%) !important;
+    -webkit-filter: invert(1) brightness(100%) saturate(0%) !important;
+    cursor: pointer !important;
+    opacity: 0.95 !important;
+    padding: 2px !important;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="month"]::-webkit-calendar-picker-indicator:hover,
+.form-control[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1 !important;
+    transform: scale(1.15);
+}
+
+/* ── UNIVERSAL EXPORT & PRINT SOLID VIBRANT BUTTONS ── */
+html body .btn-export-pdf,
+html body .btn-pdf {
+    background: #DC2626 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #EF4444 !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.40) !important;
+}
+html body .btn-export-pdf:hover,
+html body .btn-pdf:hover {
+    background: #B91C1C !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.60) !important;
+}
+
+html body .btn-excel,
+html body .btn-export,
+html body .btn-export-excel {
+    background: #059669 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #10B981 !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.40) !important;
+}
+html body .btn-excel:hover,
+html body .btn-export:hover,
+html body .btn-export-excel:hover {
+    background: #047857 !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.60) !important;
+}
+
+html body .btn-print {
+    background: #4F46E5 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #6366F1 !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.40) !important;
+}
+html body .btn-print:hover {
+    background: #4338CA !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.60) !important;
+}
+</style>
 </body>
 </html>

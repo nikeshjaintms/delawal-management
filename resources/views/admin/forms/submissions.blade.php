@@ -248,7 +248,7 @@
             <tbody>
                 @forelse($submissions as $key => $sub)
                     <tr>
-                        <td>{{ $submissions->firstItem() + $key }}</td>
+                        <td>{{ method_exists($submissions, 'firstItem') ? ($submissions->firstItem() + $key) : ($key + 1) }}</td>
                         @if(auth()->user() && auth()->user()->isAdmin())
                             <td><strong>{{ $sub->firm->firm_name ?? '-' }}</strong></td>
                         @endif
@@ -279,8 +279,10 @@
         </table>
     </div>
 
-    <div class="pagination-wrapper">
-        {{ $submissions->appends(request()->query())->links() }}
-    </div>
+    @if(method_exists($submissions, 'links'))
+        <div class="pagination-wrapper">
+            {{ $submissions->appends(request()->query())->links() }}
+        </div>
+    @endif
 </div>
 @endsection

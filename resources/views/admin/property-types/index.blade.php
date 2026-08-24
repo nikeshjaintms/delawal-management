@@ -283,7 +283,7 @@
             <tbody>
                 @forelse($propertyTypes as $key => $type)
                     <tr>
-                        <td>{{ $propertyTypes->firstItem() + $key }}</td>
+                        <td>{{ method_exists($propertyTypes, 'firstItem') ? ($propertyTypes->firstItem() + $key) : ($key + 1) }}</td>
                         <td>{{ $type->firm_names }}</td>
                         <td><strong>{{ $type->name }}</strong></td>
                         <td>
@@ -327,9 +327,11 @@
         </table>
     </div>
 
-    <div class="pagination-wrapper">
-        {{ $propertyTypes->appends(request()->query())->links() }}
-    </div>
+    @if(method_exists($propertyTypes, 'links'))
+        <div class="pagination-wrapper">
+            {{ $propertyTypes->appends(request()->query())->links() }}
+        </div>
+    @endif
 </div>
 @endsection
 

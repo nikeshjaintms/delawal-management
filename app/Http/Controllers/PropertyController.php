@@ -247,21 +247,26 @@ class PropertyController extends Controller
     // ----------------------------------------------------------------
     // DOWNLOAD EXCEL TEMPLATE
     // ----------------------------------------------------------------
-    public function downloadTemplate()
+    public function downloadTemplate(Request $request)
     {
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
 
         if ($isAdmin) {
-            $projects = \App\Models\Project::orderBy('project_name')->get();
+            $projects = \App\Models\Project::with('firm')->orderBy('project_name')->get();
             $propertyTypes = PropertyType::orderBy('name')->get();
             $firms = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
         } else {
-            $projects = \App\Models\Project::where('firm_id', $firmId)->orderBy('project_name')->get();
+            $projects = \App\Models\Project::with('firm')->where('firm_id', $firmId)->orderBy('project_name')->get();
             $propertyTypes = PropertyType::whereHas('firms', function ($q) use ($firmId) {
                 $q->where('firms.id', $firmId);
             })->orderBy('name')->get();
             $firms = \App\Models\Firm::where('id', $firmId)->get();
+        }
+
+        $contextProject = null;
+        if ($request->filled('project_id')) {
+            $contextProject = \App\Models\Project::with('firm')->find($request->project_id);
         }
 
         $spreadsheet = new Spreadsheet();
@@ -295,8 +300,8 @@ class PropertyController extends Controller
         }
 
         // Sample Data Row
-        $sampleFirm = $firms->first()?->firm_name ?? 'Delawala Builders';
-        $sampleProject = $projects->first()?->project_name ?? 'Delawala Residency';
+        $sampleFirm = $contextProject?->firm?->firm_name ?? ($firms->first()?->firm_name ?? 'Delawala Builders');
+        $sampleProject = $contextProject?->project_name ?? ($projects->first()?->project_name ?? 'Delawala Residency');
         $sampleType = $propertyTypes->first()?->name ?? 'Plot';
 
         $sheet->setCellValue('A2', $sampleFirm);
@@ -627,6 +632,10 @@ class PropertyController extends Controller
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         $userFirmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
 
+        $contextProjectId = $request->input('context_project_id');
+        $contextProject = $contextProjectId ? \App\Models\Project::with('firm')->find($contextProjectId) : null;
+        $contextFirmId = $request->input('context_firm_id') ?: ($contextProject?->firm_id);
+
         $firms = \App\Models\Firm::all();
         $firmsByName = $firms->pluck('id', 'firm_name')->mapWithKeys(fn($id, $name) => [strtolower(trim($name)) => $id]);
 
@@ -712,7 +721,7 @@ class PropertyController extends Controller
             $description = isset($columnMap['description']) ? trim((string) ($rowData[$columnMap['description']] ?? '')) : null;
             $imageFilename = isset($columnMap['image']) ? trim((string) ($rowData[$columnMap['image']] ?? '')) : null;
 
-            // Firm Assignment
+            // Firm Assignment with Context Support
             $targetFirmId = null;
             $targetFirmName = '';
             if ($isAdmin) {
@@ -721,23 +730,36 @@ class PropertyController extends Controller
                     if (isset($firmsByName[$firmKey])) {
                         $targetFirmId = $firmsByName[$firmKey];
                         $targetFirmName = $firmInput;
+                    } elseif ($contextProject && (strtolower(trim($contextProject->firm?->firm_name ?? '')) === $firmKey || str_contains($firmKey, strtolower(trim($contextProject->firm?->firm_name ?? ''))))) {
+                        $targetFirmId = $contextProject->firm_id;
+                        $targetFirmName = $contextProject->firm?->firm_name ?? $firmInput;
+                    } elseif ($contextFirmId) {
+                        $targetFirmId = $contextFirmId;
+                        $targetFirmName = $firms->firstWhere('id', $targetFirmId)?->firm_name ?? $firmInput;
                     } else {
                         $errors[] = "Invalid Firm '{$firmInput}'. Firm does not exist.";
                     }
                 } else {
-                    $targetFirmId = $userFirmId ?: ($firms->first()?->id);
+                    $targetFirmId = $contextFirmId ?: ($userFirmId ?: ($firms->first()?->id));
                     $targetFirmName = $firms->firstWhere('id', $targetFirmId)?->firm_name ?? 'Default Firm';
                 }
             } else {
-                $targetFirmId = $userFirmId;
+                $targetFirmId = $contextFirmId ?: $userFirmId;
                 $targetFirmName = $firms->firstWhere('id', $targetFirmId)?->firm_name ?? '';
             }
 
-            // Project Validation with Smart Fallback
+            // Project Validation with Smart Fallback & Context Prioritization
             $projectId = null;
             $projectName = '';
-            if (empty($projectInput)) {
-                $defaultProj = \App\Models\Project::where('firm_id', $targetFirmId)->first() ?: $projects->first();
+            $projKey = strtolower(trim($projectInput));
+
+            if ($contextProject && (empty($projectInput) || strtolower(trim($contextProject->project_name)) === $projKey || strtolower(trim($contextProject->project_code)) === $projKey)) {
+                $projectId = $contextProject->id;
+                $projectName = $contextProject->project_name;
+                $targetFirmId = $contextProject->firm_id;
+                $targetFirmName = $contextProject->firm?->firm_name ?? $targetFirmName;
+            } elseif (empty($projectInput)) {
+                $defaultProj = $contextProject ?: (\App\Models\Project::where('firm_id', $targetFirmId)->first() ?: $projects->first());
                 if ($defaultProj) {
                     $projectId = $defaultProj->id;
                     $projectName = $defaultProj->project_name;
@@ -745,22 +767,34 @@ class PropertyController extends Controller
                     $errors[] = 'Project Name is required.';
                 }
             } else {
-                $projKey = strtolower($projectInput);
                 if ($targetFirmId && isset($projectsByKey[$targetFirmId][$projKey])) {
                     $projectId = $projectsByKey[$targetFirmId][$projKey];
                     $projectName = $projectInput;
+                } elseif ($contextProject && (strtolower(trim($contextProject->project_name)) === $projKey || strtolower(trim($contextProject->project_code)) === $projKey)) {
+                    $projectId = $contextProject->id;
+                    $projectName = $contextProject->project_name;
                 } else {
-                    $globalMatch = $projects->first(fn($p) => strtolower($p->project_name) === $projKey || strtolower($p->project_code) === $projKey || str_contains(strtolower($p->project_name), $projKey));
-                    if ($globalMatch) {
-                        $projectId = $globalMatch->id;
-                        $projectName = $globalMatch->project_name;
+                    $firmMatch = $projects->where('firm_id', $targetFirmId)->first(fn($p) => strtolower(trim($p->project_name)) === $projKey || strtolower(trim($p->project_code)) === $projKey);
+                    if ($firmMatch) {
+                        $projectId = $firmMatch->id;
+                        $projectName = $firmMatch->project_name;
                     } else {
-                        $defaultProj = \App\Models\Project::where('firm_id', $targetFirmId)->first() ?: $projects->first();
-                        if ($defaultProj) {
-                            $projectId = $defaultProj->id;
-                            $projectName = $defaultProj->project_name;
+                        $globalMatch = $projects->first(fn($p) => strtolower(trim($p->project_name)) === $projKey || strtolower(trim($p->project_code)) === $projKey || str_contains(strtolower(trim($p->project_name)), $projKey));
+                        if ($globalMatch) {
+                            $projectId = $globalMatch->id;
+                            $projectName = $globalMatch->project_name;
+                            if (empty($firmInput)) {
+                                $targetFirmId = $globalMatch->firm_id;
+                                $targetFirmName = $globalMatch->firm?->firm_name ?? $targetFirmName;
+                            }
                         } else {
-                            $errors[] = "Invalid Project '{$projectInput}'. No matching project found.";
+                            $defaultProj = $contextProject ?: (\App\Models\Project::where('firm_id', $targetFirmId)->first() ?: $projects->first());
+                            if ($defaultProj) {
+                                $projectId = $defaultProj->id;
+                                $projectName = $defaultProj->project_name;
+                            } else {
+                                $errors[] = "Invalid Project '{$projectInput}'. No matching project found.";
+                            }
                         }
                     }
                 }

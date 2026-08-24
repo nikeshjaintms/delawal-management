@@ -3,41 +3,119 @@
 @section('page-title', 'Expense Management')
 @section('content')
 <style>
-    .crud-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
-    .crud-title h2{font-size:22px;font-weight:700;color:var(--text-primary);margin-bottom:4px;}
-    .crud-title p{font-size:13.5px;color:var(--text-secondary);}
-    .card-box{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:30px;box-shadow:var(--soft-shadow);max-width:900px;margin:0 auto;}
-    .section-title{font-size:13px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:8px;}
-    .form-section{margin-bottom:28px;}
-    .form-group{margin-bottom:20px;}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-    .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
-    @media(max-width:768px){.form-row-3{grid-template-columns:1fr 1fr;}}
-    @media(max-width:576px){.form-row,.form-row-3{grid-template-columns:1fr;gap:0;}}
-    .form-label{display:block;font-size:13.5px;font-weight:600;color:var(--text-primary);margin-bottom:8px;}
-    .form-label span{color:#EF4444;}
-    .form-label .opt{color:var(--text-secondary);font-weight:400;font-size:12px;}
-    .form-control{width:100%;padding:10px 14px;border:1px solid var(--border-color);border-radius:8px;font-size:14px;font-family:var(--font-primary);color:var(--text-primary);outline:none;transition:var(--transition);background:#FFF;}
-    .form-control:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-light);}
-    textarea.form-control{resize:vertical;min-height:90px;}
-    .file-upload-box{border:2px dashed var(--border-color);border-radius:10px;padding:20px;text-align:center;transition:var(--transition);cursor:pointer;background:#FAFAFA;}
-    .file-upload-box:hover{border-color:var(--gold);background:var(--gold-light);}
-    .file-upload-box input[type="file"]{display:none;}
-    .file-upload-label{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;}
-    .file-upload-label i{font-size:24px;color:var(--gold);}
-    .file-upload-label .upload-text{font-size:13.5px;font-weight:600;color:var(--text-primary);}
-    .file-upload-label .upload-hint{font-size:12px;color:var(--text-secondary);}
-    .current-file{display:flex;align-items:center;gap:10px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:10px 14px;margin-top:10px;}
-    .current-file i{color:#1D4ED8;font-size:18px;}
-    .current-file a{color:#1D4ED8;font-size:13px;font-weight:600;text-decoration:none;}
-    .current-file a:hover{text-decoration:underline;}
-    #file-name-display{margin-top:8px;font-size:12.5px;color:var(--text-secondary);}
-    .text-error{color:#EF4444;font-size:12.5px;margin-top:6px;font-weight:500;}
-    .form-actions{display:flex;align-items:center;gap:15px;margin-top:30px;padding-top:20px;border-top:1px solid var(--border-color);}
-    .btn-gold{background-color:var(--gold);color:#FFF;padding:11px 24px;border-radius:8px;font-size:14px;font-weight:600;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:var(--transition);box-shadow:0 4px 10px rgba(212,175,55,0.2);font-family:var(--font-primary);}
-    .btn-gold:hover{background-color:#B58D1B;transform:translateY(-1px);}
-    .btn-outline{border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);padding:11px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;transition:var(--transition);}
-    .btn-outline:hover{background:#F9FAFB;color:var(--text-primary);border-color:#D1D5DB;}
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+.crud-title h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
+
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 32px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 28px;
+    max-width: 900px; margin-left: auto; margin-right: auto;
+}
+
+.section-title {
+    font-size: 12px; font-weight: 800; color: #60A5FA !important; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 18px; padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10); display: flex; align-items: center; gap: 8px;
+}
+.form-section { margin-bottom: 30px; }
+.form-group { margin-bottom: 20px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+@media(max-width:768px){ .form-row-3 { grid-template-columns: 1fr 1fr; } }
+@media(max-width:576px){ .form-row, .form-row-3 { grid-template-columns: 1fr; gap: 0; } }
+
+.form-label { display: block; font-size: 13px; font-weight: 700; color: #CBD5E1 !important; margin-bottom: 8px; }
+.form-label span { color: #F87171 !important; }
+.form-label .opt { color: #94A3B8 !important; font-weight: 400; font-size: 12px; }
+
+.form-control {
+    width: 100%; padding: 10px 14px; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 14px; color: #FFFFFF !important; outline: none; transition: all .2s ease;
+    box-sizing: border-box !important;
+}
+select.form-control option { background: #101622 !important; color: #FFFFFF !important; }
+.form-control::placeholder { color: #94A3B8 !important; }
+.form-control:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
+.form-control-readonly { background: rgba(255, 255, 255, 0.05) !important; color: #94A3B8 !important; border: 1px solid rgba(255, 255, 255, 0.10) !important; cursor: default; }
+textarea.form-control { resize: vertical; min-height: 90px; }
+
+/* File Upload Glass Dropzone */
+.file-upload-box {
+    border: 2px dashed rgba(255, 255, 255, 0.20) !important;
+    border-radius: 16px !important; padding: 28px !important; text-align: center;
+    transition: all .25s ease; cursor: pointer;
+    background: rgba(16, 22, 34, 0.50) !important;
+}
+.file-upload-box:hover {
+    border-color: #3B82F6 !important;
+    background: rgba(37, 99, 235, 0.12) !important;
+}
+.file-upload-box input[type="file"] { display: none; }
+.file-upload-label { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+.file-upload-label i { font-size: 28px; color: #60A5FA !important; }
+.file-upload-label .upload-text { font-size: 14px; font-weight: 700; color: #FFFFFF !important; }
+.file-upload-label .upload-hint { font-size: 12px; color: #94A3B8 !important; }
+
+.current-file {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(59, 130, 246, 0.12) !important;
+    border: 1px solid rgba(59, 130, 246, 0.30) !important;
+    border-radius: 12px !important; padding: 12px 16px !important; margin-bottom: 12px;
+}
+.current-file i { color: #60A5FA !important; font-size: 20px; }
+.current-file a { color: #60A5FA !important; font-size: 13.5px; font-weight: 700; text-decoration: none !important; }
+.current-file a:hover { text-decoration: underline !important; color: #93C5FD !important; }
+
+#file-name-display { margin-top: 8px; font-size: 13px; color: #94A3B8 !important; }
+.text-error { color: #F87171 !important; font-size: 12.5px; margin-top: 6px; font-weight: 600; }
+
+/* Select2 Glass Styling Overrides */
+.select2-container--default .select2-selection--multiple,
+.select2-container--default .select2-selection--single {
+    background-color: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px !important;
+    color: #FFFFFF !important; min-height: 42px !important; padding: 4px 8px !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: rgba(37, 99, 235, 0.35) !important;
+    border: 1px solid rgba(59, 130, 246, 0.50) !important;
+    color: #FFFFFF !important; border-radius: 6px !important; font-weight: 600; padding: 3px 8px !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #F87171 !important; margin-right: 6px !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #FFFFFF !important; line-height: 32px !important;
+}
+.select2-dropdown { background-color: #101622 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; }
+.select2-results__option { color: #CBD5E1 !important; }
+.select2-results__option--highlighted[aria-selected] { background-color: #2563EB !important; color: #FFFFFF !important; }
+
+.form-actions { display: flex; align-items: center; gap: 14px; margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
+
+.btn-gold {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 11px 24px;
+    border-radius: 12px; font-size: 14px; font-weight: 700; border: 1px solid #3B82F6 !important;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all .25s ease;
+    box-shadow: 0 4px 18px rgba(37,99,235,0.38); font-family: inherit;
+}
+.btn-gold:hover { background: #1D4ED8 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(37,99,235,0.52); }
+
+.btn-outline {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 22px; background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important; font-size: 13.5px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+}
+.btn-outline:hover { background: rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; transform: translateY(-2px); }
 </style>
 
 <div class="crud-header">
@@ -104,7 +182,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="project_display">Project</label>
-                    <input type="text" id="project_display" class="form-control" readonly placeholder="Auto-determined" style="background-color:#F9FAFB; cursor:not-allowed;">
+                    <input type="text" id="project_display" class="form-control form-control-readonly" readonly placeholder="Auto-determined">
                 </div>
             </div>
         </div>
@@ -169,14 +247,14 @@
                     <div class="current-file">
                         <i class="fa-solid fa-file-lines"></i>
                         <div>
-                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:2px;">Current file:</div>
+                            <div style="font-size:12px;color:#94A3B8;margin-bottom:2px;">Current file:</div>
                             <a href="{{ asset('storage/'.$expense->bill_file) }}" target="_blank">
                                 <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:11px;"></i>
                                 View Current Bill
                             </a>
                         </div>
                     </div>
-                    <div style="font-size:12px;color:var(--text-secondary);margin:8px 0 10px;">Upload a new file below to replace the existing one.</div>
+                    <div style="font-size:12px;color:#CBD5E1;margin:8px 0 10px;">Upload a new file below to replace the existing one.</div>
                 @endif
                 <div class="file-upload-box" onclick="document.getElementById('bill_file').click()">
                     <label class="file-upload-label">

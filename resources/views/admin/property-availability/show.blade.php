@@ -4,32 +4,86 @@
 
 @section('content')
 <style>
-.btn-pc{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;min-height:42px;background:linear-gradient(135deg,#1E5AA8,#2F6FE4);color:#fff!important;font-size:14px;font-weight:600;line-height:1;border:none;border-radius:10px;text-decoration:none!important;box-shadow:0 8px 20px rgba(47,111,228,.25);transition:all .25s ease;cursor:pointer;font-family:var(--font-primary)}
-.btn-pc:hover{color:#fff!important;transform:translateY(-2px)}
-.btn-sc{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;min-height:42px;background:#fff;color:#1E5AA8!important;font-size:14px;font-weight:600;line-height:1;border:1px solid rgba(30,90,168,.25);border-radius:10px;text-decoration:none!important;box-shadow:0 6px 16px rgba(30,90,168,.12);transition:all .25s ease;cursor:pointer;font-family:var(--font-primary)}
-.btn-sc:hover{background:#EEF3FA;color:#10233F!important;transform:translateY(-2px)}
-.crud-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px}
-.crud-title h2{font-size:22px;font-weight:700;color:var(--text-primary);margin-bottom:4px}
-.header-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.detail-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;padding:28px 32px;box-shadow:var(--card-shadow);margin-bottom:24px;max-width:800px}
-.section-heading{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--blue);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--blue-light);display:flex;align-items:center;gap:8px}
-.detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px}
+/* ── Luxury Dark Glass System ── */
+.btn-pc, .btn-primary-custom {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; min-height: 42px; background: #2563EB !important;
+    color: #FFFFFF !important; font-size: 14px; font-weight: 700; border: 1px solid #3B82F6 !important;
+    border-radius: 10px; text-decoration: none !important; box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+    transition: all .25s ease; cursor: pointer;
+}
+.btn-pc:hover, .btn-primary-custom:hover {
+    background: #1D4ED8 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(37,99,235,0.50);
+}
+
+.btn-sc, .btn-secondary-custom {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; min-height: 42px; background: rgba(255, 255, 255, 0.06) !important;
+    color: #CBD5E1 !important; font-size: 14px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+}
+.btn-sc:hover, .btn-secondary-custom:hover {
+    background: rgba(255, 255, 255, 0.12) !important; color: #FFFFFF !important; transform: translateY(-2px);
+}
+
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.crud-title h2 { font-size: 24px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 14px; color: #FFFFFF !important; font-weight: 700 !important; margin: 0; }
+.header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.detail-card {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 20px !important;
+    padding: 28px 32px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+    margin-bottom: 24px;
+    max-width: 860px;
+}
+
+.section-heading {
+    font-size: 13.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: #60A5FA !important;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
 @media(max-width:768px){.detail-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.detail-grid{grid-template-columns:1fr}}
-.detail-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-secondary);margin-bottom:5px}
-.detail-value{font-size:14.5px;font-weight:600;color:var(--text-primary)}
-.prop-link{color:var(--blue)!important;text-decoration:none;font-weight:600}
-.prop-link:hover{text-decoration:underline}
-/* status badges */
-.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:12px;font-weight:700;border-radius:20px;text-transform:uppercase;letter-spacing:.4px}
-.badge i{font-size:10px}
-.badge-available   {background:rgba(16,185,129,.12);color:#065F46;border:1px solid rgba(16,185,129,.25)}
-.badge-booked      {background:rgba(59,130,246,.12);color:#1D4ED8;border:1px solid rgba(59,130,246,.25)}
-.badge-sold        {background:rgba(239,68,68,.10);color:#991B1B;border:1px solid rgba(239,68,68,.22)}
-.badge-rented      {background:rgba(249,115,22,.12);color:#9A3412;border:1px solid rgba(249,115,22,.25)}
-.badge-reserved    {background:rgba(139,92,246,.12);color:#5B21B6;border:1px solid rgba(139,92,246,.25)}
-.badge-under_maintenance{background:rgba(100,116,139,.10);color:#334155;border:1px solid rgba(100,116,139,.22)}
-.prop-type-pill{display:inline-flex;align-items:center;gap:5px;background:var(--blue-light);color:var(--blue);font-size:12px;font-weight:600;border-radius:6px;padding:3px 10px;border:1px solid rgba(59,130,246,.15)}
+
+.detail-label {
+    font-size: 11.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: #94A3B8 !important;
+    margin-bottom: 6px;
+}
+.detail-value { font-size: 15px; font-weight: 700; color: #FFFFFF !important; }
+.prop-link { color: #60A5FA !important; text-decoration: none; font-weight: 700; }
+.prop-link:hover { text-decoration: underline; }
+
+/* Status Badges */
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 11.5px; font-weight: 800; border-radius: 20px; text-transform: uppercase; letter-spacing: .4px; }
+.badge i { font-size: 7px; }
+.badge-available   { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-booked      { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.badge-sold        { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+.badge-rented      { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
+.badge-reserved    { background: rgba(139, 92, 246, 0.18) !important; color: #A78BFA !important; border: 1px solid rgba(139, 92, 246, 0.35) !important; }
+.badge-under_maintenance { background: rgba(148, 163, 184, 0.18) !important; color: #CBD5E1 !important; border: 1px solid rgba(148, 163, 184, 0.35) !important; }
+
+.prop-type-pill { display: inline-flex; align-items: center; gap: 5px; background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; font-size: 12px; font-weight: 700; border-radius: 6px; padding: 4px 10px; border: 1px solid rgba(59, 130, 246, 0.30); }
 </style>
 
 <div class="crud-header">
@@ -64,7 +118,7 @@
                 @if($record->property?->propertyType)
                     <span class="prop-type-pill">{{ $record->property->propertyType->name }}</span>
                 @else
-                    <span style="color:var(--text-muted);font-weight:400">—</span>
+                    <span style="color:#94A3B8;font-weight:400">—</span>
                 @endif
             </div>
         </div>
@@ -74,7 +128,7 @@
         </div>
         <div>
             <div class="detail-label">Property Code</div>
-            <div class="detail-value">{{ $record->property->property_code ?? '—' }}</div>
+            <div class="detail-value"><code class="code-chip">{{ $record->property->property_code ?? '—' }}</code></div>
         </div>
         <div>
             <div class="detail-label">City</div>
@@ -82,7 +136,7 @@
         </div>
         <div>
             <div class="detail-label">Location</div>
-            <div class="detail-value" style="font-weight:400">{{ $record->property->location ?? '—' }}</div>
+            <div class="detail-value">{{ $record->property->location ?? '—' }}</div>
         </div>
     </div>
 </div>
@@ -109,20 +163,20 @@
         </div>
         <div>
             <div class="detail-label">Created At</div>
-            <div class="detail-value" style="font-size:13.5px;font-weight:400">
+            <div class="detail-value" style="font-size:13.5px;color:#CBD5E1">
                 {{ $record->created_at->format('d M Y, h:i A') }}
             </div>
         </div>
         <div>
             <div class="detail-label">Last Updated</div>
-            <div class="detail-value" style="font-size:13.5px;font-weight:400">
+            <div class="detail-value" style="font-size:13.5px;color:#CBD5E1">
                 {{ $record->updated_at->format('d M Y, h:i A') }}
             </div>
         </div>
         @if($record->remarks)
         <div style="grid-column:1/-1">
             <div class="detail-label">Remarks</div>
-            <div class="detail-value" style="font-weight:400;font-size:14px;line-height:1.65">
+            <div class="detail-value" style="font-size:14px;line-height:1.6;color:#CBD5E1">
                 {{ $record->remarks }}
             </div>
         </div>

@@ -3,43 +3,98 @@
 @section('page-title','GST / Accounts')
 @section('content')
 <style>
-.crud-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:15px;}
-.crud-title h2{font-size:22px;font-weight:800;color:#0F172A;margin-bottom:4px;}
-.crud-title p{font-size:13.5px;color:#64748B;}
-.card-box{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:30px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 20px rgba(0,0,0,0.05);max-width:900px;margin:0 auto;}
-.cn-hero{display:flex;align-items:flex-start;gap:18px;padding-bottom:22px;margin-bottom:22px;border-bottom:1px solid #E2E8F0;flex-wrap:wrap;}
-.cn-icon{width:58px;height:58px;border-radius:12px;background:rgba(16,185,129,0.08);border:2px solid rgba(16,185,129,0.2);display:flex;align-items:center;justify-content:center;font-size:24px;color:#10B981;flex-shrink:0;}
-.cn-hero-info h3{font-size:19px;font-weight:800;color:#0F172A;margin-bottom:5px;}
-.cn-hero-info p{font-size:13.5px;color:#64748B;margin-bottom:8px;}
-.hero-badges{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-.cn-badge{display:inline-block;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;}
-.cn-approved{background:rgba(16,185,129,0.1);color:#065F46;}
-.cn-pending{background:rgba(245,158,11,0.1);color:#92400E;}
-.cn-rejected{background:rgba(239,68,68,0.1);color:#991B1B;}
-.section-title{font-size:12px;font-weight:700;color:#3B82F6;text-transform:uppercase;letter-spacing:1px;margin:20px 0 14px;padding-bottom:8px;border-bottom:1px solid #E2E8F0;display:flex;align-items:center;gap:8px;}
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.detail-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
-@media(max-width:768px){.detail-grid-3{grid-template-columns:1fr 1fr;}}
-@media(max-width:576px){.detail-grid,.detail-grid-3{grid-template-columns:1fr;}}
-.detail-item{padding:13px 15px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;transition:all .18s;}
-.detail-item:hover{border-color:#BFDBFE;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.04);}
-.detail-label{font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
-.detail-label i{color:#3B82F6;font-size:11px;}
-.detail-value{font-size:14px;font-weight:600;color:#0F172A;}
-.detail-value.empty{color:#CBD5E1;font-weight:400;font-style:italic;}
-.gst-summary{background:linear-gradient(135deg,rgba(16,185,129,0.04),rgba(16,185,129,0.01));border:1px solid rgba(16,185,129,0.15);border-radius:12px;padding:18px 20px;}
-.gst-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(16,185,129,0.08);font-size:13.5px;}
-.gst-row:last-child{border-bottom:none;padding-top:10px;margin-top:4px;}
-.meta-info{margin-top:20px;padding-top:16px;border-top:1px solid #E2E8F0;display:flex;gap:20px;flex-wrap:wrap;}
-.meta-item{font-size:12px;color:#64748B;display:flex;align-items:center;gap:6px;}
-.meta-item i{color:#3B82F6;}
-.form-actions{display:flex;align-items:center;gap:14px;margin-top:22px;padding-top:20px;border-top:1px solid #E2E8F0;}
-.btn-gold{background:linear-gradient(135deg,#3B82F6,#2563EB);color:#FFF;padding:11px 22px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:all .22s;box-shadow:0 2px 8px rgba(59,130,246,0.3);}
-.btn-gold:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(59,130,246,0.4);}
-.btn-outline{border:1px solid #E2E8F0;background:transparent;color:#64748B;padding:11px 22px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:all .18s;}
-.btn-outline:hover{border-color:#3B82F6;color:#3B82F6;}
-.btn-danger{border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.05);color:#DC2626;padding:11px 20px;border-radius:8px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:all .18s;font-family:inherit;margin-left:auto;}
-.btn-danger:hover{background:rgba(239,68,68,0.1);}
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+.crud-title h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
+
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 32px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 28px;
+    max-width: 960px; margin-left: auto; margin-right: auto;
+}
+
+.cn-hero {
+    display: flex; align-items: flex-start; gap: 18px; padding-bottom: 22px; margin-bottom: 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10); flex-wrap: wrap;
+}
+.cn-icon {
+    width: 58px; height: 58px; border-radius: 14px;
+    background: rgba(16, 185, 129, 0.15) !important; border: 1.5px solid rgba(16, 185, 129, 0.35) !important;
+    display: flex; align-items: center; justify-content: center; font-size: 24px; color: #34D399 !important; flex-shrink: 0;
+}
+.cn-hero-info h3 { font-size: 21px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 5px; }
+.cn-hero-info p { font-size: 13.5px; color: #CBD5E1 !important; margin-bottom: 8px; }
+.hero-badges { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.cn-badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 20px; text-transform: uppercase; white-space: nowrap !important; }
+.cn-approved { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.cn-pending { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.cn-rejected { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+
+.section-title {
+    font-size: 12px; font-weight: 800; color: #60A5FA !important; text-transform: uppercase;
+    letter-spacing: 1px; margin: 24px 0 14px; padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10); display: flex; align-items: center; gap: 8px;
+}
+
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.detail-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+@media(max-width:768px){ .detail-grid-3 { grid-template-columns: 1fr 1fr; } }
+@media(max-width:576px){ .detail-grid, .detail-grid-3 { grid-template-columns: 1fr; } }
+
+.detail-item {
+    padding: 15px 16px !important; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.12) !important; border-radius: 12px !important;
+    transition: all .2s ease;
+}
+.detail-item:hover { border-color: rgba(59, 130, 246, 0.40) !important; background: rgba(22, 30, 46, 0.85) !important; }
+
+.detail-label { font-size: 11px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.detail-label i { color: #60A5FA !important; font-size: 11px; }
+.detail-value { font-size: 14px; font-weight: 700; color: #FFFFFF !important; word-break: break-word; }
+.detail-value.empty { color: #64748B !important; font-weight: 500; font-style: italic; }
+
+.gst-summary {
+    background: rgba(16, 22, 34, 0.75) !important;
+    border: 1.5px solid rgba(16, 185, 129, 0.30) !important;
+    border-radius: 16px; padding: 20px 22px;
+}
+.gst-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 13.5px; }
+.gst-row:last-child { border-bottom: none; padding-top: 12px; margin-top: 4px; }
+
+.meta-info { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.10); display: flex; gap: 20px; flex-wrap: wrap; }
+.meta-item { font-size: 12px; color: #94A3B8 !important; display: flex; align-items: center; gap: 6px; }
+.meta-item i { color: #60A5FA !important; }
+
+.form-actions { display: flex; align-items: center; gap: 14px; margin-top: 28px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
+
+.btn-gold {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 11px 24px;
+    border-radius: 12px; text-decoration: none !important; font-size: 14px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 8px; border: 1px solid #3B82F6 !important;
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 18px rgba(37,99,235,0.38);
+}
+.btn-gold:hover { background: #1D4ED8 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(37,99,235,0.52); }
+
+.btn-outline {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 22px; background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important; font-size: 13.5px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+}
+.btn-outline:hover { background: rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; transform: translateY(-2px); }
+
+.btn-danger {
+    border: 1px solid rgba(239, 68, 68, 0.35) !important; background: rgba(239, 68, 68, 0.15) !important;
+    color: #F87171 !important; padding: 10px 20px; border-radius: 10px; font-size: 13.5px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all .2s ease; margin-left: auto;
+}
+.btn-danger:hover { background: #DC2626 !important; color: #FFFFFF !important; transform: translateY(-2px); }
 </style>
 
 <div class="crud-header">
@@ -55,7 +110,7 @@
             <p>{{ \Carbon\Carbon::parse($creditNote->credit_note_date)->format('d M Y') }}
                @if($creditNote->customer) &nbsp;·&nbsp; {{ $creditNote->customer->name }} @endif</p>
             <div class="hero-badges">
-                <span style="font-size:21px;font-weight:800;color:#059669;">₹{{ number_format($creditNote->credit_amount,2) }}</span>
+                <span style="font-size:21px;font-weight:800;color:#34D399;">₹{{ number_format($creditNote->credit_amount,2) }}</span>
                 <span class="cn-badge {{ $badge }}">{{ $creditNote->status }}</span>
             </div>
         </div>
@@ -98,28 +153,28 @@
     <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> GST & Amount Summary</div>
     <div class="gst-summary">
         <div class="gst-row">
-            <span style="color:#64748B;">Taxable Amount</span>
-            <span style="font-weight:700;">₹{{ number_format($creditNote->taxable_amount,2) }}</span>
+            <span style="color:#CBD5E1;">Taxable Amount</span>
+            <span style="font-weight:700;color:#FFFFFF;">₹{{ number_format($creditNote->taxable_amount,2) }}</span>
         </div>
         <div class="gst-row">
-            <span style="color:#0EA5E9;">CGST {{ $creditNote->cgst_rate ? '('.$creditNote->cgst_rate.'%)' : '' }}</span>
-            <span style="font-weight:700;color:#0EA5E9;">₹{{ number_format($creditNote->cgst_amount,2) }}</span>
+            <span style="color:#60A5FA;">CGST {{ $creditNote->cgst_rate ? '('.$creditNote->cgst_rate.'%)' : '' }}</span>
+            <span style="font-weight:700;color:#60A5FA;">₹{{ number_format($creditNote->cgst_amount,2) }}</span>
         </div>
         <div class="gst-row">
-            <span style="color:#14B8A6;">SGST {{ $creditNote->sgst_rate ? '('.$creditNote->sgst_rate.'%)' : '' }}</span>
-            <span style="font-weight:700;color:#14B8A6;">₹{{ number_format($creditNote->sgst_amount,2) }}</span>
+            <span style="color:#2DD4BF;">SGST {{ $creditNote->sgst_rate ? '('.$creditNote->sgst_rate.'%)' : '' }}</span>
+            <span style="font-weight:700;color:#2DD4BF;">₹{{ number_format($creditNote->sgst_amount,2) }}</span>
         </div>
         <div class="gst-row">
-            <span style="color:#8B5CF6;">IGST {{ $creditNote->igst_rate ? '('.$creditNote->igst_rate.'%)' : '' }}</span>
-            <span style="font-weight:700;color:#8B5CF6;">₹{{ number_format($creditNote->igst_amount,2) }}</span>
+            <span style="color:#C4B5FD;">IGST {{ $creditNote->igst_rate ? '('.$creditNote->igst_rate.'%)' : '' }}</span>
+            <span style="font-weight:700;color:#C4B5FD;">₹{{ number_format($creditNote->igst_amount,2) }}</span>
         </div>
         <div class="gst-row">
-            <span style="color:#EF4444;font-weight:600;">Total GST</span>
-            <span style="font-weight:700;color:#EF4444;">₹{{ number_format($creditNote->total_gst,2) }}</span>
+            <span style="color:#F87171;font-weight:600;">Total GST</span>
+            <span style="font-weight:700;color:#F87171;">₹{{ number_format($creditNote->total_gst,2) }}</span>
         </div>
         <div class="gst-row" style="border-bottom:none;">
-            <span style="font-size:15px;font-weight:800;color:#0F172A;">Credit Amount (Grand Total)</span>
-            <span style="font-size:18px;font-weight:800;color:#059669;">₹{{ number_format($creditNote->credit_amount,2) }}</span>
+            <span style="font-size:15px;font-weight:800;color:#FFFFFF;">Credit Amount (Grand Total)</span>
+            <span style="font-size:18px;font-weight:800;color:#34D399;">₹{{ number_format($creditNote->credit_amount,2) }}</span>
         </div>
     </div>
 

@@ -324,9 +324,9 @@
             <tbody>
                 @forelse($brokers as $key => $broker)
                     <tr>
-                        <td>{{ $brokers->firstItem() + $key }}</td>
+                        <td>{{ method_exists($brokers, 'firstItem') ? ($brokers->firstItem() + $key) : ($key + 1) }}</td>
                         @if($authUser && $authUser->isAdmin())
-                            <td><span class="badge" style="background:#E6EFF9; color:var(--sidebar-active); font-weight:600;">{{ $broker->firm->firm_name ?? '-' }}</span></td>
+                            <td><strong style="color: #FFFFFF !important;">{{ $broker->firm->firm_name ?? '-' }}</strong></td>
                         @endif
                         <td><strong>{{ $broker->name }}</strong></td>
                         <td>{{ $broker->mobile }}</td>
@@ -374,9 +374,11 @@
         </table>
     </div>
 
-    <div class="pagination-wrapper">
-        {{ $brokers->appends(request()->query())->links() }}
-    </div>
+    @if(method_exists($brokers, 'links'))
+        <div class="pagination-wrapper">
+            {{ $brokers->appends(request()->query())->links() }}
+        </div>
+    @endif
 </div>
 @endsection
 

@@ -5,330 +5,179 @@
 
 @section('content')
 <style>
-    .crud-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-    .crud-title h2 {
-        font-size: 22px;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 4px;
-    }
-    .crud-title p {
-        font-size: 13.5px;
-        color: var(--text-secondary);
-    }
-    .btn-gold {
-        background-color: var(--gold);
-        color: #FFFFFF;
-        padding: 10px 20px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border: none;
-        cursor: pointer;
-        transition: var(--transition);
-        box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);
-    }
-    .btn-gold:hover {
-        background-color: #B58D1B;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 14px rgba(212, 175, 55, 0.3);
-    }
-    .card-box {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: var(--soft-shadow);
-    }
-    .filter-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-    .search-form {
-        display: flex;
-        gap: 10px;
-        flex: 1;
-        max-width: 500px;
-    }
-    .search-input {
-        flex: 1;
-        padding: 10px 14px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 13.5px;
-        font-family: var(--font-primary);
-        color: var(--text-primary);
-        outline: none;
-        transition: var(--transition);
-    }
-    .search-input:focus {
-        border-color: var(--blue);
-        box-shadow: 0 0 0 3px var(--blue-glow);
-    }
-    .btn-search {
-        background-color: var(--text-primary);
-        color: #FFFFFF;
-        padding: 10px 18px;
-        border-radius: 8px;
-        border: none;
-        font-size: 13.5px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-    }
-    .btn-search:hover { background-color: #1E293B; }
-    .btn-reset {
-        padding: 10px 14px;
-        color: var(--text-secondary);
-        text-decoration: none;
-        font-size: 13.5px;
-        font-weight: 500;
-        transition: var(--transition);
-    }
-    .btn-reset:hover { color: var(--text-primary); }
-    .table-container { width: 100%; overflow-x: auto; }
-    .premium-table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-        font-size: 14px;
-    }
-    .premium-table th {
-        padding: 14px 16px;
-        background: #F9FAFB;
-        color: var(--text-secondary);
-        font-weight: 600;
-        border-bottom: 1px solid var(--border-color);
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .premium-table td {
-        padding: 16px;
-        border-bottom: 1px solid #F1F5F9;
-        color: var(--text-primary);
-        vertical-align: middle;
-    }
-    .premium-table tr:last-child td { border-bottom: none; }
-    .premium-table tbody tr:hover { background-color: #F9FAFB; }
-    .badge {
-        display: inline-block;
-        padding: 4px 10px;
-        font-size: 11px;
-        font-weight: 600;
-        border-radius: 20px;
-        text-transform: uppercase;
-    }
-    .badge-active { background: rgba(34,197,94,0.1); color: #16803D; }
-    .badge-inactive { background: rgba(239,68,68,0.1); color: #B91C1C; }
-    .action-links {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-    .action-link {
-        color: var(--text-secondary);
-        text-decoration: none;
-        font-size: 13px;
-        transition: var(--transition);
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-    .action-link:hover { color: var(--text-primary); }
-    .action-link.view:hover { color: #0EA5E9; }
-    .action-link.edit:hover { color: #2563EB; }
-    .action-link.submissions:hover { color: #8B5CF6; }
-    .action-link.preview:hover { color: #F59E0B; }
-    .action-link.delete-btn {
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: var(--text-secondary);
-        font-family: var(--font-primary);
-        font-size: 13px;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 0;
-    }
-    .action-link.delete-btn:hover { color: #EF4444; }
-    .alert-success {
-        background: rgba(34,197,94,0.08);
-        border: 1px solid rgba(34,197,94,0.2);
-        color: #16803D;
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        font-size: 13.5px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .pagination-wrapper {
-        margin-top: 24px;
-        display: flex;
-        justify-content: center;
-    }
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+.crud-title h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
 
-    /* ── Modal ── */
-    .modal-backdrop {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.55);
-        z-index: 1000;
-        align-items: flex-start;
-        justify-content: center;
-        backdrop-filter: blur(2px);
-        overflow-y: auto;
-        padding: 30px 15px;
-    }
-    .modal-backdrop.active { display: flex; }
-    .modal-box {
-        background: var(--card-bg);
-        border-radius: 14px;
-        padding: 32px;
-        width: 100%;
-        max-width: 960px;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.22);
-        position: relative;
-        animation: modalIn 0.22s cubic-bezier(0.4,0,0.2,1) both;
-        margin: auto;
-    }
-    @keyframes modalIn {
-        from { opacity:0; transform: scale(0.94) translateY(10px); }
-        to   { opacity:1; transform: scale(1) translateY(0); }
-    }
-    .modal-close {
-        position: absolute;
-        top: 16px; right: 18px;
-        background: none;
-        border: none;
-        font-size: 20px;
-        color: var(--text-secondary);
-        cursor: pointer;
-        transition: color 0.18s;
-    }
-    .modal-close:hover { color: #EF4444; }
-    .modal-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 6px;
-    }
-    .modal-subtitle {
-        font-size: 13px;
-        color: var(--text-secondary);
-        margin-bottom: 24px;
-    }
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 18px;
-    }
-    @media(max-width:576px) { .form-row { grid-template-columns: 1fr; gap: 0; } }
-    .form-group { margin-bottom: 18px; }
-    .form-label {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 7px;
-    }
-    .form-label span { color: #EF4444; }
-    .m-form-control {
-        width: 100%;
-        padding: 10px 14px;
-        border: 1.5px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 13.5px;
-        font-family: var(--font-primary);
-        color: var(--text-primary);
-        outline: none;
-        transition: var(--transition);
-        background-color: #FFFFFF;
-    }
-    .m-form-control:focus {
-        border-color: var(--blue);
-        box-shadow: 0 0 0 3px var(--blue-glow);
-    }
-    .text-error { color: #EF4444; font-size: 12px; margin-top: 5px; font-weight: 500; }
-    .builder-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    .builder-table th {
-        padding: 10px 12px;
-        background: #F9FAFB;
-        border-bottom: 2px solid var(--border-color);
-        font-size: 11.5px;
-        color: var(--text-secondary);
-        font-weight: 600;
-        text-align: left;
-    }
-    .builder-table td {
-        padding: 10px 12px;
-        border-bottom: 1px solid var(--border-color);
-        vertical-align: middle;
-    }
-    .btn-add-field {
-        background: var(--blue-light);
-        color: var(--blue);
-        border: 1px solid var(--blue);
-        padding: 6px 14px;
-        border-radius: 7px;
-        font-size: 12.5px;
-        font-weight: 600;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        transition: var(--transition);
-    }
-    .btn-add-field:hover { background: var(--blue); color: #fff; }
-    .btn-danger-icon {
-        background: none;
-        border: none;
-        color: #EF4444;
-        cursor: pointer;
-        font-size: 15px;
-        transition: var(--transition);
-        padding: 0;
-    }
-    .btn-danger-icon:hover { color: #B91C1C; }
-    .modal-actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 24px;
-        padding-top: 20px;
-        border-top: 1px solid var(--border-color);
-    }
-    .btn-cancel {
-        border: 1px solid var(--border-color);
-        background: transparent;
-        color: var(--text-secondary);
-        padding: 10px 22px;
-        border-radius: 8px;
-        font-size: 13.5px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-    }
-    .btn-cancel:hover { background: #F9FAFB; color: var(--text-primary); border-color: #D1D5DB; }
+.btn-gold {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 22px;
+    border-radius: 10px; text-decoration: none !important; font-size: 14px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 8px; border: 1px solid #3B82F6 !important;
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+}
+.btn-gold:hover { background: #1D4ED8 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(37,99,235,0.50); }
+
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 24px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 28px;
+}
+
+.filter-bar {
+    display: flex !important; gap: 12px !important; align-items: center !important; margin-bottom: 24px !important;
+    background: rgba(255, 255, 255, 0.04) !important; padding: 16px 20px !important;
+    border-radius: 16px !important; border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    width: 100% !important; flex-wrap: nowrap !important; overflow-x: auto !important;
+}
+
+.search-form { display: flex !important; gap: 12px !important; flex: 1 !important; width: 100% !important; align-items: center !important; flex-wrap: nowrap !important; }
+
+.search-input {
+    padding: 10px 14px !important; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 13.5px; color: #FFFFFF !important; outline: none; transition: all .2s ease;
+    box-sizing: border-box !important; flex: 1 !important;
+}
+select.search-input option { background: #101622 !important; color: #FFFFFF !important; }
+.search-input::placeholder { color: #94A3B8 !important; }
+.search-input:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
+
+.btn-search {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 20px !important;
+    border-radius: 10px; border: 1px solid #3B82F6 !important; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    flex-shrink: 0 !important; white-space: nowrap !important;
+}
+.btn-search:hover { background: #1D4ED8 !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50); }
+
+.btn-reset { color: #CBD5E1 !important; text-decoration: none; font-size: 13.5px; font-weight: 600; padding: 10px 12px; flex-shrink: 0 !important; white-space: nowrap !important; transition: color .2s ease; }
+.btn-reset:hover { color: #FFFFFF !important; }
+
+.table-container { width: 100%; overflow-x: auto; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.10); }
+
+.premium-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; }
+.premium-table th {
+    padding: 16px 18px !important; background: rgba(255, 255, 255, 0.05) !important;
+    color: #94A3B8 !important; font-weight: 800; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.9px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    white-space: nowrap !important;
+}
+.premium-table td {
+    padding: 16px 18px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    font-size: 13.5px; color: #E2E8F0 !important; font-weight: 500; vertical-align: middle;
+    white-space: nowrap !important;
+}
+.premium-table td strong { color: #FFFFFF !important; font-weight: 700 !important; }
+.premium-table tbody tr:hover { background: rgba(255, 255, 255, 0.05) !important; }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 20px; text-transform: uppercase; white-space: nowrap !important; }
+.badge-active { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-inactive { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+
+.action-buttons-wrap { display: flex; gap: 8px; align-items: center; white-space: nowrap !important; }
+
+.btn-submission-chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px;
+    background: rgba(139, 92, 246, 0.15) !important; color: #C4B5FD !important;
+    border: 1px solid rgba(139, 92, 246, 0.30) !important; border-radius: 8px;
+    font-size: 12.5px; font-weight: 600; text-decoration: none !important; transition: all .2s ease;
+}
+.btn-submission-chip:hover { background: #8B5CF6 !important; color: #FFFFFF !important; transform: translateY(-1px); }
+
+.btn-toggle-status {
+    display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px;
+    background: rgba(255, 255, 255, 0.08) !important; color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important; border-radius: 8px;
+    font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .2s ease;
+}
+.btn-toggle-status:hover { background: rgba(255, 255, 255, 0.15) !important; transform: translateY(-1px); }
+
+.alert-success { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; color: #34D399 !important; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.pagination-wrapper { margin-top: 24px; display: flex; justify-content: center; }
+
+/* ── Modal Dark Glass System ── */
+.modal-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+    z-index: 1000; align-items: flex-start; justify-content: center;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    overflow-y: auto; padding: 30px 15px;
+}
+.modal-backdrop.active { display: flex; }
+.modal-box {
+    background: rgba(20, 27, 41, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 24px !important; padding: 32px !important;
+    width: 95% !important; max-width: 1080px !important; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    position: relative; animation: modalIn 0.22s cubic-bezier(0.4,0,0.2,1) both; margin: auto;
+}
+@keyframes modalIn {
+    from { opacity:0; transform: scale(0.94) translateY(10px); }
+    to   { opacity:1; transform: scale(1) translateY(0); }
+}
+.modal-close {
+    position: absolute; top: 20px; right: 22px; background: none; border: none;
+    font-size: 22px; color: #94A3B8; cursor: pointer; transition: color 0.18s;
+}
+.modal-close:hover { color: #F87171; }
+.modal-title { font-size: 22px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; }
+.modal-subtitle { font-size: 13.5px; color: #CBD5E1 !important; margin-bottom: 24px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media(max-width:576px) { .form-row { grid-template-columns: 1fr; gap: 0; } }
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; font-size: 13px; font-weight: 700; color: #FFFFFF !important; margin-bottom: 7px; }
+.form-label span { color: #F87171 !important; }
+
+.m-form-control {
+    width: 100% !important; padding: 10px 14px !important;
+    background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px !important; font-size: 13.5px !important;
+    color: #FFFFFF !important; outline: none; transition: all .2s ease; box-sizing: border-box !important;
+}
+select.m-form-control option { background: #101622 !important; color: #FFFFFF !important; }
+.m-form-control:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
+
+.text-error { color: #F87171; font-size: 12px; margin-top: 5px; font-weight: 600; }
+.builder-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+.builder-table th {
+    padding: 12px; background: rgba(255, 255, 255, 0.05) !important;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    font-size: 11px; color: #94A3B8 !important; font-weight: 800; text-transform: uppercase; text-align: left;
+}
+.builder-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); vertical-align: middle; }
+
+.btn-add-field {
+    background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important;
+    border: 1px solid rgba(59, 130, 246, 0.30) !important; padding: 7px 16px;
+    border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; transition: all .2s ease;
+}
+.btn-add-field:hover { background: #2563EB !important; color: #FFFFFF !important; transform: translateY(-1px); }
+
+.btn-danger-icon {
+    width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(239, 68, 68, 0.15) !important; color: #F87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.30) !important; border-radius: 8px;
+    cursor: pointer; transition: all .2s ease;
+}
+.btn-danger-icon:hover { background: #DC2626 !important; color: #FFFFFF !important; }
+
+.modal-actions {
+    display: flex; gap: 12px; margin-top: 24px; padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.10); justify-content: flex-end;
+}
+.btn-cancel {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 22px; background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important; font-size: 13.5px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+}
+.btn-cancel:hover { background: rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; transform: translateY(-1px); }
 </style>
 
 <div class="crud-header">
@@ -353,7 +202,7 @@
     <div class="filter-bar">
         <form method="GET" action="{{ route('forms.index') }}" class="search-form">
             @if(auth()->user() && auth()->user()->isAdmin())
-                <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width: 180px;">
+                <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width: 200px;">
                     <option value="">All Firms</option>
                     @foreach($firms as $firm)
                         <option value="{{ $firm->id }}" {{ request('firm_id') == $firm->id ? 'selected' : '' }}>
@@ -382,15 +231,15 @@
                     <th>Form Type</th>
                     <th>Description</th>
                     <th>Status</th>
-                    <th style="width: 310px;">Action</th>
+                    <th style="width: 380px;">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($forms as $key => $form)
                     <tr>
-                        <td>{{ $forms->firstItem() + $key }}</td>
+                        <td>{{ method_exists($forms, 'firstItem') ? ($forms->firstItem() + $key) : ($key + 1) }}</td>
                         @if(auth()->user() && auth()->user()->isAdmin())
-                            <td><strong>{{ $form->firm->firm_name ?? '-' }}</strong></td>
+                            <td><strong style="color: #FFFFFF !important;">{{ $form->firm->firm_name ?? '-' }}</strong></td>
                         @endif
                         <td><strong>{{ $form->form_name }}</strong></td>
                         <td>{{ $form->form_type }}</td>
@@ -401,8 +250,8 @@
                             </span>
                         </td>
                         <td>
-                            <div class="table-action-buttons">
-                                <a href="{{ route('forms.show', $form->id) }}" class="action-link preview">
+                            <div class="action-buttons-wrap">
+                                <a href="{{ route('forms.show', $form->id) }}" class="btn-view">
                                     <i class="fa fa-eye"></i> Preview
                                 </a>
                                 <a href="{{ route('forms.edit', $form->id) }}" class="btn-edit">
@@ -413,16 +262,16 @@
                                     @csrf
                                     @method('PATCH')
                                     @if($form->status === 'active')
-                                        <button type="submit" class="action-link" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-family:var(--font-primary);font-size:13px;display:inline-flex;align-items:center;gap:4px;padding:0;" title="Click to set Inactive">
-                                            <i class="fa-solid fa-toggle-on" style="color:#16803D;"></i> Active
+                                        <button type="submit" class="btn-toggle-status" title="Click to set Inactive">
+                                            <i class="fa-solid fa-toggle-on" style="color:#34D399;"></i> Active
                                         </button>
                                     @else
-                                        <button type="submit" class="action-link" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);font-family:var(--font-primary);font-size:13px;display:inline-flex;align-items:center;gap:4px;padding:0;" title="Click to set Active">
+                                        <button type="submit" class="btn-toggle-status" title="Click to set Active">
                                             <i class="fa-solid fa-toggle-off" style="color:#94A3B8;"></i> Inactive
                                         </button>
                                     @endif
                                 </form>
-                                <a href="{{ route('form-submissions.index') }}?form_id={{ $form->id }}" class="action-link submissions">
+                                <a href="{{ route('form-submissions.index') }}?form_id={{ $form->id }}" class="btn-submission-chip">
                                     <i class="fa-solid fa-inbox"></i> Submissions
                                 </a>
                                 <form action="{{ route('forms.destroy', $form->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this form and all its fields/submissions?')">
@@ -437,16 +286,18 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" align="center" style="padding: 30px; color: var(--text-secondary);">No forms found.</td>
+                        <td colspan="7" align="center" style="padding: 30px; color: #CBD5E1;">No forms found.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 
-    <div class="pagination-wrapper">
-        {{ $forms->appends(request()->query())->links() }}
-    </div>
+    @if(method_exists($forms, 'links'))
+        <div class="pagination-wrapper">
+            {{ $forms->appends(request()->query())->links() }}
+        </div>
+    @endif
 </div>
 
 {{-- ── Add Form Modal ── --}}
@@ -490,9 +341,9 @@
             </div>
 
             {{-- Fields Builder --}}
-            <div style="overflow-x: auto; margin-top: 10px;">
+            <div style="margin-top: 14px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">Form Fields Builder</h3>
+                    <h3 style="font-size: 15px; font-weight: 800; color: #FFFFFF !important; margin: 0;">Form Fields Builder</h3>
                     <button type="button" class="btn-add-field" id="mf-add-field-btn">
                         <i class="fa-solid fa-plus"></i> Add Field
                     </button>
@@ -500,21 +351,23 @@
 
                 @error('fields') <div class="text-error" style="margin-bottom:12px;">{{ $message }}</div> @enderror
 
-                <table class="builder-table" id="mf-fields-table">
-                    <thead>
-                        <tr>
-                            <th style="min-width:160px;">Label <span style="color:#EF4444;">*</span></th>
-                            <th style="min-width:140px;">Field Name <span style="color:#EF4444;">*</span></th>
-                            <th style="min-width:130px;">Type <span style="color:#EF4444;">*</span></th>
-                            <th style="width:80px; text-align:center;">Required</th>
-                            <th style="min-width:150px;">Options (comma-sep.)</th>
-                            <th style="width:80px;">Sort</th>
-                            <th style="width:100px;">Status</th>
-                            <th style="width:45px; text-align:center;">Del</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mf-fields-container"></tbody>
-                </table>
+                <div style="width: 100%; overflow-x: auto; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(16, 22, 34, 0.60);">
+                    <table class="builder-table" id="mf-fields-table" style="width: 100%; min-width: 860px; margin: 0;">
+                        <thead>
+                            <tr>
+                                <th style="width: 180px; padding: 12px 14px;">Label <span style="color:#EF4444;">*</span></th>
+                                <th style="width: 160px; padding: 12px 14px;">Field Name <span style="color:#EF4444;">*</span></th>
+                                <th style="width: 130px; padding: 12px 14px;">Type <span style="color:#EF4444;">*</span></th>
+                                <th style="width: 75px; text-align:center; padding: 12px 8px;">Required</th>
+                                <th style="min-width: 150px; padding: 12px 14px;">Options (comma-sep.)</th>
+                                <th style="width: 85px; padding: 12px 10px;">Sort</th>
+                                <th style="width: 110px; padding: 12px 10px;">Status</th>
+                                <th style="width: 50px; text-align:center; padding: 12px 8px;">Del</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mf-fields-container"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="modal-actions">
@@ -563,10 +416,10 @@
         const flds = `fields[${fieldIndex}]`;
 
         row.innerHTML = `
-            <td><input type="text" name="${flds}[label]" value="${labelVal}" class="m-form-control mf-label-input @error('${') is-invalid @enderror" placeholder="e.g. Full Name" required style="padding:7px 10px;font-size:13px;min-width:130px;"></td>
-            <td><input type="text" name="${flds}[field_name]" value="${nameVal}" class="m-form-control mf-name-input @error('${') is-invalid @enderror" placeholder="e.g. full_name" required style="padding:7px 10px;font-size:13px;min-width:120px;"></td>
-            <td>
-                <select name="${flds}[field_type]" class="m-form-control mf-type-select @error('${') is-invalid @enderror" required style="padding:7px 10px;font-size:13px;">
+            <td style="padding: 8px 10px;"><input type="text" name="${flds}[label]" value="${labelVal}" class="m-form-control mf-label-input" placeholder="e.g. Full Name" required style="padding:8px 12px;font-size:13px;width:100%;box-sizing:border-box;"></td>
+            <td style="padding: 8px 10px;"><input type="text" name="${flds}[field_name]" value="${nameVal}" class="m-form-control mf-name-input" placeholder="e.g. full_name" required style="padding:8px 12px;font-size:13px;width:100%;box-sizing:border-box;"></td>
+            <td style="padding: 8px 10px;">
+                <select name="${flds}[field_type]" class="m-form-control mf-type-select" required style="padding:8px 10px;font-size:13px;width:100%;box-sizing:border-box;">
                     <option value="text" ${typeVal==='text'?'selected':''}>Text</option>
                     <option value="number" ${typeVal==='number'?'selected':''}>Number</option>
                     <option value="email" ${typeVal==='email'?'selected':''}>Email</option>
@@ -578,16 +431,16 @@
                     <option value="file" ${typeVal==='file'?'selected':''}>File Upload</option>
                 </select>
             </td>
-            <td style="text-align:center;"><input type="checkbox" name="${flds}[is_required]" value="1" ${isReq} style="transform:scale(1.2);cursor:pointer;" class="@error('${') is-invalid @enderror"></td>
-            <td><input type="text" name="${flds}[options]" value="${optVal}" class="m-form-control mf-options-input @error('${') is-invalid @enderror" placeholder="A, B, C" ${optDisabled?'disabled':''} style="padding:7px 10px;font-size:13px;min-width:130px;"></td>
-            <td><input type="number" name="${flds}[sort_order]" value="${sortVal}" class="m-form-control @error('${') is-invalid @enderror" required style="padding:7px 10px;font-size:13px;width:65px;"></td>
-            <td>
-                <select name="${flds}[status]" class="m-form-control @error('${') is-invalid @enderror" required style="padding:7px 10px;font-size:13px;">
+            <td style="text-align:center; padding: 8px 6px;"><input type="checkbox" name="${flds}[is_required]" value="1" ${isReq} style="width:18px;height:18px;cursor:pointer;accent-color:#2563EB;"></td>
+            <td style="padding: 8px 10px;"><input type="text" name="${flds}[options]" value="${optVal}" class="m-form-control mf-options-input" placeholder="A, B, C" ${optDisabled?'disabled':''} style="padding:8px 12px;font-size:13px;width:100%;box-sizing:border-box;"></td>
+            <td style="padding: 8px 8px;"><input type="number" name="${flds}[sort_order]" value="${sortVal}" class="m-form-control" required style="padding:8px 10px;font-size:13px;width:100%;min-width:60px;box-sizing:border-box;"></td>
+            <td style="padding: 8px 8px;">
+                <select name="${flds}[status]" class="m-form-control" required style="padding:8px 10px;font-size:13px;width:100%;min-width:90px;box-sizing:border-box;">
                     <option value="active" ${stActive}>Active</option>
                     <option value="inactive" ${stInact}>Inactive</option>
                 </select>
             </td>
-            <td style="text-align:center;"><button type="button" class="btn-danger-icon mf-remove-btn"><i class="fa fa-trash"></i></button></td>
+            <td style="text-align:center; padding: 8px 6px;"><button type="button" class="btn-danger-icon mf-remove-btn" title="Delete Field"><i class="fa fa-trash"></i></button></td>
         `;
 
         container.appendChild(row);

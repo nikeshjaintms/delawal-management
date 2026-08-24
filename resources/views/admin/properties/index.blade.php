@@ -110,12 +110,13 @@
     }
     .pagination-wrapper { margin-top: 24px; display: flex; justify-content: center; }
 
-    /* Excel Import Modal Styles */
+    /* Excel Import & Delete Modal Styles (Luxury Dark Glass System) */
     .modal-overlay {
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(15, 23, 42, 0.65);
-        backdrop-filter: blur(4px);
+        background: rgba(8, 12, 22, 0.78);
+        backdrop-filter: blur(12px) saturate(160%);
+        -webkit-backdrop-filter: blur(12px) saturate(160%);
         z-index: 9999;
         display: flex;
         align-items: center;
@@ -123,11 +124,14 @@
         padding: 20px;
     }
     .modal-card {
-        background: #FFFFFF;
-        border-radius: 14px;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+        background: rgba(16, 22, 34, 0.95);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.60);
         width: 100%;
-        max-width: 920px;
+        max-width: 940px;
         max-height: 90vh;
         display: flex;
         flex-direction: column;
@@ -139,67 +143,71 @@
         to { opacity: 1; transform: translateY(0) scale(1); }
     }
     .modal-header {
-        padding: 20px 24px;
-        border-bottom: 1px solid var(--border-color);
+        padding: 22px 26px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.10);
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        background: #F8FAFC;
+        background: rgba(255, 255, 255, 0.03);
     }
-    .modal-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0; }
-    .modal-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 4px; margin-bottom: 0; }
+    .modal-title { font-size: 19px; font-weight: 800; color: #FFFFFF !important; margin: 0; }
+    .modal-subtitle { font-size: 13.5px; color: #94A3B8 !important; margin-top: 4px; margin-bottom: 0; font-weight: 500; }
     .modal-close {
-        background: transparent;
-        border: none;
-        font-size: 24px;
-        color: var(--text-secondary);
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        font-size: 20px;
+        color: #CBD5E1;
         cursor: pointer;
         line-height: 1;
-        padding: 0 4px;
+        padding: 6px 12px;
+        transition: all 0.2s ease;
     }
-    .modal-close:hover { color: #EF4444; }
-    .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+    .modal-close:hover { color: #FFFFFF; background: rgba(239, 68, 68, 0.30); border-color: #EF4444; }
+    .modal-body { padding: 26px; overflow-y: auto; flex: 1; }
     
     .btn-template-download {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: rgba(212, 175, 55, 0.1);
-        color: #92710A;
-        border: 1px solid rgba(212, 175, 55, 0.3);
+        background: rgba(59, 130, 246, 0.15);
+        color: #60A5FA;
+        border: 1px solid rgba(59, 130, 246, 0.30);
         padding: 8px 16px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: 13px;
-        font-weight: 600;
+        font-weight: 700;
         text-decoration: none;
-        transition: var(--transition);
+        transition: all 0.2s ease;
     }
-    .btn-template-download:hover { background: var(--gold); color: #FFFFFF; }
+    .btn-template-download:hover { background: #2563EB; color: #FFFFFF; transform: translateY(-1px); }
     
     .upload-dropzone {
-        border: 2px dashed #CBD5E1;
-        border-radius: 12px;
-        padding: 32px 20px;
+        border: 2px dashed rgba(255, 255, 255, 0.20);
+        border-radius: 16px;
+        padding: 36px 20px;
         text-align: center;
-        background: #F9FAFB;
-        transition: var(--transition);
+        background: rgba(255, 255, 255, 0.03);
+        transition: all 0.2s ease;
         cursor: pointer;
     }
-    .upload-dropzone:hover, .upload-dropzone.dragover { border-color: var(--gold); background: rgba(212,175,55,0.03); }
+    .upload-dropzone:hover, .upload-dropzone.dragover { border-color: #3B82F6; background: rgba(59, 130, 246, 0.08); }
     .btn-browse {
-        background: var(--text-primary);
+        background: #2563EB;
         color: #FFFFFF;
-        border: none;
-        padding: 8px 18px;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 600;
+        border: 1px solid #3B82F6;
+        padding: 9px 20px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 700;
         cursor: pointer;
-        transition: var(--transition);
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
     }
-    .btn-browse:hover { background: #1E293B; }
-    .badge-valid { background: rgba(34,197,94,0.12); color: #15803D; border: 1px solid rgba(34,197,94,0.25); display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-    .badge-invalid { background: rgba(239,68,68,0.12); color: #B91C1C; border: 1px solid rgba(239,68,68,0.25); display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .btn-browse:hover { background: #1D4ED8; transform: translateY(-1px); }
+    .badge-valid { background: rgba(16, 185, 129, 0.18); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35); display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .badge-invalid { background: rgba(239, 68, 68, 0.18); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.35); display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .action-buttons-wrap { display: flex !important; gap: 8px !important; align-items: center !important; white-space: nowrap !important; }
 </style>
 
 {{-- Breadcrumb --}}
@@ -313,7 +321,7 @@
                         <td style="text-align: center;">
                             <input type="checkbox" class="property-select-cb" value="{{ $property->id }}" style="width: 16px; height: 16px; cursor: pointer; accent-color: #3B82F6;">
                         </td>
-                        <td>{{ $properties->firstItem() + $key }}</td>
+                        <td>{{ method_exists($properties, 'firstItem') ? ($properties->firstItem() + $key) : ($key + 1) }}</td>
                         @if(auth()->user() && auth()->user()->isAdmin())
                             <td><strong>{{ $property->firm->firm_name ?? 'N/A' }}</strong></td>
                         @endif
@@ -360,7 +368,7 @@
                             <span class="badge badge-{{ $property->status }}">{{ ucfirst($property->status) }}</span>
                         </td>
                         <td>
-                            <div class="table-action-buttons">
+                            <div class="action-buttons-wrap">
                                 <a href="{{ route('properties.show', $property->id) }}" class="btn-view">
                                     <i class="fa fa-eye"></i> View
                                 </a>
@@ -390,9 +398,11 @@
         </table>
     </div>
 
-    <div class="pagination-wrapper">
-        {{ $properties->appends(request()->query())->links() }}
-    </div>
+    @if(method_exists($properties, 'links'))
+        <div class="pagination-wrapper">
+            {{ $properties->appends(request()->query())->links() }}
+        </div>
+    @endif
 </div>
 
 <!-- Import Excel Modal -->
@@ -410,35 +420,38 @@
             <!-- Step 1: Upload Form -->
             <form id="importExcelForm" enctype="multipart/form-data">
                 @csrf
-                <div style="margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; background: #F1F5F9; padding: 12px 16px; border-radius: 8px; flex-wrap: wrap; gap: 10px;">
-                    <div style="font-size: 13px; color: var(--text-primary); font-weight: 500;">
-                        <i class="fa-solid fa-circle-info" style="color: var(--gold); margin-right: 6px;"></i> Download template with predefined headers & instructions:
+                <input type="hidden" name="context_project_id" value="{{ request('project_id') }}">
+                <input type="hidden" name="context_firm_id" value="{{ request('firm_id') ?? ($selectedProject->firm_id ?? '') }}">
+
+                <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 14px 18px; border-radius: 12px; flex-wrap: wrap; gap: 10px;">
+                    <div style="font-size: 13.5px; color: #FFFFFF; font-weight: 600;">
+                        <i class="fa-solid fa-circle-info" style="color: #60A5FA; margin-right: 6px;"></i> Download template with predefined headers & instructions:
                     </div>
-                    <a href="{{ route('properties.import.template') }}" class="btn-template-download" target="_blank">
+                    <a href="{{ route('properties.import.template', array_filter(['project_id' => request('project_id'), 'firm_id' => request('firm_id') ?? ($selectedProject->firm_id ?? '')])) }}" class="btn-template-download" target="_blank">
                         <i class="fa-solid fa-download"></i> Download Excel Template
                     </a>
                 </div>
 
                 <div class="upload-dropzone" id="dropzone-area">
-                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 32px; color: var(--gold); margin-bottom: 10px;"></i>
-                    <p style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Choose an Excel file or drag & drop</p>
-                    <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px;">Supported formats: <strong>.xlsx, .xls, .csv</strong> (Max size: 10MB)</p>
+                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 36px; color: #60A5FA; margin-bottom: 12px;"></i>
+                    <p style="font-weight: 700; color: #FFFFFF; margin-bottom: 4px; font-size: 15px;">Choose an Excel file or drag & drop</p>
+                    <p style="font-size: 13px; color: #94A3B8; margin-bottom: 16px;">Supported formats: <strong style="color: #FFFFFF;">.xlsx, .xls, .csv</strong> (Max size: 10MB)</p>
                     <input type="file" name="excel_file" id="excel_file_input" accept=".xlsx,.xls,.csv" required style="display: none;">
                     <button type="button" class="btn-browse" onclick="document.getElementById('excel_file_input').click()">Select Excel File</button>
-                    <div id="selected-file-name" style="margin-top: 12px; font-weight: 600; font-size: 13.5px; color: var(--gold); display: none;"></div>
+                    <div id="selected-file-name" style="margin-top: 14px; font-weight: 700; font-size: 14px; color: #60A5FA; display: none;"></div>
                 </div>
 
-                <div style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border-color);">
-                    <label class="form-label" style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Optional Property Images Archive (ZIP file):</label>
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px dashed rgba(255, 255, 255, 0.12);">
+                    <label class="form-label" style="font-size: 13px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px; display: block;">Optional Property Images Archive (ZIP file):</label>
                     <input type="file" name="image_archive" id="image_archive_input" accept=".zip" class="search-input" style="width: 100%; max-width: 100%; box-sizing: border-box;">
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">
-                        If your Excel file contains an <strong>Image Filename</strong> column (e.g. <code>plot-001.jpg</code>), upload a ZIP archive containing those image files.
+                    <div style="font-size: 12.5px; color: #94A3B8; margin-top: 6px;">
+                        If your Excel file contains an <strong style="color: #FFFFFF;">Image Filename</strong> column (e.g. <code>plot-001.jpg</code>), upload a ZIP archive containing those image files.
                     </div>
                 </div>
 
-                <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
-                    <button type="button" class="btn-outline" onclick="closeImportModal()">Cancel</button>
-                    <button type="submit" class="btn-gold" id="btn-validate-upload">
+                <div style="margin-top: 26px; display: flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" class="btn-secondary-custom" onclick="closeImportModal()">Cancel</button>
+                    <button type="submit" class="btn-primary-custom" id="btn-validate-upload">
                         <i class="fa-solid fa-check-circle"></i> Upload & Validate
                     </button>
                 </div>
@@ -446,16 +459,16 @@
 
             <!-- Loading Spinner -->
             <div id="import-loader" style="display: none; text-align: center; padding: 40px 20px;">
-                <i class="fa-solid fa-spinner fa-spin" style="font-size: 38px; color: var(--gold); margin-bottom: 16px;"></i>
-                <h4 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Reading and Validating Excel Data...</h4>
-                <p style="font-size: 13px; color: var(--text-secondary);">Verifying property codes, duplicate protection, project and type mappings.</p>
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 40px; color: #60A5FA; margin-bottom: 16px;"></i>
+                <h4 style="font-size: 17px; font-weight: 800; color: #FFFFFF; margin-bottom: 6px;">Reading and Validating Excel Data...</h4>
+                <p style="font-size: 13.5px; color: #94A3B8;">Verifying property codes, duplicate protection, project and type mappings.</p>
             </div>
 
             <!-- Step 2: Validation Preview -->
             <div id="validation-preview-section" style="display: none;">
                 <div id="preview-summary-bar" style="margin-bottom: 16px;"></div>
 
-                <div class="table-container" style="max-height: 320px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px;">
+                <div class="table-container" style="max-height: 320px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px;">
                     <table class="premium-table">
                         <thead>
                             <tr>
@@ -475,19 +488,19 @@
                     </table>
                 </div>
 
-                <div id="error-summary-box" style="display: none; margin-top: 16px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 14px 18px;">
-                    <h5 style="color: #DC2626; font-size: 13.5px; font-weight: 700; margin-top: 0; margin-bottom: 8px;">
+                <div id="error-summary-box" style="display: none; margin-top: 16px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.30); border-radius: 12px; padding: 14px 18px;">
+                    <h5 style="color: #F87171; font-size: 14px; font-weight: 800; margin-top: 0; margin-bottom: 8px;">
                         <i class="fa-solid fa-triangle-exclamation"></i> Validation Error Details (<span id="failed-rows-count">0</span> invalid rows)
                     </h5>
-                    <ul id="error-list" style="margin: 0; padding-left: 20px; font-size: 12.5px; color: #B91C1C; line-height: 1.6; max-height: 160px; overflow-y: auto;">
+                    <ul id="error-list" style="margin: 0; padding-left: 20px; font-size: 13px; color: #FCA5A5; line-height: 1.6; max-height: 160px; overflow-y: auto;">
                     </ul>
                 </div>
 
                 <div style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center;">
-                    <button type="button" class="btn-outline" onclick="resetImportModal()">
+                    <button type="button" class="btn-secondary-custom" onclick="resetImportModal()">
                         <i class="fa-solid fa-arrow-left"></i> Re-upload File
                     </button>
-                    <button type="button" class="btn-gold" id="btn-final-import" onclick="submitFinalImport()" style="background-color: #16A34A; box-shadow: 0 4px 10px rgba(22,163,74,0.25);">
+                    <button type="button" class="btn-primary-custom" id="btn-final-import" onclick="submitFinalImport()" style="background: #10B981 !important; border-color: #10B981 !important; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.40);">
                         <i class="fa-solid fa-file-import"></i> <span id="import-btn-text">Import Properties</span>
                     </button>
                 </div>
@@ -499,21 +512,21 @@
 <!-- Bulk Delete Confirmation Modal -->
 <div id="bulkDeleteModal" class="modal-overlay" style="display: none;">
     <div class="modal-card" style="max-width: 480px;">
-        <div class="modal-header" style="background: rgba(239,68,68,0.06); border-bottom-color: rgba(239,68,68,0.2);">
+        <div class="modal-header" style="background: rgba(239, 68, 68, 0.12); border-bottom-color: rgba(239, 68, 68, 0.25);">
             <div>
-                <h3 class="modal-title" style="color: #DC2626;"><i class="fa-solid fa-triangle-exclamation"></i> Delete Selected Properties?</h3>
-                <p class="modal-subtitle">You are about to permanently delete <strong id="delete-modal-count">0</strong> properties.</p>
+                <h3 class="modal-title" style="color: #F87171;"><i class="fa-solid fa-triangle-exclamation"></i> Delete Selected Properties?</h3>
+                <p class="modal-subtitle">You are about to permanently delete <strong id="delete-modal-count" style="color: #FFFFFF;">0</strong> properties.</p>
             </div>
             <button type="button" class="modal-close" onclick="closeBulkDeleteModal()">&times;</button>
         </div>
-        <div class="modal-body" style="padding: 20px 24px;">
-            <p style="font-size: 14px; color: var(--text-secondary); margin: 0; line-height: 1.5;">
+        <div class="modal-body" style="padding: 22px 26px;">
+            <p style="font-size: 14px; color: #CBD5E1; margin: 0; line-height: 1.6;">
                 This action cannot be undone. All selected property records, images, and documents will be permanently removed from the database.
             </p>
         </div>
-        <div style="padding: 16px 24px; background: #F8FAFC; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
-            <button type="button" class="btn-outline" id="btn-cancel-bulk-delete" onclick="closeBulkDeleteModal()">Cancel</button>
-            <button type="button" class="btn-delete" id="btn-confirm-bulk-delete" onclick="confirmBulkDelete()" style="background: #DC2626; color: #FFF;">
+        <div style="padding: 16px 26px; background: rgba(255, 255, 255, 0.03); border-top: 1px solid rgba(255, 255, 255, 0.10); display: flex; justify-content: flex-end; gap: 12px;">
+            <button type="button" class="btn-secondary-custom" id="btn-cancel-bulk-delete" onclick="closeBulkDeleteModal()">Cancel</button>
+            <button type="button" class="btn-delete" id="btn-confirm-bulk-delete" onclick="confirmBulkDelete()" style="background: #DC2626; color: #FFF; padding: 10px 20px; font-weight: 700; border-radius: 10px; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.40);">
                 <i class="fa-solid fa-trash"></i> Delete
             </button>
         </div>

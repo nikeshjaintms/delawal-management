@@ -11,9 +11,8 @@
 .btn-primary-custom i,.btn-secondary-custom i{font-size:14px;line-height:1}
 .form-action-buttons{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:24px;padding-top:20px;border-top:1px solid var(--border-color)}
 /* Layout */
-.crud-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px}
-.crud-title h2{font-size:22px;font-weight:700;color:var(--text-primary);margin-bottom:4px}
-.crud-title p{font-size:13.5px;color:var(--text-secondary)}
+.crud-title h2{font-size:24px;font-weight:800;color:#FFFFFF !important;margin-bottom:6px;letter-spacing:-0.3px}
+.crud-title p{font-size:13.5px;color:#FFFFFF !important;font-weight:700 !important;margin:0}
 .form-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;padding:28px 32px;box-shadow:var(--card-shadow);margin-bottom:24px}
 .section-heading{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--blue);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--blue-light);display:flex;align-items:center;gap:8px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}

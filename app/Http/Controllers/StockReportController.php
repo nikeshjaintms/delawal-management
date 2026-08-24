@@ -15,20 +15,28 @@ class StockReportController extends Controller
     private function getReportData(Request $request)
     {
         $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
-        $query = Material::with('materialCategory')
-            ->where('firm_id', $firmId);
+        $query = Material::with(['materialCategory', 'firm']);
 
-        if ($request->search) {
+        if ($isAdmin) {
+            if ($request->filled('firm_id')) {
+                $query->where('firm_id', $request->firm_id);
+            }
+        } else {
+            $query->where('firm_id', $firmId);
+        }
+
+        if ($request->filled('search')) {
             $query->where('material_name', 'like', '%' . $request->search . '%');
         }
 
-        if ($request->filter_category) {
+        if ($request->filled('filter_category')) {
             $query->where('material_category_id', $request->filter_category);
         }
 
-        if ($request->filter_project) {
+        if ($request->filled('filter_project')) {
             $query->where('project_id', $request->filter_project);
         }
 
@@ -39,7 +47,7 @@ class StockReportController extends Controller
             $inwQuery = StockInward::where('material_id', $material->id);
             $outQuery = StockOutward::where('material_id', $material->id);
 
-            if ($request->filter_project) {
+            if ($request->filled('filter_project')) {
                 $inwQuery->where('project_id', $request->filter_project);
                 $outQuery->where('project_id', $request->filter_project);
             }
@@ -61,15 +69,24 @@ class StockReportController extends Controller
     {
         $materials  = $this->getReportData($request);
         $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
-        $categories = MaterialCategory::where('firm_id', $firmId)
-            ->where('status', 'active')
-            ->orderBy('category_name')
-            ->get();
-        $projects = Project::where('firm_id', $firmId)
-            ->with('propertyMaster')
-            ->orderBy('project_name')
-            ->get();
+
+        $categoriesQuery = MaterialCategory::where('status', 'active')->orderBy('category_name');
+        $projectsQuery = Project::with('propertyMaster')->orderBy('project_name');
+
+        if ($isAdmin) {
+            if ($request->filled('firm_id')) {
+                $categoriesQuery->where('firm_id', $request->firm_id);
+                $projectsQuery->where('firm_id', $request->firm_id);
+            }
+        } else {
+            $categoriesQuery->where('firm_id', $firmId);
+            $projectsQuery->where('firm_id', $firmId);
+        }
+
+        $categories = $categoriesQuery->get();
+        $projects = $projectsQuery->get();
 
         $lowStockCount = $materials->filter(function ($m) {
             return $m->computed_stock <= $m->minimum_stock && $m->minimum_stock > 0;

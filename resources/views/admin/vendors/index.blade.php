@@ -341,9 +341,9 @@
             <tbody>
                 @forelse($vendors as $key => $vendor)
                     <tr>
-                        <td>{{ $vendors->firstItem() + $key }}</td>
+                        <td>{{ method_exists($vendors, 'firstItem') ? ($vendors->firstItem() + $key) : ($key + 1) }}</td>
                         @if($authUser && $authUser->isAdmin())
-                            <td><span class="badge" style="background:#E6EFF9; color:var(--sidebar-active); font-weight:600;">{{ $vendor->firm->firm_name ?? '-' }}</span></td>
+                            <td><strong style="color: #FFFFFF !important;">{{ $vendor->firm->firm_name ?? '-' }}</strong></td>
                         @endif
                         <td><strong>{{ $vendor->name }}</strong></td>
                         <td>{{ $vendor->mobile }}</td>
@@ -398,9 +398,11 @@
         </table>
     </div>
 
-    <div class="pagination-wrapper">
-        {{ $vendors->appends(request()->query())->links() }}
-    </div>
+    @if(method_exists($vendors, 'links'))
+        <div class="pagination-wrapper">
+            {{ $vendors->appends(request()->query())->links() }}
+        </div>
+    @endif
 </div>
 @endsection
 
