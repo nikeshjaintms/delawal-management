@@ -9,20 +9,39 @@
 .crud-title p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
 
 .btn-gold {
-    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 22px;
-    border-radius: 10px; text-decoration: none !important; font-size: 14px; font-weight: 700;
+    background: linear-gradient(135deg, #3B82F6, #2563EB) !important; color: #FFFFFF !important; padding: 10px 22px;
+    border-radius: 10px; text-decoration: none !important; font-size: 13.5px; font-weight: 700;
     display: inline-flex; align-items: center; gap: 8px; border: 1px solid #3B82F6 !important;
-    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 14px rgba(37,99,235,0.35);
 }
-.btn-gold:hover { background: #1D4ED8 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(37,99,235,0.50); }
+.btn-gold:hover { background: linear-gradient(135deg, #2563EB, #1D4ED8) !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.55); }
 
-.btn-outline {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 9px 16px; background: rgba(255, 255, 255, 0.08) !important;
-    color: #FFFFFF !important; font-size: 13px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+.btn-export-csv {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 10px 18px; background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 10px; text-decoration: none !important; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
-.btn-outline:hover { background: rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; transform: translateY(-2px); }
+.btn-export-csv:hover { background: linear-gradient(135deg, #10B981, #059669) !important; border-color: #10B981 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55); }
+
+.btn-export-pdf {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 10px 18px; background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 10px; text-decoration: none !important; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+.btn-export-pdf:hover { background: linear-gradient(135deg, #EF4444, #DC2626) !important; border-color: #EF4444 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.55); }
+
+.btn-export-print {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 10px 18px; background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 10px; text-decoration: none !important; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+.btn-export-print:hover { background: linear-gradient(135deg, #6366F1, #4F46E5) !important; border-color: #6366F1 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55); }
 
 .card-box {
     background: rgba(20, 27, 41, 0.60) !important;
@@ -127,14 +146,14 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
         <h2>Income Management</h2>
         <p>Track and manage all income records.</p>
     </div>
-    <div class="action-buttons" style="display:flex; gap:10px; align-items:center;">
-        <a href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}" class="btn-outline">
+    <div class="action-buttons" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <a href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}" class="btn-export-csv">
             <i class="fa-solid fa-file-csv"></i> Export CSV
         </a>
-        <a href="{{ request()->fullUrlWithQuery(['export' => 'pdf']) }}" class="btn-outline" target="_blank">
+        <a href="{{ request()->fullUrlWithQuery(['export' => 'pdf']) }}" class="btn-export-pdf" target="_blank">
             <i class="fa-solid fa-file-pdf"></i> PDF
         </a>
-        <a href="{{ request()->fullUrlWithQuery(['print' => 'true']) }}" class="btn-outline" target="_blank">
+        <a href="{{ request()->fullUrlWithQuery(['print' => 'true']) }}" class="btn-export-print" target="_blank">
             <i class="fa-solid fa-print"></i> Print
         </a>
         <a href="{{ route('incomes.create') }}" class="btn-gold">

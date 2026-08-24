@@ -595,6 +595,46 @@
         box-shadow: 0 6px 22px rgba(13, 148, 136, 0.5) !important;
     }
 
+    /* Global Export & Action Buttons */
+    .btn-export-csv, .btn-export-excel, a.btn-export-csv, a.btn-export-excel {
+        display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 7px !important;
+        padding: 9px 18px !important; background: rgba(255, 255, 255, 0.08) !important;
+        color: #FFFFFF !important; font-size: 13.5px !important; font-weight: 700 !important; border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-radius: 10px !important; text-decoration: none !important; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1) !important; cursor: pointer !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important; white-space: nowrap !important;
+    }
+    .btn-export-csv:hover, .btn-export-excel:hover, a.btn-export-csv:hover, a.btn-export-excel:hover {
+        background: linear-gradient(135deg, #10B981, #059669) !important; border-color: #10B981 !important; color: #FFFFFF !important;
+        transform: translateY(-2px) scale(1.02) !important; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55) !important;
+    }
+    .btn-export-csv:hover i, .btn-export-excel:hover i { transform: scale(1.12) !important; }
+
+    .btn-export-pdf, a.btn-export-pdf {
+        display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 7px !important;
+        padding: 9px 18px !important; background: rgba(255, 255, 255, 0.08) !important;
+        color: #FFFFFF !important; font-size: 13.5px !important; font-weight: 700 !important; border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-radius: 10px !important; text-decoration: none !important; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1) !important; cursor: pointer !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important; white-space: nowrap !important;
+    }
+    .btn-export-pdf:hover, a.btn-export-pdf:hover {
+        background: linear-gradient(135deg, #EF4444, #DC2626) !important; border-color: #EF4444 !important; color: #FFFFFF !important;
+        transform: translateY(-2px) scale(1.02) !important; box-shadow: 0 6px 20px rgba(239, 68, 68, 0.55) !important;
+    }
+    .btn-export-pdf:hover i { transform: scale(1.12) !important; }
+
+    .btn-export-print, a.btn-export-print {
+        display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 7px !important;
+        padding: 9px 18px !important; background: rgba(255, 255, 255, 0.08) !important;
+        color: #FFFFFF !important; font-size: 13.5px !important; font-weight: 700 !important; border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-radius: 10px !important; text-decoration: none !important; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1) !important; cursor: pointer !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important; white-space: nowrap !important;
+    }
+    .btn-export-print:hover, a.btn-export-print:hover {
+        background: linear-gradient(135deg, #6366F1, #4F46E5) !important; border-color: #6366F1 !important; color: #FFFFFF !important;
+        transform: translateY(-2px) scale(1.02) !important; box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55) !important;
+    }
+    .btn-export-print:hover i { transform: scale(1.12) !important; }
+
     /* View All Button (.btn-view-all) */
     .btn-view-all {
         background: rgba(255, 255, 255, 0.08) !important;
@@ -950,6 +990,110 @@
         to   { opacity: 1; transform: translateY(-50%) translateX(0); }
     }
 
+    /* Sidebar Footer Card (Weather & Status) */
+    .sidebar-footer-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 12px 14px 16px;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+        transition: all 0.25s ease;
+        position: relative;
+    }
+    .sfc-weather-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 10px;
+        color: #F59E0B;
+        font-size: 16px;
+        flex-shrink: 0;
+        transition: all 0.25s ease;
+    }
+    .sfc-weather-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        overflow: hidden;
+        min-width: 0;
+        transition: opacity 0.2s ease, width 0.25s ease;
+    }
+    .sfc-temp {
+        color: #FFFFFF !important;
+        font-size: 13.5px;
+        font-weight: 700 !important;
+        line-height: 1.2;
+    }
+    .sfc-cond {
+        color: #94A3B8 !important;
+        font-size: 11px;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .sfc-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10B981;
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+        flex-shrink: 0;
+        animation: sfcPulse 2s infinite ease-in-out;
+    }
+    @keyframes sfcPulse {
+        0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 6px rgba(16, 185, 129, 0.6); }
+        50% { transform: scale(1.2); opacity: 0.75; box-shadow: 0 0 12px rgba(16, 185, 129, 0.9); }
+    }
+
+    /* Collapsed Sidebar overrides for Footer Card */
+    .sidebar-collapsed .sidebar-footer-card {
+        margin: 10px 8px;
+        padding: 10px 0;
+        justify-content: center;
+        gap: 0;
+    }
+    .sidebar-collapsed .sfc-weather-info {
+        display: none !important;
+        opacity: 0;
+        width: 0;
+        pointer-events: none;
+    }
+    .sidebar-collapsed .sfc-status-dot {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 7px;
+        height: 7px;
+    }
+    .sidebar-collapsed .sidebar-footer-card:hover::after {
+        content: "30°C • Mostly Cloudy";
+        position: absolute;
+        left: 72px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #1E293B;
+        color: #F1F5F9;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 8px;
+        white-space: nowrap;
+        z-index: 9999;
+        pointer-events: none;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.08);
+        animation: tooltipIn 0.15s ease both;
+    }
+
     /* ================================================================
        MOBILE OVERLAY
     ================================================================ */
@@ -1263,11 +1407,11 @@
         -moz-appearance: textfield !important;
     }
 
-    /* Uniform Export & Print Buttons System (Always Vibrant Solid Colors with Premium Glow) */
-    .btn-export-pdf, .btn-pdf {
-        background: #DC2626 !important;
+    /* Uniform Export & Print Buttons System (Default Dark Glass -> Vibrant Solid Colors on Hover) */
+    .btn-export-pdf, .btn-pdf, a.btn-export-pdf, a.btn-pdf {
+        background: rgba(255, 255, 255, 0.08) !important;
         color: #FFFFFF !important;
-        border: 1px solid #EF4444 !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
         border-radius: 10px !important;
         padding: 9px 18px !important;
         font-size: 13.5px !important;
@@ -1277,22 +1421,22 @@
         gap: 8px !important;
         text-decoration: none !important;
         white-space: nowrap !important;
-        transition: all 0.25s ease !important;
-        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.40) !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
         cursor: pointer !important;
     }
-    .btn-export-pdf:hover, .btn-pdf:hover {
-        background: #B91C1C !important;
+    .btn-export-pdf:hover, .btn-pdf:hover, a.btn-export-pdf:hover, a.btn-pdf:hover {
+        background: linear-gradient(135deg, #EF4444, #DC2626) !important;
         color: #FFFFFF !important;
-        border-color: #F87171 !important;
+        border-color: #EF4444 !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(220, 38, 38, 0.60) !important;
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.55) !important;
     }
 
-    .btn-excel, .btn-export, .btn-export-excel {
-        background: #059669 !important;
+    .btn-excel, .btn-export, .btn-export-excel, .btn-export-csv, a.btn-excel, a.btn-export, a.btn-export-excel, a.btn-export-csv {
+        background: rgba(255, 255, 255, 0.08) !important;
         color: #FFFFFF !important;
-        border: 1px solid #10B981 !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
         border-radius: 10px !important;
         padding: 9px 18px !important;
         font-size: 13.5px !important;
@@ -1302,16 +1446,41 @@
         gap: 8px !important;
         text-decoration: none !important;
         white-space: nowrap !important;
-        transition: all 0.25s ease !important;
-        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.40) !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
         cursor: pointer !important;
     }
-    .btn-excel:hover, .btn-export:hover, .btn-export-excel:hover {
-        background: #047857 !important;
+    .btn-excel:hover, .btn-export:hover, .btn-export-excel:hover, .btn-export-csv:hover, a.btn-excel:hover, a.btn-export:hover, a.btn-export-excel:hover, a.btn-export-csv:hover {
+        background: linear-gradient(135deg, #10B981, #059669) !important;
         color: #FFFFFF !important;
-        border-color: #34D399 !important;
+        border-color: #10B981 !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(5, 150, 105, 0.60) !important;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55) !important;
+    }
+
+    .btn-print, .btn-export-print, a.btn-print, a.btn-export-print {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-radius: 10px !important;
+        padding: 9px 18px !important;
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        text-decoration: none !important;
+        white-space: nowrap !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+        cursor: pointer !important;
+    }
+    .btn-print:hover, .btn-export-print:hover, a.btn-print:hover, a.btn-export-print:hover {
+        background: linear-gradient(135deg, #6366F1, #4F46E5) !important;
+        color: #FFFFFF !important;
+        border-color: #6366F1 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55) !important;
     }
 
     .btn-print {
@@ -2860,56 +3029,63 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover,
     transform: scale(1.15);
 }
 
-/* ── UNIVERSAL EXPORT & PRINT SOLID VIBRANT BUTTONS ── */
+/* ── UNIVERSAL EXPORT & PRINT BUTTONS (Default Glass -> Color on Hover) ── */
 html body .btn-export-pdf,
 html body .btn-pdf {
-    background: #DC2626 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
     color: #FFFFFF !important;
-    border: 1px solid #EF4444 !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
     border-radius: 10px !important;
     font-weight: 700 !important;
-    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.40) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
 }
 html body .btn-export-pdf:hover,
 html body .btn-pdf:hover {
-    background: #B91C1C !important;
+    background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+    border-color: #EF4444 !important;
     color: #FFFFFF !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.60) !important;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.55) !important;
 }
 
 html body .btn-excel,
 html body .btn-export,
-html body .btn-export-excel {
-    background: #059669 !important;
+html body .btn-export-excel,
+html body .btn-export-csv {
+    background: rgba(255, 255, 255, 0.08) !important;
     color: #FFFFFF !important;
-    border: 1px solid #10B981 !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
     border-radius: 10px !important;
     font-weight: 700 !important;
-    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.40) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
 }
 html body .btn-excel:hover,
 html body .btn-export:hover,
-html body .btn-export-excel:hover {
-    background: #047857 !important;
+html body .btn-export-excel:hover,
+html body .btn-export-csv:hover {
+    background: linear-gradient(135deg, #10B981, #059669) !important;
+    border-color: #10B981 !important;
     color: #FFFFFF !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.60) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55) !important;
 }
 
-html body .btn-print {
-    background: #4F46E5 !important;
+html body .btn-print,
+html body .btn-export-print {
+    background: rgba(255, 255, 255, 0.08) !important;
     color: #FFFFFF !important;
-    border: 1px solid #6366F1 !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
     border-radius: 10px !important;
     font-weight: 700 !important;
-    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.40) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
 }
-html body .btn-print:hover {
-    background: #4338CA !important;
+html body .btn-print:hover,
+html body .btn-export-print:hover {
+    background: linear-gradient(135deg, #6366F1, #4F46E5) !important;
+    border-color: #6366F1 !important;
     color: #FFFFFF !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.60) !important;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55) !important;
 }
 </style>
 </body>
