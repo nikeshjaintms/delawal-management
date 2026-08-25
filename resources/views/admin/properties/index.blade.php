@@ -205,6 +205,37 @@
         box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
     }
     .btn-browse:hover { background: #1D4ED8; transform: translateY(-1px); }
+    .btn-secondary-custom {
+        display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important;
+        padding: 10px 22px !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.20) !important;
+        color: #FFFFFF !important; font-size: 13.5px !important; font-weight: 700 !important;
+        border-radius: 10px !important; cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        text-decoration: none !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    }
+    .btn-secondary-custom:hover {
+        background: rgba(255, 255, 255, 0.18) !important;
+        color: #FFFFFF !important; border-color: rgba(255, 255, 255, 0.35) !important;
+        transform: translateY(-1px) !important;
+    }
+    .btn-primary-custom {
+        display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important;
+        padding: 10px 24px !important;
+        background: #2563EB !important;
+        border: 1px solid #3B82F6 !important;
+        color: #FFFFFF !important; font-size: 13.5px !important; font-weight: 700 !important;
+        border-radius: 10px !important; cursor: pointer !important;
+        box-shadow: 0 4px 16px rgba(37, 99, 235, 0.40) !important;
+        transition: all 0.2s ease !important;
+        text-decoration: none !important;
+    }
+    .btn-primary-custom:hover {
+        background: #1D4ED8 !important; transform: translateY(-1px) !important;
+        box-shadow: 0 6px 22px rgba(37, 99, 235, 0.55) !important;
+    }
     .badge-valid { background: rgba(16, 185, 129, 0.18); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35); display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
     .badge-invalid { background: rgba(239, 68, 68, 0.18); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.35); display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
     .action-buttons-wrap { display: flex !important; gap: 8px !important; align-items: center !important; white-space: nowrap !important; }

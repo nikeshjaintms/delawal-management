@@ -269,191 +269,151 @@ class PropertyController extends Controller
             $contextProject = \App\Models\Project::with('firm')->find($request->project_id);
         }
 
-        $spreadsheet = new Spreadsheet();
-
-        // Sheet 1: Template
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Properties Import Template');
-
-        $headers = [
-            'A1' => 'Firm Name',
-            'B1' => 'Project Name*',
-            'C1' => 'Property Type*',
-            'D1' => 'Property Code*',
-            'E1' => 'Property Name*',
-            'F1' => 'Property Status*',
-            'G1' => 'Location',
-            'H1' => 'City',
-            'I1' => 'Address',
-            'J1' => 'Size',
-            'K1' => 'Size Unit',
-            'L1' => 'Price (INR)',
-            'M1' => 'Unit No',
-            'N1' => 'Floor No',
-            'O1' => 'Facing',
-            'P1' => 'Description',
-            'Q1' => 'Image Filename',
-        ];
-
-        foreach ($headers as $cell => $text) {
-            $sheet->setCellValue($cell, $text);
-        }
-
-        // Sample Data Row
         $sampleFirm = $contextProject?->firm?->firm_name ?? ($firms->first()?->firm_name ?? 'Delawala Builders');
         $sampleProject = $contextProject?->project_name ?? ($projects->first()?->project_name ?? 'Delawala Residency');
         $sampleType = $propertyTypes->first()?->name ?? 'Plot';
 
-        $sheet->setCellValue('A2', $sampleFirm);
-        $sheet->setCellValue('B2', $sampleProject);
-        $sheet->setCellValue('C2', $sampleType);
-        $sheet->setCellValue('D2', 'DEL-PLOT-001');
-        $sheet->setCellValue('E2', 'Plot No. 1');
-        $sheet->setCellValue('F2', 'available');
-        $sheet->setCellValue('G2', 'Zadeshwar Road');
-        $sheet->setCellValue('H2', 'Bharuch');
-        $sheet->setCellValue('I2', 'Plot No 1, Near NH8, Zadeshwar, Bharuch');
-        $sheet->setCellValue('J2', '1200');
-        $sheet->setCellValue('K2', 'sq.ft');
-        $sheet->setCellValue('L2', '2500000');
-        $sheet->setCellValue('M2', 'P-01');
-        $sheet->setCellValue('N2', 'Ground');
-        $sheet->setCellValue('O2', 'East');
-        $sheet->setCellValue('P2', 'Prime location corner plot');
-        $sheet->setCellValue('Q2', 'plot-001.jpg');
+        // If PhpSpreadsheet is installed, generate full multi-sheet XLSX template
+        if (class_exists('\\PhpOffice\\PhpSpreadsheet\\Spreadsheet') && class_exists('\\PhpOffice\\PhpSpreadsheet\\Writer\\Xlsx')) {
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
 
-        // Style Header Row
-        $headerStyle = [
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '1E293B'],
-            ],
-            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER, 'horizontal' => Alignment::HORIZONTAL_CENTER],
-        ];
-        $sheet->getStyle('A1:Q1')->applyFromArray($headerStyle);
-        $sheet->getRowDimension(1)->setRowHeight(28);
-        $sheet->getRowDimension(2)->setRowHeight(22);
+            // Sheet 1: Template
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Properties Import Template');
 
-        // Auto-fit columns
-        foreach (range('A', 'Q') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
+            $headers = [
+                'A1' => 'Firm Name',
+                'B1' => 'Project Name*',
+                'C1' => 'Property Type*',
+                'D1' => 'Property Code*',
+                'E1' => 'Property Name*',
+                'F1' => 'Property Status*',
+                'G1' => 'Location',
+                'H1' => 'City',
+                'I1' => 'Address',
+                'J1' => 'Size',
+                'K1' => 'Size Unit',
+                'L1' => 'Price (INR)',
+                'M1' => 'Unit No',
+                'N1' => 'Floor No',
+                'O1' => 'Facing',
+                'P1' => 'Description',
+                'Q1' => 'Image Filename',
+            ];
 
-        // Add Data Validations (Dropdowns)
-        $statusValidation = $sheet->getCell('F2')->getDataValidation();
-        $statusValidation->setType(DataValidation::TYPE_LIST);
-        $statusValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
-        $statusValidation->setAllowBlank(false);
-        $statusValidation->setShowInputMessage(true);
-        $statusValidation->setShowErrorMessage(true);
-        $statusValidation->setShowDropDown(true);
-        $statusValidation->setFormula1('"available,booked,sold,rented"');
-        for ($r = 2; $r <= 200; $r++) {
-            $sheet->getCell("F{$r}")->setDataValidation(clone $statusValidation);
-        }
-
-        $unitValidation = $sheet->getCell('K2')->getDataValidation();
-        $unitValidation->setType(DataValidation::TYPE_LIST);
-        $unitValidation->setAllowBlank(true);
-        $unitValidation->setShowDropDown(true);
-        $unitValidation->setFormula1('"sq.ft,sq.yard,sq.meter,acre,bigha"');
-        for ($r = 2; $r <= 200; $r++) {
-            $sheet->getCell("K{$r}")->setDataValidation(clone $unitValidation);
-        }
-
-        $facingValidation = $sheet->getCell('O2')->getDataValidation();
-        $facingValidation->setType(DataValidation::TYPE_LIST);
-        $facingValidation->setAllowBlank(true);
-        $facingValidation->setShowDropDown(true);
-        $facingValidation->setFormula1('"East,West,North,South,North-East,North-West,South-East,South-West"');
-        for ($r = 2; $r <= 200; $r++) {
-            $sheet->getCell("O{$r}")->setDataValidation(clone $facingValidation);
-        }
-
-        // Sheet 2: Reference & Instructions
-        $guideSheet = $spreadsheet->createSheet();
-        $guideSheet->setTitle('Instructions & Reference');
-
-        $guideSheet->setCellValue('A1', 'Property Import Guidelines');
-        $guideSheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-
-        $instructions = [
-            ['Column', 'Required', 'Allowed Values / Format', 'Description'],
-            ['Firm Name', 'Admin Only', 'Text (e.g. ' . $sampleFirm . ')', 'Firm name. Optional for firm user.'],
-            ['Project Name*', 'YES', 'Text (Must match active Project)', 'Project name or project code.'],
-            ['Property Type*', 'YES', 'Text (Must match active Type)', 'Property type e.g. Flat, Plot, Shop.'],
-            ['Property Code*', 'YES', 'Unique Text (e.g. DEL-PLOT-001)', 'Unique identifier per property.'],
-            ['Property Name*', 'YES', 'Text (e.g. Plot No. 1)', 'Name/Title of the property.'],
-            ['Property Status*', 'YES', 'available, booked, sold, rented', 'Current availability status.'],
-            ['Location', 'NO', 'Text', 'Area or landmark location.'],
-            ['City', 'NO', 'Text', 'City name.'],
-            ['Address', 'NO', 'Text', 'Full street address.'],
-            ['Size', 'NO', 'Number/Text (e.g. 1200)', 'Area size numeric value.'],
-            ['Size Unit', 'NO', 'sq.ft, sq.yard, sq.meter, acre, bigha', 'Measurement unit for size.'],
-            ['Price (INR)', 'NO', 'Number (e.g. 2500000)', 'Property price without currency symbols.'],
-            ['Unit No', 'NO', 'Text (e.g. A-101)', 'Unit or flat number.'],
-            ['Floor No', 'NO', 'Text (e.g. 1st Floor)', 'Floor number or level.'],
-            ['Facing', 'NO', 'East, West, North, South, North-East...', 'Property orientation.'],
-            ['Description', 'NO', 'Text', 'Notes or amenities description.'],
-            ['Image Filename', 'NO', 'Image filename (e.g. plot-001.jpg)', 'Matching filename if images zip is uploaded.'],
-        ];
-
-        $r = 3;
-        foreach ($instructions as $row) {
-            $col = 'A';
-            foreach ($row as $val) {
-                $guideSheet->setCellValue($col . $r, $val);
-                $col++;
+            foreach ($headers as $cell => $text) {
+                $sheet->setCellValue($cell, $text);
             }
-            if ($r === 3) {
-                $guideSheet->getStyle("A{$r}:D{$r}")->getFont()->setBold(true);
-                $guideSheet->getStyle("A{$r}:D{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E2E8F0');
+
+            $sheet->setCellValue('A2', $sampleFirm);
+            $sheet->setCellValue('B2', $sampleProject);
+            $sheet->setCellValue('C2', $sampleType);
+            $sheet->setCellValue('D2', 'DEL-PLOT-001');
+            $sheet->setCellValue('E2', 'Plot No. 1');
+            $sheet->setCellValue('F2', 'available');
+            $sheet->setCellValue('G2', 'Zadeshwar Road');
+            $sheet->setCellValue('H2', 'Bharuch');
+            $sheet->setCellValue('I2', 'Plot No 1, Near NH8, Zadeshwar, Bharuch');
+            $sheet->setCellValue('J2', '1200');
+            $sheet->setCellValue('K2', 'sq.ft');
+            $sheet->setCellValue('L2', '2500000');
+            $sheet->setCellValue('M2', 'P-01');
+            $sheet->setCellValue('N2', 'Ground');
+            $sheet->setCellValue('O2', 'East');
+            $sheet->setCellValue('P2', 'Prime location corner plot');
+            $sheet->setCellValue('Q2', 'plot-001.jpg');
+
+            // Style Header Row
+            $headerStyle = [
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '1E293B'],
+                ],
+                'alignment' => ['vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER, 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+            ];
+            $sheet->getStyle('A1:Q1')->applyFromArray($headerStyle);
+            $sheet->getRowDimension(1)->setRowHeight(28);
+            $sheet->getRowDimension(2)->setRowHeight(22);
+
+            foreach (range('A', 'Q') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
             }
-            $r++;
+
+            // Sheet 2: Reference & Instructions
+            $guideSheet = $spreadsheet->createSheet();
+            $guideSheet->setTitle('Instructions & Reference');
+
+            $guideSheet->setCellValue('A1', 'Property Import Guidelines');
+            $guideSheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+
+            $instructions = [
+                ['Column', 'Required', 'Allowed Values / Format', 'Description'],
+                ['Firm Name', 'Admin Only', 'Text (e.g. ' . $sampleFirm . ')', 'Firm name. Optional for firm user.'],
+                ['Project Name*', 'YES', 'Text (Must match active Project)', 'Project name or project code.'],
+                ['Property Type*', 'YES', 'Text (Must match active Type)', 'Property type e.g. Flat, Plot, Shop.'],
+                ['Property Code*', 'YES', 'Unique Text (e.g. DEL-PLOT-001)', 'Unique identifier per property.'],
+                ['Property Name*', 'YES', 'Text (e.g. Plot No. 1)', 'Name/Title of the property.'],
+                ['Property Status*', 'YES', 'available, booked, sold, rented', 'Current availability status.'],
+                ['Location', 'NO', 'Text', 'Area or landmark location.'],
+                ['City', 'NO', 'Text', 'City name.'],
+                ['Address', 'NO', 'Text', 'Full street address.'],
+                ['Size', 'NO', 'Number/Text (e.g. 1200)', 'Area size numeric value.'],
+                ['Size Unit', 'NO', 'sq.ft, sq.yard, sq.meter, acre, bigha', 'Measurement unit for size.'],
+                ['Price (INR)', 'NO', 'Number (e.g. 2500000)', 'Property price without currency symbols.'],
+                ['Unit No', 'NO', 'Text (e.g. A-101)', 'Unit or flat number.'],
+                ['Floor No', 'NO', 'Text (e.g. 1st Floor)', 'Floor number or level.'],
+                ['Facing', 'NO', 'East, West, North, South, North-East...', 'Property orientation.'],
+                ['Description', 'NO', 'Text', 'Notes or amenities description.'],
+                ['Image Filename', 'NO', 'Image filename (e.g. plot-001.jpg)', 'Matching filename if images zip is uploaded.'],
+            ];
+
+            $r = 3;
+            foreach ($instructions as $row) {
+                $col = 'A';
+                foreach ($row as $val) {
+                    $guideSheet->setCellValue($col . $r, $val);
+                    $col++;
+                }
+                if ($r === 3) {
+                    $guideSheet->getStyle("A{$r}:D{$r}")->getFont()->setBold(true);
+                    $guideSheet->getStyle("A{$r}:D{$r}")->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('E2E8F0');
+                }
+                $r++;
+            }
+
+            $spreadsheet->setActiveSheetIndex(0);
+            $filename = 'Property_Master_Import_Template.xlsx';
+
+            return response()->streamDownload(function () use ($spreadsheet) {
+                $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+                $writer->save('php://output');
+            }, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Cache-Control' => 'max-age=0',
+            ]);
         }
 
-        // Active Projects Reference Table
-        $r += 2;
-        $guideSheet->setCellValue("A{$r}", 'AVAILABLE PROJECTS IN YOUR SYSTEM');
-        $guideSheet->getStyle("A{$r}")->getFont()->setBold(true)->setSize(12);
-        $r++;
-        $guideSheet->setCellValue("A{$r}", 'Project Name');
-        $guideSheet->setCellValue("B{$r}", 'Project Code');
-        $guideSheet->getStyle("A{$r}:B{$r}")->getFont()->setBold(true);
-        $r++;
-        foreach ($projects as $p) {
-            $guideSheet->setCellValue("A{$r}", $p->project_name);
-            $guideSheet->setCellValue("B{$r}", $p->project_code);
-            $r++;
-        }
+        // Fallback: Stream universal CSV Template compatible with Excel
+        $csvHeaders = [
+            'Firm Name', 'Project Name*', 'Property Type*', 'Property Code*', 'Property Name*',
+            'Property Status*', 'Location', 'City', 'Address', 'Size', 'Size Unit',
+            'Price (INR)', 'Unit No', 'Floor No', 'Facing', 'Description', 'Image Filename'
+        ];
+        $csvSample = [
+            $sampleFirm, $sampleProject, $sampleType, 'DEL-PLOT-001', 'Plot No. 1',
+            'available', 'Zadeshwar Road', 'Bharuch', 'Plot No 1, Near NH8, Bharuch',
+            '1200', 'sq.ft', '2500000', 'P-01', 'Ground', 'East', 'Prime location corner plot', 'plot-001.jpg'
+        ];
 
-        // Active Property Types Reference Table
-        $r += 2;
-        $guideSheet->setCellValue("A{$r}", 'AVAILABLE PROPERTY TYPES');
-        $guideSheet->getStyle("A{$r}")->getFont()->setBold(true)->setSize(12);
-        $r++;
-        $guideSheet->setCellValue("A{$r}", 'Property Type Name');
-        $guideSheet->getStyle("A{$r}")->getFont()->setBold(true);
-        $r++;
-        foreach ($propertyTypes as $pt) {
-            $guideSheet->setCellValue("A{$r}", $pt->name);
-            $r++;
-        }
-
-        foreach (range('A', 'D') as $col) {
-            $guideSheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        $spreadsheet->setActiveSheetIndex(0);
-
-        $filename = 'Property_Master_Import_Template.xlsx';
-
-        return response()->streamDownload(function () use ($spreadsheet) {
-            $writer = new Xlsx($spreadsheet);
-            $writer->save('php://output');
-        }, $filename, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        return response()->streamDownload(function () use ($csvHeaders, $csvSample) {
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM so Excel opens it with proper encoding
+            fputcsv($out, $csvHeaders);
+            fputcsv($out, $csvSample);
+            fclose($out);
+        }, 'Property_Master_Import_Template.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Cache-Control' => 'max-age=0',
         ]);
     }
@@ -464,7 +424,7 @@ class PropertyController extends Controller
     public function validateImport(Request $request)
     {
         $request->validate([
-            'excel_file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+            'excel_file' => 'required|file|max:10240',
             'image_archive' => 'nullable|file|mimes:zip|max:51200',
             'image_files.*' => 'nullable|file|image|max:10240',
         ]);
@@ -481,21 +441,23 @@ class PropertyController extends Controller
         $uploadedImages = [];
         if ($request->hasFile('image_archive')) {
             $zipFile = $request->file('image_archive');
-            $zip = new ZipArchive();
-            if ($zip->open($zipFile->getRealPath()) === true) {
-                for ($i = 0; $i < $zip->numFiles; $i++) {
-                    $stat = $zip->statIndex($i);
-                    $filename = basename($stat['name']);
-                    if (!empty($filename) && preg_match('/\.(jpg|jpeg|png|webp|gif)$/i', $filename)) {
-                        $zip->extractTo($tempPath, $stat['name']);
-                        $extractedFile = $tempPath . '/' . $stat['name'];
-                        if (file_exists($extractedFile) && is_file($extractedFile)) {
-                            copy($extractedFile, $tempPath . '/' . $filename);
-                            $uploadedImages[strtolower($filename)] = $tempPath . '/' . $filename;
+            if (class_exists('ZipArchive')) {
+                $zip = new ZipArchive();
+                if ($zip->open($zipFile->getRealPath()) === true) {
+                    for ($i = 0; $i < $zip->numFiles; $i++) {
+                        $stat = $zip->statIndex($i);
+                        $filename = basename($stat['name']);
+                        if (!empty($filename) && preg_match('/\.(jpg|jpeg|png|webp|gif)$/i', $filename)) {
+                            $zip->extractTo($tempPath, $stat['name']);
+                            $extractedFile = $tempPath . '/' . $stat['name'];
+                            if (file_exists($extractedFile) && is_file($extractedFile)) {
+                                copy($extractedFile, $tempPath . '/' . $filename);
+                                $uploadedImages[strtolower($filename)] = $tempPath . '/' . $filename;
+                            }
                         }
                     }
+                    $zip->close();
                 }
-                $zip->close();
             }
         }
 
@@ -514,11 +476,9 @@ class PropertyController extends Controller
             }
         }
 
-        // Read Excel File using PhpSpreadsheet
+        // Read Excel/CSV File using Universal Parser (PhpSpreadsheet or Native Fallback)
         try {
-            $spreadsheet = IOFactory::load($file->getRealPath());
-            $sheet = $spreadsheet->getActiveSheet();
-            $rows = $sheet->toArray(null, true, true, true);
+            $rows = $this->parseSpreadsheetData($file->getRealPath());
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -1257,6 +1217,171 @@ class PropertyController extends Controller
                 'message' => 'Unable to delete selected properties. No records were deleted.',
             ], 500);
         }
+    }
+
+    // ----------------------------------------------------------------
+    // SPREADSHEET PARSING HELPERS (PhpSpreadsheet + Native Fallback)
+    // ----------------------------------------------------------------
+    protected function parseSpreadsheetData(string $filePath): array
+    {
+        // 1. If PhpSpreadsheet is available, try it first
+        if (class_exists('\\PhpOffice\\PhpSpreadsheet\\IOFactory')) {
+            try {
+                $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($filePath);
+                $sheet = $spreadsheet->getActiveSheet();
+                $data = $sheet->toArray(null, true, true, true);
+                if (!empty($data) && count($data) >= 1) {
+                    return $data;
+                }
+            } catch (\Throwable $e) {
+                // fallback to native
+            }
+        }
+
+        // 2. Determine file type
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        if ($ext === 'csv' || $ext === 'txt') {
+            return $this->parseCsvNatively($filePath);
+        }
+
+        // 3. Native XLSX parser via ZipArchive & SimpleXML
+        return $this->parseXlsxNatively($filePath);
+    }
+
+    protected function parseXlsxNatively(string $filePath): array
+    {
+        if (!class_exists('ZipArchive')) {
+            throw new \Exception('ZipArchive extension is required to read XLSX files. Please install or enable php-zip.');
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($filePath) !== true) {
+            // Might be a CSV file renamed to XLSX or XLS
+            try {
+                return $this->parseCsvNatively($filePath);
+            } catch (\Throwable $e) {
+                throw new \Exception('Unable to open Excel file. Please ensure it is a valid .xlsx or .csv file.');
+            }
+        }
+
+        // 1. Read Shared Strings (xl/sharedStrings.xml)
+        $sharedStrings = [];
+        $sharedStringsXml = $zip->getFromName('xl/sharedStrings.xml');
+        if ($sharedStringsXml !== false) {
+            $xml = @simplexml_load_string($sharedStringsXml);
+            if ($xml) {
+                foreach ($xml->si as $si) {
+                    if (isset($si->t)) {
+                        $sharedStrings[] = (string) $si->t;
+                    } elseif (isset($si->r)) {
+                        $text = '';
+                        foreach ($si->r as $r) {
+                            $text .= (string) $r->t;
+                        }
+                        $sharedStrings[] = $text;
+                    } else {
+                        $sharedStrings[] = '';
+                    }
+                }
+            }
+        }
+
+        // 2. Locate Worksheet XML
+        $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+        if ($sheetXml === false) {
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = $zip->getNameIndex($i);
+                if (str_starts_with($name, 'xl/worksheets/') && str_ends_with($name, '.xml')) {
+                    $sheetXml = $zip->getFromName($name);
+                    break;
+                }
+            }
+        }
+        $zip->close();
+
+        if (!$sheetXml) {
+            throw new \Exception('No worksheet data found in XLSX file.');
+        }
+
+        $xml = @simplexml_load_string($sheetXml);
+        if (!$xml || !isset($xml->sheetData)) {
+            throw new \Exception('Could not parse worksheet XML data.');
+        }
+
+        $rows = [];
+        $rowCounter = 1;
+        foreach ($xml->sheetData->row as $row) {
+            $rowNum = (int) ($row['r'] ?? $rowCounter);
+            $rowData = [];
+            foreach ($row->c as $cell) {
+                $cellRef = (string) $cell['r'];
+                $colLetter = preg_replace('/[0-9]/', '', $cellRef);
+                $type = (string) ($cell['t'] ?? '');
+                $val = isset($cell->v) ? (string) $cell->v : '';
+
+                if ($type === 's' && isset($sharedStrings[(int) $val])) {
+                    $val = $sharedStrings[(int) $val];
+                } elseif ($type === 'inlineStr' && isset($cell->is->t)) {
+                    $val = (string) $cell->is->t;
+                }
+                $rowData[$colLetter] = trim($val);
+            }
+            if (!empty($rowData)) {
+                $rows[$rowNum] = $rowData;
+            }
+            $rowCounter++;
+        }
+
+        ksort($rows);
+        $finalRows = [];
+        $idx = 1;
+        foreach ($rows as $r) {
+            $finalRows[$idx] = $r;
+            $idx++;
+        }
+
+        return $finalRows;
+    }
+
+    protected function parseCsvNatively(string $filePath): array
+    {
+        $rows = [];
+        $handle = fopen($filePath, 'r');
+        if (!$handle) {
+            throw new \Exception('Unable to open CSV file.');
+        }
+
+        $rowIdx = 1;
+        while (($data = fgetcsv($handle, 10000, ',')) !== false) {
+            if (count($data) === 1 && str_contains($data[0], ';')) {
+                $data = str_getcsv($data[0], ';');
+            } elseif (count($data) === 1 && str_contains($data[0], "\t")) {
+                $data = str_getcsv($data[0], "\t");
+            }
+
+            $letterRow = [];
+            $colIndex = 0;
+            foreach ($data as $cell) {
+                $colLetter = $this->numToColLetter($colIndex);
+                $cleanVal = preg_replace('/^\x{EF}\x{BB}\x{BF}/', '', (string) $cell);
+                $letterRow[$colLetter] = trim($cleanVal);
+                $colIndex++;
+            }
+            $rows[$rowIdx] = $letterRow;
+            $rowIdx++;
+        }
+        fclose($handle);
+        return $rows;
+    }
+
+    protected function numToColLetter(int $index): string
+    {
+        $letter = '';
+        while ($index >= 0) {
+            $letter = chr($index % 26 + 65) . $letter;
+            $index = intdiv($index, 26) - 1;
+        }
+        return $letter;
     }
 
     // ----------------------------------------------------------------
