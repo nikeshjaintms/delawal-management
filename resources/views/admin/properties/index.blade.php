@@ -215,15 +215,18 @@
     $selectedProject = request('project_id') ? \App\Models\Project::with('propertyMaster')->find(request('project_id')) : null;
 @endphp
 
-<div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">
-    Property Management &nbsp;&gt;&nbsp; 
+<div class="breadcrumb-nav">
+    <span><i class="fa-solid fa-city" style="color: #60A5FA; margin-right: 6px;"></i>Property Management</span>
+    <i class="fa-solid fa-chevron-right separator"></i>
     @if($selectedProject && $selectedProject->propertyMaster)
-        <a href="{{ route('property-masters.show', $selectedProject->propertyMaster->id) }}" style="color: var(--gold); text-decoration: none; font-weight: 600;">{{ $selectedProject->propertyMaster->property_name }}</a> &nbsp;&gt;&nbsp; 
+        <a href="{{ route('property-masters.show', $selectedProject->propertyMaster->id) }}">{{ $selectedProject->propertyMaster->property_name }}</a>
+        <i class="fa-solid fa-chevron-right separator"></i>
     @endif
     @if($selectedProject)
-        <a href="{{ route('projects.show', $selectedProject->id) }}" style="color: var(--gold); text-decoration: none; font-weight: 600;">{{ $selectedProject->project_name }}</a> &nbsp;&gt;&nbsp; 
+        <a href="{{ route('projects.show', $selectedProject->id) }}">{{ $selectedProject->project_name }}</a>
+        <i class="fa-solid fa-chevron-right separator"></i>
     @endif
-    <span style="color: var(--text-primary); font-weight: 600;">Bulk Management</span>
+    <span class="active">Bulk Management</span>
 </div>
 
 <div class="crud-header">

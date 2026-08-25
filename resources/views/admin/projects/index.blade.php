@@ -125,12 +125,14 @@
 </style>
 
 {{-- Breadcrumb --}}
-<div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">
-    Property Management &nbsp;&gt;&nbsp; 
+<div class="breadcrumb-nav">
+    <span><i class="fa-solid fa-city" style="color: #60A5FA; margin-right: 6px;"></i>Property Management</span>
+    <i class="fa-solid fa-chevron-right separator"></i>
     @if(isset($propertyMaster) && $propertyMaster)
-        <a href="{{ route('property-masters.show', $propertyMaster->id) }}" style="color: var(--gold); text-decoration: none; font-weight: 600;">{{ $propertyMaster->property_name }}</a> &nbsp;&gt;&nbsp; 
+        <a href="{{ route('property-masters.show', $propertyMaster->id) }}">{{ $propertyMaster->property_name }}</a>
+        <i class="fa-solid fa-chevron-right separator"></i>
     @endif
-    <span style="color: var(--text-primary); font-weight: 600;">Projects</span>
+    <span class="active">Projects</span>
 </div>
 
 <div class="crud-header">

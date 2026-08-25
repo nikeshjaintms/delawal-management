@@ -65,7 +65,7 @@
     body {
         font-family: var(--font-primary);
         background-color: #0B0E17 !important;
-        background: #0B0E17 url('/images/luxury-bg.jpg') no-repeat center center fixed !important;
+        background: #0B0E17 url('{{ asset('images/luxury-bg.jpg') }}?v=11') no-repeat center center fixed !important;
         background-size: cover !important;
         color: var(--text-primary);
         min-height: 100vh;
@@ -341,9 +341,10 @@
         overflow-y: auto;          /* MAIN content scrolls, not body */
         overflow-x: hidden;
         transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
-        background: rgba(10, 15, 26, 0.45) !important;
-        backdrop-filter: blur(2px);
-        -webkit-backdrop-filter: blur(2px);
+        background: transparent !important;
+        background-color: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
 
     /* ================================================================
@@ -352,10 +353,10 @@
     .topbar {
         height: var(--topbar-height);
         min-height: var(--topbar-height);
-        background: var(--topbar-bg) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: rgba(12, 17, 29, 0.80) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.10) !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
         display: flex;
         justify-content: space-between;
@@ -430,6 +431,53 @@
        CONTENT BODY
     ================================================================ */
     .content-body { padding: 28px 40px 60px !important; flex: 1; }
+
+    /* ================================================================
+       BREADCRUMB NAV — Global high contrast luxury glass styling
+    ================================================================ */
+    .breadcrumb-nav {
+        display: inline-flex !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        padding: 9px 18px !important;
+        background: rgba(16, 22, 34, 0.85) !important;
+        backdrop-filter: blur(20px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 12px !important;
+        font-size: 13px !important;
+        color: #CBD5E1 !important;
+        font-weight: 600 !important;
+        margin-bottom: 22px !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.40) !important;
+    }
+    .breadcrumb-nav a {
+        color: #60A5FA !important;
+        text-decoration: none !important;
+        font-weight: 700 !important;
+        transition: all 0.18s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+    }
+    .breadcrumb-nav a:hover {
+        color: #93C5FD !important;
+        text-decoration: underline !important;
+        transform: translateY(-1px);
+    }
+    .breadcrumb-nav .separator {
+        font-size: 10px !important;
+        color: #94A3B8 !important;
+        opacity: 0.85 !important;
+        margin: 0 2px !important;
+    }
+    .breadcrumb-nav .active {
+        color: #FFFFFF !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.3px !important;
+    }
+
 
     /* ================================================================
        GLOBAL CARD OVERRIDE — lift all card-box styles
@@ -1351,7 +1399,7 @@
     html, body {
         min-height: 100vh !important;
         background-color: #0B0E17 !important;
-        background: #0B0E17 url('/images/luxury-bg.jpg') no-repeat center center fixed !important;
+        background: #0B0E17 url('{{ asset('images/luxury-bg.jpg') }}?v=11') no-repeat center center fixed !important;
         background-size: cover !important;
         color: #FFFFFF !important;
         font-family: 'Inter', 'Poppins', 'Manrope', sans-serif !important;
@@ -1360,21 +1408,23 @@
     .wrapper, .main-content, .content-body, .content-page, #app, .page-wrapper, .main-wrapper {
         background: transparent !important;
         background-color: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
 
     .ambient-glow-wrapper {
         display: none !important;
     }
     
-    /* Luxury Translucent Glass Cards & Containers Across All Modules */
+    /* Luxury Dark Translucent Glass Cards Across All Modules */
     .card-box, .card, .modal-box, .modal-content, .crud-box, .stat-card, .kpi-card, .sum-card, .section-card, .form-card, .summary-card, .rpt-box, .dash-welcome, .rpt-card, .table-container, .task-item, .info-card, .detail-card, .info-box, .pl-stat-card, .gst-stat-card, .summary-box, .box, .table-card, .type-btn, .modal-dialog, .filter-bar, .table-toolbar {
-        background: rgba(20, 27, 41, 0.65) !important;
-        background-color: rgba(20, 27, 41, 0.65) !important;
-        backdrop-filter: blur(18px) saturate(160%) !important;
-        -webkit-backdrop-filter: blur(18px) saturate(160%) !important;
+        background: rgba(15, 23, 42, 0.55) !important;
+        background-color: rgba(15, 23, 42, 0.55) !important;
+        backdrop-filter: blur(14px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
         border: 1px solid rgba(255, 255, 255, 0.12) !important;
         border-radius: 20px !important;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
         color: #FFFFFF !important;
         transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease !important;
 
@@ -1382,6 +1432,12 @@
         --text-secondary:#CBD5E1;
         --text-muted:    #94A3B8;
         --border-color:  rgba(255, 255, 255, 0.12);
+    }
+    .card-box:hover, .card:hover, .stat-card:hover, .kpi-card:hover, .sum-card:hover, .section-card:hover, .summary-card:hover, .dash-welcome:hover {
+        background: rgba(15, 23, 42, 0.68) !important;
+        background-color: rgba(15, 23, 42, 0.68) !important;
+        border-color: rgba(255, 255, 255, 0.22) !important;
+        box-shadow: 0 18px 46px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
     }
 
     /* Webkit / Chrome / Edge Browser Autofill & Autocomplete Dark Mode Overrides */

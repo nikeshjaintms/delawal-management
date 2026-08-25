@@ -245,13 +245,16 @@ code.code-chip, code {
 </style>
 
 {{-- Breadcrumb --}}
-<div style="font-size: 13px; color: #CBD5E1; margin-bottom: 15px; font-weight: 500;">
-    Property Management &nbsp;&gt;&nbsp; 
+<div class="breadcrumb-nav">
+    <span><i class="fa-solid fa-city" style="color: #60A5FA; margin-right: 6px;"></i>Property Management</span>
+    <i class="fa-solid fa-chevron-right separator"></i>
     @if($project->propertyMaster)
-        <a href="{{ route('property-masters.show', $project->propertyMaster->id) }}" style="color: #60A5FA; text-decoration: none; font-weight: 700;">{{ $project->propertyMaster->property_name }}</a> &nbsp;&gt;&nbsp; 
+        <a href="{{ route('property-masters.show', $project->propertyMaster->id) }}">{{ $project->propertyMaster->property_name }}</a>
+        <i class="fa-solid fa-chevron-right separator"></i>
     @endif
-    <a href="{{ route('projects.index', $project->property_id ? ['property_id' => $project->property_id] : []) }}" style="color: #60A5FA; text-decoration: none; font-weight: 700;">Projects</a> &nbsp;&gt;&nbsp; 
-    <span style="color: #FFFFFF; font-weight: 700;">{{ $project->project_name }}</span>
+    <a href="{{ route('projects.index', $project->property_id ? ['property_id' => $project->property_id] : []) }}">Projects</a>
+    <i class="fa-solid fa-chevron-right separator"></i>
+    <span class="active">{{ $project->project_name }}</span>
 </div>
 
 <div class="crud-header">
