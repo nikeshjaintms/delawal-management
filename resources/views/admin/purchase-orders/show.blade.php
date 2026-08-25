@@ -19,47 +19,205 @@
 @endphp
 @section('content')
 <style>
-    .form-card {background:var(--card-bg); border:1px solid var(--border-color); border-radius:16px; padding:28px 32px; box-shadow:var(--card-shadow); margin-bottom:24px;}
-    .section-heading {font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--blue); margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid var(--blue-light); display:flex; align-items:center; gap:8px;}
-    .detail-grid {display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px;}
-    @media(max-width:640px){.detail-grid{grid-template-columns:1fr}}
-    .detail-item {font-size:13.5px; line-height:1.6;}
-    .detail-label {font-weight:600; color:var(--text-secondary); width:150px; display:inline-block;}
-    .detail-value {color:var(--text-primary); font-weight:500;}
-    
-    .items-table {width:100%; border-collapse:collapse; margin-top:15px; font-size:13px;}
-    .items-table th {background:#F9FAFB; padding:12px 10px; font-weight:600; border-bottom:1.5px solid var(--border-color); text-transform:uppercase; font-size:11px; letter-spacing:0.5px;}
-    .items-table td {padding:12px 10px; border-bottom:1px solid #F1F5F9; vertical-align:middle;}
-    
-    .badge {display:inline-block; padding:4px 10px; font-size:11px; font-weight:600; border-radius:20px; text-transform:uppercase;}
-    .badge-Draft{background:rgba(100,116,139,0.1);color:#64748B;}
-    .badge-Pending{background:rgba(245,158,11,0.1);color:#D97706;}
-    .badge-Approved{background:rgba(59,130,246,0.1);color:#2563EB;}
-    .badge-Ordered{background:rgba(139,92,246,0.1);color:#7C3AED;}
-    .badge-Received{background:rgba(16,185,129,0.1);color:#059669;}
-    .badge-Cancelled{background:rgba(239,68,68,0.1);color:#DC2626;}
+    /* ── Luxury Dark Glass System ── */
+    .crud-header { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+    .crud-title h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+    .crud-title p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
 
-    .summary-box {width:320px; margin-left:auto; margin-top:20px; border:1px solid var(--border-color); border-radius:8px; padding:16px; background:#F9FAFB;}
-    .summary-row {display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #E2E8F0; font-size:13px;}
-    .summary-row:last-child {border-bottom:none; font-weight:700; font-size:15px; color:#059669;}
-    .btn-outline {border:1px solid var(--border-color); background:#fff; color:var(--text-secondary); padding:10px 20px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; cursor:pointer;}
-    .btn-outline:hover {background:#f9fafb; color:var(--text-primary);}
+    .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .form-card {
+        background: rgba(20, 27, 41, 0.60) !important;
+        backdrop-filter: blur(20px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 24px !important;
+        padding: 32px !important;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+        margin-bottom: 24px;
+    }
+
+    .section-heading {
+        font-size: 13.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+        color: #60A5FA !important; margin-bottom: 20px; padding-bottom: 10px;
+        border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+        display: flex; align-items: center; gap: 8px;
+    }
+
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    @media(max-width: 640px) { .detail-grid { grid-template-columns: 1fr; } }
+
+    .detail-item {
+        padding: 16px 18px;
+        background: rgba(16, 22, 34, 0.65) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 16px !important;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .detail-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    .detail-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #94A3B8 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+    }
+    .detail-value {
+        font-size: 13.5px;
+        color: #FFFFFF !important;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        margin-top: 15px;
+    }
+    .items-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .items-table th {
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: #94A3B8 !important;
+        padding: 14px 16px;
+        font-weight: 700;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.6px;
+    }
+    .items-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        vertical-align: middle;
+        color: #FFFFFF;
+    }
+    .items-table tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+    .items-table tbody tr:last-child td { border-bottom: none; }
+
+    .badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 5px 12px; font-size: 11px; font-weight: 700;
+        border-radius: 20px; text-transform: uppercase; white-space: nowrap !important;
+    }
+    .badge-Draft    { background: rgba(148, 163, 184, 0.18) !important; color: #CBD5E1 !important; border: 1px solid rgba(148, 163, 184, 0.35) !important; }
+    .badge-Pending  { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+    .badge-Approved { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
+    .badge-Ordered  { background: rgba(139, 92, 246, 0.18) !important; color: #C084FC !important; border: 1px solid rgba(139, 92, 246, 0.35) !important; }
+    .badge-Received { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+    .badge-Cancelled{ background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+
+    .summary-box {
+        width: 360px;
+        margin-left: auto;
+        margin-top: 24px;
+        border: 1.5px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        padding: 20px 24px;
+        background: rgba(16, 22, 34, 0.75);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 13.5px;
+        color: #CBD5E1;
+    }
+    .summary-row span:last-child {
+        font-weight: 600;
+        color: #FFFFFF;
+    }
+    .summary-row.grand-total {
+        border-bottom: none;
+        border-top: 1px dashed rgba(255, 255, 255, 0.20);
+        margin-top: 6px;
+        padding-top: 14px;
+        font-weight: 800;
+        font-size: 16px;
+    }
+    .summary-row.grand-total span:first-child {
+        color: #60A5FA;
+    }
+    .summary-row.grand-total span:last-child {
+        color: #34D399;
+        font-size: 18px;
+    }
+
+    .btn-outline {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 10px 20px; background: rgba(255, 255, 255, 0.08) !important;
+        color: #FFFFFF !important; font-size: 13.5px; font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-radius: 10px; text-decoration: none !important;
+        transition: all .25s ease; cursor: pointer;
+    }
+    .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: #FFFFFF !important;
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.30) !important;
+    }
+
+    .btn-print {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 10px 20px; background: rgba(16, 185, 129, 0.16) !important;
+        color: #34D399 !important; font-size: 13.5px; font-weight: 700;
+        border: 1px solid rgba(16, 185, 129, 0.35) !important;
+        border-radius: 10px; text-decoration: none !important;
+        transition: all .25s ease; cursor: pointer;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.15);
+    }
+    .btn-print:hover {
+        background: #10B981 !important;
+        color: #FFFFFF !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-gold, .btn-primary {
+        background: #2563EB !important; color: #FFFFFF !important;
+        padding: 10px 20px; border-radius: 10px;
+        font-size: 13.5px; font-weight: 700;
+        border: 1px solid #3B82F6 !important;
+        cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+        transition: all .25s ease; box-shadow: 0 4px 18px rgba(37,99,235,0.38);
+        text-decoration: none !important;
+    }
+    .btn-gold:hover, .btn-primary:hover {
+        background: #1D4ED8 !important; color: #FFFFFF !important;
+        transform: translateY(-2px); box-shadow: 0 6px 24px rgba(37,99,235,0.52);
+    }
 </style>
 
-<div class="crud-header" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+<div class="crud-header">
     <div class="crud-title">
         <h2>Purchase Order: {{ $purchaseOrder->po_number }}</h2>
-        <p>Issued on {{ $purchaseOrder->po_date->format('d M Y') }}</p>
+        <p>Issued on {{ $purchaseOrder->po_date ? $purchaseOrder->po_date->format('d M Y') : '—' }}</p>
     </div>
-    <div style="display:flex; gap:10px;">
-        <a href="{{ route('purchase-orders.index') }}" class="btn-outline"><i class="fa fa-arrow-left"></i> Back</a>
+    <div class="header-actions">
+        <a href="{{ route('purchase-orders.index') }}" class="btn-outline">
+            <i class="fa fa-arrow-left"></i> Back
+        </a>
         
         @if($authUser->hasPermission('purchase_order_print'))
-        <a href="{{ route('purchase-orders.print', $purchaseOrder->id) }}" target="_blank" class="btn-outline" style="border-color:#10B981; color:#059669;"><i class="fa fa-print"></i> Print PO</a>
+        <a href="{{ route('purchase-orders.print', $purchaseOrder->id) }}" target="_blank" class="btn-print">
+            <i class="fa fa-print"></i> Print PO
+        </a>
         @endif
 
         @if($authUser->hasPermission('purchase_order_edit') && in_array($purchaseOrder->status, ['Draft', 'Pending']))
-        <a href="{{ route('purchase-orders.edit', $purchaseOrder->id) }}" class="btn-gold" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa fa-edit"></i> Edit PO</a>
+        <a href="{{ route('purchase-orders.edit', $purchaseOrder->id) }}" class="btn-gold">
+            <i class="fa fa-edit"></i> Edit PO
+        </a>
         @endif
     </div>
 </div>
@@ -69,32 +227,32 @@
     
     <div class="detail-grid">
         <div class="detail-item">
-            <div><span class="detail-label">PO Number:</span><span class="detail-value">{{ $purchaseOrder->po_number }}</span></div>
-            <div><span class="detail-label">Firm:</span><span class="detail-value">{{ $purchaseOrder->firm->firm_name ?? '-' }}</span></div>
-            <div><span class="detail-label">Status:</span><span class="badge badge-{{ $purchaseOrder->status }}">{{ $purchaseOrder->status }}</span></div>
-            <div><span class="detail-label">Created By:</span><span class="detail-value">{{ $purchaseOrder->creator->name ?? '-' }}</span></div>
+            <div class="detail-row"><span class="detail-label">PO Number</span><span class="detail-value">{{ $purchaseOrder->po_number }}</span></div>
+            <div class="detail-row"><span class="detail-label">Firm</span><span class="detail-value">{{ $purchaseOrder->firm->firm_name ?? '-' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Status</span><span class="badge badge-{{ $purchaseOrder->status }}">{{ $purchaseOrder->status }}</span></div>
+            <div class="detail-row"><span class="detail-label">Created By</span><span class="detail-value">{{ $purchaseOrder->creator->name ?? '-' }}</span></div>
         </div>
         <div class="detail-item">
-            <div><span class="detail-label">Supplier Name:</span><span class="detail-value">{{ $purchaseOrder->vendor->name ?? '-' }}</span></div>
-            <div><span class="detail-label">GST No:</span><span class="detail-value">{{ $purchaseOrder->vendor->gst_no ?? 'N/A' }}</span></div>
-            <div><span class="detail-label">PO Date:</span><span class="detail-value">{{ $purchaseOrder->po_date->format('d M Y') }}</span></div>
-            <div><span class="detail-label">Delivery Date:</span><span class="detail-value">{{ $purchaseOrder->delivery_date ? $purchaseOrder->delivery_date->format('d M Y') : '—' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Supplier Name</span><span class="detail-value">{{ $purchaseOrder->vendor->name ?? '-' }}</span></div>
+            <div class="detail-row"><span class="detail-label">GST No</span><span class="detail-value">{{ $purchaseOrder->vendor->gst_no ?? 'N/A' }}</span></div>
+            <div class="detail-row"><span class="detail-label">PO Date</span><span class="detail-value">{{ $purchaseOrder->po_date ? $purchaseOrder->po_date->format('d M Y') : '—' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Delivery Date</span><span class="detail-value">{{ $purchaseOrder->delivery_date ? $purchaseOrder->delivery_date->format('d M Y') : '—' }}</span></div>
         </div>
     </div>
 
     @if($purchaseOrder->vendor)
-    <div class="detail-grid" style="margin-top:-10px; border-top:1px dashed #E2E8F0; padding-top:15px;">
+    <div class="detail-grid" style="margin-top:-8px;">
         <div class="detail-item">
-            <div><span class="detail-label">Supplier Mobile:</span><span class="detail-value">{{ $purchaseOrder->vendor->mobile ?? '-' }}</span></div>
-            <div><span class="detail-label">Supplier Email:</span><span class="detail-value">{{ $purchaseOrder->vendor->email ?? '-' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Supplier Mobile</span><span class="detail-value">{{ $purchaseOrder->vendor->mobile ?? '-' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Supplier Email</span><span class="detail-value">{{ $purchaseOrder->vendor->email ?? '-' }}</span></div>
         </div>
         <div class="detail-item">
-            <div><span class="detail-label">Supplier Address:</span><span class="detail-value">{{ $purchaseOrder->vendor->address ?? '-' }}, {{ $purchaseOrder->vendor->city ?? '' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Supplier Address</span><span class="detail-value">{{ $purchaseOrder->vendor->address ?? '-' }}{{ $purchaseOrder->vendor->city ? ', '.$purchaseOrder->vendor->city : '' }}</span></div>
         </div>
     </div>
     @endif
 
-    <div class="section-heading" style="margin-top:30px;"><i class="fa-solid fa-list"></i> Order Items</div>
+    <div class="section-heading" style="margin-top:28px;"><i class="fa-solid fa-list"></i> Order Items</div>
     
     <div class="table-container">
         <table class="items-table">
@@ -111,7 +269,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($purchaseOrder->items as $index => $item)
+                @forelse($purchaseOrder->items as $index => $item)
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>
@@ -122,9 +280,13 @@
                     <td style="text-align:right;">{{ number_format($item->discount_pct, 2) }}%</td>
                     <td style="text-align:right;">{{ number_format($item->gst_pct, 2) }}%</td>
                     <td style="text-align:right;">₹{{ number_format($item->gst_amount, 2) }}</td>
-                    <td style="text-align:right; font-weight:600;">₹{{ number_format($item->line_total, 2) }}</td>
+                    <td style="text-align:right; font-weight:700; color:#34D399;">₹{{ number_format($item->line_total, 2) }}</td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="8" style="text-align:center; color:#94A3B8; padding:24px;">No items in this purchase order.</td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
@@ -159,16 +321,16 @@
         </div>
         @endif
         
-        <div class="summary-row">
+        <div class="summary-row grand-total">
             <span>Grand Total:</span>
             <span>₹{{ number_format($purchaseOrder->grand_total, 2) }}</span>
         </div>
     </div>
 
     @if($purchaseOrder->remarks)
-    <div style="margin-top:20px; border-top:1px dashed #E2E8F0; padding-top:15px;">
-        <label class="form-label" style="font-weight:700; color:var(--text-secondary);">Remarks / Terms &amp; Conditions:</label>
-        <p style="font-size:13px; color:var(--text-primary); margin-top:5px; white-space:pre-wrap;">{{ $purchaseOrder->remarks }}</p>
+    <div style="margin-top:24px; border-top:1px dashed rgba(255,255,255,0.12); padding-top:18px;">
+        <label class="form-label" style="font-weight:700; color:#94A3B8; font-size:12px; text-transform:uppercase; letter-spacing:0.6px;">Remarks / Terms &amp; Conditions:</label>
+        <p style="font-size:13.5px; color:#FFFFFF; margin-top:6px; white-space:pre-wrap; line-height:1.6;">{{ $purchaseOrder->remarks }}</p>
     </div>
     @endif
 </div>
