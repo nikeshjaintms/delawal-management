@@ -2105,16 +2105,21 @@
         </li>
 
         {{-- Firm Management --}}
-        @if(session('login_type') !== 'firm' && empty($authUser->firm_id))
+        @if(session('login_type') !== 'firm')
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="Firm Management">
-                <i class="fa-solid fa-building"></i><span>Firm Management</span>
+                <i class="fa-solid fa-building-flag"></i><span>Firm Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">
                 <li class="submenu-item">
                     <a href="{{ route('firm-master.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'firm-master.') ? 'active' : '' }}">
                         <i class="fa-solid fa-building"></i><span>Firms</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{{ route('financial-years.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'financial-years.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-calendar-days"></i><span>Financial Years</span>
                     </a>
                 </li>
             </ul>
@@ -2454,7 +2459,7 @@
         @endif
 
         {{-- 9. Utilities --}}
-        @if(session('login_type') !== 'firm' && empty($authUser->firm_id))
+        @if(session('login_type') !== 'firm')
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="9. Utilities">
                 <i class="fa-solid fa-screwdriver-wrench"></i><span>9. Utilities</span>
@@ -2481,7 +2486,7 @@
         @endif
 
         {{-- 10. Settings --}}
-        @if(session('login_type') !== 'firm' && empty($authUser->firm_id))
+        @if(session('login_type') !== 'firm')
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="10. Settings">
                 <i class="fa-solid fa-gears"></i><span>10. Settings</span>
@@ -2497,6 +2502,13 @@
                 <li class="submenu-item">
                     <a href="{{ route('users.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'users.') ? 'active' : '' }}">
                         <i class="fa-solid fa-users-gear"></i><span>User Settings</span>
+                    </a>
+                </li>
+                @endif
+                @if($authUser->hasPermission('role_permission_view'))
+                <li class="submenu-item">
+                    <a href="{{ route('roles.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'roles.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-user-shield"></i><span>Role & Permissions</span>
                     </a>
                 </li>
                 @endif
