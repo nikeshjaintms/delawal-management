@@ -157,11 +157,42 @@
     </div>
 </div>
 
+@if($errors->any())
+    <div style="background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-weight: 700;">
+        <ul style="margin: 0; padding-left: 20px;">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <div class="card-box">
     <form method="POST" action="{{ route('brokers.update', $broker->id) }}">
         @csrf
         @method('PUT')
-        @include('admin.components.firm-select', ['model' => $broker])
+
+        <!-- Top Row: Firm & Assigned Project -->
+        <div class="form-row">
+            <div class="form-group" style="margin-bottom: 0;">
+                @include('admin.components.firm-select', ['model' => $broker])
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="project_id">Assigned Project</label>
+                <select name="project_id" id="project_id" class="form-control @error('project_id') is-invalid @enderror">
+                    <option value="">-- All Projects / General Broker --</option>
+                    @if(isset($projects))
+                        @foreach($projects as $proj)
+                            <option value="{{ $proj->id }}" {{ old('project_id', $broker->project_id) == $proj->id ? 'selected' : '' }}>
+                                {{ $proj->project_name }} {{ $proj->propertyMaster ? '('.$proj->propertyMaster->property_name.')' : '' }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+                @error('project_id') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+        </div>
 
         <div class="form-row">
             <div class="form-group">
@@ -174,6 +205,24 @@
                 <label class="form-label" for="mobile">Mobile <span>*</span></label>
                 <input type="text" name="mobile" id="mobile" value="{{ old('mobile', $broker->mobile) }}" class="form-control @error('mobile') is-invalid @enderror" placeholder="Enter 10-digit mobile number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric">
                 @error('mobile') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="commission_percentage">Commission Percentage (%)</label>
+                <input type="number" step="0.01" min="0" max="100" name="commission_percentage" id="commission_percentage" value="{{ old('commission_percentage', $broker->commission_percentage) }}" class="form-control" placeholder="Enter broker commission percentage, e.g. 2.50">
+                <div class="form-hint">Enter a value between 0 and 100%.</div>
+                @error('commission_percentage') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="status">Status <span>*</span></label>
+                <select name="status" id="status" class="form-control @error('status') is-invalid @enderror">
+                    <option value="active" {{ old('status', $broker->status) == 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="inactive" {{ old('status', $broker->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                </select>
+                @error('status') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>
 
@@ -195,24 +244,6 @@
             <label class="form-label" for="address">Address</label>
             <textarea name="address" id="address" class="form-control @error('address') is-invalid @enderror" placeholder="Enter physical address">{{ old('address', $broker->address) }}</textarea>
             @error('address') <div class="text-error">{{ $message }}</div> @enderror
-        </div>
-
-        <div class="form-row">
-            <div class="form-group">
-                <label class="form-label" for="commission_percentage">Commission Percentage</label>
-                <input type="number" step="0.01" min="0" max="100" name="commission_percentage" id="commission_percentage" value="{{ old('commission_percentage', $broker->commission_percentage) }}" class="form-control" placeholder="Enter broker commission percentage, e.g. 2.50">
-                <div class="form-hint">Enter a value between 0 and 100.</div>
-                @error('commission_percentage') <div class="text-error">{{ $message }}</div> @enderror
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="status">Status <span>*</span></label>
-                <select name="status" id="status" class="form-control @error('status') is-invalid @enderror">
-                    <option value="active" {{ old('status', $broker->status) == 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ old('status', $broker->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                </select>
-                @error('status') <div class="text-error">{{ $message }}</div> @enderror
-            </div>
         </div>
 
         <div class="form-actions">

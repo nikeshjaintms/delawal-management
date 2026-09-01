@@ -105,16 +105,34 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         @csrf
         @include('admin.components.firm-select')
 
-        {{-- Property --}}
+        {{-- Property Details --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-building"></i> Property Details</div>
             <div class="form-row">
                 <div class="form-group">
+                    <label class="form-label" for="project_id">Project <span class="opt">(Select project to filter properties)</span></label>
+                    <select name="project_id" id="project_id" class="form-control">
+                        <option value="">-- All / Select Project --</option>
+                        @if(isset($projects))
+                            @foreach($projects as $proj)
+                                <option value="{{ $proj->id }}"
+                                        data-firm-id="{{ $proj->firm_id }}"
+                                        {{ old('project_id', $selectedProjectId ?? '') == $proj->id ? 'selected' : '' }}>
+                                    {{ $proj->project_name }} {{ $proj->propertyMaster ? '('.$proj->propertyMaster->property_name.')' : '' }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label class="form-label" for="property_id">Property <span>*</span></label>
-                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
+                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required>
                         <option value="">-- Select Property --</option>
                         @foreach($properties as $property)
                             <option value="{{ $property->id }}"
+                                    data-project-id="{{ $property->project_id }}"
+                                    data-firm-id="{{ $property->firm_id }}"
                                     data-project="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
                                     {{ old('property_id') == $property->id ? 'selected' : '' }}>
                                 {{ $property->property_name }}
@@ -126,27 +144,45 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     </select>
                     @error('property_id') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="project_display">Project</label>
-                    <input type="text" id="project_display" class="form-control" readonly placeholder="Auto-determined" style="background-color:#F9FAFB; cursor:not-allowed;">
-                </div>
             </div>
         </div>
 
         {{-- Tenant Info --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-user"></i> Tenant Information</div>
+            
+            <div class="form-group" style="margin-bottom: 18px;">
+                <label class="form-label" for="tenant_id_select">Select Tenant <span class="opt">(Choose from Tenant Master to Auto-Fetch)</span></label>
+                <select id="tenant_id_select" class="form-control">
+                    <option value="">-- Choose Tenant (or enter details manually) --</option>
+                    @if(isset($tenants))
+                        @foreach($tenants as $t)
+                            <option value="{{ $t->id }}"
+                                    data-name="{{ $t->name }}"
+                                    data-mobile="{{ $t->mobile }}"
+                                    data-email="{{ $t->email ?? '' }}"
+                                    data-firm-id="{{ $t->firm_id }}">
+                                {{ $t->name }} ({{ $t->mobile }}) {{ $t->firm ? '— ' . $t->firm->firm_name : '' }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+                <div id="tenant_autofill_badge" style="display:none; font-size:12px; color:#34D399; font-weight:600; margin-top:6px;">
+                    <i class="fa-solid fa-circle-check"></i> Tenant details auto-fetched from Tenant Master.
+                </div>
+            </div>
+
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="tenant_name">Tenant Name <span>*</span></label>
                     <input type="text" name="tenant_name" id="tenant_name" value="{{ old('tenant_name') }}"
-                           class="form-control @error('tenant_name') is-invalid @enderror" autocomplete="off" placeholder="Enter tenant full name">
+                           class="form-control @error('tenant_name') is-invalid @enderror" autocomplete="off" placeholder="Enter tenant full name" required>
                     @error('tenant_name') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="tenant_mobile">Tenant Mobile <span>*</span></label>
                     <input type="text" name="tenant_mobile" id="tenant_mobile" value="{{ old('tenant_mobile') }}"
-                           class="form-control @error('tenant_mobile') is-invalid @enderror" autocomplete="off" placeholder="Enter tenant contact number">
+                           class="form-control @error('tenant_mobile') is-invalid @enderror" autocomplete="off" placeholder="Enter tenant contact number" required>
                     @error('tenant_mobile') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
@@ -167,7 +203,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                 <div class="form-group">
                     <label class="form-label" for="rent_amount">Monthly Rent Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="rent_amount" id="rent_amount" value="{{ old('rent_amount') }}"
-                           class="form-control @error('rent_amount') is-invalid @enderror" placeholder="Enter monthly rent">
+                           class="form-control @error('rent_amount') is-invalid @enderror" placeholder="Enter monthly rent" required>
                     @error('rent_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
@@ -186,7 +222,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                 <div class="form-group">
                     <label class="form-label" for="rent_start_date">Rent Start Date <span>*</span></label>
                     <input type="date" name="rent_start_date" id="rent_start_date"
-                           value="{{ old('rent_start_date') }}" class="form-control @error('rent_start_date') is-invalid @enderror">
+                           value="{{ old('rent_start_date', date('Y-m-d')) }}" class="form-control @error('rent_start_date') is-invalid @enderror" required>
                     @error('rent_start_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
@@ -198,7 +234,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                 <div class="form-group">
                     <label class="form-label" for="rent_due_date">Rent Due Day of Month</label>
                     <input type="number" name="rent_due_date" id="rent_due_date" min="1" max="31"
-                           value="{{ old('rent_due_date') }}" class="form-control @error('rent_due_date') is-invalid @enderror" placeholder="e.g. 5">
+                           value="{{ old('rent_due_date', 5) }}" class="form-control @error('rent_due_date') is-invalid @enderror" placeholder="e.g. 5">
                     <div class="form-hint">Day of month when rent is due (1–31).</div>
                     @error('rent_due_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
@@ -211,7 +247,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="payment_status">Payment Status <span>*</span></label>
-                    <select name="payment_status" id="payment_status" class="form-control @error('payment_status') is-invalid @enderror">
+                    <select name="payment_status" id="payment_status" class="form-control @error('payment_status') is-invalid @enderror" required>
                         @foreach(['pending' => 'Pending', 'partial' => 'Partial', 'paid' => 'Paid'] as $val => $lbl)
                             <option value="{{ $val }}" {{ old('payment_status', 'pending') == $val ? 'selected' : '' }}>{{ $lbl }}</option>
                         @endforeach
@@ -219,20 +255,19 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     @error('payment_status') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="rental_status">Rental Status <span>*</span></label>
-                    <select name="rental_status" id="rental_status" class="form-control @error('rental_status') is-invalid @enderror">
+                    <label class="form-label" for="rental_status">Rental Agreement Status <span>*</span></label>
+                    <select name="rental_status" id="rental_status" class="form-control @error('rental_status') is-invalid @enderror" required>
                         @foreach(['active' => 'Active', 'completed' => 'Completed', 'cancelled' => 'Cancelled'] as $val => $lbl)
                             <option value="{{ $val }}" {{ old('rental_status', 'active') == $val ? 'selected' : '' }}>{{ $lbl }}</option>
                         @endforeach
                     </select>
-                    <div class="form-hint">Active → sets property as Rented. Completed/Cancelled → sets property as Available.</div>
                     @error('rental_status') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label" for="remarks">Remarks</label>
+                <label class="form-label" for="remarks">Remarks / Notes</label>
                 <textarea name="remarks" id="remarks" class="form-control @error('remarks') is-invalid @enderror"
-                          placeholder="Add any notes or remarks about this rental agreement...">{{ old('remarks') }}</textarea>
+                          placeholder="Optional tenancy notes, special terms, etc.">{{ old('remarks') }}</textarea>
                 @error('remarks') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>
@@ -247,29 +282,138 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 </div>
 
 <script>
-function updateProjectMapping() {
-    const select = document.getElementById('property_id');
-    if (!select) return;
-    const selectedOption = select.options[select.selectedIndex];
-    const projectDisplay = document.getElementById('project_display');
-    if (projectDisplay) {
-        if (!select.value || !selectedOption) {
-            projectDisplay.value = 'Auto-determined';
+document.addEventListener('DOMContentLoaded', function() {
+    const projectSelect = document.getElementById('project_id');
+    const propSelect = document.getElementById('property_id');
+    const firmSelect = document.getElementById('firm_ids');
+    const tenantSelect = document.getElementById('tenant_id_select');
+    const tenantNameInput = document.getElementById('tenant_name');
+    const tenantMobileInput = document.getElementById('tenant_mobile');
+    const tenantEmailInput = document.getElementById('tenant_email');
+    const tenantBadge = document.getElementById('tenant_autofill_badge');
+
+    const allPropOptions = propSelect ? Array.from(propSelect.querySelectorAll('option')).slice(1) : [];
+    const allProjOptions = projectSelect ? Array.from(projectSelect.querySelectorAll('option')).slice(1) : [];
+    const allTenantOptions = tenantSelect ? Array.from(tenantSelect.querySelectorAll('option')).slice(1) : [];
+
+    // Filter properties when a project is selected
+    function filterPropertiesByProject() {
+        if (!propSelect) return;
+        const selectedProjectId = projectSelect ? projectSelect.value : '';
+        const currentPropVal = propSelect.value;
+
+        propSelect.innerHTML = '<option value="">-- Select Property --</option>';
+
+        let visibleCount = 0;
+        allPropOptions.forEach(opt => {
+            const optProjId = opt.getAttribute('data-project-id');
+            if (!selectedProjectId || String(optProjId) === String(selectedProjectId)) {
+                propSelect.appendChild(opt.cloneNode(true));
+                visibleCount++;
+            }
+        });
+
+        if (visibleCount === 0 && selectedProjectId) {
+            const noOpt = document.createElement('option');
+            noOpt.value = '';
+            noOpt.textContent = '— No properties found for this project —';
+            propSelect.appendChild(noOpt);
+        }
+
+        propSelect.value = currentPropVal;
+    }
+
+    if (projectSelect) {
+        projectSelect.addEventListener('change', filterPropertiesByProject);
+    }
+
+    // Auto-select project when a property is picked
+    if (propSelect) {
+        propSelect.addEventListener('change', function() {
+            const selectedOpt = propSelect.options[propSelect.selectedIndex];
+            if (selectedOpt && selectedOpt.value) {
+                const projId = selectedOpt.getAttribute('data-project-id');
+                if (projectSelect && projId && projectSelect.value !== projId) {
+                    projectSelect.value = projId;
+                }
+            }
+        });
+    }
+
+    // Tenant Selection & Auto-fetch
+    function onTenantSelect() {
+        if (!tenantSelect) return;
+        const selectedOpt = tenantSelect.options[tenantSelect.selectedIndex];
+        if (selectedOpt && selectedOpt.value) {
+            const name = selectedOpt.getAttribute('data-name') || '';
+            const mobile = selectedOpt.getAttribute('data-mobile') || '';
+            const email = selectedOpt.getAttribute('data-email') || '';
+
+            if (name) tenantNameInput.value = name;
+            if (mobile) tenantMobileInput.value = mobile;
+            if (email) tenantEmailInput.value = email;
+
+            if (tenantBadge) tenantBadge.style.display = 'block';
         } else {
-            const projName = selectedOption.getAttribute('data-project');
-            projectDisplay.value = projName || 'No Project Assigned';
+            if (tenantBadge) tenantBadge.style.display = 'none';
         }
     }
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    const propSelect = document.getElementById('property_id');
-    if (propSelect) {
-        propSelect.addEventListener('change', updateProjectMapping);
-        if (window.jQuery) {
-            jQuery('#property_id').on('change select2:select select2:unselect', updateProjectMapping);
+    if (tenantSelect) {
+        tenantSelect.addEventListener('change', onTenantSelect);
+    }
+
+    // Dynamic filtering for Tenants and Projects by Firm selection
+    function filterByFirm() {
+        let selectedFirmId = null;
+        if (firmSelect) {
+            if (window.jQuery && jQuery(firmSelect).val()) {
+                const vals = jQuery(firmSelect).val();
+                selectedFirmId = Array.isArray(vals) ? vals[0] : vals;
+            } else if (firmSelect.value) {
+                selectedFirmId = firmSelect.value;
+            }
         }
-        updateProjectMapping();
+
+        // Filter projects
+        if (projectSelect) {
+            const currentProjVal = projectSelect.value;
+            projectSelect.innerHTML = '<option value="">-- All / Select Project --</option>';
+            allProjOptions.forEach(opt => {
+                const optFirmId = opt.getAttribute('data-firm-id');
+                if (!selectedFirmId || !optFirmId || String(optFirmId) === String(selectedFirmId)) {
+                    projectSelect.appendChild(opt.cloneNode(true));
+                }
+            });
+            projectSelect.value = currentProjVal;
+        }
+
+        // Filter tenants
+        if (tenantSelect) {
+            const currentTenantVal = tenantSelect.value;
+            tenantSelect.innerHTML = '<option value="">-- Choose Tenant (or enter details manually) --</option>';
+            allTenantOptions.forEach(opt => {
+                const optFirmId = opt.getAttribute('data-firm-id');
+                if (!selectedFirmId || !optFirmId || String(optFirmId) === String(selectedFirmId)) {
+                    tenantSelect.appendChild(opt.cloneNode(true));
+                }
+            });
+            tenantSelect.value = currentTenantVal;
+        }
+
+        filterPropertiesByProject();
+    }
+
+    if (firmSelect) {
+        firmSelect.addEventListener('change', filterByFirm);
+        if (window.jQuery) {
+            jQuery(firmSelect).on('change select2:select select2:unselect', filterByFirm);
+        }
+    }
+
+    // Initial filter if project is pre-selected
+    if (projectSelect && projectSelect.value) {
+        filterPropertiesByProject();
     }
 });
 </script>

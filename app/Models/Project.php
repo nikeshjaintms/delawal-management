@@ -43,12 +43,19 @@ class Project extends Model
 
     public function properties()
     {
-        return $this->hasMany(Property::class, 'project_id');
+        return $this->hasMany(Property::class, 'project_id')
+            ->orderByRaw('CAST(COALESCE(NULLIF(unit_no, ""), id) AS UNSIGNED) ASC, id ASC');
     }
 
     public function bulks()
     {
-        return $this->hasMany(Property::class, 'project_id');
+        return $this->hasMany(Property::class, 'project_id')
+            ->orderByRaw('CAST(COALESCE(NULLIF(unit_no, ""), id) AS UNSIGNED) ASC, id ASC');
+    }
+
+    public function contractors()
+    {
+        return $this->hasMany(Contractor::class, 'project_id')->latest();
     }
 
     public function creator()
@@ -59,5 +66,17 @@ class Project extends Model
     public function updater()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * Get property address dynamically from parent PropertyMaster.
+     */
+    public function getDisplayAddressAttribute(): string
+    {
+        if ($this->propertyMaster && !empty($this->propertyMaster->full_address)) {
+            return $this->propertyMaster->full_address;
+        }
+        $parts = array_filter([$this->address, $this->city, $this->state, $this->pincode ? ('- ' . $this->pincode) : null]);
+        return count($parts) ? implode(', ', $parts) : '-';
     }
 }

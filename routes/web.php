@@ -69,11 +69,16 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
 
     // ── Property Management ──────────────────────────────────────────
     Route::resource('property-masters', PropertyMasterController::class)->middleware(['permission:property_view']);
+    Route::resource('acquisition-batches', \App\Http\Controllers\AcquisitionBatchController::class)->middleware(['permission:property_view']);
+    Route::post('acquisition-batches/{acquisition_batch}/add-plots', [\App\Http\Controllers\AcquisitionBatchController::class, 'addPlots'])->name('acquisition-batches.add-plots')->middleware(['permission:property_view']);
+    Route::get('projects/batches-and-plots/{propertyMaster}', [\App\Http\Controllers\ProjectController::class, 'getBatchesAndPlots'])->name('projects.batches-and-plots')->middleware(['permission:project_view']);
     Route::resource('projects', ProjectController::class)->middleware(['permission:project_view']);
+    Route::get('projects/{project}/contractors', [\App\Http\Controllers\ContractorController::class, 'getByProject'])->name('projects.contractors')->middleware(['auth']);
+    Route::resource('contractors', \App\Http\Controllers\ContractorController::class)->middleware(['permission:project_view']);
     Route::get('properties/import/template', [PropertyController::class, 'downloadTemplate'])->name('properties.import.template')->middleware(['permission:property_view']);
     Route::post('properties/import/validate', [PropertyController::class, 'validateImport'])->name('properties.import.validate')->middleware(['permission:property_view']);
-    Route::post('properties/import/process', [PropertyController::class, 'processImport'])->name('properties.import.process')->middleware(['permission:property_view']);
     Route::post('properties/bulk-delete', [PropertyController::class, 'bulkDelete'])->name('properties.bulk-delete')->middleware(['permission:property_view']);
+    Route::post('properties/{property}/quick-update', [PropertyController::class, 'quickUpdate'])->name('properties.quick-update')->middleware(['permission:property_view']);
     Route::resource('properties', PropertyController::class)->middleware(['permission:property_view']);
     Route::resource('property-sales', PropertySaleController::class)->middleware(['permission:property_sales_view']);
     Route::resource('property-documents', PropertyDocumentController::class)->middleware(['permission:property_documents_view']);
@@ -105,7 +110,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
 
     // ── Inventory ────────────────────────────────────────────────────
     Route::resource('expenses', ExpenseController::class)->middleware(['permission:expense_view']);
-    Route::resource('material-categories', MaterialCategoryController::class)->middleware(['permission:inventory_view']);
+    Route::any('material-categories/{any?}', function() { return redirect()->route('materials.index'); })->where('any', '.*');
     Route::resource('materials', MaterialController::class)->middleware(['permission:inventory_view']);
     Route::resource('stock-inwards', StockInwardController::class)->middleware(['permission:inventory_view']);
     Route::resource('stock-outwards', StockOutwardController::class)->middleware(['permission:inventory_view']);

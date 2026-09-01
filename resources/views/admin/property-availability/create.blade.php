@@ -132,30 +132,29 @@ textarea.form-control { resize: vertical; min-height: 90px; }
     <div class="section-heading"><i class="fa-solid fa-circle-check"></i> Status Information</div>
 
     <div class="form-grid" style="margin-bottom:18px">
-        <div class="form-group" style="grid-column:1/-1">
-            <label class="form-label">Property <span>*</span></label>
+        <div class="form-group">
+            <label class="form-label" for="project_id">Project <span>*</span></label>
+            <select name="project_id" id="project_id" class="form-control @error('project_id') is-invalid @enderror" required onchange="onProjectChange(this.value)">
+                <option value="">— Select Project —</option>
+            </select>
+            @error('project_id')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="property_id">Property <span>*</span></label>
             <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required onchange="showPropInfo(this)">
-                <option value="">— Select Property —</option>
-                @foreach($properties as $p)
-                    <option value="{{ $p->id }}"
-                        data-project="{{ $p->project->project_name ?? ($p->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
-                        data-type="{{ $p->propertyType->name ?? '—' }}"
-                        data-unit="{{ $p->unit_no ?? '—' }}"
-                        data-code="{{ $p->property_code ?? '' }}"
-                        data-status="{{ $p->status }}"
-                        {{ old('property_id', request('property_id')) == $p->id ? 'selected' : '' }}>
-                        {{ $p->property_name }}{{ $p->property_code ? ' ('.$p->property_code.')' : '' }}
-                    </option>
-                @endforeach
+                <option value="">— Select Project First —</option>
             </select>
             @error('property_id')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
 
+        <div class="form-group" style="grid-column:1/-1; margin-top:-6px; margin-bottom:0;">
             {{-- Live property info preview --}}
             <div class="prop-info-box" id="propInfoBox">
                 <div class="pi-row">
                     <div class="pi-item">Project: <strong id="piProject">—</strong></div>
                     <div class="pi-item">Type: <strong id="piType">—</strong></div>
-                    <div class="pi-item">Unit No: <strong id="piUnit">—</strong></div>
+                    <div class="pi-item">Unit / Plot No: <strong id="piUnit">—</strong></div>
                     <div class="pi-item">Current Status: <strong id="piStatus">—</strong></div>
                 </div>
             </div>
@@ -197,22 +196,150 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 </form>
 
 <script>
-const propData = {
-    @foreach($properties as $p)
-    {{ $p->id }}: {
-        project: "{{ $p->project->project_name ?? ($p->project->propertyMaster->property_name ?? 'No Project Assigned') }}",
-        type:   "{{ $p->propertyType->name ?? '—' }}",
-        unit:   "{{ $p->unit_no ?? '—' }}",
-        status: "{{ ucfirst(str_replace('_',' ',$p->status)) }}"
+const allProjects = [
+    @foreach($projects as $proj)
+    @php
+        $projFirmIds = $proj->firms->pluck('id')->push($proj->firm_id)->filter()->unique()->values()->all();
+        $pTitle = $proj->project_name . ($proj->propertyMaster ? ' ('.$proj->propertyMaster->property_name.')' : '');
+    @endphp
+    {
+        id: {{ $proj->id }},
+        name: @json($pTitle),
+        firmIds: [{{ implode(',', $projFirmIds) }}]
     },
     @endforeach
-};
+];
+
+const allProperties = [
+    @foreach($properties as $p)
+    @php
+        $propFirmIds = $p->firms->pluck('id')->push($p->firm_id)->filter()->unique()->values()->all();
+        $pName = $p->property_name . ($p->unit_no ? ' (Unit: '.$p->unit_no.')' : ($p->property_code ? ' ('.$p->property_code.')' : ''));
+        $pProjTitle = $p->project->project_name ?? ($p->project->propertyMaster->property_name ?? 'No Project Assigned');
+    @endphp
+    {
+        id: {{ $p->id }},
+        projectId: {{ $p->project_id ?: 'null' }},
+        firmIds: [{{ implode(',', $propFirmIds) }}],
+        name: @json($pName),
+        project: @json($pProjTitle),
+        type: @json($p->propertyType->name ?? '—'),
+        unit: @json($p->unit_no ?? '—'),
+        code: @json($p->property_code ?? ''),
+        status: @json(ucfirst(str_replace('_',' ',$p->status)))
+    },
+    @endforeach
+];
+
+function getSelectedFirmIds() {
+    const firmSelect = document.getElementById('firm_ids');
+    if (firmSelect) {
+        if (firmSelect.multiple) {
+            return Array.from(firmSelect.selectedOptions).map(o => parseInt(o.value)).filter(Boolean);
+        } else if (firmSelect.value) {
+            return [parseInt(firmSelect.value)];
+        }
+        return [];
+    }
+    const hiddenFirms = document.querySelectorAll('input[name="firm_ids[]"], input[name="firm_id"]');
+    const ids = [];
+    hiddenFirms.forEach(input => {
+        if (input.value) ids.push(parseInt(input.value));
+    });
+    return [...new Set(ids)];
+}
+
+function filterProjects(keepSelectedProjectId = null, keepSelectedPropertyId = null) {
+    const projSelect = document.getElementById('project_id');
+    if (!projSelect) return;
+
+    const selectedFirms = getSelectedFirmIds();
+    const currentVal = keepSelectedProjectId !== null ? keepSelectedProjectId : projSelect.value;
+
+    let filteredProjects = allProjects;
+    if (selectedFirms.length > 0) {
+        filteredProjects = allProjects.filter(p => {
+            if (!p.firmIds || p.firmIds.length === 0) return true;
+            return p.firmIds.some(fId => selectedFirms.includes(fId));
+        });
+    }
+
+    projSelect.innerHTML = '<option value="">— Select Project —</option>';
+    let selectedStillValid = false;
+
+    filteredProjects.forEach(proj => {
+        const opt = document.createElement('option');
+        opt.value = proj.id;
+        opt.textContent = proj.name;
+        if (currentVal && String(proj.id) === String(currentVal)) {
+            opt.selected = true;
+            selectedStillValid = true;
+        }
+        projSelect.appendChild(opt);
+    });
+
+    if (!selectedStillValid && currentVal) {
+        projSelect.value = '';
+    }
+
+    onProjectChange(projSelect.value, keepSelectedPropertyId);
+}
+
+function onProjectChange(projectId, keepSelectedPropertyId = null) {
+    const propSelect = document.getElementById('property_id');
+    const propInfoBox = document.getElementById('propInfoBox');
+    if (!propSelect) return;
+
+    const currentPropVal = keepSelectedPropertyId !== null ? keepSelectedPropertyId : propSelect.value;
+
+    if (!projectId) {
+        propSelect.innerHTML = '<option value="">— Select Project First —</option>';
+        propSelect.disabled = true;
+        if (propInfoBox) propInfoBox.style.display = 'none';
+        return;
+    }
+
+    propSelect.disabled = false;
+    const projectProps = allProperties.filter(p => String(p.projectId) === String(projectId));
+
+    if (projectProps.length === 0) {
+        propSelect.innerHTML = '<option value="">— No properties found in this project —</option>';
+        if (propInfoBox) propInfoBox.style.display = 'none';
+        return;
+    }
+
+    propSelect.innerHTML = '<option value="">— Select Property —</option>';
+    let selectedStillValid = false;
+
+    projectProps.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        if (currentPropVal && String(p.id) === String(currentPropVal)) {
+            opt.selected = true;
+            selectedStillValid = true;
+        }
+        propSelect.appendChild(opt);
+    });
+
+    if (selectedStillValid && propSelect.value) {
+        showPropInfo(propSelect);
+    } else {
+        propSelect.value = '';
+        if (propInfoBox) propInfoBox.style.display = 'none';
+    }
+}
 
 function showPropInfo(sel) {
     const box = document.getElementById('propInfoBox');
     const id  = parseInt(sel.value);
-    if (!id || !propData[id]) { box.style.display = 'none'; return; }
-    const d = propData[id];
+    const d = allProperties.find(p => p.id === id);
+
+    if (!id || !d || !box) {
+        if (box) box.style.display = 'none';
+        return;
+    }
+
     document.getElementById('piProject').textContent = d.project;
     document.getElementById('piType').textContent    = d.type;
     document.getElementById('piUnit').textContent    = d.unit;
@@ -220,10 +347,28 @@ function showPropInfo(sel) {
     box.style.display = 'block';
 }
 
-// Auto-trigger on page load (old() or query param)
 document.addEventListener('DOMContentLoaded', () => {
-    const sel = document.getElementById('property_id');
-    if (sel && sel.value) showPropInfo(sel);
+    let initialPropId = "{{ old('property_id', request('property_id')) }}";
+    let initialProjId = "{{ old('project_id', request('project_id')) }}";
+
+    if (!initialProjId && initialPropId) {
+        const found = allProperties.find(p => String(p.id) === String(initialPropId));
+        if (found && found.projectId) {
+            initialProjId = found.projectId;
+        }
+    }
+
+    filterProjects(initialProjId, initialPropId);
+
+    if (window.jQuery && $('#firm_ids').length) {
+        $('#firm_ids').on('change select2:select select2:unselect', function() {
+            filterProjects();
+        });
+    }
+    const firmEl = document.getElementById('firm_ids');
+    if (firmEl) {
+        firmEl.addEventListener('change', () => filterProjects());
+    }
 });
 </script>
 @endsection

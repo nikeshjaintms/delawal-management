@@ -49,6 +49,7 @@ class PropertyStatusRequest extends FormRequest
             'firm_ids' => 'nullable|array',
             'firm_ids.*' => 'exists:firms,id',
             'firm_id' => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
+            'project_id' => 'nullable|exists:projects,id',
             'property_id' => 'required|exists:properties,id',
             'status' => 'required|in:available,booked,sold,rented,reserved,under_maintenance',
             'status_date' => 'required|date',

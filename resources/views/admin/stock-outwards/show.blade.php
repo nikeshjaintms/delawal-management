@@ -76,6 +76,7 @@
             <div class="info-title">Reference &amp; Destination</div>
             <div class="info-row"><span class="info-label">Inward Reference:</span><span class="info-value">{{ isset($outwardGroup) ? ($outwardGroup->stock_inward_number ?: 'Manual') : 'Manual' }}</span></div>
             <div class="info-row"><span class="info-label">Destination Project:</span><span class="info-value">{{ isset($outwardGroup) ? ($outwardGroup->project->project_name ?? ($outwardGroup->property->property_name ?? 'General')) : ($stockOutward->project->project_name ?? ($stockOutward->property->property_name ?? 'General')) }}</span></div>
+            <div class="info-row"><span class="info-label">Contractor:</span><span class="info-value">{{ isset($outwardGroup) ? ($outwardGroup->contractor->contractor_name ?? '—') : ($stockOutward->contractor->contractor_name ?? '—') }}</span></div>
         </div>
         <div class="info-box">
             <div class="info-title">Vehicle &amp; Transport Info</div>

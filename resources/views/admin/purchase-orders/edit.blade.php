@@ -171,6 +171,24 @@ input[type=number] {
             </div>
 
             <div class="form-group">
+                <label class="form-label">Contractor / Agency</label>
+                <select name="contractor_id" id="contractor_id" class="form-control">
+                    <option value="">Select Contractor (Optional)</option>
+                    @if(isset($contractors))
+                        @foreach($contractors as $con)
+                            <option value="{{ $con->id }}"
+                                    data-project-id="{{ $con->project_id }}"
+                                    data-firm-id="{{ $con->firm_id }}"
+                                    {{ old('contractor_id', $purchaseOrder->contractor_id) == $con->id ? 'selected' : '' }}>
+                                {{ $con->contractor_name }} {{ $con->project ? '('.$con->project->project_name.')' : '' }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+                @error('contractor_id') <span class="text-error show">{{ $message }}</span> @enderror
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">Expected Delivery Date</label>
                 <input type="date" name="delivery_date" id="delivery_date" class="form-control" value="{{ old('delivery_date', $purchaseOrder->delivery_date ? $purchaseOrder->delivery_date->format('Y-m-d') : '') }}">
                 @error('delivery_date') <span class="text-error show">{{ $message }}</span> @enderror
@@ -213,9 +231,19 @@ input[type=number] {
                             <select name="items[{{ $index }}][material_id]" class="form-control material-select" required>
                                 <option value="">Select Material</option>
                                 @foreach($materials as $mat)
-                                    <option value="{{ $mat->id }}" {{ $item->material_id == $mat->id ? 'selected' : '' }}>{{ $mat->material_name }} ({{ $mat->unit ?? 'Units' }})</option>
+                                    <option value="{{ $mat->id }}"
+                                            data-stock="{{ $mat->current_stock }}"
+                                            data-needed="{{ $mat->opening_stock }}"
+                                            data-rate="{{ $mat->unit_price ?? 0 }}"
+                                            data-unit="{{ $mat->unit ?? '' }}"
+                                            data-project-id="{{ $mat->project_id ?? '' }}"
+                                            data-contractor-id="{{ $mat->contractor_id ?? '' }}"
+                                            {{ $item->material_id == $mat->id ? 'selected' : '' }}>
+                                        {{ $mat->material_name }} (Stock: {{ number_format($mat->current_stock, 2) }} {{ $mat->unit }} | ₹{{ number_format($mat->unit_price ?? 0, 2) }})
+                                    </option>
                                 @endforeach
                             </select>
+                            <div class="stock-badge" style="font-size:11.5px; margin-top:4px; color:#60A5FA; font-weight:600;"></div>
                         </td>
                         <td><input type="number" name="items[{{ $index }}][qty]" class="form-control qty-input" value="{{ $item->qty }}" step="0.01" min="0.01" autocomplete="off" required></td>
                         <td><input type="number" name="items[{{ $index }}][rate]" class="form-control rate-input" value="{{ $item->rate }}" step="0.01" min="0.00" autocomplete="off" required></td>
@@ -350,9 +378,18 @@ input[type=number] {
                         <select name="items[${rowCount}][material_id]" class="form-control material-select" required>
                             <option value="">Select Material</option>
                             @foreach($materials as $mat)
-                                <option value="{{ $mat->id }}">{{ $mat->material_name }} ({{ $mat->unit ?? 'Units' }})</option>
+                                <option value="{{ $mat->id }}"
+                                        data-stock="{{ $mat->current_stock }}"
+                                        data-needed="{{ $mat->opening_stock }}"
+                                        data-rate="{{ $mat->unit_price ?? 0 }}"
+                                        data-unit="{{ $mat->unit ?? '' }}"
+                                        data-project-id="{{ $mat->project_id ?? '' }}"
+                                        data-contractor-id="{{ $mat->contractor_id ?? '' }}">
+                                    {{ $mat->material_name }} (Stock: {{ number_format($mat->current_stock, 2) }} {{ $mat->unit }} | ₹{{ number_format($mat->unit_price ?? 0, 2) }})
+                                </option>
                             @endforeach
                         </select>
+                        <div class="stock-badge" style="font-size:11.5px; margin-top:4px; color:#60A5FA; font-weight:600;"></div>
                     </td>
                     <td><input type="number" name="items[${rowCount}][qty]" class="form-control qty-input" value="1" step="0.01" min="0.01" autocomplete="off" required></td>
                     <td><input type="number" name="items[${rowCount}][rate]" class="form-control rate-input" value="0.00" step="0.01" min="0.00" autocomplete="off" required></td>
@@ -365,6 +402,54 @@ input[type=number] {
             `;
             itemRows.insertAdjacentHTML('beforeend', template);
             rowCount++;
+        });
+
+        // Auto-fetch Stock & Rate when Material is selected
+        itemRows.addEventListener('change', function(e) {
+            if (e.target.classList.contains('material-select')) {
+                const select = e.target;
+                const row = select.closest('.item-row');
+                const selectedOpt = select.options[select.selectedIndex];
+                const rateInput = row.querySelector('.rate-input');
+                const qtyInput = row.querySelector('.qty-input');
+                const stockBadge = row.querySelector('.stock-badge');
+
+                if (selectedOpt && selectedOpt.value) {
+                    const rate = parseFloat(selectedOpt.getAttribute('data-rate')) || 0;
+                    const stock = parseFloat(selectedOpt.getAttribute('data-stock')) || 0;
+                    const needed = parseFloat(selectedOpt.getAttribute('data-needed')) || 0;
+                    const unit = selectedOpt.getAttribute('data-unit') || '';
+
+                    if (rate > 0) {
+                        rateInput.value = rate.toFixed(2);
+                    }
+                    if (needed > 0 && (qtyInput.value == '1' || qtyInput.value == '0' || !qtyInput.value)) {
+                        qtyInput.value = needed;
+                    }
+                    if (stockBadge) {
+                        stockBadge.innerHTML = `<i class="fa-solid fa-boxes-stacked"></i> Stock: <strong>${stock} ${unit}</strong>${needed > 0 ? ' | Needed: <strong>' + needed + ' ' + unit + '</strong>' : ''}${rate > 0 ? ' | Rate: <strong>₹' + rate.toFixed(2) + '</strong>' : ''}`;
+                    }
+                } else {
+                    if (stockBadge) stockBadge.innerHTML = '';
+                }
+                calculateRowAndTotals();
+            }
+        });
+
+        // Update badges for existing rows on load
+        document.querySelectorAll('.item-row').forEach(function(row) {
+            const select = row.querySelector('.material-select');
+            const stockBadge = row.querySelector('.stock-badge');
+            if (select && select.value && stockBadge) {
+                const selectedOpt = select.options[select.selectedIndex];
+                if (selectedOpt) {
+                    const rate = parseFloat(selectedOpt.getAttribute('data-rate')) || 0;
+                    const stock = parseFloat(selectedOpt.getAttribute('data-stock')) || 0;
+                    const needed = parseFloat(selectedOpt.getAttribute('data-needed')) || 0;
+                    const unit = selectedOpt.getAttribute('data-unit') || '';
+                    stockBadge.innerHTML = `<i class="fa-solid fa-boxes-stacked"></i> Stock: <strong>${stock} ${unit}</strong>${needed > 0 ? ' | Needed: <strong>' + needed + ' ' + unit + '</strong>' : ''}${rate > 0 ? ' | Rate: <strong>₹' + rate.toFixed(2) + '</strong>' : ''}`;
+                }
+            }
         });
 
         // Event delegation for input changes
@@ -393,6 +478,99 @@ input[type=number] {
 
         firmSelect.addEventListener('change', calculateRowAndTotals);
         vendorSelect.addEventListener('change', calculateRowAndTotals);
+
+        // Project and Contractor dynamic fetch & auto-select
+        const projectSelect = document.getElementById('project_id');
+        const contractorSelect = document.getElementById('contractor_id');
+        const allContractors = @json($contractors ?? []);
+
+        function populateAndAutoSelectContractors(contractorList, preserveId = null) {
+            if (!contractorSelect) return;
+            contractorSelect.innerHTML = '';
+
+            if (contractorList.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = (projectSelect && projectSelect.value) ? '— No contractor assigned to this project —' : 'Select Contractor (Optional)';
+                contractorSelect.appendChild(opt);
+                return;
+            }
+
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.textContent = `Select Contractor (${contractorList.length} available)`;
+            contractorSelect.appendChild(defaultOpt);
+
+            let selectedValue = preserveId || '';
+
+            contractorList.forEach((c) => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.setAttribute('data-project-id', c.project_id || '');
+                opt.setAttribute('data-firm-id', c.firm_id || '');
+                opt.textContent = c.contractor_name + (c.mobile ? ` (${c.mobile})` : '');
+                contractorSelect.appendChild(opt);
+
+                if (preserveId && String(c.id) === String(preserveId)) {
+                    selectedValue = c.id;
+                } else if (!preserveId && contractorList.length === 1) {
+                    selectedValue = c.id;
+                }
+            });
+
+            if (selectedValue) {
+                contractorSelect.value = selectedValue;
+            }
+        }
+
+        async function onProjectChange() {
+            if (!projectSelect || !contractorSelect) return;
+            const selectedProjId = projectSelect.value;
+            const previousContractorId = contractorSelect.value;
+
+            if (!selectedProjId) {
+                populateAndAutoSelectContractors(allContractors);
+                return;
+            }
+
+            const localFiltered = allContractors.filter(c => String(c.project_id) === String(selectedProjId));
+            populateAndAutoSelectContractors(localFiltered, previousContractorId);
+
+            try {
+                const res = await fetch(`/projects/${selectedProjId}/contractors`);
+                if (res.ok) {
+                    const freshData = await res.json();
+                    populateAndAutoSelectContractors(freshData, contractorSelect.value);
+                }
+            } catch (err) {
+                console.log('Contractor fetch error:', err);
+            }
+        }
+
+        if (projectSelect) {
+            projectSelect.addEventListener('change', onProjectChange);
+        }
+
+        if (contractorSelect) {
+            contractorSelect.addEventListener('change', function() {
+                const opt = contractorSelect.options[contractorSelect.selectedIndex];
+                if (opt && opt.value) {
+                    const pId = opt.getAttribute('data-project-id');
+                    if (pId && (!projectSelect.value || projectSelect.value !== pId)) {
+                        projectSelect.value = pId;
+                    }
+                }
+            });
+        }
+
+        // Initialize on load
+        const initialContractorId = "{{ old('contractor_id', $purchaseOrder->contractor_id) }}";
+        if (projectSelect && projectSelect.value) {
+            const initialFiltered = allContractors.filter(c => String(c.project_id) === String(projectSelect.value));
+            populateAndAutoSelectContractors(initialFiltered, initialContractorId);
+        } else if (initialContractorId) {
+            contractorSelect.value = initialContractorId;
+        }
 
         // Run calculation once on load to populate the summary values
         calculateRowAndTotals();

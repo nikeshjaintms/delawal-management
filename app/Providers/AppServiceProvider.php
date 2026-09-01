@@ -109,6 +109,7 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\BrokerCommission::class,
             \App\Models\PropertyDocument::class,
             \App\Models\PropertyStatus::class,
+            \App\Models\Contractor::class,
         ];
 
         foreach ($models as $modelClass) {

@@ -54,7 +54,10 @@ class FormController extends Controller
         return DB::transaction(function () use ($request) {
             try {
                 $user = Auth::user();
-                $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+                $firmIds = $request->input('firm_ids', []);
+                $firmId  = $request->firm_id
+                    ?? (is_array($firmIds) && !empty($firmIds) ? $firmIds[0] : null)
+                    ?? ($user ? $user->firm_id : session('firm_id'));
 
                 $form = Form::create([
                     'firm_id'     => $firmId,
@@ -135,7 +138,10 @@ class FormController extends Controller
         return DB::transaction(function () use ($request, $form) {
             try {
                 $user = Auth::user();
-                $firmId = $request->firm_id ?? $form->firm_id;
+                $firmIds = $request->input('firm_ids', []);
+                $firmId  = $request->firm_id
+                    ?? (is_array($firmIds) && !empty($firmIds) ? $firmIds[0] : null)
+                    ?? $form->firm_id;
 
                 $form->update([
                     'firm_id'     => $firmId,

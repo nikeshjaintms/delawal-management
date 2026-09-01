@@ -172,6 +172,16 @@
     </div>
 </div>
 
+@if($errors->any())
+    <div style="background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-weight: 700;">
+        <ul style="margin: 0; padding-left: 20px;">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <div class="card-box">
     <form method="POST" action="{{ route('vendors.update', $vendor->id) }}">
         @csrf

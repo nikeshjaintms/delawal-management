@@ -223,6 +223,47 @@ class PropertyController extends Controller
             ->with('success', 'Property updated successfully.');
     }
 
+    public function quickUpdate(Request $request, Property $property)
+    {
+        $this->authorise($property);
+
+        $validated = $request->validate([
+            'property_name' => 'required|string|max:255',
+            'property_code' => 'required|string|max:100',
+            'size'          => 'nullable|string|max:50',
+            'size_unit'     => 'nullable|string|max:20',
+            'facing'        => 'nullable|string|max:50',
+            'purchase_rate' => 'nullable|numeric|min:0',
+            'price'         => 'nullable|numeric|min:0',
+            'status'        => 'required|string|in:available,booked,sold,blocked,inactive',
+            'description'   => 'nullable|string|max:1000',
+        ]);
+
+        $property->update([
+            'property_name' => $validated['property_name'],
+            'property_code' => $validated['property_code'],
+            'size'          => $validated['size'],
+            'size_unit'     => $validated['size_unit'] ?: 'sq.ft',
+            'facing'        => $validated['facing'],
+            'purchase_rate' => $validated['purchase_rate'],
+            'price'         => $request->filled('price') ? $validated['price'] : $validated['purchase_rate'],
+            'status'        => $validated['status'],
+            'description'   => $validated['description'] ?? $property->description,
+            'updated_by'    => auth()->id(),
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Plot '{$property->property_name}' updated successfully.",
+                'plot'    => $property,
+            ]);
+        }
+
+        return redirect()->back()
+            ->with('success', "Plot '{$property->property_name}' updated successfully.");
+    }
+
     // ----------------------------------------------------------------
     // DESTROY
     // ----------------------------------------------------------------

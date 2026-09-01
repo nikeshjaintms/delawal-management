@@ -85,13 +85,15 @@ class PropertyStatusController extends Controller
         $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
 
         if ($isAdmin) {
-            $properties = Property::with(['propertyType', 'project.propertyMaster'])->orderBy('property_name')->get();
+            $properties = Property::with(['propertyType', 'project.propertyMaster', 'firm', 'firms'])->orderBy('property_name')->get();
+            $projects   = \App\Models\Project::with(['propertyMaster', 'firm', 'firms'])->orderBy('project_name')->get();
         } else {
-            $properties = $this->firmProperties($firmId)->with(['propertyType', 'project.propertyMaster'])->orderBy('property_name')->get();
+            $properties = $this->firmProperties($firmId)->with(['propertyType', 'project.propertyMaster', 'firm', 'firms'])->orderBy('property_name')->get();
+            $projects   = \App\Models\Project::forFirms([$firmId])->with(['propertyMaster', 'firm', 'firms'])->orderBy('project_name')->get();
         }
         $statuses = PropertyStatus::statuses();
 
-        return view('admin.property-availability.create', compact('properties', 'statuses'));
+        return view('admin.property-availability.create', compact('properties', 'projects', 'statuses'));
     }
 
     /* ── STORE ──────────────────────────────────────────────────────── */
@@ -148,14 +150,16 @@ class PropertyStatusController extends Controller
 
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         if ($isAdmin) {
-            $properties = Property::with(['propertyType', 'project.propertyMaster'])->orderBy('property_name')->get();
+            $properties = Property::with(['propertyType', 'project.propertyMaster', 'firm', 'firms'])->orderBy('property_name')->get();
+            $projects   = \App\Models\Project::with(['propertyMaster', 'firm', 'firms'])->orderBy('project_name')->get();
         } else {
-            $properties = $this->firmProperties($propertyAvailability->firm_id)->with(['propertyType', 'project.propertyMaster'])->orderBy('property_name')->get();
+            $properties = $this->firmProperties($propertyAvailability->firm_id)->with(['propertyType', 'project.propertyMaster', 'firm', 'firms'])->orderBy('property_name')->get();
+            $projects   = \App\Models\Project::forFirms([$propertyAvailability->firm_id])->with(['propertyMaster', 'firm', 'firms'])->orderBy('project_name')->get();
         }
         $statuses = PropertyStatus::statuses();
 
         return view('admin.property-availability.edit',
-            ['record' => $propertyAvailability, 'properties' => $properties, 'statuses' => $statuses]);
+            ['record' => $propertyAvailability, 'properties' => $properties, 'projects' => $projects, 'statuses' => $statuses]);
     }
 
     /* ── UPDATE ─────────────────────────────────────────────────────── */

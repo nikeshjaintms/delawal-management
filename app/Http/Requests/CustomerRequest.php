@@ -16,9 +16,16 @@ class CustomerRequest extends FormRequest
     protected function prepareForValidation()
     {
         $inputs = $this->all();
+
+        // Support array-based firm_ids from Multi-select for Super Admins
+        if (isset($inputs['firm_ids']) && is_array($inputs['firm_ids']) && !empty($inputs['firm_ids'])) {
+            $inputs['firm_id'] = (int) $inputs['firm_ids'][0];
+        }
+
         if (empty($inputs['firm_id'])) {
             $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
         }
+
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
                 $inputs[$key] = trim($value);
@@ -41,17 +48,19 @@ class CustomerRequest extends FormRequest
                 }
             }
         }
-        $firmId = auth()->check() ? auth()->user()->firm_id : 0;
+        $firmId = $this->input('firm_id') ?: (auth()->check() ? auth()->user()->firm_id : 0);
 
         $rules = [
-            'firm_id' => 'required|exists:firms,id',
-            'name' => 'required|string|max:255',
-            'mobile' => 'required|digits:10|regex:/^[0-9]{10}$/|unique:customers,mobile,{ID},id,firm_id,{FIRM_ID}',
-            'email' => 'nullable|email|max:255',
+            'firm_id'       => 'required|exists:firms,id',
+            'firm_ids'      => 'nullable|array',
+            'firm_ids.*'    => 'exists:firms,id',
+            'name'          => 'required|string|max:255',
+            'mobile'        => 'required|digits:10|regex:/^[0-9]{10}$/|unique:customers,mobile,{ID},id,firm_id,{FIRM_ID}',
+            'email'         => 'nullable|email|max:255',
             'customer_type' => 'required|in:buyer,seller,rental',
-            'status' => 'required|in:active,inactive',
-            'address' => 'required|string|max:1000',
-            'city' => 'nullable|string|max:255',
+            'status'        => 'required|in:active,inactive',
+            'address'       => 'nullable|string|max:1000',
+            'city'          => 'nullable|string|max:255',
         ];
 
         // Replace placeholders in unique rules dynamically

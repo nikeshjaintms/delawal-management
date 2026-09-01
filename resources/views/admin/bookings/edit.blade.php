@@ -35,18 +35,33 @@
         @include('admin.components.firm-select', ['model' => $booking])
         <div class="form-row">
             <div class="form-group">
-                <label class="form-label">Property <span>*</span></label>
+                <label class="form-label" for="project_id">Project</label>
+                <select name="project_id" id="project_id" class="form-control">
+                    <option value="">— Select Project to Filter Properties —</option>
+                    @foreach($projects as $proj)
+                        <option value="{{ $proj->id }}" {{ old('project_id', $booking->property?->project_id) == $proj->id ? 'selected' : '' }}>
+                            {{ $proj->project_name }}
+                        </option>
+                    @endforeach
+                </select>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Select project to filter property units.</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="property_id">Property / Unit <span>*</span></label>
                 <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required>
-                    <option value="">Select Property</option>
+                    <option value="">— Select Property / Unit —</option>
                     @foreach($properties as $p)
-                        <option value="{{ $p->id }}" data-project="{{ $p->project->project_name ?? ($p->project->propertyMaster->property_name ?? 'No Project Assigned') }}" {{ old('property_id',$booking->property_id)==$p->id?'selected':'' }}>{{ $p->property_name }}</option>
+                        <option value="{{ $p->id }}"
+                                data-project-id="{{ $p->project_id ?? '' }}"
+                                data-project="{{ $p->project->project_name ?? ($p->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
+                                {{ old('property_id', $booking->property_id) == $p->id ? 'selected' : '' }}>
+                            {{ $p->property_name }}
+                            @if($p->unit_no) (Unit: {{ $p->unit_no }}) @endif
+                            @if($p->property_code) [{{ $p->property_code }}] @endif
+                        </option>
                     @endforeach
                 </select>
                 @error('property_id')<div class="text-error">{{ $message }}</div>@enderror
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="project_display">Project</label>
-                <input type="text" id="project_display" class="form-control" readonly placeholder="Auto-determined" style="background-color:#F9FAFB; cursor:not-allowed;">
             </div>
         </div>
         <div class="form-row">
@@ -67,7 +82,7 @@
                     <option value="">No Broker</option>
                     @foreach($brokers as $b)
                         <option value="{{ $b->id }}" {{ old('broker_id', $booking->broker_id) == $b->id ? 'selected' : '' }} data-commission="{{ $b->commission_percentage }}">
-                            {{ $b->name }}
+                            {{ $b->name }} ({{ $b->commission_percentage ? $b->commission_percentage.'%' : '0%' }})
                         </option>
                     @endforeach
                 </select>
@@ -198,28 +213,55 @@
         // Run on load to restore state
         toggleCommissionSection();
 
-        function updateProjectMapping() {
-            const select = document.getElementById('property_id');
-            if (!select) return;
-            const selectedOption = select.options[select.selectedIndex];
-            const projectDisplay = document.getElementById('project_display');
-            if (projectDisplay) {
-                if (!select.value || !selectedOption) {
-                    projectDisplay.value = 'Auto-determined';
-                } else {
-                    const projName = selectedOption.getAttribute('data-project');
-                    projectDisplay.value = projName || 'No Project Assigned';
+        // Project to Property cascading filter
+        const projSelect = document.getElementById('project_id');
+        const propSelect = document.getElementById('property_id');
+
+        function filterPropertiesByProject() {
+            if (!projSelect || !propSelect) return;
+            const selectedProjId = projSelect.value;
+            let matchCount = 0;
+            let firstMatch = '';
+
+            Array.from(propSelect.options).forEach(opt => {
+                if (!opt.value) {
+                    opt.hidden = false;
+                    opt.disabled = false;
+                    return;
                 }
+                const optProjId = opt.dataset.projectId || '';
+                if (!selectedProjId || !optProjId || optProjId === selectedProjId) {
+                    opt.hidden = false;
+                    opt.disabled = false;
+                    matchCount++;
+                    if (!firstMatch) firstMatch = opt.value;
+                } else {
+                    opt.hidden = true;
+                    opt.disabled = true;
+                }
+            });
+
+            // If selected property is now hidden, reset
+            const currentSelected = propSelect.selectedOptions[0];
+            if (currentSelected && currentSelected.hidden) {
+                propSelect.value = '';
             }
         }
 
-        const propSelect = document.getElementById('property_id');
-        if (propSelect) {
-            propSelect.addEventListener('change', updateProjectMapping);
-            if (window.jQuery) {
-                jQuery('#property_id').on('change select2:select select2:unselect', updateProjectMapping);
+        if (projSelect && propSelect) {
+            projSelect.addEventListener('change', filterPropertiesByProject);
+
+            propSelect.addEventListener('change', function() {
+                const opt = this.selectedOptions[0];
+                if (opt && opt.dataset.projectId && (!projSelect.value || projSelect.value !== opt.dataset.projectId)) {
+                    projSelect.value = opt.dataset.projectId;
+                }
+            });
+
+            // If a project is selected, filter on load while keeping selected property
+            if (projSelect.value) {
+                filterPropertiesByProject();
             }
-            updateProjectMapping();
         }
     });
 </script>

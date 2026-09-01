@@ -48,18 +48,28 @@ class CustomerController extends Controller
     public function store(CustomerRequest $request)
     {
         $user = Auth::user();
-        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+        $firmId = $request->firm_id;
+        if (!$firmId && $request->has('firm_ids') && is_array($request->firm_ids) && count($request->firm_ids) > 0) {
+            $firmId = (int) $request->firm_ids[0];
+        }
+        if (!$firmId) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+        }
 
-        Customer::create([
-            'firm_id' => $firmId,
-            'name' => $request->name,
-            'mobile' => $request->mobile,
-            'email' => $request->email,
-            'address' => $request->address,
-            'city' => $request->city,
+        $customer = Customer::create([
+            'firm_id'       => $firmId,
+            'name'          => $request->name,
+            'mobile'        => $request->mobile,
+            'email'         => $request->email,
+            'address'       => $request->address,
+            'city'          => $request->city,
             'customer_type' => $request->customer_type,
-            'status' => $request->status,
+            'status'        => $request->status,
         ]);
+
+        if ($request->has('firm_ids') && is_array($request->firm_ids) && method_exists($customer, 'firms')) {
+            $customer->firms()->sync($request->firm_ids);
+        }
 
         return redirect()->route('customers.index')->with('success', 'Customer added successfully.');
     }
@@ -100,16 +110,28 @@ class CustomerController extends Controller
             abort(403);
         }
 
+        $updateFirmId = $request->firm_id;
+        if (!$updateFirmId && $request->has('firm_ids') && is_array($request->firm_ids) && count($request->firm_ids) > 0) {
+            $updateFirmId = (int) $request->firm_ids[0];
+        }
+        if (!$updateFirmId) {
+            $updateFirmId = $customer->firm_id;
+        }
+
         $customer->update([
-            'firm_id' => $request->firm_id ?? $customer->firm_id,
-            'name' => $request->name,
-            'mobile' => $request->mobile,
-            'email' => $request->email,
-            'address' => $request->address,
-            'city' => $request->city,
+            'firm_id'       => $updateFirmId,
+            'name'          => $request->name,
+            'mobile'        => $request->mobile,
+            'email'         => $request->email,
+            'address'       => $request->address,
+            'city'          => $request->city,
             'customer_type' => $request->customer_type,
-            'status' => $request->status,
+            'status'        => $request->status,
         ]);
+
+        if ($request->has('firm_ids') && is_array($request->firm_ids) && method_exists($customer, 'firms')) {
+            $customer->firms()->sync($request->firm_ids);
+        }
 
         return redirect()->route('customers.index')->with('success', 'Customer updated successfully.');
     }

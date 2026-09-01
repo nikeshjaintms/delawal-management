@@ -143,8 +143,8 @@ input[type=number] {
 
 <div class="card-box">
     <div class="type-switcher">
-        <button type="button" class="type-btn active" id="btn-type-ref">Dispatch Against Stock Inward</button>
-        <button type="button" class="type-btn" id="btn-type-manual">Manual Stock Outward</button>
+        <button type="button" class="type-btn active" id="btn-type-ref" onclick="switchOutwardType('ref')">Dispatch Against Stock Inward</button>
+        <button type="button" class="type-btn" id="btn-type-manual" onclick="switchOutwardType('manual')">Manual Stock Outward</button>
     </div>
 
     <!-- REFERENCED DISPATCH FORM -->
@@ -153,18 +153,26 @@ input[type=number] {
         
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-file-invoice"></i> Select Reference IMIR</div>
-            <div class="form-row" style="grid-template-columns: 1fr 2fr;">
-                <div class="form-group">
+            <div class="form-row" style="grid-template-columns: 1fr;">
+                <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label">IMIR Number <span>*</span></label>
                     <select name="stock_inward_number" id="stock_inward_number" class="form-control">
-                        <option value="">Select IMIR Number</option>
+                        <option value="">— Select IMIR Number to Auto-Fetch Details —</option>
                         @foreach($inwardNumbers as $num)
                             <option value="{{ $num }}" {{ request('stock_inward_number') == $num ? 'selected' : '' }}>{{ $num }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div id="si-info-block" style="display:none; align-self:center; font-size:13px; color:var(--text-secondary); margin-top:18px;">
-                    Supplier: <strong id="lbl-si-supplier" style="color:var(--text-primary);"></strong> &nbsp;|&nbsp; PO Number: <strong id="lbl-si-po" style="color:var(--text-primary);"></strong> &nbsp;|&nbsp; IMIR Date: <strong id="lbl-si-date" style="color:var(--text-primary);"></strong> &nbsp;|&nbsp; Warehouse: <strong id="lbl-si-warehouse" style="color:var(--text-primary);"></strong>
+            </div>
+
+            <div id="si-info-block" style="display:none; background: rgba(37,99,235,0.12); border: 1.5px solid rgba(59,130,246,0.30); border-radius: 16px; padding: 16px 20px; margin-top: 16px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; font-size: 13.5px;">
+                    <div><span style="color:#94A3B8; font-size:12px; display:block;">Supplier:</span> <strong id="lbl-si-supplier" style="color:#FFFFFF;"></strong></div>
+                    <div><span style="color:#94A3B8; font-size:12px; display:block;">PO Number:</span> <strong id="lbl-si-po" style="color:#60A5FA;"></strong></div>
+                    <div><span style="color:#94A3B8; font-size:12px; display:block;">IMIR Date:</span> <strong id="lbl-si-date" style="color:#FFFFFF;"></strong></div>
+                    <div><span style="color:#94A3B8; font-size:12px; display:block;">Warehouse:</span> <strong id="lbl-si-warehouse" style="color:#10B981;"></strong></div>
+                    <div id="div-si-project" style="display:none;"><span style="color:#94A3B8; font-size:12px; display:block;">Project:</span> <strong id="lbl-si-project" style="color:#F59E0B;"></strong></div>
+                    <div id="div-si-contractor" style="display:none;"><span style="color:#94A3B8; font-size:12px; display:block;">Contractor:</span> <strong id="lbl-si-contractor" style="color:#60A5FA;"></strong></div>
                 </div>
             </div>
         </div>
@@ -184,16 +192,25 @@ input[type=number] {
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Dispatch Date <span>*</span></label>
-                        <input type="date" name="outward_date" class="form-control" value="{{ date('Y-m-d') }}" required>
+                        <label class="form-label">Contractor <small style="font-weight:400;">(optional)</small></label>
+                        <select name="contractor_id" id="ref_contractor_id" class="form-control">
+                            <option value="">-- Select Contractor --</option>
+                            @foreach($contractors as $c)
+                                <option value="{{ $c->id }}" data-project-id="{{ $c->project_id ?? '' }}">{{ $c->contractor_name }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Vehicle Number</label>
-                        <input type="text" name="vehicle_no" class="form-control" placeholder="Enter vehicle number...">
+                        <label class="form-label">Dispatch Date <span>*</span></label>
+                        <input type="date" name="outward_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                     </div>
                 </div>
 
                 <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Vehicle Number</label>
+                        <input type="text" name="vehicle_no" class="form-control" placeholder="Enter vehicle number...">
+                    </div>
                     <div class="form-group">
                         <label class="form-label">Driver Name</label>
                         <input type="text" name="driver_name" class="form-control" placeholder="Enter driver name...">
@@ -202,6 +219,9 @@ input[type=number] {
                         <label class="form-label">LR Number (Lorry Receipt)</label>
                         <input type="text" name="lr_no" class="form-control" placeholder="Enter LR number...">
                     </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Transport Name</label>
                         <input type="text" name="transport_name" class="form-control" placeholder="Enter transport company...">
@@ -278,10 +298,19 @@ input[type=number] {
                     <div style="font-size:12px;color:var(--text-secondary);margin-top:5px;">Cannot exceed available stock.</div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="project_id">Project <small style="font-weight:400;">(optional)</small></label>
-                    <select name="project_id" class="form-control @error('project_id') is-invalid @enderror">
+                    <label class="form-label" for="manual_project_id">Project <small style="font-weight:400;">(optional)</small></label>
+                    <select name="project_id" id="manual_project_id" class="form-control @error('project_id') is-invalid @enderror">
                         <option value="">-- Select Project --</option>
                         @foreach($projects as $p)<option value="{{ $p->id }}" {{ old('project_id', $selectedProjectId ?? '')==$p->id?'selected':'' }}>{{ $p->project_name }} ({{ $p->propertyMaster->property_name ?? 'Property' }})</option>@endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="manual_contractor_id">Contractor <small style="font-weight:400;">(optional)</small></label>
+                    <select name="contractor_id" id="manual_contractor_id" class="form-control @error('contractor_id') is-invalid @enderror">
+                        <option value="">-- Select Contractor --</option>
+                        @foreach($contractors as $c)<option value="{{ $c->id }}" data-project-id="{{ $c->project_id ?? '' }}" {{ old('contractor_id')==$c->id?'selected':'' }}>{{ $c->contractor_name }}</option>@endforeach
                     </select>
                 </div>
             </div>
@@ -321,25 +350,91 @@ input[type=number] {
         } else { bar.classList.remove('visible'); }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    function switchOutwardType(type) {
         const btnRef = document.getElementById('btn-type-ref');
         const btnManual = document.getElementById('btn-type-manual');
         const formRef = document.getElementById('form-ref-dispatch');
         const formManual = document.getElementById('form-manual-dispatch');
 
-        btnRef.addEventListener('click', function() {
-            btnRef.classList.add('active');
-            btnManual.classList.remove('active');
-            formRef.style.display = 'block';
-            formManual.style.display = 'none';
-        });
+        if (!btnRef || !btnManual || !formRef || !formManual) return;
 
-        btnManual.addEventListener('click', function() {
+        if (type === 'manual') {
             btnManual.classList.add('active');
             btnRef.classList.remove('active');
             formManual.style.display = 'block';
             formRef.style.display = 'none';
-        });
+        } else {
+            btnRef.classList.add('active');
+            btnManual.classList.remove('active');
+            formRef.style.display = 'block';
+            formManual.style.display = 'none';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnRef = document.getElementById('btn-type-ref');
+        const btnManual = document.getElementById('btn-type-manual');
+
+        if (btnRef) {
+            btnRef.addEventListener('click', function() { switchOutwardType('ref'); });
+        }
+        if (btnManual) {
+            btnManual.addEventListener('click', function() { switchOutwardType('manual'); });
+        }
+
+        // Project-to-Contractor cascading function
+        function bindProjectContractorSync(projEl, conEl) {
+            if (!projEl || !conEl) return;
+            function sync() {
+                const pId = projEl.value;
+                let firstMatch = '';
+                let matchCount = 0;
+
+                Array.from(conEl.options).forEach(opt => {
+                    if (!opt.value) {
+                        opt.hidden = false;
+                        opt.disabled = false;
+                        return;
+                    }
+                    const optPId = opt.dataset.projectId || '';
+                    if (!pId || !optPId || optPId === pId) {
+                        opt.hidden = false;
+                        opt.disabled = false;
+                        if (pId && optPId === pId) {
+                            matchCount++;
+                            if (!firstMatch) firstMatch = opt.value;
+                        }
+                    } else {
+                        opt.hidden = true;
+                        opt.disabled = true;
+                    }
+                });
+
+                const currentSelected = conEl.selectedOptions[0];
+                if (currentSelected && currentSelected.hidden) {
+                    conEl.value = firstMatch || '';
+                } else if (pId && matchCount > 0 && !conEl.value) {
+                    conEl.value = firstMatch;
+                }
+            }
+
+            projEl.addEventListener('change', sync);
+            conEl.addEventListener('change', function() {
+                const opt = this.selectedOptions[0];
+                if (opt && opt.dataset.projectId && (!projEl.value || projEl.value !== opt.dataset.projectId)) {
+                    projEl.value = opt.dataset.projectId;
+                }
+            });
+            sync();
+        }
+
+        const destProjSelect = document.querySelector('#form-ref-dispatch select[name="project_id"]');
+        const refConSelect = document.getElementById('ref_contractor_id');
+        bindProjectContractorSync(destProjSelect, refConSelect);
+
+        const manualProjSelect = document.getElementById('manual_project_id');
+        const manualConSelect = document.getElementById('manual_contractor_id');
+        bindProjectContractorSync(manualProjSelect, manualConSelect);
 
         // SI selection dynamic loader
         const siSelect = document.getElementById('stock_inward_number');
@@ -357,38 +452,81 @@ input[type=number] {
             fetch(`/stock-inwards/${siNum}/pending-outward-items`)
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('lbl-si-supplier').innerText = data.supplier_name;
-                    document.getElementById('lbl-si-po').innerText = data.po_number;
-                    document.getElementById('lbl-si-date').innerText = data.inward_date;
-                    document.getElementById('lbl-si-warehouse').innerText = data.warehouse;
+                    document.getElementById('lbl-si-supplier').innerText = data.supplier_name || '—';
+                    document.getElementById('lbl-si-po').innerText = data.po_number || 'Manual';
+                    document.getElementById('lbl-si-date').innerText = data.inward_date || '—';
+                    document.getElementById('lbl-si-warehouse').innerText = data.warehouse || 'Main Warehouse';
 
-                    siInfoBlock.style.display = 'inline-block';
+                    const divProj = document.getElementById('div-si-project');
+                    const lblProj = document.getElementById('lbl-si-project');
+                    if (data.project_name) {
+                        lblProj.innerText = data.project_name;
+                        divProj.style.display = 'block';
+                    } else {
+                        divProj.style.display = 'none';
+                    }
+
+                    const divCon = document.getElementById('div-si-contractor');
+                    const lblCon = document.getElementById('lbl-si-contractor');
+                    if (data.contractor_name) {
+                        lblCon.innerText = data.contractor_name;
+                        divCon.style.display = 'block';
+                    } else {
+                        divCon.style.display = 'none';
+                    }
+
+                    // Auto-select Destination Project
+                    if (destProjSelect && data.project_id) {
+                        destProjSelect.value = data.project_id;
+                        destProjSelect.dispatchEvent(new Event('change'));
+                    }
+
+                    // Auto-select Contractor
+                    if (refConSelect && data.contractor_id) {
+                        refConSelect.value = data.contractor_id;
+                    }
+
+                    // Auto-fill Vehicle Number
+                    const vehInput = document.querySelector('#form-ref-dispatch input[name="vehicle_no"]');
+                    if (vehInput && data.vehicle_no && !vehInput.value) {
+                        vehInput.value = data.vehicle_no;
+                    }
+
+                    siInfoBlock.style.display = 'block';
                     refFieldsContainer.style.display = 'block';
                     itemsRows.innerHTML = '';
 
-                    let rowIndex = 0;
-                    data.items.forEach(item => {
+                    let activeCount = 0;
+                    data.items.forEach((item, rowIndex) => {
                         if (item.qty_pending > 0) {
+                            activeCount++;
                             const maxDispatch = Math.min(item.qty_pending, item.available_stock);
 
                             const tr = `
                                 <tr class="item-row">
                                     <td>
-                                        <strong>${item.material_name}</strong>
+                                        <strong style="color:#FFFFFF; font-size:14px;">${item.material_name}</strong>
+                                        ${item.specification ? `<br><small style="color:#94A3B8;"><i class="fa-solid fa-ruler-combined"></i> ${item.specification}</small>` : ''}
                                         <input type="hidden" name="items[${rowIndex}][material_id]" value="${item.material_id}">
                                     </td>
-                                    <td style="text-align:right;">${item.qty_received} ${item.unit}</td>
-                                    <td style="text-align:right;">${item.qty_dispatched} ${item.unit}</td>
-                                    <td style="text-align:right; font-weight:600; color:#2563EB;">${item.qty_pending} ${item.unit} <br><small style="color:#64748B;">Inv. Avail: ${item.available_stock}</small></td>
+                                    <td style="text-align:right; font-weight:600;">${item.qty_received} ${item.unit}</td>
+                                    <td style="text-align:right; color:#94A3B8;">${item.qty_dispatched} ${item.unit}</td>
+                                    <td style="text-align:right; font-weight:700; color:#60A5FA;">
+                                        ${item.qty_pending} ${item.unit}
+                                        <br><small style="color:#10B981; font-weight:500;">Avail: ${item.available_stock} ${item.unit}</small>
+                                    </td>
                                     <td>
-                                        <input type="number" name="items[${rowIndex}][qty_dispatch]" class="form-control qty-dispatch-input" value="${maxDispatch}" step="0.001" min="0.001" max="${maxDispatch}" required style="height:34px !important; padding:4px 8px !important;">
+                                        <input type="number" name="items[${rowIndex}][qty_dispatch]" class="form-control qty-dispatch-input" value="${maxDispatch}" step="0.001" min="0.001" max="${maxDispatch}" required style="height:36px !important; padding:4px 10px !important; font-weight:700; color:#FFFFFF !important; background:rgba(16, 22, 34, 0.85) !important;">
                                     </td>
                                 </tr>
                             `;
                             itemsRows.insertAdjacentHTML('beforeend', tr);
-                            rowIndex++;
                         }
                     });
+
+                    if (activeCount === 0) {
+                        itemsRows.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:#10B981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> All materials from this IMIR have already been dispatched.</td></tr>';
+                    }
 
                     // Add validation event listeners
                     document.querySelectorAll('.qty-dispatch-input').forEach(input => {
@@ -396,11 +534,14 @@ input[type=number] {
                             const max = parseFloat(this.max) || 0;
                             const val = parseFloat(this.value) || 0;
                             if (val > max) {
-                                alert('Dispatch quantity cannot exceed available stock or pending inward quantity.');
+                                alert('Dispatch quantity cannot exceed available stock or pending inward quantity (' + max + ').');
                                 this.value = max;
                             }
                         });
                     });
+                })
+                .catch(err => {
+                    console.error('Error fetching IMIR details:', err);
                 });
         }
 

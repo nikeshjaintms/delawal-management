@@ -7,6 +7,7 @@ use App\Models\Rental;
 use App\Models\RentalPayment;
 use App\Models\Firm;
 use App\Models\Property;
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -57,9 +58,17 @@ class RentalPaymentController extends Controller
         }
         $properties = $propQuery->get();
 
+        $projQuery = Project::with('propertyMaster')->where('status', 'active')->orderBy('project_name');
+        if (!$isAdmin) {
+            $projQuery->where('firm_id', $firmId);
+        }
+        $projects = $projQuery->get();
+
+        $selectedProjectId = $rental->property?->project_id ?? null;
+
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.rental-payments.create', compact('rental', 'firms', 'properties'));
+        return view('admin.rental-payments.create', compact('rental', 'firms', 'properties', 'projects', 'selectedProjectId'));
     }
 
     public function store(RentalPaymentRequest $request, Rental $rental)
@@ -78,9 +87,15 @@ class RentalPaymentController extends Controller
             $status = 'partial';
         }
 
-        $firmId = $request->firm_id ?? ($rental->firm_id ?: Auth::user()->firm_id);
+        $firmId = $request->firm_id;
+        if (!$firmId && $request->has('firm_ids') && is_array($request->firm_ids) && count($request->firm_ids) > 0) {
+            $firmId = (int) $request->firm_ids[0];
+        }
+        if (!$firmId) {
+            $firmId = $rental->firm_id ?: (Auth::user()?->firm_id ?? session('firm_id'));
+        }
 
-        RentalPayment::create([
+        $rentalPayment = RentalPayment::create([
             'firm_id'        => $firmId,
             'rental_id'      => $rental->id,
             'property_id'    => $request->property_id,
@@ -90,7 +105,7 @@ class RentalPaymentController extends Controller
             'paid_amount'    => $paidAmt,
             'pending_amount' => $pending,
             'payment_date'   => $request->payment_date,
-            'payment_mode'   => $request->payment_mode,
+            'payment_mode'   => $request->payment_mode ?: 'Cash',
             'payment_status' => $status,
             'remarks'        => $request->remarks,
         ]);
@@ -119,9 +134,17 @@ class RentalPaymentController extends Controller
         }
         $properties = $propQuery->get();
 
+        $projQuery = Project::with('propertyMaster')->where('status', 'active')->orderBy('project_name');
+        if (!$isAdmin) {
+            $projQuery->where('firm_id', $firmId);
+        }
+        $projects = $projQuery->get();
+
+        $selectedProjectId = $rentalPayment->property?->project_id ?? $rental->property?->project_id ?? null;
+
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.rental-payments.edit', compact('rental', 'rentalPayment', 'firms', 'properties'));
+        return view('admin.rental-payments.edit', compact('rental', 'rentalPayment', 'firms', 'properties', 'projects', 'selectedProjectId'));
     }
 
     public function update(RentalPaymentRequest $request, Rental $rental, RentalPayment $rentalPayment)
@@ -143,7 +166,16 @@ class RentalPaymentController extends Controller
             $status = 'partial';
         }
 
+        $firmId = $request->firm_id;
+        if (!$firmId && $request->has('firm_ids') && is_array($request->firm_ids) && count($request->firm_ids) > 0) {
+            $firmId = (int) $request->firm_ids[0];
+        }
+        if (!$firmId) {
+            $firmId = $rentalPayment->firm_id ?: ($rental->firm_id ?: (Auth::user()?->firm_id ?? session('firm_id')));
+        }
+
         $rentalPayment->update([
+            'firm_id'        => $firmId,
             'property_id'    => $request->property_id,
             'payment_month'  => $request->payment_month,
             'payment_year'   => $request->payment_year,
@@ -151,7 +183,7 @@ class RentalPaymentController extends Controller
             'paid_amount'    => $paidAmt,
             'pending_amount' => $pending,
             'payment_date'   => $request->payment_date,
-            'payment_mode'   => $request->payment_mode,
+            'payment_mode'   => $request->payment_mode ?: 'Cash',
             'payment_status' => $status,
             'remarks'        => $request->remarks,
         ]);

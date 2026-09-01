@@ -42,11 +42,19 @@ class MaterialRequest extends FormRequest
         $firmId = $user ? $user->firm_id : 0;
 
         $rules = [
-            'material_category_id' => 'required|exists:material_categories,id',
-            'material_name' => 'required|string|max:255',
-            'unit' => 'required|string|max:50',
-            'description' => 'nullable|string|max:1000',
-            'status' => 'required|in:active,inactive',
+            'project_id'           => 'nullable|exists:projects,id',
+            'contractor_id'        => 'nullable|exists:contractors,id',
+            'material_category_id' => 'nullable',
+            'custom_category'      => 'nullable|string|max:100',
+            'material_name'        => 'nullable|string|max:255',
+            'specification'        => 'nullable|string|max:255',
+            'unit'                 => 'required|string|max:50',
+            'opening_stock'        => 'nullable|numeric|min:0',
+            'unit_price'           => 'nullable|numeric|min:0',
+            'total_price'          => 'nullable|numeric|min:0',
+            'minimum_stock'        => 'nullable|numeric|min:0',
+            'description'          => 'nullable|string|max:1000',
+            'status'               => 'required|in:active,inactive',
         ];
 
         if ($user && $user->isAdmin()) {
@@ -86,12 +94,15 @@ class MaterialRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'project_id'           => 'Project',
+            'contractor_id'        => 'Contractor',
             'material_category_id' => 'Material Category',
-            'material_name' => 'Material Name',
-            'unit' => 'Unit of Measure',
-            'description' => 'Description',
-            'status' => 'Status',
-            'firm_id' => 'Firm',
+            'material_name'        => 'Material Name',
+            'specification'        => 'Specification / Size',
+            'unit'                 => 'Unit of Measure',
+            'description'          => 'Description',
+            'status'               => 'Status',
+            'firm_id'              => 'Firm',
         ];
     }
 

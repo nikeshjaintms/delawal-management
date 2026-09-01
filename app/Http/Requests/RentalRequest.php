@@ -17,7 +17,13 @@ class RentalRequest extends FormRequest
     {
         $inputs = $this->all();
         if (empty($inputs['firm_id'])) {
-            $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
+            if (!empty($inputs['firm_ids']) && is_array($inputs['firm_ids'])) {
+                $inputs['firm_id'] = $inputs['firm_ids'][0] ?? null;
+            } elseif (!empty($inputs['firm_ids'])) {
+                $inputs['firm_id'] = $inputs['firm_ids'];
+            } else {
+                $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
+            }
         }
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
@@ -45,6 +51,8 @@ class RentalRequest extends FormRequest
 
         $rules = [
             'firm_id'          => 'required|exists:firms,id',
+            'firm_ids'         => 'nullable|array',
+            'firm_ids.*'       => 'exists:firms,id',
             'property_id'      => 'required|exists:properties,id',
             'tenant_name'      => 'required|string|max:255',
             'tenant_mobile'    => 'required|string|max:15',

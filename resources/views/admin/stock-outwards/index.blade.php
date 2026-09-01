@@ -118,14 +118,47 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .alert-success { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; color: #34D399 !important; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .pagination-wrapper { margin-top: 24px; display: flex; justify-content: center; }
+
+.btn-pdf {
+    display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px;
+    background: rgba(220, 38, 38, 0.15) !important; color: #F87171 !important;
+    border: 1px solid rgba(220, 38, 38, 0.35) !important; border-radius: 12px;
+    font-size: 14px; font-weight: 700; cursor: pointer; transition: all .25s ease;
+    text-decoration: none !important;
+}
+.btn-pdf:hover { background: #DC2626 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.45); }
+
+@media print {
+    body { background: #FFFFFF !important; color: #000 !important; }
+    .sidebar, .topbar, .filter-bar, .pagination-wrapper, .btn-pdf, .btn-gold, .btn-edit, .btn-delete, .btn-view, .btn-print,
+    .ambient-glow-wrapper, .sidebar-overlay, .action-col, .breadcrumb-nav { display: none !important; }
+    .main-wrapper, .content-area, .content-body { margin: 0 !important; padding: 0 !important; }
+    .card-box { background: #fff !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+    .premium-table th { background: #1e293b !important; color: #FFFFFF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .premium-table td { border-bottom: 1px solid #e2e8f0 !important; color: #1e293b !important; }
+    .premium-table tr:nth-child(even) td { background: #f8fafc !important; }
+    .print-header { display: block !important; text-align: center; padding: 16px 0 10px; border-bottom: 2px solid #1e293b; margin-bottom: 18px; }
+    .print-header h1 { font-size: 22px; font-weight: 800; color: #1e293b; margin: 0; }
+    .print-header p { font-size: 13px; color: #64748b; margin: 4px 0 0; }
+}
 </style>
+
+<div class="print-header" style="display:none;">
+    <h1><i class="fa-solid fa-arrow-up-from-bracket"></i> Stock Outward</h1>
+    <p>Site dispatches, material consumption & outward gate passes &nbsp;|&nbsp; Printed on: {{ date('d M, Y H:i') }}</p>
+</div>
 
 <div class="crud-header">
     <div class="crud-title">
         <h2>Stock Outward</h2>
         <p>Record site dispatches, material consumption, and outward gate passes.</p>
     </div>
-    <a href="{{ route('stock-outwards.create') }}" class="btn-gold"><i class="fa-solid fa-plus"></i> Add Outward</a>
+    <div style="display:flex; gap:10px; align-items:center;">
+        <button type="button" class="btn-pdf" onclick="window.print()" title="Print / Save as PDF">
+            <i class="fa-solid fa-file-pdf"></i> PDF
+        </button>
+        <a href="{{ route('stock-outwards.create') }}" class="btn-gold"><i class="fa-solid fa-plus"></i> Add Outward</a>
+    </div>
 </div>
 
 @if(session('success'))
@@ -156,11 +189,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
             </select>
         </div>
         <div class="filter-group">
+            <span class="filter-label">Contractor</span>
+            <select name="filter_contractor" class="filter-control">
+                <option value="">All Contractors</option>
+                @foreach($contractors as $c)<option value="{{ $c->id }}" {{ request('filter_contractor')==$c->id?'selected':'' }}>{{ $c->contractor_name }}</option>@endforeach
+            </select>
+        </div>
+        <div class="filter-group">
             <span class="filter-label">Date</span>
             <input type="date" name="filter_date" value="{{ request('filter_date') }}" class="filter-control">
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_material','filter_project','filter_date']))
+        @if(request()->hasAny(['search','filter_material','filter_project','filter_contractor','filter_date']))
             <a href="{{ route('stock-outwards.index') }}" class="btn-reset"><i class="fa-solid fa-xmark"></i> Reset</a>
         @endif
     </form>
@@ -173,6 +213,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     <th>Date</th>
                     <th>Ref. IMIR</th>
                     <th>Destination Project</th>
+                    <th>Contractor</th>
                     <th>Material (Sample)</th>
                     <th style="text-align:center;">Total Items</th>
                     <th>Vehicle No</th>
@@ -200,6 +241,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                         @endif
                     </td>
                     <td>{{ $out->project->project_name ?? ($out->property->property_name ?? 'General') }}</td>
+                    <td><span style="color:#A78BFA; font-weight:600;">{{ $out->contractor->contractor_name ?? '—' }}</span></td>
                     <td>{{ $sampleMaterial }}</td>
                     <td style="text-align:center;">
                         <span class="badge badge-count">{{ $itemCount }}</span>
@@ -221,7 +263,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="9" align="center" style="padding:36px;color: #CBD5E1;">No stock outward records found.</td></tr>
+                <tr><td colspan="10" align="center" style="padding:36px;color: #CBD5E1;">No stock outward records found.</td></tr>
                 @endforelse
             </tbody>
         </table>

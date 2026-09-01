@@ -106,9 +106,18 @@ class PropertyMasterController extends Controller
     public function show(PropertyMaster $propertyMaster)
     {
         $this->authorise($propertyMaster);
-        $propertyMaster->load(['firm', 'projects.bulks']);
+        $propertyMaster->load([
+            'firm',
+            'acquisitionBatches' => fn($q) => $q->orderBy('id', 'asc')->with(['plots.project']),
+            'projects.properties.acquisitionBatch',
+            'plots' => fn($q) => $q->with(['acquisitionBatch', 'project', 'propertyType'])
+        ]);
 
-        return view('admin.property-masters.show', compact('propertyMaster'));
+        $propertyTypes = \App\Models\PropertyType::whereHas('firms', function ($q) use ($propertyMaster) {
+            $q->where('firms.id', $propertyMaster->firm_id);
+        })->orWhereDoesntHave('firms')->orderBy('name')->get();
+
+        return view('admin.property-masters.show', compact('propertyMaster', 'propertyTypes'));
     }
 
     public function edit(PropertyMaster $propertyMaster)

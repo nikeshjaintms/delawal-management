@@ -41,15 +41,18 @@ class VendorRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
-            'name' => 'required|string|max:255',
-            'mobile' => 'required|digits:10|regex:/^[0-9]{10}$/',
-            'email' => 'nullable|email|max:255',
-            'gst_no' => 'nullable|regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i',
-            'pan_no' => 'nullable|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i',
-            'city' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:1000',
+            'firm_ids'      => 'nullable|array',
+            'firm_ids.*'    => 'nullable|integer',
+            'firm_id'       => 'nullable|integer',
+            'name'          => 'required|string|max:255',
+            'mobile'        => 'required|string|min:10|max:15',
+            'email'         => 'nullable|email|max:255',
+            'gst_no'        => 'nullable|string|max:20',
+            'pan_no'        => 'nullable|string|max:20',
+            'city'          => 'nullable|string|max:255',
+            'address'       => 'nullable|string|max:1000',
             'payment_terms' => 'nullable|string|max:255',
-            'status' => 'required|in:active,inactive',
+            'status'        => 'required|in:active,inactive',
         ];
 
         // Replace placeholders in unique rules dynamically

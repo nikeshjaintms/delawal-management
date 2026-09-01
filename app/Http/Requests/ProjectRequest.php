@@ -59,6 +59,8 @@ class ProjectRequest extends FormRequest
             'pincode' => 'nullable|string|max:20',
             'description' => 'nullable|string|max:2000',
             'project_image' => 'nullable|image|max:2048',
+            'selected_plot_ids' => 'nullable|array',
+            'selected_plot_ids.*' => 'exists:properties,id',
         ];
 
         // Replace placeholders in unique rules dynamically

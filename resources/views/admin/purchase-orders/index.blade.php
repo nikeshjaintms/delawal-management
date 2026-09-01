@@ -156,16 +156,50 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .alert-success { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; color: #34D399 !important; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .pagination-wrapper { margin-top: 24px; display: flex; justify-content: center; }
+
+.btn-pdf {
+    display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px;
+    background: rgba(220, 38, 38, 0.15) !important; color: #F87171 !important;
+    border: 1px solid rgba(220, 38, 38, 0.35) !important; border-radius: 12px;
+    font-size: 14px; font-weight: 700; cursor: pointer; transition: all .25s ease;
+    text-decoration: none !important;
+}
+.btn-pdf:hover { background: #DC2626 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.45); }
+
+@media print {
+    body { background: #FFFFFF !important; color: #000 !important; }
+    .sidebar, .topbar, .filter-bar, .pagination-wrapper, .btn-pdf, .btn-gold, .btn-edit, .btn-delete, .btn-view, .btn-print,
+    .ambient-glow-wrapper, .sidebar-overlay, .action-col, .breadcrumb-nav { display: none !important; }
+    .main-wrapper, .content-area, .content-body { margin: 0 !important; padding: 0 !important; }
+    .card-box { background: #fff !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+    .premium-table th { background: #1e293b !important; color: #FFFFFF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .premium-table td { border-bottom: 1px solid #e2e8f0 !important; color: #1e293b !important; }
+    .premium-table tr:nth-child(even) td { background: #f8fafc !important; }
+    .print-header { display: block !important; text-align: center; padding: 16px 0 10px; border-bottom: 2px solid #1e293b; margin-bottom: 18px; }
+    .print-header h1 { font-size: 22px; font-weight: 800; color: #1e293b; margin: 0; }
+    .print-header p { font-size: 13px; color: #64748b; margin: 4px 0 0; }
+    .status-badge, span[class*="badge"] { border: 1px solid #aaa !important; background: #f1f5f9 !important; color: #1e293b !important; }
+}
 </style>
+
+<div class="print-header" style="display:none;">
+    <h1><i class="fa-solid fa-file-invoice"></i> Purchase Orders</h1>
+    <p>Manage and track procurement contracts and supplier orders &nbsp;|&nbsp; Printed on: {{ date('d M, Y H:i') }}</p>
+</div>
 
 <div class="crud-header">
     <div class="crud-title">
         <h2>Purchase Orders</h2>
         <p>Manage and track procurement contracts and supplier orders.</p>
     </div>
-    @if($authUser->hasPermission('purchase_order_add'))
-    <a href="{{ route('purchase-orders.create') }}" class="btn-gold"><i class="fa-solid fa-plus"></i> Create Purchase Order</a>
-    @endif
+    <div style="display:flex; gap:10px; align-items:center;">
+        <button type="button" class="btn-pdf" onclick="window.print()" title="Print / Save as PDF">
+            <i class="fa-solid fa-file-pdf"></i> PDF
+        </button>
+        @if($authUser->hasPermission('purchase_order_add'))
+        <a href="{{ route('purchase-orders.create') }}" class="btn-gold"><i class="fa-solid fa-plus"></i> Create Purchase Order</a>
+        @endif
+    </div>
 </div>
 
 @if(session('success'))
@@ -204,6 +238,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         </div>
 
         <div class="filter-group">
+            <span class="filter-label">Contractor</span>
+            <select name="filter_contractor" class="filter-control">
+                <option value="">All Contractors</option>
+                @if(isset($contractors))
+                    @foreach($contractors as $con)
+                        <option value="{{ $con->id }}" {{ request('filter_contractor') == $con->id ? 'selected' : '' }}>
+                            {{ $con->contractor_name }}
+                        </option>
+                    @endforeach
+                @endif
+            </select>
+        </div>
+
+        <div class="filter-group">
             <span class="filter-label">Start Date</span>
             <input type="date" name="start_date" value="{{ request('start_date') }}" class="filter-control">
         </div>
@@ -214,7 +262,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         </div>
 
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_status','start_date','end_date']))
+        @if(request()->hasAny(['search','filter_status','filter_project','filter_contractor','start_date','end_date']))
             <a href="{{ route('purchase-orders.index') }}" class="btn-reset"><i class="fa-solid fa-xmark"></i> Reset</a>
         @endif
 
@@ -235,6 +283,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     <th>PO Number</th>
                     <th>Firm</th>
                     <th>Project</th>
+                    <th>Contractor</th>
                     <th>Supplier</th>
                     <th>PO Date</th>
                     <th>Delivery Date</th>
@@ -249,6 +298,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     <td><strong style="color: #FFFFFF !important; font-weight: 700;">{{ $po->po_number }}</strong></td>
                     <td>{{ $po->firm->firm_name ?? '-' }}</td>
                     <td>{{ $po->project->project_name ?? '—' }}</td>
+                    <td>
+                        @if($po->contractor)
+                            <span style="display: inline-flex; align-items: center; gap: 4px; color: #60A5FA; font-weight: 600;">
+                                <i class="fa-solid fa-helmet-safety" style="font-size: 11px;"></i> {{ $po->contractor->contractor_name }}
+                            </span>
+                        @else
+                            <span style="color: #94A3B8;">—</span>
+                        @endif
+                    </td>
                     <td>{{ $po->vendor->name ?? '-' }}</td>
                     <td>{{ $po->po_date ? $po->po_date->format('d M Y') : '-' }}</td>
                     <td>{{ $po->delivery_date ? $po->delivery_date->format('d M Y') : '—' }}</td>

@@ -48,17 +48,32 @@ class VendorController extends Controller
         $user = Auth::user();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
-        Vendor::create([
-            'firm_id'       => $request->firm_id ?? $firmId,
+        if ($request->filled('firm_ids') && is_array($request->firm_ids)) {
+            $firmId = $request->firm_ids[0] ?? $firmId;
+        } elseif ($request->filled('firm_id')) {
+            $firmId = $request->firm_id;
+        }
+
+        if (empty($firmId)) {
+            $defaultFirm = \App\Models\Firm::where('status', 'active')->first();
+            $firmId = $defaultFirm ? $defaultFirm->id : 1;
+        }
+
+        $vendor = Vendor::create([
+            'firm_id'       => $firmId,
             'name'          => $request->name,
             'mobile'        => $request->mobile,
             'email'         => $request->email,
-            'gst_no'        => $request->gst_no,
+            'gst_no'        => $request->gst_no ? strtoupper($request->gst_no) : null,
             'address'       => $request->address,
             'city'          => $request->city,
             'payment_terms' => $request->payment_terms,
             'status'        => $request->status,
         ]);
+
+        if ($request->filled('firm_ids') && is_array($request->firm_ids)) {
+            $vendor->syncFirms($request->firm_ids);
+        }
 
         return redirect()->route('vendors.index')->with('success', 'Vendor added successfully.');
     }
@@ -99,17 +114,28 @@ class VendorController extends Controller
             abort(403);
         }
 
+        $targetFirmId = $vendor->firm_id;
+        if ($request->filled('firm_ids') && is_array($request->firm_ids)) {
+            $targetFirmId = $request->firm_ids[0] ?? $targetFirmId;
+        } elseif ($request->filled('firm_id')) {
+            $targetFirmId = $request->firm_id;
+        }
+
         $vendor->update([
-            'firm_id'       => $request->firm_id ?? $vendor->firm_id,
+            'firm_id'       => $targetFirmId,
             'name'          => $request->name,
             'mobile'        => $request->mobile,
             'email'         => $request->email,
-            'gst_no'        => $request->gst_no,
+            'gst_no'        => $request->gst_no ? strtoupper($request->gst_no) : null,
             'address'       => $request->address,
             'city'          => $request->city,
             'payment_terms' => $request->payment_terms,
             'status'        => $request->status,
         ]);
+
+        if ($request->filled('firm_ids') && is_array($request->firm_ids)) {
+            $vendor->syncFirms($request->firm_ids);
+        }
 
         return redirect()->route('vendors.index')->with('success', 'Vendor updated successfully.');
     }

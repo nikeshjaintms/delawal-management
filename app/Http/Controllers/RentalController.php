@@ -68,20 +68,39 @@ class RentalController extends Controller
         $firmId = $user ? $user->firm_id : session('firm_id');
 
         $propQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
-        if (!$isAdmin) {
+        if (!$isAdmin && $firmId) {
             $propQuery->where('firm_id', $firmId);
         }
         $properties = $propQuery->get();
 
+        $projQuery = \App\Models\Project::with('propertyMaster')->orderBy('project_name');
+        if (!$isAdmin && $firmId) {
+            $projQuery->where('firm_id', $firmId);
+        }
+        $projects = $projQuery->get();
+
+        $tenantQuery = \App\Models\Tenant::with('firm')->where('status', 'active')->orderBy('name');
+        if (!$isAdmin && $firmId) {
+            $tenantQuery->where('firm_id', $firmId);
+        }
+        $tenants = $tenantQuery->get();
+
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.rentals.create', compact('properties', 'firms'));
+        return view('admin.rentals.create', compact('properties', 'projects', 'tenants', 'firms'));
     }
 
     public function store(RentalRequest $request)
     {
         $user = Auth::user();
-        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+        $firmId = $request->firm_id;
+        if (!$firmId && $request->has('firm_ids')) {
+            $firmIds = (array) $request->firm_ids;
+            $firmId = $firmIds[0] ?? null;
+        }
+        if (!$firmId) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+        }
 
         $rental = Rental::create([
             'firm_id'          => $firmId,
@@ -135,9 +154,23 @@ class RentalController extends Controller
         }
         $properties = $propQuery->get();
 
+        $projQuery = \App\Models\Project::with('propertyMaster')->orderBy('project_name');
+        if (!$isAdmin && ($rental->firm_id ?: $firmId)) {
+            $projQuery->where('firm_id', $rental->firm_id ?: $firmId);
+        }
+        $projects = $projQuery->get();
+
+        $selectedProjectId = $rental->property ? $rental->property->project_id : null;
+
+        $tenantQuery = \App\Models\Tenant::with('firm')->where('status', 'active')->orderBy('name');
+        if (!$isAdmin && ($rental->firm_id ?: $firmId)) {
+            $tenantQuery->where('firm_id', $rental->firm_id ?: $firmId);
+        }
+        $tenants = $tenantQuery->get();
+
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.rentals.edit', compact('rental', 'properties', 'firms'));
+        return view('admin.rentals.edit', compact('rental', 'properties', 'projects', 'tenants', 'firms', 'selectedProjectId'));
     }
 
     public function update(RentalRequest $request, Rental $rental)
@@ -150,8 +183,17 @@ class RentalController extends Controller
             abort(403);
         }
 
+        $newFirmId = $request->firm_id;
+        if (!$newFirmId && $request->has('firm_ids')) {
+            $firmIds = (array) $request->firm_ids;
+            $newFirmId = $firmIds[0] ?? null;
+        }
+        if (!$newFirmId) {
+            $newFirmId = $rental->firm_id;
+        }
+
         $rental->update([
-            'firm_id'          => $request->firm_id ?? $rental->firm_id,
+            'firm_id'          => $newFirmId,
             'property_id'      => $request->property_id,
             'tenant_name'      => $request->tenant_name,
             'tenant_mobile'    => $request->tenant_mobile,

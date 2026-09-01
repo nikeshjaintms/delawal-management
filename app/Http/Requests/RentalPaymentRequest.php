@@ -16,9 +16,21 @@ class RentalPaymentRequest extends FormRequest
     protected function prepareForValidation()
     {
         $inputs = $this->all();
-        if (empty($inputs['firm_id'])) {
-            $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
+
+        // Resolve firm_ids array from super admin form-select
+        if (isset($inputs['firm_ids']) && is_array($inputs['firm_ids']) && !empty($inputs['firm_ids'])) {
+            $inputs['firm_id'] = (int) $inputs['firm_ids'][0];
         }
+
+        if (empty($inputs['firm_id'])) {
+            $rental = $this->route('rental');
+            if ($rental && is_object($rental) && !empty($rental->firm_id)) {
+                $inputs['firm_id'] = (int) $rental->firm_id;
+            } else {
+                $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
+            }
+        }
+
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
                 $inputs[$key] = trim($value);
@@ -44,14 +56,16 @@ class RentalPaymentRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
-            'firm_id'        => 'required|exists:firms,id',
+            'firm_id'        => 'nullable|exists:firms,id',
+            'firm_ids'       => 'nullable|array',
+            'firm_ids.*'     => 'exists:firms,id',
             'property_id'    => 'required|exists:properties,id',
             'payment_month'  => 'required|string|max:255',
             'payment_year'   => 'required|integer|min:2020',
             'rent_amount'    => 'required|numeric|min:0',
             'paid_amount'    => 'required|numeric|min:0',
             'payment_date'   => 'required|date',
-            'payment_mode'   => 'required|string|max:255',
+            'payment_mode'   => 'nullable|string|max:255',
             'remarks'        => 'nullable|string|max:1000',
         ];
 

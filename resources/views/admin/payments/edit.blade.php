@@ -171,9 +171,24 @@ textarea.form-control { resize: vertical; min-height: 90px; }
             <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label" for="payment_mode">Payment Mode <span>*</span></label>
-                    <select name="payment_mode" id="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror">
+                    <select name="payment_mode" id="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror" required>
                         <option value="">-- Select Mode --</option>
-                        @foreach(\App\Models\PaymentMode::whereHas('firms', function($q) { $q->where('firms.id', Auth::user()->firm_id); })->where('status', 'active')->orderBy('name')->get() as $pm)
+                        @php
+                            $firmId = Auth::user()?->firm_id ?? session('firm_id');
+                            $pModes = \App\Models\PaymentMode::where('status', 'active')
+                                ->when($firmId, function($q) use ($firmId) {
+                                    $q->where(function($sub) use ($firmId) {
+                                        $sub->whereHas('firms', fn($f) => $f->where('firms.id', $firmId))
+                                            ->orWhereDoesntHave('firms');
+                                    });
+                                })
+                                ->orderBy('name')
+                                ->get();
+                            if ($pModes->isEmpty()) {
+                                $pModes = \App\Models\PaymentMode::where('status', 'active')->orderBy('name')->get();
+                            }
+                        @endphp
+                        @foreach($pModes as $pm)
                             <option value="{{ $pm->name }}" {{ old('payment_mode', $payment->payment_mode) == $pm->name ? 'selected' : '' }}>{{ $pm->name }}</option>
                         @endforeach
                     </select>

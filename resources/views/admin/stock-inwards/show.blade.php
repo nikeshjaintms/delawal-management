@@ -92,6 +92,7 @@
         <div class="info-box">
             <div class="info-title">Delivery &amp; Shipment Details</div>
             <div class="info-row"><span class="info-label">Reference PO:</span><span class="info-value">{{ isset($inwardGroup) && $inwardGroup->purchaseOrder ? $inwardGroup->purchaseOrder->po_number : 'Manual Entry' }}</span></div>
+            <div class="info-row"><span class="info-label">Contractor:</span><span class="info-value">{{ isset($inwardGroup) ? ($inwardGroup->contractor->contractor_name ?? ($inwardGroup->purchaseOrder->contractor->contractor_name ?? '—')) : ($stockInward->contractor->contractor_name ?? '—') }}</span></div>
             <div class="info-row"><span class="info-label">Vehicle Number:</span><span class="info-value">{{ isset($inwardGroup) ? ($inwardGroup->vehicle_no ?: '—') : ($stockInward->vehicle_no ?? '—') }}</span></div>
             <div class="info-row"><span class="info-label">Warehouse Name:</span><span class="info-value">{{ isset($inwardGroup) ? ($inwardGroup->warehouse ?: 'Main Warehouse') : ($stockInward->warehouse ?? 'Main Warehouse') }}</span></div>
         </div>

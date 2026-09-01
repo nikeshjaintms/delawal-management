@@ -134,8 +134,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 <div class="card-box">
     <div class="type-switcher">
-        <button type="button" class="type-btn active" id="btn-type-po">Receive Against Purchase Order</button>
-        <button type="button" class="type-btn" id="btn-type-manual">Manual Stock Inward</button>
+        <button type="button" class="type-btn active" id="btn-type-po" onclick="switchInwardType('po')">Receive Against Purchase Order</button>
+        <button type="button" class="type-btn" id="btn-type-manual" onclick="switchInwardType('manual')">Manual Stock Inward</button>
     </div>
 
     <!-- PO FORM -->
@@ -186,6 +186,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     <div class="form-group">
                         <label class="form-label">Warehouse Name / Location</label>
                         <input type="text" name="warehouse" class="form-control" placeholder="Enter warehouse name...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contractor <small style="font-weight:400;">(optional)</small></label>
+                        <select name="contractor_id" id="po_contractor_id" class="form-control">
+                            <option value="">-- Select Contractor --</option>
+                            @foreach($contractors as $c)
+                                <option value="{{ $c->id }}">{{ $c->contractor_name }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
             </div>
@@ -266,6 +275,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                         @foreach($projects as $p)<option value="{{ $p->id }}" {{ old('project_id', $selectedProjectId ?? '')==$p->id?'selected':'' }}>{{ $p->project_name }} ({{ $p->propertyMaster->property_name ?? 'Property' }})</option>@endforeach
                     </select>
                 </div>
+                <div class="form-group">
+                    <label class="form-label" for="contractor_id">Contractor <small style="font-weight:400;">(optional)</small></label>
+                    <select name="contractor_id" id="contractor_id" class="form-control @error('contractor_id') is-invalid @enderror">
+                        <option value="">-- Select Contractor --</option>
+                        @foreach($contractors as $c)<option value="{{ $c->id }}" data-project-id="{{ $c->project_id ?? '' }}" {{ old('contractor_id')==$c->id?'selected':'' }}>{{ $c->contractor_name }}</option>@endforeach
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -320,25 +336,95 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         document.getElementById('total_display').value = q&&r ? '₹'+(q*r).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    function switchInwardType(type) {
         const btnPo = document.getElementById('btn-type-po');
         const btnManual = document.getElementById('btn-type-manual');
         const formPo = document.getElementById('form-po-receive');
         const formManual = document.getElementById('form-manual-receive');
 
-        btnPo.addEventListener('click', function() {
+        if (!btnPo || !btnManual || !formPo || !formManual) return;
+
+        if (type === 'manual') {
+            btnManual.classList.add('active');
+            btnPo.classList.remove('active');
+            formPo.style.display = 'none';
+            formManual.style.display = 'block';
+            if (typeof syncManualContractors === 'function') {
+                syncManualContractors();
+            }
+        } else {
             btnPo.classList.add('active');
             btnManual.classList.remove('active');
             formPo.style.display = 'block';
             formManual.style.display = 'none';
+        }
+    }
+
+    function syncManualContractors() {
+        const manualProjSelect = document.getElementById('project_id');
+        const manualConSelect  = document.getElementById('contractor_id');
+        if (!manualProjSelect || !manualConSelect) return;
+        const pId = manualProjSelect.value;
+        let firstMatch = '';
+        let matchCount = 0;
+
+        Array.from(manualConSelect.options).forEach(opt => {
+            if (!opt.value) {
+                opt.hidden = false;
+                opt.disabled = false;
+                opt.style.display = '';
+                return;
+            }
+            const optPId = opt.getAttribute('data-project-id') || opt.dataset.projectId || '';
+            if (!pId || !optPId || optPId === pId) {
+                opt.hidden = false;
+                opt.disabled = false;
+                opt.style.display = '';
+                if (pId && optPId === pId) {
+                    matchCount++;
+                    if (!firstMatch) firstMatch = opt.value;
+                }
+            } else {
+                opt.hidden = true;
+                opt.disabled = true;
+                opt.style.display = 'none';
+            }
         });
 
-        btnManual.addEventListener('click', function() {
-            btnManual.classList.add('active');
-            btnPo.classList.remove('active');
-            formManual.style.display = 'block';
-            formPo.style.display = 'none';
-        });
+        const currentSelected = manualConSelect.selectedOptions ? manualConSelect.selectedOptions[0] : null;
+        if (currentSelected && (currentSelected.hidden || currentSelected.disabled || currentSelected.style.display === 'none')) {
+            manualConSelect.value = firstMatch || '';
+        } else if (pId && matchCount > 0 && !manualConSelect.value) {
+            manualConSelect.value = firstMatch;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnPo = document.getElementById('btn-type-po');
+        const btnManual = document.getElementById('btn-type-manual');
+
+        if (btnPo) {
+            btnPo.addEventListener('click', function() { switchInwardType('po'); });
+        }
+        if (btnManual) {
+            btnManual.addEventListener('click', function() { switchInwardType('manual'); });
+        }
+
+        // Project-to-Contractor cascading for Manual form
+        const manualProjSelect = document.getElementById('project_id');
+        const manualConSelect  = document.getElementById('contractor_id');
+
+        if (manualProjSelect && manualConSelect) {
+            manualProjSelect.addEventListener('change', syncManualContractors);
+            manualConSelect.addEventListener('change', function() {
+                const opt = this.selectedOptions ? this.selectedOptions[0] : null;
+                const optPId = opt ? (opt.getAttribute('data-project-id') || opt.dataset.projectId) : null;
+                if (optPId && (!manualProjSelect.value || manualProjSelect.value !== optPId)) {
+                    manualProjSelect.value = optPId;
+                }
+            });
+            syncManualContractors();
+        }
 
         // PO selection dynamic loader
         const poSelect = document.getElementById('purchase_order_id');
@@ -360,6 +446,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     poData = data;
                     document.getElementById('lbl-supplier-name').innerText = data.vendor_name;
                     document.getElementById('lbl-po-date').innerText = data.po_date;
+                    if (data.contractor_id && document.getElementById('po_contractor_id')) {
+                        document.getElementById('po_contractor_id').value = data.contractor_id;
+                    }
 
                     vendorInfoBlock.style.display = 'inline-block';
                     poFieldsContainer.style.display = 'block';

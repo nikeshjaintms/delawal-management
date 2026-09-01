@@ -229,6 +229,8 @@
         <div class="detail-item">
             <div class="detail-row"><span class="detail-label">PO Number</span><span class="detail-value">{{ $purchaseOrder->po_number }}</span></div>
             <div class="detail-row"><span class="detail-label">Firm</span><span class="detail-value">{{ $purchaseOrder->firm->firm_name ?? '-' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Project</span><span class="detail-value">{{ $purchaseOrder->project->project_name ?? '—' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Contractor</span><span class="detail-value" style="color: #60A5FA; font-weight: 700;">{{ $purchaseOrder->contractor->contractor_name ?? '—' }}</span></div>
             <div class="detail-row"><span class="detail-label">Status</span><span class="badge badge-{{ $purchaseOrder->status }}">{{ $purchaseOrder->status }}</span></div>
             <div class="detail-row"><span class="detail-label">Created By</span><span class="detail-value">{{ $purchaseOrder->creator->name ?? '-' }}</span></div>
         </div>
@@ -334,4 +336,11 @@
     </div>
     @endif
 </div>
+@if(!empty($printMode))
+<script>
+    window.addEventListener('load', function() {
+        window.print();
+    });
+</script>
+@endif
 @endsection

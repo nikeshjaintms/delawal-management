@@ -6,6 +6,7 @@ use App\Http\Requests\StockInwardRequest;
 use App\Models\StockInward;
 use App\Models\Material;
 use App\Models\Project;
+use App\Models\Contractor;
 use App\Models\Firm;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
@@ -21,21 +22,23 @@ class StockInwardController extends Controller
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
         if ($isAdmin) {
-            $materials = Material::where('status', 'active')->orderBy('material_name')->get();
-            $projects  = Project::with('propertyMaster')->orderBy('project_name')->get();
+            $materials   = Material::where('status', 'active')->orderBy('material_name')->get();
+            $projects    = Project::with('propertyMaster')->orderBy('project_name')->get();
+            $contractors = Contractor::where('status', 'active')->orderBy('contractor_name')->get();
         } else {
-            $firmId    = $user ? $user->firm_id : session('firm_id');
-            $materials = Material::where('firm_id', $firmId)->where('status', 'active')->orderBy('material_name')->get();
-            $projects  = Project::where('firm_id', $firmId)->with('propertyMaster')->orderBy('project_name')->get();
+            $firmId      = $user ? $user->firm_id : session('firm_id');
+            $materials   = Material::where('firm_id', $firmId)->where('status', 'active')->orderBy('material_name')->get();
+            $projects    = Project::where('firm_id', $firmId)->with('propertyMaster')->orderBy('project_name')->get();
+            $contractors = Contractor::where('firm_id', $firmId)->where('status', 'active')->orderBy('contractor_name')->get();
         }
-        return compact('materials', 'projects');
+        return compact('materials', 'projects', 'contractors');
     }
 
     public function index(Request $request)
     {
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
-        $query = StockInward::with(['material.materialCategory', 'project.propertyMaster', 'property', 'purchaseOrder']);
+        $query = StockInward::with(['material.materialCategory', 'project.propertyMaster', 'property', 'purchaseOrder', 'contractor']);
 
         if (!$isAdmin) {
             $firmId = $user ? $user->firm_id : session('firm_id');
@@ -49,12 +52,14 @@ class StockInwardController extends Controller
                   ->orWhere('bill_no', 'like', "%{$s}%")
                   ->orWhere('inward_number', 'like', "%{$s}%")
                   ->orWhereHas('material', fn($m) => $m->where('material_name', 'like', "%{$s}%"))
-                  ->orWhereHas('project', fn($p) => $p->where('project_name', 'like', "%{$s}%"));
+                  ->orWhereHas('project', fn($p) => $p->where('project_name', 'like', "%{$s}%"))
+                  ->orWhereHas('contractor', fn($c) => $c->where('contractor_name', 'like', "%{$s}%"));
             });
         }
-        if ($request->filter_material)  $query->where('material_id', $request->filter_material);
-        if ($request->filter_project)   $query->where('project_id', $request->filter_project);
-        if ($request->filter_date)      $query->where('inward_date', $request->filter_date);
+        if ($request->filter_material)   $query->where('material_id', $request->filter_material);
+        if ($request->filter_project)    $query->where('project_id', $request->filter_project);
+        if ($request->filter_contractor) $query->where('contractor_id', $request->filter_contractor);
+        if ($request->filter_date)       $query->where('inward_date', $request->filter_date);
 
         // Group by firm_id and inward_number / ID to show representative transactions
         $subQuery = StockInward::select(DB::raw('MIN(id) as id'))
@@ -63,16 +68,12 @@ class StockInwardController extends Controller
 
         $inwards = $query->orderBy('inward_date', 'desc')->paginate(15)->withQueryString();
 
-        if ($isAdmin) {
-            $materials = Material::where('status', 'active')->get();
-            $projects  = Project::with('propertyMaster')->orderBy('project_name')->get();
-        } else {
-            $firmId = $user ? $user->firm_id : session('firm_id');
-            $materials = Material::where('firm_id', $firmId)->where('status', 'active')->get();
-            $projects  = Project::where('firm_id', $firmId)->with('propertyMaster')->orderBy('project_name')->get();
-        }
+        $dropdowns = $this->dropdowns();
+        $materials   = $dropdowns['materials'];
+        $projects    = $dropdowns['projects'];
+        $contractors = $dropdowns['contractors'];
 
-        return view('admin.stock-inwards.index', compact('inwards', 'materials', 'projects'));
+        return view('admin.stock-inwards.index', compact('inwards', 'materials', 'projects', 'contractors'));
     }
 
     public function create(Request $request)
@@ -171,13 +172,15 @@ class StockInwardController extends Controller
         }
 
         return response()->json([
-            'firm_id'       => $purchaseOrder->firm_id,
-            'project_id'    => $purchaseOrder->project_id,
-            'vendor_id'     => $purchaseOrder->vendor_id,
-            'vendor_name'   => $purchaseOrder->vendor->name ?? '',
-            'po_date'       => $purchaseOrder->po_date->format('Y-m-d'),
-            'is_interstate' => $isInterstate,
-            'items'         => $pendingItems
+            'firm_id'         => $purchaseOrder->firm_id,
+            'project_id'      => $purchaseOrder->project_id,
+            'contractor_id'   => $purchaseOrder->contractor_id,
+            'contractor_name' => $purchaseOrder->contractor->contractor_name ?? '',
+            'vendor_id'       => $purchaseOrder->vendor_id,
+            'vendor_name'     => $purchaseOrder->vendor->name ?? '',
+            'po_date'         => $purchaseOrder->po_date->format('Y-m-d'),
+            'is_interstate'   => $isInterstate,
+            'items'           => $pendingItems
         ]);
     }
 
@@ -190,11 +193,11 @@ class StockInwardController extends Controller
         if (!$isAdmin && $stockInward->firm_id != $firmId) abort(403);
 
         if ($stockInward->inward_number) {
-            $inwards = StockInward::where('inward_number', $stockInward->inward_number)->with(['material.materialCategory', 'project.propertyMaster'])->get();
+            $inwards = StockInward::where('inward_number', $stockInward->inward_number)->with(['material.materialCategory', 'project.propertyMaster', 'contractor'])->get();
             $inwardGroup = $inwards->first();
             return view('admin.stock-inwards.show', compact('inwardGroup', 'inwards'))->with('printMode', true);
         } else {
-            $stockInward->load(['material.materialCategory', 'project.propertyMaster']);
+            $stockInward->load(['material.materialCategory', 'project.propertyMaster', 'contractor']);
             return view('admin.stock-inwards.show', compact('stockInward'))->with('printMode', true);
         }
     }
@@ -238,6 +241,7 @@ class StockInwardController extends Controller
                     $inward = StockInward::create([
                         'firm_id'           => $po->firm_id,
                         'project_id'        => $po->project_id ?? $request->project_id,
+                        'contractor_id'     => $request->contractor_id ?: ($po->contractor_id ?: null),
                         'inward_number'     => $inwardNumber,
                         'purchase_order_id' => $po->id,
                         'material_id'       => $itemData['material_id'],
@@ -325,6 +329,7 @@ class StockInwardController extends Controller
                 $inward = StockInward::create([
                     'firm_id'       => $firmId,
                     'project_id'    => $request->project_id ?: null,
+                    'contractor_id' => $request->contractor_id ?: null,
                     'inward_number' => $inwardNumber,
                     'material_id'   => $request->material_id,
                     'property_id'   => null,
@@ -374,11 +379,11 @@ class StockInwardController extends Controller
         if (!$isAdmin && $stockInward->firm_id != $firmId) abort(403);
 
         if ($stockInward->inward_number) {
-            $inwards = StockInward::where('inward_number', $stockInward->inward_number)->with(['material.materialCategory', 'project.propertyMaster', 'property'])->get();
+            $inwards = StockInward::where('inward_number', $stockInward->inward_number)->with(['material.materialCategory', 'project.propertyMaster', 'property', 'contractor'])->get();
             $inwardGroup = $inwards->first();
             return view('admin.stock-inwards.show', compact('inwardGroup', 'inwards'));
         } else {
-            $stockInward->load(['material.materialCategory', 'project.propertyMaster', 'property']);
+            $stockInward->load(['material.materialCategory', 'project.propertyMaster', 'property', 'contractor']);
             return view('admin.stock-inwards.show', compact('stockInward'));
         }
     }
@@ -424,6 +429,7 @@ class StockInwardController extends Controller
         $stockInward->update([
             'material_id'   => $request->material_id,
             'project_id'    => $request->project_id ?: null,
+            'contractor_id' => $request->contractor_id ?: null,
             'inward_date'   => $request->inward_date,
             'quantity'      => $newQty,
             'rate'          => $rate ?: null,

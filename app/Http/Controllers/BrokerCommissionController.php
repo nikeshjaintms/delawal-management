@@ -29,28 +29,66 @@ class BrokerCommissionController extends Controller
     private function dropdowns($selectedFirmId = null): array
     {
         $user   = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
         $firmId = $selectedFirmId ?? ($user ? $user->firm_id : session('firm_id'));
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        $brokerQuery   = Broker::where('status', 'active')->orderBy('name');
-        $propertyQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
-        $customerQuery = Customer::where('status', 'active')->orderBy('name');
-        $bookingQuery  = Booking::with(['property', 'customer'])->latest();
-
-        if ($firmId && (!$user || !$user->isAdmin())) {
-            $brokerQuery->where('firm_id', $firmId);
-            $propertyQuery->where('firm_id', $firmId);
-            $customerQuery->where('firm_id', $firmId);
-            $bookingQuery->where('firm_id', $firmId);
+        $brokerQuery = Broker::with(['project', 'firms'])->orderBy('name');
+        if ($firmId && !$isAdmin) {
+            $brokerQuery->where(function($q) use ($firmId) {
+                $q->where('firm_id', $firmId)
+                  ->orWhereHas('firms', function($fq) use ($firmId) {
+                      $fq->where('firms.id', $firmId);
+                  });
+            });
+        }
+        $brokers = $brokerQuery->get();
+        if ($brokers->isEmpty()) {
+            $brokers = Broker::with(['project', 'firms'])->orderBy('name')->get();
         }
 
+        $projectQuery = \App\Models\Project::with('propertyMaster')->orderBy('project_name');
+        if ($firmId && !$isAdmin) {
+            $projectQuery->where('firm_id', $firmId);
+        }
+        $projects = $projectQuery->get();
+        if ($projects->isEmpty()) {
+            $projects = \App\Models\Project::with('propertyMaster')->orderBy('project_name')->get();
+        }
+
+        $propertyMasterQuery = \App\Models\PropertyMaster::orderBy('property_name');
+        if ($firmId && !$isAdmin) {
+            $propertyMasterQuery->where('firm_id', $firmId);
+        }
+        $propertyMasters = $propertyMasterQuery->get();
+
+        $propertyQuery = Property::with(['propertyMaster', 'project.propertyMaster'])->orderBy('property_name');
+        if ($firmId && !$isAdmin) {
+            $propertyQuery->where('firm_id', $firmId);
+        }
+        $properties = $propertyQuery->get();
+
+        $customerQuery = Customer::orderBy('name');
+        if ($firmId && !$isAdmin) {
+            $customerQuery->where('firm_id', $firmId);
+        }
+        $customers = $customerQuery->get();
+
+        $bookingQuery = Booking::with(['property', 'customer'])->latest();
+        if ($firmId && !$isAdmin) {
+            $bookingQuery->where('firm_id', $firmId);
+        }
+        $bookings = $bookingQuery->get();
+
         return [
-            'firms'      => $firms,
-            'brokers'    => $brokerQuery->get(),
-            'properties' => $propertyQuery->get(),
-            'customers'  => $customerQuery->get(),
-            'bookings'   => $bookingQuery->get(),
+            'firms'           => $firms,
+            'brokers'         => $brokers,
+            'projects'        => $projects,
+            'propertyMasters' => $propertyMasters,
+            'properties'      => $properties,
+            'customers'       => $customers,
+            'bookings'        => $bookings,
         ];
     }
 
@@ -78,7 +116,7 @@ class BrokerCommissionController extends Controller
             ->sum('commission_amount');
 
         // Query with filters
-        $query = BrokerCommission::with(['firm', 'broker', 'property', 'customer', 'booking']);
+        $query = BrokerCommission::with(['firm', 'broker', 'property.propertyMaster', 'property.project.propertyMaster', 'customer', 'booking']);
 
         if (!$isAdmin) {
             $query->where('firm_id', $firmId);
@@ -92,7 +130,13 @@ class BrokerCommissionController extends Controller
                 $q->whereHas('broker', function ($bq) use ($search) {
                     $bq->where('name', 'like', '%' . $search . '%');
                 })->orWhereHas('property', function ($pq) use ($search) {
-                    $pq->where('property_name', 'like', '%' . $search . '%');
+                    $pq->where('property_name', 'like', '%' . $search . '%')
+                      ->orWhereHas('propertyMaster', function($pmq) use ($search) {
+                          $pmq->where('property_name', 'like', '%' . $search . '%');
+                      })
+                      ->orWhereHas('project.propertyMaster', function($pmq) use ($search) {
+                          $pmq->where('property_name', 'like', '%' . $search . '%');
+                      });
                 })->orWhereHas('customer', function ($cq) use ($search) {
                     $cq->where('name', 'like', '%' . $search . '%');
                 })->orWhereHas('firm', function ($fq) use ($search) {
@@ -106,7 +150,15 @@ class BrokerCommissionController extends Controller
         }
 
         if ($request->filled('filter_property')) {
-            $query->where('property_id', $request->filter_property);
+            $pmId = $request->filter_property;
+            $query->where(function($q) use ($pmId) {
+                $q->whereHas('property', function($pq) use ($pmId) {
+                    $pq->where('property_master_id', $pmId)
+                      ->orWhereHas('project', function($prjQ) use ($pmId) {
+                          $prjQ->where('property_id', $pmId);
+                      });
+                })->orWhere('property_id', $pmId);
+            });
         }
 
         if ($request->filled('filter_payment_status')) {
@@ -123,13 +175,14 @@ class BrokerCommissionController extends Controller
 
         $commissions = $query->latest()->paginate(10)->withQueryString();
 
-        $dropdownsData = $this->dropdowns($request->firm_id);
-        $firms      = $dropdownsData['firms'];
-        $brokers    = $dropdownsData['brokers'];
-        $properties = $dropdownsData['properties'];
+        $dropdownsData   = $this->dropdowns($request->firm_id);
+        $firms           = $dropdownsData['firms'];
+        $brokers         = $dropdownsData['brokers'];
+        $propertyMasters = $dropdownsData['propertyMasters'];
+        $properties      = $dropdownsData['properties'];
 
         return view('admin.broker-commissions.index', compact(
-            'commissions', 'firms', 'brokers', 'properties',
+            'commissions', 'firms', 'brokers', 'propertyMasters', 'properties',
             'totalCommission', 'paidCommission', 'pendingCommission', 'thisMonthCommission'
         ));
     }
@@ -142,9 +195,29 @@ class BrokerCommissionController extends Controller
     public function store(BrokerCommissionRequest $request)
     {
         $user = Auth::user();
-        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+        $firmId = null;
 
-        BrokerCommission::create([
+        if ($request->filled('firm_ids') && is_array($request->firm_ids)) {
+            $firmId = $request->firm_ids[0] ?? null;
+        } elseif ($request->filled('firm_id')) {
+            $firmId = $request->firm_id;
+        }
+
+        if (empty($firmId)) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+        }
+
+        if (empty($firmId) && $request->filled('property_id')) {
+            $prop = Property::find($request->property_id);
+            $firmId = $prop ? $prop->firm_id : null;
+        }
+
+        if (empty($firmId)) {
+            $defaultFirm = \App\Models\Firm::where('status', 'active')->first();
+            $firmId = $defaultFirm ? $defaultFirm->id : 1;
+        }
+
+        $commission = BrokerCommission::create([
             'firm_id'           => $firmId,
             'broker_id'         => $request->broker_id,
             'property_id'       => $request->property_id,
@@ -156,9 +229,13 @@ class BrokerCommissionController extends Controller
             'payment_status'    => $request->payment_status,
             'payment_date'      => $request->payment_date,
             'remarks'           => $request->remarks,
-            'status'            => $request->status,
+            'status'            => $request->status ?? 'active',
             'created_by'        => Auth::id(),
         ]);
+
+        if ($request->filled('firm_ids') && is_array($request->firm_ids)) {
+            $commission->syncFirms($request->firm_ids);
+        }
 
         return redirect()->route('broker-commissions.index')->with('success', 'Broker commission added successfully.');
     }
@@ -190,7 +267,22 @@ class BrokerCommissionController extends Controller
         $this->authorise($commission);
 
         $user = Auth::user();
-        $firmId = $request->firm_id ?? $commission->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+        $firmId = null;
+
+        if ($request->filled('firm_ids') && is_array($request->firm_ids)) {
+            $firmId = $request->firm_ids[0] ?? null;
+        } elseif ($request->filled('firm_id')) {
+            $firmId = $request->firm_id;
+        }
+
+        if (empty($firmId)) {
+            $firmId = $commission->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+        }
+
+        if (empty($firmId)) {
+            $defaultFirm = \App\Models\Firm::where('status', 'active')->first();
+            $firmId = $defaultFirm ? $defaultFirm->id : 1;
+        }
 
         $commission->update([
             'firm_id'           => $firmId,
@@ -204,8 +296,12 @@ class BrokerCommissionController extends Controller
             'payment_status'    => $request->payment_status,
             'payment_date'      => $request->payment_date,
             'remarks'           => $request->remarks,
-            'status'            => $request->status,
+            'status'            => $request->status ?? 'active',
         ]);
+
+        if ($request->filled('firm_ids') && is_array($request->firm_ids)) {
+            $commission->syncFirms($request->firm_ids);
+        }
 
         return redirect()->route('broker-commissions.index')->with('success', 'Broker commission updated successfully.');
     }

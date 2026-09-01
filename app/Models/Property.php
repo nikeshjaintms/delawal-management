@@ -10,6 +10,8 @@ class Property extends Model
 
     protected $fillable = [
         'firm_id',
+        'property_master_id',
+        'acquisition_batch_id',
         'project_id',
         'property_type_id',
         'property_code',
@@ -23,15 +25,33 @@ class Property extends Model
         'floor_no',
         'facing',
         'price',
+        'purchase_rate',
+        'purchase_date',
         'status',
         'description',
         'main_image',
         'document_file',
     ];
 
+    protected $casts = [
+        'price'         => 'decimal:2',
+        'purchase_rate' => 'decimal:2',
+        'purchase_date' => 'date',
+    ];
+
     public function firm()
     {
         return $this->belongsTo(Firm::class);
+    }
+
+    public function propertyMaster()
+    {
+        return $this->belongsTo(PropertyMaster::class, 'property_master_id');
+    }
+
+    public function acquisitionBatch()
+    {
+        return $this->belongsTo(AcquisitionBatch::class, 'acquisition_batch_id');
     }
 
     public function project()

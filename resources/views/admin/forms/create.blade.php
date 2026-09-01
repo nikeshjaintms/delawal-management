@@ -261,13 +261,13 @@
 
             row.innerHTML = `
                 <td style="padding: 8px 10px;">
-                    <input type="text" name="fields[${fieldIndex}][label]" class="form-control field-label-input" placeholder="e.g. Full Name" required style="padding: 8px 12px; font-size: 13px; width: 100%; box-sizing: border-box;">
+                    <input type="text" name="fields[${fieldIndex}][label]" class="form-control field-label-input" placeholder="e.g. Full Name" style="padding: 8px 12px; font-size: 13px; width: 100%; box-sizing: border-box;">
                 </td>
                 <td style="padding: 8px 10px;">
-                    <input type="text" name="fields[${fieldIndex}][field_name]" class="form-control field-name-input" placeholder="e.g. full_name" required style="padding: 8px 12px; font-size: 13px; width: 100%; box-sizing: border-box;">
+                    <input type="text" name="fields[${fieldIndex}][field_name]" class="form-control field-name-input" placeholder="e.g. full_name" style="padding: 8px 12px; font-size: 13px; width: 100%; box-sizing: border-box;">
                 </td>
                 <td style="padding: 8px 10px;">
-                    <select name="fields[${fieldIndex}][field_type]" class="form-control field-type-select" required style="padding: 8px 10px; font-size: 13px; width: 100%; box-sizing: border-box;">
+                    <select name="fields[${fieldIndex}][field_type]" class="form-control field-type-select" style="padding: 8px 10px; font-size: 13px; width: 100%; box-sizing: border-box;">
                         <option value="text">Text</option>
                         <option value="number">Number</option>
                         <option value="email">Email</option>
@@ -286,10 +286,10 @@
                     <input type="text" name="fields[${fieldIndex}][options]" class="form-control field-options-input" placeholder="Option A, Option B" disabled style="padding: 8px 12px; font-size: 13px; width: 100%; box-sizing: border-box;">
                 </td>
                 <td style="padding: 8px 8px;">
-                    <input type="number" name="fields[${fieldIndex}][sort_order]" value="${fieldIndex * 10}" class="form-control" required style="padding: 8px 10px; font-size: 13px; width: 100%; min-width: 60px; box-sizing: border-box;">
+                    <input type="number" name="fields[${fieldIndex}][sort_order]" value="${fieldIndex * 10}" class="form-control" style="padding: 8px 10px; font-size: 13px; width: 100%; min-width: 60px; box-sizing: border-box;">
                 </td>
                 <td style="padding: 8px 8px;">
-                    <select name="fields[${fieldIndex}][status]" class="form-control" required style="padding: 8px 10px; font-size: 13px; width: 100%; min-width: 90px; box-sizing: border-box;">
+                    <select name="fields[${fieldIndex}][status]" class="form-control" style="padding: 8px 10px; font-size: 13px; width: 100%; min-width: 90px; box-sizing: border-box;">
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                     </select>
@@ -310,7 +310,6 @@
 
             // Auto-fill field_name from label input
             labelInput.addEventListener('input', function() {
-                // Only change if not manually edited yet
                 nameInput.value = labelInput.value
                     .toLowerCase()
                     .replace(/[^a-z0-9_]+/g, '_')
@@ -322,11 +321,9 @@
                 const val = typeSelect.value;
                 if (val === 'select' || val === 'radio' || val === 'checkbox') {
                     optionsInput.removeAttribute('disabled');
-                    optionsInput.setAttribute('required', 'required');
                     optionsInput.placeholder = 'e.g. Yes, No, Maybe';
                 } else {
                     optionsInput.setAttribute('disabled', 'disabled');
-                    optionsInput.removeAttribute('required');
                     optionsInput.placeholder = '';
                     optionsInput.value = '';
                 }
@@ -341,8 +338,19 @@
 
         document.getElementById('add-field-btn').addEventListener('click', addFieldRow);
 
-        // Add one initial field row on load
-        addFieldRow();
+        // Pre-submit: remove blank/incomplete rows so validation never fails
+        document.getElementById('form-builder-form').addEventListener('submit', function(e) {
+            const rows = document.querySelectorAll('#fields-container tr');
+            rows.forEach(function(row) {
+                const labelInput = row.querySelector('.field-label-input');
+                if (!labelInput || !labelInput.value.trim()) {
+                    // Disable all inputs in this row so they don't get submitted
+                    row.querySelectorAll('input, select, textarea').forEach(function(el) {
+                        el.disabled = true;
+                    });
+                }
+            });
+        });
     });
 </script>
 @endsection

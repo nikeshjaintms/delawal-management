@@ -9,7 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
     /* ================================================================
        DESIGN TOKENS
@@ -612,31 +614,37 @@
     }
 
     /* Hover Colors for each distinct quick action */
-    .dqa-blue:hover, a.dqa-blue:hover, .dqa-btn:nth-child(1):hover {
+    .dqa-blue:hover, a.dqa-blue:hover {
         background: #2563EB !important;
         border-color: #3B82F6 !important;
         color: #FFFFFF !important;
         box-shadow: 0 6px 22px rgba(37, 99, 235, 0.5) !important;
     }
-    .dqa-green:hover, a.dqa-green:hover, .dqa-btn:nth-child(2):hover {
+    .dqa-green:hover, a.dqa-green:hover {
         background: #10B981 !important;
         border-color: #34D399 !important;
         color: #FFFFFF !important;
         box-shadow: 0 6px 22px rgba(16, 185, 129, 0.5) !important;
     }
-    .dqa-purple:hover, a.dqa-purple:hover, .dqa-btn:nth-child(3):hover {
+    .dqa-purple:hover, a.dqa-purple:hover {
         background: #8B5CF6 !important;
         border-color: #A78BFA !important;
         color: #FFFFFF !important;
         box-shadow: 0 6px 22px rgba(139, 92, 246, 0.5) !important;
     }
-    .dqa-amber:hover, a.dqa-amber:hover, .dqa-btn:nth-child(4):hover {
+    .dqa-red:hover, a.dqa-red:hover {
+        background: #EF4444 !important;
+        border-color: #F87171 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 6px 22px rgba(239, 68, 68, 0.5) !important;
+    }
+    .dqa-amber:hover, a.dqa-amber:hover {
         background: #D97706 !important;
         border-color: #FBBF24 !important;
         color: #FFFFFF !important;
         box-shadow: 0 6px 22px rgba(217, 119, 6, 0.5) !important;
     }
-    .dqa-teal:hover, a.dqa-teal:hover, .dqa-btn:nth-child(5):hover {
+    .dqa-teal:hover, a.dqa-teal:hover {
         background: #0D9488 !important;
         border-color: #2DD4BF !important;
         color: #FFFFFF !important;
@@ -1821,6 +1829,39 @@
         box-shadow: 0 6px 20px rgba(220, 38, 38, 0.50) !important;
     }
 
+    .topbar-quick-expense {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 7px !important;
+        padding: 8px 16px !important;
+        background: rgba(239, 68, 68, 0.16) !important;
+        color: #FCA5A5 !important;
+        border: 1px solid rgba(239, 68, 68, 0.35) !important;
+        border-radius: 10px !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        text-decoration: none !important;
+        transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        white-space: nowrap !important;
+        cursor: pointer !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.20) !important;
+    }
+    .topbar-quick-expense:hover {
+        background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+        border-color: #EF4444 !important;
+        color: #FFFFFF !important;
+        transform: translateY(-2px) scale(1.02) !important;
+        box-shadow: 0 6px 22px rgba(239, 68, 68, 0.50) !important;
+    }
+    .topbar-quick-expense i {
+        font-size: 11px !important;
+        color: inherit !important;
+    }
+    @media (max-width: 576px) {
+        .topbar-quick-expense span { display: none !important; }
+        .topbar-quick-expense { padding: 8px 11px !important; }
+    }
+
     /* Dark Glass Tables */
     .table-container, .table-wrap, .table-responsive, div:has(> table) {
         background: rgba(16, 22, 34, 0.70) !important;
@@ -2217,7 +2258,7 @@
         {{-- 2. Project Management --}}
         @if($authUser->hasPermission('project_view'))
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="2. Project Management">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'projects.') || str_starts_with($currentRoute ?? '', 'contractors.') || str_starts_with($currentRoute ?? '', 'expenses.') || str_starts_with($currentRoute ?? '', 'vendors.') || str_starts_with($currentRoute ?? '', 'materials.') || str_starts_with($currentRoute ?? '', 'purchase-orders.') || str_starts_with($currentRoute ?? '', 'stock-inwards.') || str_starts_with($currentRoute ?? '', 'stock-outwards.') || str_starts_with($currentRoute ?? '', 'stock-report.')) ? 'parent-active' : '' }}" data-label="2. Project Management">
                 <i class="fa-solid fa-city"></i><span>2. Project Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
@@ -2227,6 +2268,18 @@
                         <i class="fa-solid fa-city"></i><span>Projects</span>
                     </a>
                 </li>
+                <li class="submenu-item">
+                    <a href="{{ route('contractors.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'contractors.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-helmet-safety"></i><span>Contractors</span>
+                    </a>
+                </li>
+                @if($authUser->hasPermission('expense_view'))
+                <li class="submenu-item">
+                    <a href="{{ route('expenses.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'expenses.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-receipt"></i><span>Project Expenses</span>
+                    </a>
+                </li>
+                @endif
 
                 @if($authUser->hasPermission('inventory_view'))
                 <li class="submenu-item">
@@ -2235,11 +2288,13 @@
                         <i class="fa-solid fa-chevron-right submenu-arrow"></i>
                     </a>
                     <ul class="submenu-list nested-submenu-list" style="display: none; padding-left: 15px;">
+                        @if($authUser->hasPermission('vendor_view'))
                         <li class="submenu-item">
-                            <a href="{{ route('material-categories.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'material-categories.') ? 'active' : '' }}">
-                                <i class="fa-solid fa-folder-tree"></i><span>Material Category</span>
+                            <a href="{{ route('vendors.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'vendors.') ? 'active' : '' }}">
+                                <i class="fa-solid fa-truck-field"></i><span>Vendor Master</span>
                             </a>
                         </li>
+                        @endif
                         <li class="submenu-item">
                             <a href="{{ route('materials.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'materials.') ? 'active' : '' }}">
                                 <i class="fa-solid fa-box"></i><span>Material Master</span>
@@ -2276,7 +2331,7 @@
 
         {{-- 3. Customer Process --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="3. Customer Process">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'brokers.') || str_starts_with($currentRoute ?? '', 'broker-commissions.') || str_starts_with($currentRoute ?? '', 'customers.') || str_starts_with($currentRoute ?? '', 'forms.') || str_starts_with($currentRoute ?? '', 'form-submissions.') || str_starts_with($currentRoute ?? '', 'bookings.')) ? 'parent-active' : '' }}" data-label="3. Customer Process">
                 <i class="fa-solid fa-people-group"></i><span>3. Customer Process</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
@@ -2285,6 +2340,22 @@
                 <li class="submenu-item">
                     <a href="{{ route('customers.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'customers.') ? 'active' : '' }}">
                         <i class="fa-solid fa-user-plus"></i><span>Customer Registration</span>
+                    </a>
+                </li>
+                @endif
+
+                @if($authUser->hasPermission('broker_view'))
+                <li class="submenu-item">
+                    <a href="{{ route('brokers.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'brokers.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-user-tie"></i><span>Broker Master</span>
+                    </a>
+                </li>
+                @endif
+
+                @if($authUser->hasPermission('broker_commission_view'))
+                <li class="submenu-item">
+                    <a href="{{ route('broker-commissions.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'broker-commissions.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-percent"></i><span>Broker Commission</span>
                     </a>
                 </li>
                 @endif
@@ -2309,7 +2380,7 @@
 
         {{-- 4. Sales Management --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="4. Sales Management">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'property-sales.') || str_starts_with($currentRoute ?? '', 'credit-notes.') || str_starts_with($currentRoute ?? '', 'debit-notes.') || str_starts_with($currentRoute ?? '', 'payments.')) ? 'parent-active' : '' }}" data-label="4. Sales Management">
                 <i class="fa-solid fa-chart-line"></i><span>4. Sales Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
@@ -2322,6 +2393,7 @@
                 </li>
                 @endif
 
+                {{-- Temporarily Hidden: Credit Note & Debit Note
                 @if($authUser->hasPermission('credit_note_view'))
                 <li class="submenu-item">
                     <a href="{{ route('credit-notes.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'credit-notes.') ? 'active' : '' }}">
@@ -2336,6 +2408,7 @@
                     </a>
                 </li>
                 @endif
+                --}}
                 @if($authUser->hasPermission('payment_view'))
                 <li class="submenu-item">
                     <a href="{{ route('payments.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'payments.') ? 'active' : '' }}">
@@ -2438,20 +2511,11 @@
             </ul>
         </li>
 
-        {{-- 7. Broker Commission ── --}}
-        @if($authUser->hasPermission('broker_commission_view'))
-        <li class="menu-item">
-            <a href="{{ route('broker-commissions.index') }}" class="menu-link {{ str_starts_with($currentRoute ?? '', 'broker-commissions.') ? 'active' : '' }}" data-label="7. Broker Commission">
-                <i class="fa-solid fa-percent"></i><span>7. Broker Commission</span>
-            </a>
-        </li>
-        @endif
-
-        {{-- 8. Reports --}}
+        {{-- 7. Reports --}}
         @if($authUser->hasPermission('reports_view'))
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="8. Reports">
-                <i class="fa-solid fa-chart-column"></i><span>8. Reports</span>
+            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="7. Reports">
+                <i class="fa-solid fa-chart-column"></i><span>7. Reports</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">
@@ -2599,6 +2663,12 @@
             <h1 class="page-header-title">@yield('page-title')</h1>
         </div>
         <div class="topbar-right">
+            @if($authUser && $authUser->hasPermission('expense_create'))
+            <a href="{{ route('expenses.create') }}" class="topbar-quick-expense" title="Quick Add Expense">
+                <i class="fa-solid fa-plus"></i><span>Expense</span>
+            </a>
+            @endif
+
             <div class="user-panel">
                 @php
                     if (session('login_type') === 'firm') {
@@ -2771,18 +2841,19 @@ document.querySelectorAll('.nested-submenu-toggle').forEach(toggle => {
 
 // ── Auto Expand Submenu on Active Route ──
 document.querySelectorAll('.submenu-link.active').forEach(activeLink => {
-    // Traverse up to find parent submenu-list
-    const submenuList = activeLink.closest('.submenu-list');
-    if (submenuList) {
-        submenuList.style.display = 'block';
-        const parentMenu = submenuList.closest('.menu-item');
-        if (parentMenu) {
-            parentMenu.classList.add('open');
-            const parentToggle = parentMenu.querySelector('.submenu-toggle');
-            if (parentToggle) {
-                parentToggle.classList.add('parent-active');
+    let current = activeLink.parentElement;
+    while (current && !current.classList.contains('sidebar-menu')) {
+        if (current.classList.contains('submenu-list') || current.classList.contains('nested-submenu-list')) {
+            current.style.display = 'block';
+        }
+        if (current.classList.contains('menu-item') || current.classList.contains('submenu-item')) {
+            current.classList.add('open');
+            const toggle = current.querySelector(':scope > .submenu-toggle, :scope > .nested-submenu-toggle');
+            if (toggle) {
+                toggle.classList.add('parent-active');
             }
         }
+        current = current.parentElement;
     }
 });
 
@@ -3155,6 +3226,156 @@ html body .btn-export-print:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55) !important;
 }
+
+/* ── Luxury Dark Glass SweetAlert2 System ── */
+div.swal2-container {
+    backdrop-filter: blur(14px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
+    background: rgba(3, 7, 18, 0.72) !important;
+    z-index: 99999 !important;
+}
+
+div.swal2-popup {
+    background: rgba(18, 25, 38, 0.96) !important;
+    backdrop-filter: blur(24px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.16) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+    padding: 30px 26px !important;
+    color: #FFFFFF !important;
+    font-family: 'Inter', 'Poppins', 'Manrope', sans-serif !important;
+}
+
+div.swal2-title {
+    color: #FFFFFF !important;
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.3px !important;
+    margin-top: 10px !important;
+    margin-bottom: 8px !important;
+}
+
+div.swal2-html-container {
+    color: #CBD5E1 !important;
+    font-size: 14.5px !important;
+    line-height: 1.6 !important;
+    margin-top: 8px !important;
+}
+
+div.swal2-html-container strong {
+    color: #60A5FA !important;
+    font-weight: 700 !important;
+}
+
+/* SweetAlert Icons in Dark Theme */
+.swal2-icon.swal2-warning {
+    border-color: #F59E0B !important;
+    color: #F59E0B !important;
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.25) !important;
+}
+
+.swal2-icon.swal2-success {
+    border-color: #10B981 !important;
+    color: #10B981 !important;
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.30) !important;
+}
+.swal2-icon.swal2-success [class^='swal2-success-line'] {
+    background-color: #10B981 !important;
+}
+.swal2-icon.swal2-success .swal2-success-ring {
+    border-color: rgba(16, 185, 129, 0.40) !important;
+}
+
+.swal2-icon.swal2-error {
+    border-color: #EF4444 !important;
+    color: #EF4444 !important;
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.30) !important;
+}
+
+.swal2-icon.swal2-info {
+    border-color: #3B82F6 !important;
+    color: #3B82F6 !important;
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.30) !important;
+}
+
+/* SweetAlert Action Buttons */
+.swal2-actions {
+    margin-top: 24px !important;
+    gap: 12px !important;
+}
+
+button.swal2-confirm {
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    padding: 11px 24px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+    transition: all .2s ease !important;
+}
+button.swal2-confirm:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.50) !important;
+}
+
+button.swal2-cancel {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    padding: 11px 22px !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    transition: all .2s ease !important;
+}
+button.swal2-cancel:hover {
+    background: rgba(255, 255, 255, 0.20) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px) !important;
+}
+
+.swal2-timer-progress-bar {
+    background: linear-gradient(90deg, #3B82F6, #10B981) !important;
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: "{{ session('success') }}",
+            background: 'rgba(18, 25, 38, 0.96)',
+            color: '#FFFFFF',
+            confirmButtonColor: '#2563EB',
+            confirmButtonText: '<i class="fa-solid fa-check"></i> Great',
+            timer: 2800,
+            timerProgressBar: true,
+            showClass: {
+                popup: 'animate__animated animate__zoomIn animate__faster'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__zoomOut animate__faster'
+            }
+        });
+    @endif
+
+    @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Notice',
+            text: "{{ session('error') }}",
+            background: 'rgba(18, 25, 38, 0.96)',
+            color: '#FFFFFF',
+            confirmButtonColor: '#EF4444',
+            confirmButtonText: 'OK',
+            showClass: {
+                popup: 'animate__animated animate__shakeX animate__faster'
+            }
+        });
+    @endif
+});
+</script>
 </body>
 </html>

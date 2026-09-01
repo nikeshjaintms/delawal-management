@@ -97,22 +97,21 @@
 
     .detail-item {
         padding: 16px;
-        background: #F9FAFB;
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.10) !important;
+        border-radius: 12px;
         transition: var(--transition);
     }
 
     .detail-item:hover {
-        border-color: rgba(212, 175, 55, 0.2);
-        box-shadow: 0 4px 12px rgba(15, 31, 53, 0.04);
-        background: #FFFFFF;
+        border-color: rgba(59, 130, 246, 0.4) !important;
+        background: rgba(255, 255, 255, 0.07) !important;
     }
 
     .detail-label {
         font-size: 11px;
         font-weight: 700;
-        color: #9CA3AF;
+        color: #94A3B8 !important;
         text-transform: uppercase;
         letter-spacing: 0.8px;
         margin-bottom: 8px;
@@ -122,19 +121,19 @@
     }
 
     .detail-label i {
-        color: var(--gold);
+        color: #60A5FA;
         font-size: 12px;
     }
 
     .detail-value {
         font-size: 15px;
-        font-weight: 600;
-        color: var(--text-primary);
+        font-weight: 700;
+        color: #FFFFFF !important;
         word-break: break-word;
     }
 
     .detail-value.empty {
-        color: #9CA3AF;
+        color: #94A3B8;
         font-weight: 400;
         font-style: italic;
     }

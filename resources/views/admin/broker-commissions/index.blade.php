@@ -239,9 +239,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
             <span class="filter-label">Property</span>
             <select name="filter_property" class="filter-control @error('filter_property') is-invalid @enderror">
                 <option value="">All Properties</option>
-                @foreach($properties as $p)
-                    <option value="{{ $p->id }}" {{ request('filter_property') == $p->id ? 'selected' : '' }}>{{ $p->property_name }}</option>
-                @endforeach
+                @if(isset($propertyMasters))
+                    @foreach($propertyMasters as $pm)
+                        <option value="{{ $pm->id }}" {{ request('filter_property') == $pm->id ? 'selected' : '' }}>{{ $pm->property_name }} ({{ $pm->property_code }})</option>
+                    @endforeach
+                @elseif(isset($properties))
+                    @foreach($properties as $p)
+                        <option value="{{ $p->id }}" {{ request('filter_property') == $p->id ? 'selected' : '' }}>{{ $p->property_name }}</option>
+                    @endforeach
+                @endif
             </select>
         </div>
 
@@ -265,17 +271,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
             <input type="date" name="to_date" value="{{ request('to_date') }}" class="filter-control @error('to_date') is-invalid @enderror">
         </div>
 
-        <button type="submit" class="btn-search">Filter</button>
-        @if(request()->hasAny(['search', 'filter_broker', 'filter_property', 'filter_payment_status', 'from_date', 'to_date', 'firm_id']))
-            <a href="{{ route('broker-commissions.index') }}" class="btn-reset">Reset</a>
-        @endif
+        <div class="filter-actions" style="display: flex; gap: 8px;">
+            <button type="submit" class="btn-search">Filter</button>
+            @if(request()->hasAny(['search', 'filter_broker', 'filter_property', 'filter_payment_status', 'from_date', 'to_date', 'firm_id']))
+                <a href="{{ route('broker-commissions.index') }}" class="btn-reset">Reset</a>
+            @endif
+        </div>
     </form>
 
     <div class="table-container">
         <table class="premium-table">
             <thead>
                 <tr>
-                    <th>No</th>
+                    <th style="width: 50px;">#</th>
                     <th>Firm</th>
                     <th>Broker</th>
                     <th>Property</th>
@@ -294,7 +302,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                         <td>{{ method_exists($commissions, 'firstItem') ? ($commissions->firstItem() + $key) : ($key + 1) }}</td>
                         <td><strong style="color: #FFFFFF !important;">{{ $c->firm_names }}</strong></td>
                         <td><strong>{{ $c->broker->name ?? '-' }}</strong></td>
-                        <td>{{ $c->property->property_name ?? '-' }}</td>
+                        <td>
+                            <strong style="color: #FFFFFF;">
+                                {{ $c->property->propertyMaster->property_name ?? ($c->property->project->propertyMaster->property_name ?? ($c->property->project->project_name ?? ($c->property->property_name ?? '-'))) }}
+                            </strong>
+                            @if($c->property && $c->property->property_code)
+                                <div style="font-size: 11.5px; color: #94A3B8; margin-top: 2px;">
+                                    {{ $c->property->property_name }} ({{ $c->property->property_code }})
+                                </div>
+                            @endif
+                        </td>
                         <td>{{ $c->customer->name ?? '-' }}</td>
                         <td>
                             <span class="commission-chip">

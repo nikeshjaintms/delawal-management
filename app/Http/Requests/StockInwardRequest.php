@@ -14,6 +14,11 @@ class StockInwardRequest extends FormRequest
     protected function prepareForValidation()
     {
         $inputs = $this->all();
+
+        if (isset($inputs['firm_ids']) && is_array($inputs['firm_ids']) && !empty($inputs['firm_ids'])) {
+            $inputs['firm_id'] = (int) $inputs['firm_ids'][0];
+        }
+
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
                 $inputs[$key] = trim($value);
@@ -29,6 +34,7 @@ class StockInwardRequest extends FormRequest
 
         $rules = [
             'inward_date'   => 'required|date',
+            'contractor_id' => 'nullable|exists:contractors,id',
             'supplier_name' => 'nullable|string|max:255',
             'bill_no'       => 'nullable|string|max:255',
             'remarks'       => 'nullable|string|max:1000',

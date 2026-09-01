@@ -16,9 +16,16 @@ class FormRequest extends BaseFormRequest
     protected function prepareForValidation()
     {
         $inputs = $this->all();
+
+        // firm-select component submits firm_ids[] — extract first as firm_id
         if (empty($inputs['firm_id'])) {
-            $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
+            if (!empty($inputs['firm_ids']) && is_array($inputs['firm_ids'])) {
+                $inputs['firm_id'] = $inputs['firm_ids'][0];
+            } else {
+                $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
+            }
         }
+
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
                 $inputs[$key] = trim($value);
@@ -49,14 +56,14 @@ class FormRequest extends BaseFormRequest
             'form_type' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'status' => 'required|in:active,inactive',
-            'fields' => 'required|array|min:1',
-            'fields.*.label' => 'required|string|max:255',
-            'fields.*.field_name' => 'required|string|max:255',
-            'fields.*.field_type' => 'required|in:text,number,email,date,textarea,select,radio,checkbox,file',
+            'fields' => 'nullable|array',
+            'fields.*.label' => 'required_with:fields|string|max:255',
+            'fields.*.field_name' => 'required_with:fields|string|max:255',
+            'fields.*.field_type' => 'required_with:fields|in:text,number,email,date,textarea,select,radio,checkbox,file',
             'fields.*.is_required' => 'nullable',
             'fields.*.options' => 'nullable|string|max:1000',
-            'fields.*.sort_order' => 'required|integer',
-            'fields.*.status' => 'required|in:active,inactive',
+            'fields.*.sort_order' => 'nullable|integer',
+            'fields.*.status' => 'required_with:fields|in:active,inactive',
         ];
 
         // Replace placeholders in unique rules dynamically

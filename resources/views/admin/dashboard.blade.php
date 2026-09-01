@@ -59,6 +59,7 @@
     .dqa-blue:hover   { background: #2563EB !important; border-color: #3B82F6 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(37, 99, 235, 0.5) !important; }
     .dqa-green:hover  { background: #10B981 !important; border-color: #34D399 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(16, 185, 129, 0.5) !important; }
     .dqa-purple:hover { background: #8B5CF6 !important; border-color: #A78BFA !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(139, 92, 246, 0.5) !important; }
+    .dqa-red:hover    { background: #EF4444 !important; border-color: #F87171 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(239, 68, 68, 0.5) !important; }
     .dqa-amber:hover  { background: #D97706 !important; border-color: #FBBF24 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(217, 119, 6, 0.5) !important; }
     .dqa-teal:hover   { background: #0D9488 !important; border-color: #2DD4BF !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(13, 148, 136, 0.5) !important; }
 
@@ -301,6 +302,7 @@
                 <a href="{{ route('firm-master.create') }}" class="dqa-btn dqa-blue"><i class="fa-solid fa-plus"></i> Add New Firm</a>
                 <a href="{{ route('financial-years.create') }}" class="dqa-btn dqa-green"><i class="fa-solid fa-calendar-plus"></i> Add FY</a>
                 <a href="{{ route('users.create') }}" class="dqa-btn dqa-purple"><i class="fa-solid fa-user-plus"></i> Add User</a>
+                <a href="{{ route('expenses.create') }}" class="dqa-btn dqa-red"><i class="fa-solid fa-receipt"></i> Add Expense</a>
                 <a href="{{ route('properties.create') }}" class="dqa-btn dqa-amber"><i class="fa-solid fa-building"></i> Add Property</a>
                 <a href="{{ route('customers.create') }}" class="dqa-btn dqa-teal"><i class="fa-solid fa-users"></i> Add Customer</a>
             </div>

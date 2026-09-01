@@ -90,47 +90,56 @@ input[type=number] { -moz-appearance: textfield !important; }
 
         @include('admin.components.firm-select', ['model' => $commission])
 
+        <!-- Top Row: Project First & Broker -->
         <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="project_select">Project <span>*</span></label>
+                <select id="project_select" class="form-control" onchange="filterPropertiesByProject(this.value)">
+                    <option value="">-- Select Project / All Projects --</option>
+                    @if(isset($projects))
+                        @foreach($projects as $proj)
+                            <option value="{{ $proj->id }}" {{ (isset($commission->property) && $commission->property->project_id == $proj->id) ? 'selected' : '' }}>
+                                {{ $proj->project_name }} {{ $proj->propertyMaster ? '('.$proj->propertyMaster->property_name.')' : '' }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+                <div class="form-hint">Selecting a project filters properties/plots below.</div>
+            </div>
+
             <div class="form-group">
                 <label class="form-label" for="broker_id">Broker <span>*</span></label>
                 <select name="broker_id" id="broker_id" class="form-control @error('broker_id') is-invalid @enderror">
                     <option value="">Select Broker</option>
                     @foreach($brokers as $b)
-                        <option value="{{ $b->id }}" {{ old('broker_id', $commission->broker_id) == $b->id ? 'selected' : '' }} data-commission="{{ $b->commission_percentage }}">{{ $b->name }} ({{ $b->mobile }})</option>
-                    @endforeach
-                </select>
-                @error('broker_id') <div class="text-error">{{ $message }}</div> @enderror
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="property_id">Property <span>*</span></label>
-                <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
-                    <option value="">Select Property</option>
-                    @foreach($properties as $p)
-                        <option value="{{ $p->id }}" data-project="{{ $p->project->project_name ?? ($p->project->propertyMaster->property_name ?? 'No Project Assigned') }}" {{ old('property_id', $commission->property_id) == $p->id ? 'selected' : '' }}>{{ $p->property_name }} (₹{{ number_format($p->price, 0) }})</option>
-                    @endforeach
-                </select>
-                @error('property_id') <div class="text-error">{{ $message }}</div> @enderror
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label" for="project_display">Project</label>
-            <input type="text" id="project_display" class="form-control" readonly placeholder="Auto-determined" style="background:rgba(255,255,255,0.06) !important; cursor:not-allowed;">
-        </div>
-
-        <div class="form-row">
-            <div class="form-group">
-                <label class="form-label" for="booking_id">Booking (Optional)</label>
-                <select name="booking_id" id="booking_id" class="form-control @error('booking_id') is-invalid @enderror">
-                    <option value="">Select Booking</option>
-                    @foreach($bookings as $bk)
-                        <option value="{{ $bk->id }}" {{ old('booking_id', $commission->booking_id) == $bk->id ? 'selected' : '' }} data-property="{{ $bk->property_id }}" data-customer="{{ $bk->customer_id }}">
-                            Booking #{{ $bk->id }} - {{ $bk->property->property_name ?? '-' }} ({{ $bk->customer->name ?? '-' }})
+                        <option value="{{ $b->id }}" {{ old('broker_id', $commission->broker_id) == $b->id ? 'selected' : '' }} data-commission="{{ $b->commission_percentage }}" data-project-id="{{ $b->project_id }}">
+                            {{ $b->name }} ({{ $b->mobile }}) — {{ $b->commission_percentage ? $b->commission_percentage.'%' : '0%' }} Commission
                         </option>
                     @endforeach
                 </select>
-                @error('booking_id') <div class="text-error">{{ $message }}</div> @enderror
+                <div id="brokerCommissionInfoBox" style="display: none; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; font-weight: 700; color: #60A5FA; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.30); padding: 5px 12px; border-radius: 8px;">
+                    <i class="fa-solid fa-percent"></i> Master Commission: <span id="brokerCommissionInfoVal" style="color: #FBBF24;">0%</span>
+                </div>
+                @error('broker_id') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+        </div>
+
+        <!-- Next Row: Property / Plot & Customer -->
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="property_id">Property / Plot <span>*</span></label>
+                <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
+                    <option value="">Select Property / Plot</option>
+                    @foreach($properties as $p)
+                        @php
+                            $propMasterTitle = $p->propertyMaster->property_name ?? ($p->project->propertyMaster->property_name ?? ($p->project->project_name ?? 'Property'));
+                        @endphp
+                        <option value="{{ $p->id }}" data-project-id="{{ $p->project_id }}" data-project="{{ $propMasterTitle }}" data-price="{{ $p->price }}" {{ old('property_id', $commission->property_id) == $p->id ? 'selected' : '' }}>
+                            {{ $propMasterTitle }} — {{ $p->property_name }} - ₹{{ number_format($p->price, 0) }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('property_id') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
             <div class="form-group">
@@ -274,16 +283,36 @@ input[type=number] { -moz-appearance: textfield !important; }
         calculateCommission();
     });
 
-    brokerSelect.addEventListener('change', function() {
-        const option = this.options[this.selectedIndex];
-        if (option && option.value && typeSelect.value === 'percentage') {
+    // Auto-fill broker default commission percentage whenever broker is selected
+    function onBrokerChange() {
+        const option = brokerSelect.options[brokerSelect.selectedIndex];
+        const infoBox = document.getElementById('brokerCommissionInfoBox');
+        const infoVal = document.getElementById('brokerCommissionInfoVal');
+
+        if (option && option.value) {
             const comm = option.getAttribute('data-commission');
-            if (comm) {
-                valueInput.value = parseFloat(comm).toFixed(2);
+            if (comm !== null && comm !== '') {
+                const commNum = parseFloat(comm);
+                if (infoBox && infoVal) {
+                    infoVal.textContent = commNum + '%';
+                    infoBox.style.display = 'inline-flex';
+                }
+                if (typeSelect.value === 'percentage' && (!valueInput.value || parseFloat(valueInput.value) === 0)) {
+                    valueInput.value = commNum.toFixed(2);
+                }
+            } else {
+                if (infoBox) infoBox.style.display = 'none';
             }
+        } else {
+            if (infoBox) infoBox.style.display = 'none';
         }
         calculateCommission();
-    });
+    }
+
+    brokerSelect.addEventListener('change', onBrokerChange);
+    if (brokerSelect.value) {
+        onBrokerChange();
+    }
 
     function calculateCommission() {
         const type = typeSelect.value;
@@ -305,28 +334,33 @@ input[type=number] { -moz-appearance: textfield !important; }
         elem.addEventListener('change', calculateCommission);
     });
 
-    function updateProjectMapping() {
-        const select = document.getElementById('property_id');
-        if (!select) return;
-        const selectedOption = select.options[select.selectedIndex];
-        const projectDisplay = document.getElementById('project_display');
-        if (projectDisplay) {
-            if (!select.value || !selectedOption) {
-                projectDisplay.value = 'Auto-determined';
-            } else {
-                const projName = selectedOption.getAttribute('data-project');
-                projectDisplay.value = projName || 'No Project Assigned';
+    function filterPropertiesByProject(projectId) {
+        const propSelect = document.getElementById('property_id');
+        if (!propSelect) return;
+        const options = propSelect.querySelectorAll('option');
+        
+        options.forEach(opt => {
+            if (!opt.value) {
+                opt.style.display = '';
+                return;
             }
+            const pProjId = opt.getAttribute('data-project-id');
+            if (!projectId || pProjId == projectId) {
+                opt.style.display = '';
+            } else {
+                opt.style.display = 'none';
+            }
+        });
+
+        const currentOpt = propSelect.options[propSelect.selectedIndex];
+        if (currentOpt && currentOpt.style.display === 'none') {
+            propSelect.value = '';
         }
     }
 
-    const propSelect = document.getElementById('property_id');
-    if (propSelect) {
-        propSelect.addEventListener('change', updateProjectMapping);
-        if (window.jQuery) {
-            jQuery('#property_id').on('change select2:select select2:unselect', updateProjectMapping);
-        }
-        updateProjectMapping();
+    const initialProj = document.getElementById('project_select');
+    if (initialProj && initialProj.value) {
+        filterPropertiesByProject(initialProj.value);
     }
 </script>
 @endsection

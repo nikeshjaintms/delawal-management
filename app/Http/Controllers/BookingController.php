@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\BookingRequest;
 use App\Models\Booking;
+use App\Models\Project;
 use App\Models\Property;
 use App\Models\Customer;
 use App\Models\Broker;
@@ -20,11 +21,13 @@ class BookingController extends Controller
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
+        $projQuery = Project::with('propertyMaster')->orderBy('project_name');
         $propQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
         $custQuery = Customer::where('status', 'active')->orderBy('name');
         $brokQuery = Broker::where('status', 'active')->orderBy('name');
 
         if ($firmId && (!$user || !$user->isAdmin())) {
+            $projQuery->where('firm_id', $firmId);
             $propQuery->where('firm_id', $firmId);
             $custQuery->where('firm_id', $firmId);
             $brokQuery->where('firm_id', $firmId);
@@ -32,6 +35,7 @@ class BookingController extends Controller
 
         return [
             'firms'      => $firms,
+            'projects'   => $projQuery->get(),
             'properties' => $propQuery->get(),
             'customers'  => $custQuery->get(),
             'brokers'    => $brokQuery->get(),

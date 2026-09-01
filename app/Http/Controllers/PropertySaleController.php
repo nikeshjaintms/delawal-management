@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PropertySale;
+use App\Models\Project;
 use App\Models\Property;
 use App\Models\Customer;
 use App\Models\Broker;
@@ -20,21 +21,24 @@ class PropertySaleController extends Controller
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
+        $projectsQuery   = Project::with('propertyMaster')->orderBy('project_name');
         $propertiesQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
         $customersQuery  = Customer::where('status', 'active')->orderBy('name');
         $brokersQuery    = Broker::where('status', 'active')->orderBy('name');
 
         if ($firmId && (!$user || !$user->isAdmin())) {
+            $projectsQuery->where('firm_id', $firmId);
             $propertiesQuery->where('firm_id', $firmId);
             $customersQuery->where('firm_id', $firmId);
             $brokersQuery->where('firm_id', $firmId);
         }
 
+        $projects   = $projectsQuery->get();
         $properties = $propertiesQuery->get();
         $customers  = $customersQuery->get();
         $brokers    = $brokersQuery->get();
 
-        return compact('firms', 'properties', 'customers', 'brokers');
+        return compact('firms', 'projects', 'properties', 'customers', 'brokers');
     }
 
     private function updatePropertyStatus(PropertySale $sale)
@@ -103,7 +107,11 @@ class PropertySaleController extends Controller
     {
         $user = Auth::user();
         if (!$request->filled('firm_id')) {
-            $request->merge(['firm_id' => $user ? $user->firm_id : session('firm_id')]);
+            $firmIds = $request->input('firm_ids', []);
+            $firmId  = (is_array($firmIds) && !empty($firmIds))
+                ? $firmIds[0]
+                : ($user ? $user->firm_id : session('firm_id'));
+            $request->merge(['firm_id' => $firmId]);
         }
 
         $request->validate([
@@ -188,7 +196,9 @@ class PropertySaleController extends Controller
         }
 
         if (!$request->filled('firm_id')) {
-            $request->merge(['firm_id' => $propertySale->firm_id]);
+            $firmIds = $request->input('firm_ids', []);
+            $fId = (is_array($firmIds) && !empty($firmIds)) ? $firmIds[0] : $propertySale->firm_id;
+            $request->merge(['firm_id' => $fId]);
         }
 
         $request->validate([

@@ -125,6 +125,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     </select>
                 </div>
             </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="contractor_id">Contractor</label>
+                    <select name="contractor_id" id="contractor_id" class="form-control @error('contractor_id') is-invalid @enderror">
+                        <option value="">-- Select Contractor --</option>
+                        @foreach($contractors as $c)<option value="{{ $c->id }}" data-project-id="{{ $c->project_id ?? '' }}" {{ old('contractor_id',$stockOutward->contractor_id)==$c->id?'selected':'' }}>{{ $c->contractor_name }}</option>@endforeach
+                    </select>
+                </div>
+            </div>
         </div>
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-clipboard-list"></i> Usage Details</div>
@@ -143,4 +152,56 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const projSelect = document.getElementById('project_id');
+    const conSelect  = document.getElementById('contractor_id');
+
+    function syncContractors() {
+        if (!projSelect || !conSelect) return;
+        const pId = projSelect.value;
+        let firstMatch = '';
+        let matchCount = 0;
+
+        Array.from(conSelect.options).forEach(opt => {
+            if (!opt.value) {
+                opt.hidden = false;
+                opt.disabled = false;
+                return;
+            }
+            const optPId = opt.dataset.projectId || '';
+            if (!pId || !optPId || optPId === pId) {
+                opt.hidden = false;
+                opt.disabled = false;
+                if (pId && optPId === pId) {
+                    matchCount++;
+                    if (!firstMatch) firstMatch = opt.value;
+                }
+            } else {
+                opt.hidden = true;
+                opt.disabled = true;
+            }
+        });
+
+        const currentSelected = conSelect.selectedOptions[0];
+        if (currentSelected && currentSelected.hidden) {
+            conSelect.value = firstMatch || '';
+        } else if (pId && matchCount > 0 && !conSelect.value) {
+            conSelect.value = firstMatch;
+        }
+    }
+
+    if (projSelect && conSelect) {
+        projSelect.addEventListener('change', syncContractors);
+        conSelect.addEventListener('change', function() {
+            const opt = this.selectedOptions[0];
+            if (opt && opt.dataset.projectId && (!projSelect.value || projSelect.value !== opt.dataset.projectId)) {
+                projSelect.value = opt.dataset.projectId;
+            }
+        });
+        syncContractors();
+    }
+});
+</script>
 @endsection

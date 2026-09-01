@@ -185,7 +185,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
             <span class="filter-label">Payment Mode</span>
             <select name="filter_mode" class="filter-control @error('filter_mode') is-invalid @enderror">
                 <option value="">All Modes</option>
-                @foreach(\App\Models\PaymentMode::whereHas('firms', function($q) use ($authUser) { $q->where('firms.id', $authUser ? $authUser->firm_id : null); })->where('status', 'active')->orderBy('name')->get() as $pm)
+                @foreach(\App\Models\PaymentMode::where('status', 'active')->orderBy('name')->get() as $pm)
                     <option value="{{ $pm->name }}" {{ request('filter_mode') == $pm->name ? 'selected' : '' }}>{{ $pm->name }}</option>
                 @endforeach
             </select>

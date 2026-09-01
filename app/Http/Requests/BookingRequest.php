@@ -16,8 +16,13 @@ class BookingRequest extends FormRequest
     protected function prepareForValidation()
     {
         $inputs = $this->all();
+        // firm-select component submits firm_ids[] — extract first as firm_id
         if (empty($inputs['firm_id'])) {
-            $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
+            if (!empty($inputs['firm_ids']) && is_array($inputs['firm_ids'])) {
+                $inputs['firm_id'] = $inputs['firm_ids'][0];
+            } else {
+                $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
+            }
         }
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {

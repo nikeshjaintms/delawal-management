@@ -44,37 +44,50 @@
         <div class="mat-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
         <div class="mat-hero-info">
             <h3>{{ $material->material_name }}</h3>
-            <p>{{ $material->materialCategory->category_name ?? 'No Category' }} &nbsp;·&nbsp; Unit: {{ $material->unit ?? '-' }}</p>
+            <p>Unit: {{ $material->unit ?? '-' }}</p>
             @if($material->current_stock <= $material->minimum_stock && $material->minimum_stock > 0)
                 <span class="low-warn"><i class="fa-solid fa-triangle-exclamation" style="font-size:10px;"></i> Low Stock Warning</span>
             @endif
         </div>
     </div>
-    <div class="section-title"><i class="fa-solid fa-chart-bar"></i> Stock Summary</div>
+    <div class="section-title"><i class="fa-solid fa-calculator"></i> Quantity &amp; Price Summary</div>
     <div class="detail-grid-3">
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-box"></i> Opening Stock</div>
-            <div class="detail-value stock-val">{{ number_format($material->opening_stock,3) }} <small style="font-size:13px;font-weight:400;">{{ $material->unit }}</small></div>
+            <div class="detail-label"><i class="fa-solid fa-box"></i> Quantity Needed</div>
+            <div class="detail-value stock-val">{{ number_format($material->opening_stock, 3) }} <small style="font-size:13px;font-weight:400;">{{ $material->unit }}</small></div>
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-warehouse"></i> Current Stock</div>
-            <div class="detail-value stock-val {{ $material->current_stock <= $material->minimum_stock && $material->minimum_stock > 0 ? 'stock-low' : 'stock-ok' }}">
-                {{ number_format($material->current_stock,3) }} <small style="font-size:13px;font-weight:400;">{{ $material->unit }}</small>
-            </div>
+            <div class="detail-label"><i class="fa-solid fa-tag"></i> Unit Price</div>
+            <div class="detail-value stock-val" style="color: #10B981;">₹ {{ number_format($material->unit_price ?? 0, 2) }} <small style="font-size:13px;font-weight:400;">/ {{ $material->unit }}</small></div>
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-triangle-exclamation"></i> Minimum Stock</div>
-            <div class="detail-value">{{ number_format($material->minimum_stock,3) }} {{ $material->unit }}</div>
+            <div class="detail-label"><i class="fa-solid fa-coins"></i> Total Price / Value</div>
+            <div class="detail-value stock-val" style="color: #60A5FA;">₹ {{ number_format($material->total_price ?? (($material->opening_stock ?? 0) * ($material->unit_price ?? 0)), 2) }}</div>
         </div>
     </div>
     <div class="section-title"><i class="fa-solid fa-circle-info"></i> Material Info</div>
     <div class="detail-grid">
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-layer-group"></i> Category</div>
-            @if($material->materialCategory)
-                <div class="detail-value">{{ $material->materialCategory->category_name }}</div>
+            <div class="detail-value" style="color: #60A5FA; font-weight: 700;">{{ $material->category->category_name ?? 'Uncategorized' }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-ruler-combined"></i> Specification / Size</div>
+            <div class="detail-value">{{ $material->specification ?? 'Standard' }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-helmet-safety"></i> Assigned Contractor</div>
+            @if($material->contractor)
+                <div class="detail-value" style="color: #60A5FA;">
+                    <a href="{{ route('contractors.show', $material->contractor->id) }}" style="color: #60A5FA; text-decoration: none; font-weight: 700;">
+                        {{ $material->contractor->contractor_name }}
+                        @if($material->contractor->project)
+                            <small style="color: #94A3B8; font-weight: 500;">({{ $material->contractor->project->project_name }})</small>
+                        @endif
+                    </a>
+                </div>
             @else
-                <div class="detail-value empty">Not set</div>
+                <div class="detail-value empty">Not assigned</div>
             @endif
         </div>
         <div class="detail-item">

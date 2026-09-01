@@ -51,14 +51,21 @@ class TenantController extends Controller
     public function store(TenantRequest $request)
     {
         $user = Auth::user();
-        $firmId = $request->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+        $firmId = $request->firm_id;
+        if (!$firmId && $request->has('firm_ids')) {
+            $firmIds = (array) $request->firm_ids;
+            $firmId = $firmIds[0] ?? null;
+        }
+        if (!$firmId) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+        }
 
         $documentPath = null;
         if ($request->hasFile('document_file')) {
             $documentPath = $request->file('document_file')->store('tenant-documents', 'public');
         }
 
-        Tenant::create([
+        $tenant = Tenant::create([
             'firm_id'         => $firmId,
             'name'            => $request->name,
             'mobile'          => $request->mobile,
@@ -68,8 +75,12 @@ class TenantController extends Controller
             'identity_type'   => $request->identity_type,
             'identity_number' => $request->identity_number,
             'document_file'   => $documentPath,
-            'status'          => $request->status,
+            'status'          => $request->status ?? 'active',
         ]);
+
+        if ($request->has('firm_ids') && method_exists($tenant, 'firms')) {
+            $tenant->firms()->sync((array)$request->firm_ids);
+        }
 
         return redirect()->route('tenants.index')->with('success', 'Tenant added successfully.');
     }
@@ -112,6 +123,15 @@ class TenantController extends Controller
             abort(403);
         }
 
+        $newFirmId = $request->firm_id;
+        if (!$newFirmId && $request->has('firm_ids')) {
+            $firmIds = (array) $request->firm_ids;
+            $newFirmId = $firmIds[0] ?? null;
+        }
+        if (!$newFirmId) {
+            $newFirmId = $tenant->firm_id;
+        }
+
         $documentPath = $tenant->document_file;
         if ($request->hasFile('document_file')) {
             if ($tenant->document_file) {
@@ -121,7 +141,7 @@ class TenantController extends Controller
         }
 
         $tenant->update([
-            'firm_id'         => $request->firm_id ?? $tenant->firm_id,
+            'firm_id'         => $newFirmId,
             'name'            => $request->name,
             'mobile'          => $request->mobile,
             'email'           => $request->email,
@@ -130,8 +150,12 @@ class TenantController extends Controller
             'identity_type'   => $request->identity_type,
             'identity_number' => $request->identity_number,
             'document_file'   => $documentPath,
-            'status'          => $request->status,
+            'status'          => $request->status ?? 'active',
         ]);
+
+        if ($request->has('firm_ids') && method_exists($tenant, 'firms')) {
+            $tenant->firms()->sync((array)$request->firm_ids);
+        }
 
         return redirect()->route('tenants.index')->with('success', 'Tenant updated successfully.');
     }

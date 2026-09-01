@@ -135,16 +135,34 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         @method('PUT')
         @include('admin.components.firm-select', ['model' => $rental])
 
-        {{-- Property --}}
+        {{-- Property Details --}}
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-building"></i> Property Details</div>
             <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="project_id">Project <span class="opt">(Select project to filter properties)</span></label>
+                    <select name="project_id" id="project_id" class="form-control">
+                        <option value="">-- All / Select Project --</option>
+                        @if(isset($projects))
+                            @foreach($projects as $proj)
+                                <option value="{{ $proj->id }}"
+                                        data-firm-id="{{ $proj->firm_id }}"
+                                        {{ old('project_id', $selectedProjectId ?? '') == $proj->id ? 'selected' : '' }}>
+                                    {{ $proj->project_name }} {{ $proj->propertyMaster ? '('.$proj->propertyMaster->property_name.')' : '' }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label class="form-label" for="property_id">Property <span>*</span></label>
                     <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required>
                         <option value="">-- Select Property --</option>
                         @foreach($properties as $property)
                             <option value="{{ $property->id }}"
+                                    data-project-id="{{ $property->project_id }}"
+                                    data-firm-id="{{ $property->firm_id }}"
                                     data-project="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
                                     {{ old('property_id', $rentalPayment->property_id) == $property->id ? 'selected' : '' }}>
                                 {{ $property->property_code ? $property->property_code . ' - ' : '' }}{{ $property->property_name }}{{ $property->propertyType ? ' - ' . $property->propertyType->name : '' }}
@@ -152,10 +170,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                         @endforeach
                     </select>
                     @error('property_id') <div class="text-error">{{ $message }}</div> @enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="project_display">Project</label>
-                    <input type="text" id="project_display" class="form-control form-control-readonly" readonly placeholder="Auto-determined">
                 </div>
             </div>
         </div>
@@ -166,7 +180,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="payment_month">Payment Month <span>*</span></label>
-                    <select name="payment_month" id="payment_month" class="form-control @error('payment_month') is-invalid @enderror">
+                    <select name="payment_month" id="payment_month" class="form-control @error('payment_month') is-invalid @enderror" required>
                         <option value="">-- Select Month --</option>
                         @foreach(['January','February','March','April','May','June','July','August','September','October','November','December'] as $m)
                             <option value="{{ $m }}" {{ old('payment_month', $rentalPayment->payment_month) == $m ? 'selected' : '' }}>{{ $m }}</option>
@@ -176,7 +190,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="payment_year">Payment Year <span>*</span></label>
-                    <select name="payment_year" id="payment_year" class="form-control @error('payment_year') is-invalid @enderror">
+                    <select name="payment_year" id="payment_year" class="form-control @error('payment_year') is-invalid @enderror" required>
                         <option value="">-- Select Year --</option>
                         @for($y = date('Y') + 1; $y >= 2020; $y--)
                             <option value="{{ $y }}" {{ old('payment_year', $rentalPayment->payment_year) == $y ? 'selected' : '' }}>{{ $y }}</option>
@@ -196,7 +210,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     <input type="number" step="0.01" name="rent_amount" id="rent_amount"
                            value="{{ old('rent_amount', $rentalPayment->rent_amount) }}"
                            class="form-control @error('rent_amount') is-invalid @enderror" placeholder="Enter rent amount"
-                           oninput="calcPending()">
+                           oninput="calcPending()" required>
                     @error('rent_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
@@ -204,7 +218,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     <input type="number" step="0.01" name="paid_amount" id="paid_amount"
                            value="{{ old('paid_amount', $rentalPayment->paid_amount) }}"
                            class="form-control @error('paid_amount') is-invalid @enderror" placeholder="Enter amount paid"
-                           oninput="calcPending()">
+                           oninput="calcPending()" required>
                     @error('paid_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
@@ -224,7 +238,22 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     <label class="form-label" for="payment_mode">Payment Mode</label>
                     <select name="payment_mode" id="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror">
                         <option value="">-- Select Mode --</option>
-                        @foreach(\App\Models\PaymentMode::whereHas('firms', function($q) { $q->where('firms.id', Auth::user()?->firm_id ?? session('firm_id')); })->where('status', 'active')->orderBy('name')->get() as $pm)
+                        @php
+                            $firmId = Auth::user()?->firm_id ?? session('firm_id');
+                            $pModes = \App\Models\PaymentMode::where('status', 'active')
+                                ->when($firmId, function($q) use ($firmId) {
+                                    $q->where(function($sub) use ($firmId) {
+                                        $sub->whereHas('firms', fn($f) => $f->where('firms.id', $firmId))
+                                            ->orWhereDoesntHave('firms');
+                                    });
+                                })
+                                ->orderBy('name')
+                                ->get();
+                            if ($pModes->isEmpty()) {
+                                $pModes = \App\Models\PaymentMode::where('status', 'active')->orderBy('name')->get();
+                            }
+                        @endphp
+                        @foreach($pModes as $pm)
                             <option value="{{ $pm->name }}" {{ old('payment_mode', $rentalPayment->payment_mode) == $pm->name ? 'selected' : '' }}>{{ $pm->name }}</option>
                         @endforeach
                     </select>
@@ -263,37 +292,57 @@ function calcPending() {
         '₹' + pending.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function updateProjectMapping() {
-    const select = document.getElementById('property_id');
-    if (!select) return;
-    const selectedOption = select.options[select.selectedIndex];
-    const projectDisplay = document.getElementById('project_display');
-    if (projectDisplay) {
-        if (!select.value || !selectedOption) {
-            projectDisplay.value = 'Auto-determined';
-        } else {
-            const projName = selectedOption.getAttribute('data-project');
-            projectDisplay.value = projName || 'No Project Assigned';
-        }
-    }
-}
-
-window.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     calcPending();
-    if (window.jQuery && jQuery.fn.select2) {
-        jQuery('#property_id').select2({
-            placeholder: "Search and select property...",
-            allowClear: true,
-            width: '100%'
+
+    const projectSelect = document.getElementById('project_id');
+    const propSelect = document.getElementById('property_id');
+    const allPropOptions = propSelect ? Array.from(propSelect.querySelectorAll('option')).slice(1) : [];
+
+    function filterPropertiesByProject() {
+        if (!propSelect) return;
+        const selectedProjectId = projectSelect ? projectSelect.value : '';
+        const currentPropVal = propSelect.value;
+
+        propSelect.innerHTML = '<option value="">-- Select Property --</option>';
+
+        let visibleCount = 0;
+        allPropOptions.forEach(opt => {
+            const optProjId = opt.getAttribute('data-project-id');
+            if (!selectedProjectId || String(optProjId) === String(selectedProjectId)) {
+                propSelect.appendChild(opt.cloneNode(true));
+                visibleCount++;
+            }
+        });
+
+        if (visibleCount === 0 && selectedProjectId) {
+            const noOpt = document.createElement('option');
+            noOpt.value = '';
+            noOpt.textContent = '— No properties found for this project —';
+            propSelect.appendChild(noOpt);
+        }
+
+        propSelect.value = currentPropVal;
+    }
+
+    if (projectSelect) {
+        projectSelect.addEventListener('change', filterPropertiesByProject);
+    }
+
+    if (propSelect) {
+        propSelect.addEventListener('change', function() {
+            const selectedOpt = propSelect.options[propSelect.selectedIndex];
+            if (selectedOpt && selectedOpt.value) {
+                const projId = selectedOpt.getAttribute('data-project-id');
+                if (projectSelect && projId && projectSelect.value !== projId) {
+                    projectSelect.value = projId;
+                }
+            }
         });
     }
-    const propSelect = document.getElementById('property_id');
-    if (propSelect) {
-        propSelect.addEventListener('change', updateProjectMapping);
-        if (window.jQuery) {
-            jQuery('#property_id').on('change select2:select select2:unselect', updateProjectMapping);
-        }
-        updateProjectMapping();
+
+    if (projectSelect && projectSelect.value) {
+        filterPropertiesByProject();
     }
 });
 </script>
