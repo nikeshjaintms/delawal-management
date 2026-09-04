@@ -5,203 +5,234 @@
 
 @section('content')
 <style>
-    .crud-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-    .crud-title h2 {
-        font-size: 22px;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 4px;
-    }
-    .crud-title p {
-        font-size: 13.5px;
-        color: var(--text-secondary);
-    }
-    .card-box {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: var(--soft-shadow);
-        margin-bottom: 24px;
-    }
-    .alert-success {
-        background: rgba(34,197,94,0.08);
-        border: 1px solid rgba(34,197,94,0.2);
-        color: #16803D;
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        font-size: 13.5px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    /* ── Select All bar ── */
-    .select-all-bar {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 16px;
-        background: var(--blue-light);
-        border-radius: 8px;
-        margin-bottom: 18px;
-        border: 1px solid rgba(59,130,246,0.15);
-    }
-    .select-all-bar label {
-        font-size: 13.5px;
-        font-weight: 600;
-        color: #1E40AF;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .select-all-bar input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
-        cursor: pointer;
-        accent-color: var(--blue);
-    }
-    .perm-count {
-        margin-left: auto;
-        font-size: 12.5px;
-        color: #3B82F6;
-        font-weight: 600;
-    }
-    /* ── Scrollable table wrapper ── */
-    .perm-table-wrapper {
-        width: 100%;
-        overflow-x: auto;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-    }
-    .perm-matrix {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-        min-width: 640px;
-    }
-    /* Sticky header row */
-    .perm-matrix thead th {
-        position: sticky;
-        top: 0;
-        z-index: 5;
-        padding: 12px 14px;
-        background: #F8FAFC;
-        color: #475569;
-        font-weight: 700;
-        border-bottom: 2px solid var(--border-color);
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.7px;
-        text-align: center;
-        white-space: nowrap;
-    }
-    .perm-matrix thead th:first-child {
-        text-align: left;
-        position: sticky;
-        left: 0;
-        z-index: 6;
-        background: #F8FAFC;
-        min-width: 200px;
-    }
-    /* Sticky first column */
-    .perm-matrix tbody td:first-child {
-        position: sticky;
-        left: 0;
-        background: #FFFFFF;
-        z-index: 2;
-        font-weight: 600;
-        color: var(--text-primary);
-        border-right: 1px solid var(--border-color);
-    }
-    .perm-matrix tbody tr:hover td:first-child { background: #F0F7FF; }
-    .perm-matrix td {
-        padding: 11px 14px;
-        border-bottom: 1px solid #F1F5F9;
-        vertical-align: middle;
-        text-align: center;
-    }
-    .perm-matrix tbody tr:last-child td { border-bottom: none; }
-    .perm-matrix tbody tr:hover { background: #F0F7FF; }
-    /* Column-header checkboxes */
-    .col-all-check { cursor: pointer; accent-color: #8B5CF6; width: 14px; height: 14px; }
-    /* Row checkboxes */
-    .perm-matrix input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
-        cursor: pointer;
-        accent-color: var(--blue);
-    }
-    /* Row select-all in first cell of each data row */
-    .row-select-all {
-        width: 14px;
-        height: 14px;
-        cursor: pointer;
-        accent-color: #10B981;
-        margin-right: 8px;
-        vertical-align: middle;
-    }
-    /* Action buttons */
-    .form-actions {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-top: 24px;
-        padding-top: 20px;
-        border-top: 1px solid var(--border-color);
-    }
-    .btn-gold {
-        background-color: var(--gold);
-        color: #FFFFFF;
-        padding: 11px 28px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: var(--transition);
-        box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);
-    }
-    .btn-gold:hover { background-color: #B58D1B; transform: translateY(-1px); }
-    .btn-outline {
-        border: 1px solid var(--border-color);
-        background: transparent;
-        color: var(--text-secondary);
-        padding: 11px 24px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
-        transition: var(--transition);
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .btn-outline:hover { background: #F9FAFB; color: var(--text-primary); border-color: #D1D5DB; }
-    .role-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: var(--blue-light);
-        color: #1E40AF;
-        font-size: 13px;
-        font-weight: 700;
-        border-radius: 8px;
-        padding: 5px 14px;
-        margin-bottom: 6px;
-    }
+/* ── Luxury Dark Glass System ── */
+.crud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+.crud-title h2 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #FFFFFF !important;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+}
+.crud-title p {
+    font-size: 14px;
+    color: #CBD5E1 !important;
+    font-weight: 500;
+    margin: 0;
+}
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(139, 92, 246, 0.18) !important;
+    border: 1px solid rgba(139, 92, 246, 0.35) !important;
+    color: #C4B5FD !important;
+    font-size: 13px;
+    font-weight: 800;
+    border-radius: 8px;
+    padding: 5px 14px;
+    margin-bottom: 8px;
+}
+
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important;
+    padding: 28px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+    margin-bottom: 28px;
+}
+
+.alert-success {
+    background: rgba(16, 185, 129, 0.16) !important;
+    border: 1px solid rgba(16, 185, 129, 0.38) !important;
+    color: #34D399 !important;
+    padding: 14px 18px !important;
+    border-radius: 12px !important;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 700 !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ── Select All bar ── */
+.select-all-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: rgba(59, 130, 246, 0.12) !important;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(59, 130, 246, 0.28);
+}
+.select-all-bar label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #93C5FD !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.select-all-bar input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #2563EB;
+}
+.perm-count {
+    margin-left: auto;
+    font-size: 13px;
+    color: #60A5FA;
+    font-weight: 800;
+    background: rgba(59, 130, 246, 0.15);
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(59, 130, 246, 0.30);
+}
+
+/* ── Scrollable table wrapper ── */
+.perm-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: rgba(16, 22, 34, 0.50);
+}
+.perm-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    min-width: 640px;
+}
+/* Sticky header row */
+.perm-matrix thead th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    padding: 14px 16px;
+    background: #141B29 !important;
+    color: #94A3B8 !important;
+    font-weight: 800;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    text-align: center;
+    white-space: nowrap;
+}
+.perm-matrix thead th:first-child {
+    text-align: left;
+    position: sticky;
+    left: 0;
+    z-index: 6;
+    background: #141B29 !important;
+    min-width: 220px;
+}
+/* Sticky first column */
+.perm-matrix tbody td:first-child {
+    position: sticky;
+    left: 0;
+    background: #101622 !important;
+    z-index: 2;
+    font-weight: 700;
+    color: #FFFFFF !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+.perm-matrix tbody tr:hover td:first-child { background: #182236 !important; }
+.perm-matrix td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    vertical-align: middle;
+    text-align: center;
+    color: #E2E8F0;
+}
+.perm-matrix tbody tr:last-child td { border-bottom: none !important; }
+.perm-matrix tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
+
+/* Column-header checkboxes */
+.col-all-check { cursor: pointer; accent-color: #8B5CF6; width: 16px; height: 16px; }
+/* Row checkboxes */
+.perm-matrix input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+    accent-color: #2563EB;
+}
+/* Row select-all in first cell of each data row */
+.row-select-all {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #10B981;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+/* Action buttons */
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    flex-wrap: wrap;
+}
+.btn-gold {
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+    padding: 11px 26px;
+    border-radius: 10px;
+    text-decoration: none !important;
+    font-size: 14px;
+    font-weight: 700;
+    border: 1px solid #3B82F6 !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all .25s ease;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+}
+.btn-gold:hover {
+    background: #1D4ED8 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(37, 99, 235, 0.50);
+}
+.btn-outline {
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important;
+    padding: 10px 22px;
+    border-radius: 10px;
+    text-decoration: none !important;
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: all .25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+}
 </style>
 
 <div class="crud-header">
@@ -277,7 +308,7 @@
                                             class="perm-cb row-{{ $loop->parent->index }} col-{{ $action }}"
                                             {{ in_array($perm->id, $assignedPermissionIds) ? 'checked' : '' }}>
                                     @else
-                                        <span style="color:#E2E8F0; font-size:11px;">—</span>
+                                        <span style="color:#64748B; font-size:12px;">—</span>
                                     @endif
                                 </td>
                             @endforeach
