@@ -215,14 +215,24 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="password">Password</label>
-                <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" placeholder="Leave blank to keep current password">
+                <div style="position: relative;">
+                    <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" placeholder="Leave blank to keep current password" style="padding-right: 44px;">
+                    <button type="button" class="btn-toggle-pwd" data-target="password" onclick="togglePasswordVisibility('password', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94A3B8; font-size: 15px; padding: 6px; z-index: 10;">
+                        <i class="fa-solid fa-eye" style="pointer-events: none;"></i>
+                    </button>
+                </div>
                 <div class="form-hint">Minimum 6 characters. Only fill this if you want to change the password.</div>
                 @error('password') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="confirm_password">Confirm Password</label>
-                <input type="password" name="confirm_password" id="confirm_password" class="form-control @error('confirm_password') is-invalid @enderror" placeholder="Confirm new password">
+                <div style="position: relative;">
+                    <input type="password" name="confirm_password" id="confirm_password" class="form-control @error('confirm_password') is-invalid @enderror" placeholder="Confirm new password" style="padding-right: 44px;">
+                    <button type="button" class="btn-toggle-pwd" data-target="confirm_password" onclick="togglePasswordVisibility('confirm_password', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94A3B8; font-size: 15px; padding: 6px; z-index: 10;">
+                        <i class="fa-solid fa-eye" style="pointer-events: none;"></i>
+                    </button>
+                </div>
                 @error('confirm_password') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>
@@ -232,9 +242,30 @@
                 <i class="fa-solid fa-check"></i> Update User
             </button>
             <a href="{{ route('users.index') }}" class="btn-outline">
-                Back to User Management
+                Back
             </a>
         </div>
     </form>
 </div>
+
+<script>
+function togglePasswordVisibility(fieldId, buttonElement) {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    const icon = buttonElement.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    } else {
+        input.type = 'password';
+        if (icon) {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+}
+</script>
 @endsection

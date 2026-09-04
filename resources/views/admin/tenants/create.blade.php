@@ -99,22 +99,36 @@ textarea.form-control { resize: vertical; min-height: 100px; }
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="name">Tenant Name <span>*</span></label>
-                <input type="text" name="name" id="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Enter tenant name">
+                <input type="text" name="name" id="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Enter tenant name" required>
                 @error('name') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="mobile">Mobile <span>*</span></label>
-                <input type="text" name="mobile" id="mobile" value="{{ old('mobile') }}" class="form-control @error('mobile') is-invalid @enderror" placeholder="Enter 10-digit mobile number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric">
+                <label class="form-label" for="mobile">Primary Mobile <span>*</span></label>
+                <input type="text" name="mobile" id="mobile" value="{{ old('mobile') }}" class="form-control @error('mobile') is-invalid @enderror" placeholder="Enter 10-digit mobile number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" required>
                 @error('mobile') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>
 
         <div class="form-row">
             <div class="form-group">
-                <label class="form-label" for="email">Email</label>
+                <label class="form-label" for="alternate_mobile">Alternate Mobile Number</label>
+                <input type="text" name="alternate_mobile" id="alternate_mobile" value="{{ old('alternate_mobile') }}" class="form-control @error('alternate_mobile') is-invalid @enderror" placeholder="Optional alternate contact">
+                @error('alternate_mobile') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
                 <input type="email" name="email" id="email" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror" placeholder="Enter email address">
                 @error('email') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="occupation">Occupation / Profession</label>
+                <input type="text" name="occupation" id="occupation" value="{{ old('occupation') }}" class="form-control @error('occupation') is-invalid @enderror" placeholder="Job, Business, Company Name, etc.">
+                @error('occupation') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
             <div class="form-group">
@@ -124,10 +138,32 @@ textarea.form-control { resize: vertical; min-height: 100px; }
             </div>
         </div>
 
-        <div class="form-group">
-            <label class="form-label" for="address">Address</label>
-            <textarea name="address" id="address" class="form-control @error('address') is-invalid @enderror" placeholder="Enter physical address">{{ old('address') }}</textarea>
-            @error('address') <div class="text-error">{{ $message }}</div> @enderror
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="address">Current Address</label>
+                <textarea name="address" id="address" class="form-control @error('address') is-invalid @enderror" placeholder="Enter current address">{{ old('address') }}</textarea>
+                @error('address') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="permanent_address">Permanent Address</label>
+                <textarea name="permanent_address" id="permanent_address" class="form-control @error('permanent_address') is-invalid @enderror" placeholder="Enter permanent native address">{{ old('permanent_address') }}</textarea>
+                @error('permanent_address') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="emergency_contact_name">Emergency Contact Person Name</label>
+                <input type="text" name="emergency_contact_name" id="emergency_contact_name" value="{{ old('emergency_contact_name') }}" class="form-control @error('emergency_contact_name') is-invalid @enderror" placeholder="Relative / Reference name">
+                @error('emergency_contact_name') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="emergency_contact_mobile">Emergency Contact Mobile</label>
+                <input type="text" name="emergency_contact_mobile" id="emergency_contact_mobile" value="{{ old('emergency_contact_mobile') }}" class="form-control @error('emergency_contact_mobile') is-invalid @enderror" placeholder="Emergency mobile number">
+                @error('emergency_contact_mobile') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
         </div>
 
         <div class="form-row">

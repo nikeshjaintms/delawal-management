@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title','Property Status — Details')
+@section('title','Land Property Status — Details')
 @section('page-title','Property Availability')
 
 @section('content')
@@ -18,12 +18,13 @@
 
 .btn-sc, .btn-secondary-custom {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 10px 20px; min-height: 42px; background: rgba(255, 255, 255, 0.06) !important;
-    color: #CBD5E1 !important; font-size: 14px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.14) !important;
-    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+    padding: 10px 20px; min-height: 42px; background: #1E293B !important;
+    color: #FFFFFF !important; font-size: 14px; font-weight: 700; border: 1px solid #475569 !important;
+    border-radius: 10px; text-decoration: none !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    transition: all .25s ease; cursor: pointer;
 }
 .btn-sc:hover, .btn-secondary-custom:hover {
-    background: rgba(255, 255, 255, 0.12) !important; color: #FFFFFF !important; transform: translateY(-2px);
+    background: #334155 !important; color: #FFFFFF !important; transform: translateY(-2px); border-color: #64748B !important;
 }
 
 .crud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
@@ -88,7 +89,7 @@
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Property Status Record</h2>
+        <h2>Land Property Status Record</h2>
         <p>Full details of this availability / status entry.</p>
     </div>
     <div class="header-actions">
@@ -102,41 +103,41 @@
 </div>
 
 <div class="detail-card">
-    <div class="section-heading"><i class="fa-solid fa-building"></i> Property Details</div>
+    <div class="section-heading"><i class="fa-solid fa-building"></i> Land Property Details</div>
     <div class="detail-grid">
         <div>
             <div class="detail-label">Property Name</div>
             <div class="detail-value">
-                <a href="{{ route('properties.show', $record->property_id) }}" class="prop-link">
-                    {{ $record->property->property_name ?? '—' }}
-                </a>
-            </div>
-        </div>
-        <div>
-            <div class="detail-label">Property Type</div>
-            <div class="detail-value">
-                @if($record->property?->propertyType)
-                    <span class="prop-type-pill">{{ $record->property->propertyType->name }}</span>
+                @if($record->property_master_id)
+                    <a href="{{ route('property-masters.show', $record->property_master_id) }}" class="prop-link">
+                        {{ $record->target_name }}
+                    </a>
+                @elseif($record->property_id)
+                    <a href="{{ route('properties.show', $record->property_id) }}" class="prop-link">
+                        {{ $record->target_name }}
+                    </a>
                 @else
-                    <span style="color:#94A3B8;font-weight:400">—</span>
+                    {{ $record->target_name }}
                 @endif
             </div>
         </div>
         <div>
-            <div class="detail-label">Unit / Plot / Flat No</div>
-            <div class="detail-value">{{ $record->property->unit_no ?? '—' }}</div>
+            <div class="detail-label">Property Category</div>
+            <div class="detail-value">
+                <span class="prop-type-pill"><i class="fa-solid fa-map-location-dot"></i> Land / Property Master</span>
+            </div>
         </div>
         <div>
             <div class="detail-label">Property Code</div>
-            <div class="detail-value"><code class="code-chip">{{ $record->property->property_code ?? '—' }}</code></div>
+            <div class="detail-value">{{ $record->target_code }}</div>
         </div>
         <div>
-            <div class="detail-label">City</div>
-            <div class="detail-value">{{ $record->property->city ?? '—' }}</div>
+            <div class="detail-label">Location / City</div>
+            <div class="detail-value">{{ $record->target_location }}</div>
         </div>
         <div>
-            <div class="detail-label">Location</div>
-            <div class="detail-value">{{ $record->property->location ?? '—' }}</div>
+            <div class="detail-label">Firm</div>
+            <div class="detail-value">{{ $record->firm->firm_name ?? '—' }}</div>
         </div>
     </div>
 </div>
@@ -155,7 +156,7 @@
         </div>
         <div>
             <div class="detail-label">Status Date</div>
-            <div class="detail-value">{{ $record->status_date->format('d M Y') }}</div>
+            <div class="detail-value">{{ $record->status_date ? $record->status_date->format('d M Y') : '—' }}</div>
         </div>
         <div>
             <div class="detail-label">Updated By</div>
@@ -164,13 +165,13 @@
         <div>
             <div class="detail-label">Created At</div>
             <div class="detail-value" style="font-size:13.5px;color:#CBD5E1">
-                {{ $record->created_at->format('d M Y, h:i A') }}
+                {{ $record->created_at ? $record->created_at->format('d M Y, h:i A') : '—' }}
             </div>
         </div>
         <div>
             <div class="detail-label">Last Updated</div>
             <div class="detail-value" style="font-size:13.5px;color:#CBD5E1">
-                {{ $record->updated_at->format('d M Y, h:i A') }}
+                {{ $record->updated_at ? $record->updated_at->format('d M Y, h:i A') : '—' }}
             </div>
         </div>
         @if($record->remarks)

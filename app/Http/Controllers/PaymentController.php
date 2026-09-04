@@ -103,17 +103,17 @@ class PaymentController extends Controller
         $firmId = $user ? $user->firm_id : session('firm_id');
 
         $saleQuery = PropertySale::query();
-        if (!$isAdmin) {
+        if (!$isAdmin && $firmId) {
             $saleQuery->where('firm_id', $firmId);
         }
         $sale = $saleQuery->findOrFail($request->property_sale_id);
 
-        $firmId = $request->firm_id ?? $sale->firm_id;
+        $resolvedFirmId = $request->firm_id ?? ($request->firm_ids[0] ?? ($sale->firm_id ?? (session('firm_id') ?? ($user?->firm_id))));
 
         // Calculate totals
         $totalPaidSoFar  = Payment::where('property_sale_id', $sale->id)->sum('payment_amount');
-        $newPaid         = $totalPaidSoFar + $request->payment_amount;
-        $saleTotal       = $sale->sale_amount ?? 0;
+        $newPaid         = $totalPaidSoFar + (float) $request->payment_amount;
+        $saleTotal       = (float) ($sale->sale_amount ?? 0);
         $pendingAfter    = max(0, $saleTotal - $newPaid);
 
         // Determine status
@@ -126,8 +126,8 @@ class PaymentController extends Controller
         }
 
         // Save payment entry
-        Payment::create([
-            'firm_id'          => $firmId,
+        $payment = Payment::create([
+            'firm_id'          => $resolvedFirmId,
             'property_sale_id' => $sale->id,
             'customer_id'      => $sale->customer_id,
             'property_id'      => $sale->property_id,
@@ -141,6 +141,12 @@ class PaymentController extends Controller
             'status'           => $paymentStatus,
             'remarks'          => $request->remarks,
         ]);
+
+        if ($request->has('firm_ids') && is_array($request->firm_ids) && !empty($request->firm_ids)) {
+            $payment->syncFirms($request->firm_ids);
+        } elseif ($resolvedFirmId) {
+            $payment->syncFirms([$resolvedFirmId]);
+        }
 
         // Update property sale paid/remaining/status
         $sale->update([
@@ -196,25 +202,25 @@ class PaymentController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
-        if (!$isAdmin && $payment->firm_id != $firmId) {
+        if (!$isAdmin && $firmId && $payment->firm_id != $firmId) {
             abort(403);
         }
 
         $saleQuery = PropertySale::query();
-        if (!$isAdmin) {
+        if (!$isAdmin && $firmId) {
             $saleQuery->where('firm_id', $firmId);
         }
         $sale = $saleQuery->findOrFail($request->property_sale_id);
 
-        $firmId = $request->firm_id ?? $sale->firm_id;
+        $resolvedFirmId = $request->firm_id ?? ($request->firm_ids[0] ?? ($sale->firm_id ?? $payment->firm_id));
 
         // Recalculate: sum all OTHER payments for this booking + this new amount
         $totalPaidSoFar = Payment::where('property_sale_id', $sale->id)
             ->where('id', '!=', $payment->id)
             ->sum('payment_amount');
 
-        $newPaid      = $totalPaidSoFar + $request->payment_amount;
-        $saleTotal    = $sale->sale_amount ?? 0;
+        $newPaid      = $totalPaidSoFar + (float) $request->payment_amount;
+        $saleTotal    = (float) ($sale->sale_amount ?? 0);
         $pendingAfter = max(0, $saleTotal - $newPaid);
 
         if ($saleTotal > 0 && $newPaid >= $saleTotal) {
@@ -226,7 +232,7 @@ class PaymentController extends Controller
         }
 
         $payment->update([
-            'firm_id'          => $firmId,
+            'firm_id'          => $resolvedFirmId,
             'property_sale_id' => $sale->id,
             'customer_id'      => $sale->customer_id,
             'property_id'      => $sale->property_id,
@@ -240,6 +246,12 @@ class PaymentController extends Controller
             'status'           => $paymentStatus,
             'remarks'          => $request->remarks,
         ]);
+
+        if ($request->has('firm_ids') && is_array($request->firm_ids) && !empty($request->firm_ids)) {
+            $payment->syncFirms($request->firm_ids);
+        } elseif ($resolvedFirmId) {
+            $payment->syncFirms([$resolvedFirmId]);
+        }
 
         $sale->update([
             'booking_amount'   => $newPaid,

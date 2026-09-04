@@ -72,18 +72,34 @@
     <div class="detail-grid">
 
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
-            <div class="detail-value">{{ $income->firm_names }}</div>
+            <div class="detail-label"><i class="fa-solid fa-building-user"></i> Firm</div>
+            <div class="detail-value">{{ $income->firm_names ?? ($income->firm->firm_name ?? '—') }}</div>
         </div>
 
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-hotel"></i> Property Name</div>
-            <div class="detail-value">{{ $income->property->property_name ?? '—' }}</div>
+            <div class="detail-label"><i class="fa-solid fa-city"></i> Project</div>
+            <div class="detail-value">
+                @if($income->property?->project)
+                    {{ $income->property->project->project_name }}
+                @else
+                    <span style="color:#94A3B8;">Direct / Standalone Property</span>
+                @endif
+            </div>
         </div>
 
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-house"></i> Property Type</div>
-            <div class="detail-value">{{ $income->property->propertyType->name ?? '—' }}</div>
+            <div class="detail-label"><i class="fa-solid fa-building"></i> Property</div>
+            <div class="detail-value">
+                {{ $income->property->property_name ?? '—' }}
+                @if($income->property?->unit_no)
+                    &nbsp;·&nbsp; Unit {{ $income->property->unit_no }}
+                @endif
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-layer-group"></i> Property Type</div>
+            <div class="detail-value">{{ $income->property->propertyType->name ?? 'Standalone Property' }}</div>
         </div>
 
         <div class="detail-item">
@@ -98,7 +114,7 @@
 
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Amount</div>
-            <div class="detail-value" style="color:#34D399 !important;">₹{{ number_format($income->amount, 2) }}</div>
+            <div class="detail-value" style="color:#34D399 !important; font-weight:800; font-size:16px;">₹{{ number_format($income->amount, 2) }}</div>
         </div>
 
         <div class="detail-item">
@@ -108,7 +124,7 @@
 
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-wallet"></i> Payment Mode</div>
-            <div class="detail-value">{{ $income->payment_mode ?? '—' }}</div>
+            <div class="detail-value">{{ $income->paymentMode->name ?? ($income->payment_mode ?? '—') }}</div>
         </div>
 
         <div class="detail-item">

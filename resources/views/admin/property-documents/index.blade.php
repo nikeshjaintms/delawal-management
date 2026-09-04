@@ -164,12 +164,12 @@
             <input type="text" name="search" value="{{ request('search') }}" class="search-input @error('search') is-invalid @enderror" placeholder="Title, number, type…">
         </div>
         <div class="filter-group">
-            <span class="filter-label">Property</span>
-            <select name="property_id" class="filter-control @error('property_id') is-invalid @enderror">
-                <option value="">All Properties</option>
-                @foreach($properties as $prop)
-                    <option value="{{ $prop->id }}" {{ request('property_id') == $prop->id ? 'selected' : '' }}>
-                        {{ $prop->property_name }}
+            <span class="filter-label">Land Property</span>
+            <select name="property_master_id" class="filter-control @error('property_master_id') is-invalid @enderror">
+                <option value="">All Land Properties</option>
+                @foreach($propertyMasters as $pm)
+                    <option value="{{ $pm->id }}" {{ (request('property_master_id') == $pm->id || request('property_id') == $pm->id) ? 'selected' : '' }}>
+                        {{ $pm->property_name }}
                     </option>
                 @endforeach
             </select>
@@ -192,7 +192,7 @@
             </select>
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','property_id','document_type','status','firm_id']))
+        @if(request()->hasAny(['search','property_master_id','property_id','document_type','status','firm_id']))
             <a href="{{ route('property-documents.index') }}" class="btn-reset"><i class="fa-solid fa-xmark"></i> Reset</a>
         @endif
     </form>
@@ -205,7 +205,7 @@
                     @if(auth()->user() && auth()->user()->isAdmin())
                         <th>Firm</th>
                     @endif
-                    <th>Property</th>
+                    <th>Land Property</th>
                     <th>Document Type</th>
                     <th>Document Title</th>
                     <th>Doc Number</th>
@@ -222,7 +222,7 @@
                     @if(auth()->user() && auth()->user()->isAdmin())
                         <td><strong>{{ $doc->firm->firm_name ?? 'N/A' }}</strong></td>
                     @endif
-                    <td><strong>{{ $doc->property->property_name ?? '—' }}</strong></td>
+                    <td><strong style="color:#FFFFFF;">{{ $doc->target_name }}</strong></td>
                     <td><span class="doc-type-chip">{{ $doc->document_type }}</span></td>
                     <td>{{ $doc->document_title }}</td>
                     <td>{{ $doc->document_number ?? '—' }}</td>
@@ -247,9 +247,13 @@
                     </td>
                     <td><span class="badge badge-{{ $doc->status }}">{{ ucfirst($doc->status) }}</span></td>
                     <td>
-                        <a href="{{ Storage::url($doc->document_file) }}" target="_blank" class="file-btn">
-                            <i class="fa-solid fa-file-arrow-down"></i> View
-                        </a>
+                        @if($doc->document_file)
+                            <a href="{{ Storage::url($doc->document_file) }}" target="_blank" class="file-btn">
+                                <i class="fa-solid fa-file-arrow-down"></i> View
+                            </a>
+                        @else
+                            <span style="color:#64748B">—</span>
+                        @endif
                     </td>
                     <td>
                         <div class="table-action-buttons">

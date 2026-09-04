@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PropertyDocumentRequest;
 use App\Models\Property;
+use App\Models\PropertyMaster;
 use App\Models\PropertyDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,26 +12,46 @@ use Illuminate\Support\Facades\Storage;
 
 class PropertyDocumentController extends Controller
 {
+    private function firmPropertyMasters($firmId = null)
+    {
+        if (!$firmId) {
+            $isAdmin = auth()->user() && auth()->user()->isAdmin();
+            $firmId = $isAdmin ? null : (auth()->user() ? auth()->user()->firm_id : session('firm_id'));
+        }
+
+        if ($firmId) {
+            return PropertyMaster::where('firm_id', $firmId);
+        }
+
+        return PropertyMaster::query();
+    }
+
     /* ── INDEX ─────────────────────────────────────────────────────── */
     public function index(Request $request)
     {
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
 
         if ($isAdmin) {
-            $properties = Property::orderBy('property_name')->get();
-            $query = PropertyDocument::with(['property', 'firm']);
+            $propertyMasters = PropertyMaster::orderBy('property_name')->get();
+            $query = PropertyDocument::with(['propertyMaster.firm', 'property', 'firm']);
             if ($request->filled('firm_id')) {
                 $query->where('firm_id', $request->firm_id);
             }
         } else {
             $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
-            $properties = Property::where('firm_id', $firmId)->orderBy('property_name')->get();
-            $query = PropertyDocument::with(['property', 'firm'])
+            $propertyMasters = $this->firmPropertyMasters($firmId)->orderBy('property_name')->get();
+            $query = PropertyDocument::with(['propertyMaster.firm', 'property', 'firm'])
                 ->where('firm_id', $firmId);
         }
 
+        if ($request->filled('property_master_id')) {
+            $query->where('property_master_id', $request->property_master_id);
+        }
         if ($request->filled('property_id')) {
-            $query->where('property_id', $request->property_id);
+            $query->where(function($q) use ($request) {
+                $q->where('property_master_id', $request->property_id)
+                  ->orWhere('property_id', $request->property_id);
+            });
         }
         if ($request->filled('document_type')) {
             $query->where('document_type', $request->document_type);
@@ -43,15 +64,19 @@ class PropertyDocumentController extends Controller
             $query->where(function ($q) use ($s) {
                 $q->where('document_title', 'like', "%{$s}%")
                   ->orWhere('document_number', 'like', "%{$s}%")
-                  ->orWhere('document_type', 'like', "%{$s}%");
+                  ->orWhere('document_type', 'like', "%{$s}%")
+                  ->orWhereHas('propertyMaster', fn($pm) =>
+                        $pm->where('property_name', 'like', "%{$s}%")
+                           ->orWhere('property_code', 'like', "%{$s}%")
+                  );
             });
         }
 
-        $documents   = $query->latest()->paginate(15)->withQueryString();
+        $documents     = $query->latest()->paginate(15)->withQueryString();
         $documentTypes = PropertyDocument::documentTypes();
 
         return view('admin.property-documents.index',
-            compact('documents', 'properties', 'documentTypes'));
+            compact('documents', 'propertyMasters', 'documentTypes'));
     }
 
     /* ── CREATE ─────────────────────────────────────────────────────── */
@@ -61,52 +86,79 @@ class PropertyDocumentController extends Controller
         $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
 
         if ($isAdmin) {
-            $properties = Property::with(['project.propertyMaster'])->orderBy('property_name')->get();
+            $propertyMasters = PropertyMaster::with(['firm', 'firms'])->orderBy('property_name')->get();
         } else {
-            $properties = Property::with(['project.propertyMaster'])->where('firm_id', $firmId)->orderBy('property_name')->get();
+            $propertyMasters = $this->firmPropertyMasters($firmId)->with(['firm', 'firms'])->orderBy('property_name')->get();
         }
         $documentTypes = PropertyDocument::documentTypes();
 
         return view('admin.property-documents.create',
-            compact('properties', 'documentTypes'));
+            compact('propertyMasters', 'documentTypes'));
     }
 
     /* ── STORE ──────────────────────────────────────────────────────── */
     public function store(PropertyDocumentRequest $request)
     {
-        $property = Property::findOrFail($request->property_id);
+        $masterId = $request->property_master_id ?: $request->property_id;
+        $propertyMaster = PropertyMaster::find($masterId);
 
-        $isAdmin = auth()->user() && auth()->user()->isAdmin();
-        if (!$isAdmin) {
-            $userFirmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
-            if ($property->firm_id != $userFirmId) {
-                abort(403);
-            }
+        $filePath = null;
+        if ($request->hasFile('document_file')) {
+            $filePath = $request->file('document_file')->store('property-documents', 'public');
         }
 
-        $firmId = $property->firm_id;
+        if ($propertyMaster) {
+            $isAdmin = auth()->user() && auth()->user()->isAdmin();
+            if (!$isAdmin) {
+                $userFirmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+                if ($propertyMaster->firm_id && $propertyMaster->firm_id != $userFirmId) {
+                    abort(403);
+                }
+            }
 
-        $filePath = $request->file('document_file')
-            ->store('property-documents', 'public');
+            $firmId = $propertyMaster->firm_id ?: ($request->firm_id ?: (auth()->user() ? auth()->user()->firm_id : 1));
+
+            $doc = PropertyDocument::create([
+                'firm_id'            => $firmId,
+                'property_master_id' => $propertyMaster->id,
+                'property_id'        => null,
+                'document_type'      => $request->document_type,
+                'document_title'     => $request->document_title,
+                'document_file'      => $filePath,
+                'document_number'    => $request->document_number,
+                'expiry_date'        => $request->expiry_date ?: null,
+                'remarks'            => $request->remarks,
+                'status'             => $request->status,
+                'created_by'         => auth()->id(),
+            ]);
+
+            \App\Models\AuditLog::log(
+                'Property Documents',
+                'Create',
+                "Added document '{$doc->document_title}' for Land Property '{$propertyMaster->property_name}'"
+            );
+
+            return redirect()->route('property-documents.index')
+                ->with('success', 'Land property document added successfully!');
+        }
+
+        // Fallback for Property
+        $property = Property::findOrFail($request->property_id);
+        $firmId = $property->firm_id ?: 1;
 
         $doc = PropertyDocument::create([
-            'firm_id'         => $firmId,
-            'property_id'     => $request->property_id,
-            'document_type'   => $request->document_type,
-            'document_title'  => $request->document_title,
-            'document_file'   => $filePath,
-            'document_number' => $request->document_number,
-            'expiry_date'     => $request->expiry_date ?: null,
-            'remarks'         => $request->remarks,
-            'status'          => $request->status,
-            'created_by'      => auth()->id(),
+            'firm_id'            => $firmId,
+            'property_master_id' => null,
+            'property_id'        => $property->id,
+            'document_type'      => $request->document_type,
+            'document_title'     => $request->document_title,
+            'document_file'      => $filePath,
+            'document_number'    => $request->document_number,
+            'expiry_date'        => $request->expiry_date ?: null,
+            'remarks'            => $request->remarks,
+            'status'             => $request->status,
+            'created_by'         => auth()->id(),
         ]);
-
-        \App\Models\AuditLog::log(
-            'Property Documents',
-            'Create',
-            "Added document '{$doc->document_title}' for property ID {$doc->property_id}"
-        );
 
         return redirect()->route('property-documents.index')
             ->with('success', 'Property document added successfully!');
@@ -116,7 +168,7 @@ class PropertyDocumentController extends Controller
     public function show(PropertyDocument $propertyDocument)
     {
         $this->authorise($propertyDocument);
-        $propertyDocument->load('property', 'creator');
+        $propertyDocument->load('propertyMaster.firm', 'property', 'creator');
 
         return view('admin.property-documents.show',
             ['doc' => $propertyDocument]);
@@ -129,14 +181,14 @@ class PropertyDocumentController extends Controller
 
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         if ($isAdmin) {
-            $properties = Property::with(['project.propertyMaster'])->orderBy('property_name')->get();
+            $propertyMasters = PropertyMaster::with(['firm', 'firms'])->orderBy('property_name')->get();
         } else {
-            $properties = Property::with(['project.propertyMaster'])->where('firm_id', $propertyDocument->firm_id)->orderBy('property_name')->get();
+            $propertyMasters = $this->firmPropertyMasters($propertyDocument->firm_id)->with(['firm', 'firms'])->orderBy('property_name')->get();
         }
         $documentTypes = PropertyDocument::documentTypes();
 
         return view('admin.property-documents.edit',
-            ['doc' => $propertyDocument, 'properties' => $properties, 'documentTypes' => $documentTypes]);
+            ['doc' => $propertyDocument, 'propertyMasters' => $propertyMasters, 'documentTypes' => $documentTypes]);
     }
 
     /* ── UPDATE ─────────────────────────────────────────────────────── */
@@ -144,78 +196,75 @@ class PropertyDocumentController extends Controller
     {
         $this->authorise($propertyDocument);
 
-        $property = Property::findOrFail($request->property_id);
+        $masterId = $request->property_master_id ?: $request->property_id;
+        $propertyMaster = PropertyMaster::find($masterId);
 
-        $isAdmin = auth()->user() && auth()->user()->isAdmin();
-        if (!$isAdmin) {
-            $userFirmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
-            if ($property->firm_id != $userFirmId) {
-                abort(403);
-            }
-        }
-
-        $firmId = $property->firm_id;
-
-        $filePath = $propertyDocument->document_file;
-
-        if ($request->hasFile('document_file')) {
-            Storage::disk('public')->delete($filePath);
-            $filePath = $request->file('document_file')
-                ->store('property-documents', 'public');
-        }
-
-        $propertyDocument->update([
-            'firm_id'         => $firmId,
-            'property_id'     => $request->property_id,
+        $data = [
             'document_type'   => $request->document_type,
             'document_title'  => $request->document_title,
-            'document_file'   => $filePath,
             'document_number' => $request->document_number,
             'expiry_date'     => $request->expiry_date ?: null,
             'remarks'         => $request->remarks,
             'status'          => $request->status,
-        ]);
+        ];
 
-        \App\Models\AuditLog::log(
-            'Property Documents',
-            'Update',
-            "Updated document '{$propertyDocument->document_title}' (ID {$propertyDocument->id})"
-        );
+        if ($propertyMaster) {
+            $data['property_master_id'] = $propertyMaster->id;
+            $data['property_id'] = null;
+        } elseif ($request->filled('property_id')) {
+            $data['property_master_id'] = null;
+            $data['property_id'] = $request->property_id;
+        }
+
+        if ($request->hasFile('document_file')) {
+            if ($propertyDocument->document_file && Storage::disk('public')->exists($propertyDocument->document_file)) {
+                Storage::disk('public')->delete($propertyDocument->document_file);
+            }
+            $data['document_file'] = $request->file('document_file')->store('property-documents', 'public');
+        }
+
+        $propertyDocument->update($data);
 
         return redirect()->route('property-documents.index')
-            ->with('success', 'Property document updated successfully!');
+            ->with('success', 'Document updated successfully!');
     }
 
-    /* ── DESTROY ────────────────────────────────────────────────────── */
+    /* ── DESTROY ─────────────────────────────────────────────────────── */
     public function destroy(PropertyDocument $propertyDocument)
     {
         $this->authorise($propertyDocument);
 
-        $title = $propertyDocument->document_title;
-        if ($propertyDocument->document_file) {
+        if ($propertyDocument->document_file && Storage::disk('public')->exists($propertyDocument->document_file)) {
             Storage::disk('public')->delete($propertyDocument->document_file);
         }
+
         $propertyDocument->delete();
 
-        \App\Models\AuditLog::log(
-            'Property Documents',
-            'Delete',
-            "Deleted document '{$title}'"
-        );
-
         return redirect()->route('property-documents.index')
-            ->with('success', 'Document deleted successfully!');
+            ->with('success', 'Property document deleted successfully!');
     }
 
-    /* ── Helper ─────────────────────────────────────────────────────── */
-    private function authorise(PropertyDocument $doc): void
+    /* ── DOWNLOAD ────────────────────────────────────────────────────── */
+    public function download(PropertyDocument $propertyDocument)
+    {
+        $this->authorise($propertyDocument);
+
+        if (!$propertyDocument->document_file || !Storage::disk('public')->exists($propertyDocument->document_file)) {
+            return back()->with('error', 'Document file not found.');
+        }
+
+        $filename = $propertyDocument->document_title . '.' . pathinfo($propertyDocument->document_file, PATHINFO_EXTENSION);
+        return Storage::disk('public')->download($propertyDocument->document_file, $filename);
+    }
+
+    private function authorise(PropertyDocument $record): void
     {
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
-        if (!$isAdmin) {
-            $firmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
-            if ($doc->firm_id != $firmId) {
-                abort(403);
-            }
+        if ($isAdmin) return;
+
+        $userFirmId = auth()->user() ? auth()->user()->firm_id : session('firm_id');
+        if ($record->firm_id && $record->firm_id != $userFirmId) {
+            abort(403, 'Unauthorized access to this document.');
         }
     }
 }

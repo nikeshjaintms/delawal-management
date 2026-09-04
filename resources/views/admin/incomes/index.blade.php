@@ -18,30 +18,30 @@
 
 .btn-export-csv {
     display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-    padding: 10px 18px; background: rgba(255, 255, 255, 0.08) !important;
-    color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    padding: 10px 18px; background: linear-gradient(135deg, #10B981, #059669) !important;
+    color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; border: 1px solid #10B981 !important;
     border-radius: 10px; text-decoration: none !important; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
 }
-.btn-export-csv:hover { background: linear-gradient(135deg, #10B981, #059669) !important; border-color: #10B981 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55); }
+.btn-export-csv:hover { background: linear-gradient(135deg, #059669, #047857) !important; border-color: #059669 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55); }
 
 .btn-export-pdf {
     display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-    padding: 10px 18px; background: rgba(255, 255, 255, 0.08) !important;
-    color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    padding: 10px 18px; background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+    color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; border: 1px solid #EF4444 !important;
     border-radius: 10px; text-decoration: none !important; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
 }
-.btn-export-pdf:hover { background: linear-gradient(135deg, #EF4444, #DC2626) !important; border-color: #EF4444 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.55); }
+.btn-export-pdf:hover { background: linear-gradient(135deg, #DC2626, #B91C1C) !important; border-color: #DC2626 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.55); }
 
 .btn-export-print {
     display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-    padding: 10px 18px; background: rgba(255, 255, 255, 0.08) !important;
-    color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    padding: 10px 18px; background: linear-gradient(135deg, #6366F1, #4F46E5) !important;
+    color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; border: 1px solid #6366F1 !important;
     border-radius: 10px; text-decoration: none !important; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
 }
-.btn-export-print:hover { background: linear-gradient(135deg, #6366F1, #4F46E5) !important; border-color: #6366F1 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55); }
+.btn-export-print:hover { background: linear-gradient(135deg, #4F46E5, #4338CA) !important; border-color: #4F46E5 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55); }
 
 .card-box {
     background: rgba(20, 27, 41, 0.60) !important;
@@ -276,7 +276,17 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                 <tr>
                     <td>{{ method_exists($incomes, 'firstItem') ? ($incomes->firstItem() + $key) : ($key + 1) }}</td>
                     <td><strong style="color:#FFFFFF !important;">{{ $income->firm_names }}</strong></td>
-                    <td><strong style="color:#FFFFFF !important;">{{ $income->property->property_name ?? '—' }}</strong></td>
+                    <td>
+                        <strong style="color:#FFFFFF !important;">{{ $income->property->property_name ?? '—' }}</strong>
+                        @if($income->property?->unit_no)
+                            <div style="font-size:11.5px;color:#60A5FA;font-weight:700;">Unit: {{ $income->property->unit_no }}</div>
+                        @endif
+                        @if($income->property?->project)
+                            <div style="font-size:11px;color:#93C5FD;font-weight:500;">{{ $income->property->project->project_name }}</div>
+                        @elseif($income->property)
+                            <div style="font-size:11px;color:#94A3B8;">[Direct Property]</div>
+                        @endif
+                    </td>
                     <td style="color:#CBD5E1;">{{ $income->property->propertyType->name ?? '—' }}</td>
                     <td style="color:#CBD5E1;">{{ \Carbon\Carbon::parse($income->income_date)->format('d M Y') }}</td>
                     <td>

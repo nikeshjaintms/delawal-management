@@ -103,29 +103,42 @@
 <div class="card-box">
     {{-- Hero --}}
     <div class="rental-hero">
-        <div class="rental-icon"><i class="fa-solid fa-key"></i></div>
+        <div class="rental-icon"><i class="fa-solid fa-file-contract"></i></div>
         <div class="rental-hero-info">
-            <h3>{{ $rental->tenant_name }}</h3>
+            <h3>
+                {{ $rental->tenant_name }}
+                @if($rental->agreement_no)
+                    <span style="font-size:14px;color:#60A5FA;font-weight:700;margin-left:8px;">#{{ $rental->agreement_no }}</span>
+                @endif
+            </h3>
             <p>
                 {{ $rental->property->property_name ?? '' }}
                 @if($rental->property?->property_code)
-                    <span style="color:var(--gold);font-weight:600;"> ({{ $rental->property->property_code }})</span>
+                    <span style="color:#60A5FA;font-weight:600;"> ({{ $rental->property->property_code }})</span>
                 @endif
                 @if($rental->property?->unit_no)
                     &nbsp;·&nbsp; Unit {{ $rental->property->unit_no }}
+                @endif
+                @if($rental->property?->project)
+                    &nbsp;·&nbsp; {{ $rental->property->project->project_name }}
                 @endif
             </p>
             <div class="hero-badges">
                 <span class="badge badge-{{ $rental->rental_status }}">{{ ucfirst($rental->rental_status) }}</span>
                 <span class="badge badge-{{ $rental->payment_status }}">{{ ucfirst($rental->payment_status) }}</span>
-                <span style="font-size:15px;font-weight:800;color:var(--text-primary);">
-                    ₹{{ number_format($rental->rent_amount, 0) }}<span style="font-size:12px;font-weight:400;color:var(--text-secondary);">/mo</span>
+                <span style="font-size:15px;font-weight:800;color:#FFFFFF;">
+                    ₹{{ number_format($rental->rent_amount, 0) }}<span style="font-size:12px;font-weight:400;color:#CBD5E1;">/mo</span>
                 </span>
+                @if($rental->agreement_document)
+                    <a href="{{ asset('storage/' . $rental->agreement_document) }}" target="_blank" class="badge" style="background:rgba(37,99,235,0.3);color:#60A5FA;border:1px solid #3B82F6;text-decoration:none;">
+                        <i class="fa-solid fa-file-pdf"></i> Agreement Document
+                    </a>
+                @endif
             </div>
         </div>
     </div>
 
-    {{-- Property --}}
+    {{-- Property & Project --}}
     <div class="section-title"><i class="fa-solid fa-building"></i> Property & Firm Details</div>
     <div class="detail-grid">
         <div class="detail-item">
@@ -133,41 +146,33 @@
             <div class="detail-value">{{ $rental->firm->firm_name ?? '-' }}</div>
         </div>
         <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-city"></i> Project</div>
+            <div class="detail-value">{{ $rental->property?->project?->project_name ?? ($rental->property?->project?->propertyMaster?->property_name ?? '—') }}</div>
+        </div>
+        <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-building"></i> Property Name</div>
             <div class="detail-value">
                 {{ $rental->property->property_name ?? '-' }}
                 @if($rental->property?->property_code)
-                    <span style="color:var(--gold);font-size:13px;"> ({{ $rental->property->property_code }})</span>
+                    <span style="color:#60A5FA;font-size:13px;"> ({{ $rental->property->property_code }})</span>
                 @endif
             </div>
         </div>
         <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-door-open"></i> Unit / Plot No</div>
+            <div class="detail-value">{{ $rental->property?->unit_no ?? '—' }}</div>
+        </div>
+        <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-layer-group"></i> Property Type</div>
-            @if($rental->property?->propertyType)
-                <div class="detail-value">{{ $rental->property->propertyType->name }}</div>
-            @else
-                <div class="detail-value empty">Not set</div>
-            @endif
+            <div class="detail-value">{{ $rental->property?->propertyType?->name ?? '—' }}</div>
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-door-open"></i> Unit No</div>
-            @if($rental->property?->unit_no)
-                <div class="detail-value">{{ $rental->property->unit_no }}</div>
-            @else
-                <div class="detail-value empty">Not provided</div>
-            @endif
-        </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-city"></i> City</div>
-            @if($rental->property?->city)
-                <div class="detail-value">{{ $rental->property->city }}</div>
-            @else
-                <div class="detail-value empty">Not provided</div>
-            @endif
+            <div class="detail-label"><i class="fa-solid fa-location-dot"></i> City</div>
+            <div class="detail-value">{{ $rental->property?->city ?? '—' }}</div>
         </div>
     </div>
 
-    {{-- Tenant --}}
+    {{-- Tenant Information --}}
     <div class="section-title"><i class="fa-solid fa-user"></i> Tenant Information</div>
     <div class="detail-grid">
         <div class="detail-item">
@@ -175,57 +180,88 @@
             <div class="detail-value">{{ $rental->tenant_name }}</div>
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-phone"></i> Mobile</div>
+            <div class="detail-label"><i class="fa-solid fa-phone"></i> Primary Mobile</div>
             <div class="detail-value">{{ $rental->tenant_mobile }}</div>
         </div>
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-envelope"></i> Email</div>
-            @if($rental->tenant_email)
-                <div class="detail-value">{{ $rental->tenant_email }}</div>
-            @else
-                <div class="detail-value empty">Not provided</div>
-            @endif
+            <div class="detail-value {{ $rental->tenant_email ? '' : 'empty' }}">{{ $rental->tenant_email ?? 'Not provided' }}</div>
         </div>
+        @if($rental->tenant)
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-id-card"></i> ID Proof</div>
+                <div class="detail-value">{{ $rental->tenant->identity_type ?? '—' }} ({{ $rental->tenant->identity_number ?? '—' }})</div>
+            </div>
+        @endif
     </div>
 
-    {{-- Amounts --}}
-    <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Rent & Deposit</div>
+    {{-- Rent & Financials --}}
+    <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Rent & Financials</div>
     <div class="detail-grid">
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Monthly Rent</div>
-            <div class="detail-value amount-big" style="color:var(--gold);">₹{{ number_format($rental->rent_amount, 2) }}</div>
+            <div class="detail-value amount-big" style="color:#60A5FA;">₹{{ number_format($rental->rent_amount, 2) }}</div>
         </div>
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-shield-halved"></i> Security Deposit</div>
-            @if($rental->security_deposit)
-                <div class="detail-value amount-big">₹{{ number_format($rental->security_deposit, 2) }}</div>
-            @else
-                <div class="detail-value empty">Not set</div>
-            @endif
+            <div class="detail-value amount-big">₹{{ number_format($rental->security_deposit ?? 0, 2) }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance Charges</div>
+            <div class="detail-value">₹{{ number_format($rental->maintenance_amount ?? 0, 2) }}/month</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-arrow-trend-up"></i> Annual Increment</div>
+            <div class="detail-value">{{ $rental->escalation_percent ? $rental->escalation_percent.'%' : '—' }}</div>
         </div>
     </div>
 
-    {{-- Dates --}}
-    <div class="section-title"><i class="fa-solid fa-calendar-days"></i> Rental Period</div>
+    {{-- Rental Period & Terms --}}
+    <div class="section-title"><i class="fa-solid fa-calendar-days"></i> Rental Period & Terms</div>
     <div class="detail-grid-3">
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-regular fa-calendar-plus"></i> Start Date</div>
+            <div class="detail-label"><i class="fa-regular fa-calendar-plus"></i> Agreement Start Date</div>
             <div class="detail-value">{{ \Carbon\Carbon::parse($rental->rent_start_date)->format('d M Y') }}</div>
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-regular fa-calendar-minus"></i> End Date</div>
-            @if($rental->rent_end_date)
-                <div class="detail-value">{{ \Carbon\Carbon::parse($rental->rent_end_date)->format('d M Y') }}</div>
-            @else
-                <div class="detail-value empty">Open-ended</div>
-            @endif
+            <div class="detail-label"><i class="fa-regular fa-calendar-minus"></i> Agreement End Date</div>
+            <div class="detail-value {{ $rental->rent_end_date ? '' : 'empty' }}">{{ $rental->rent_end_date ? \Carbon\Carbon::parse($rental->rent_end_date)->format('d M Y') : 'Open-ended' }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-key"></i> Handover / Move-in Date</div>
+            <div class="detail-value {{ $rental->handover_date ? '' : 'empty' }}">{{ $rental->handover_date ? \Carbon\Carbon::parse($rental->handover_date)->format('d M Y') : '—' }}</div>
         </div>
         <div class="detail-item">
             <div class="detail-label"><i class="fa-regular fa-clock"></i> Rent Due Day</div>
-            @if($rental->rent_due_date)
-                <div class="detail-value"><span class="due-chip">Day {{ $rental->rent_due_date }} of month</span></div>
+            <div class="detail-value"><span class="due-chip">Day {{ $rental->rent_due_date ?? 5 }} of month</span></div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-lock"></i> Lock-in Period</div>
+            <div class="detail-value">{{ $rental->lock_in_period ? $rental->lock_in_period.' Months' : '—' }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-bell"></i> Notice Period</div>
+            <div class="detail-value">{{ $rental->notice_period ? $rental->notice_period.' Days' : '—' }}</div>
+        </div>
+    </div>
+
+    {{-- Utilities & Agreement Document --}}
+    <div class="section-title"><i class="fa-solid fa-bolt"></i> Utilities & Agreement Document</div>
+    <div class="detail-grid">
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-gauge-high"></i> Starting Electricity Meter Reading</div>
+            <div class="detail-value">{{ $rental->meter_reading ?? '—' }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-file-arrow-down"></i> Agreement Document</div>
+            @if($rental->agreement_document)
+                <div class="detail-value">
+                    <a href="{{ asset('storage/' . $rental->agreement_document) }}" target="_blank" style="color:#60A5FA;text-decoration:underline;">
+                        <i class="fa-solid fa-paperclip"></i> Download / View Attached Agreement
+                    </a>
+                </div>
             @else
-                <div class="detail-value empty">Not set</div>
+                <div class="detail-value empty">No document attached</div>
             @endif
         </div>
     </div>
@@ -244,7 +280,7 @@
     </div>
 
     @if($rental->remarks)
-        <div class="section-title"><i class="fa-solid fa-note-sticky"></i> Remarks</div>
+        <div class="section-title"><i class="fa-solid fa-note-sticky"></i> Remarks / Special Clauses</div>
         <div class="detail-item">
             <div class="detail-value" style="font-weight:400;font-size:14px;line-height:1.7;">{{ $rental->remarks }}</div>
         </div>

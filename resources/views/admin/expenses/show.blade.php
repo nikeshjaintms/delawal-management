@@ -176,6 +176,20 @@
                 <div class="detail-value empty">General / Not property-specific</div>
             @endif
         </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-city"></i> Project</div>
+            @if($expense->project ?? $expense->property?->project)
+                @php $proj = $expense->project ?? $expense->property->project; @endphp
+                <div class="detail-value">
+                    {{ $proj->project_name }}
+                    @if($proj->propertyMaster)
+                        <span style="color:#60A5FA;font-size:13px;"> ({{ $proj->propertyMaster->property_name }})</span>
+                    @endif
+                </div>
+            @else
+                <div class="detail-value empty">General / Standalone</div>
+            @endif
+        </div>
     </div>
 
     {{-- Payment Details --}}

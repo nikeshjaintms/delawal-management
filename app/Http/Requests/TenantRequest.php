@@ -49,18 +49,23 @@ class TenantRequest extends FormRequest
         }
 
         return [
-            'firm_id'         => 'required|exists:firms,id',
-            'firm_ids'        => 'nullable|array',
-            'firm_ids.*'      => 'exists:firms,id',
-            'name'            => 'required|string|max:255',
-            'mobile'          => 'required|digits:10|regex:/^[0-9]{10}$/',
-            'email'           => 'nullable|email|max:255',
-            'address'         => 'nullable|string|max:1000',
-            'city'            => 'nullable|string|max:255',
-            'identity_type'   => 'nullable|string|max:100',
-            'identity_number' => 'nullable|string|max:100',
-            'document_file'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp,doc,docx|max:10240',
-            'status'          => 'required|in:active,inactive',
+            'firm_id'                  => 'required|exists:firms,id',
+            'firm_ids'                 => 'nullable|array',
+            'firm_ids.*'               => 'exists:firms,id',
+            'name'                     => 'required|string|max:255',
+            'mobile'                   => 'required|digits:10|regex:/^[0-9]{10}$/',
+            'alternate_mobile'         => 'nullable|string|max:15',
+            'email'                    => 'nullable|email|max:255',
+            'address'                  => 'nullable|string|max:1000',
+            'permanent_address'        => 'nullable|string|max:1000',
+            'city'                     => 'nullable|string|max:255',
+            'occupation'               => 'nullable|string|max:255',
+            'emergency_contact_name'   => 'nullable|string|max:255',
+            'emergency_contact_mobile' => 'nullable|string|max:15',
+            'identity_type'            => 'nullable|string|max:100',
+            'identity_number'          => 'nullable|string|max:100',
+            'document_file'            => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp,doc,docx|max:10240',
+            'status'                   => 'required|in:active,inactive',
         ];
     }
 
@@ -76,13 +81,20 @@ class TenantRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => 'Tenant Name',
-            'mobile' => 'Mobile Number',
-            'email' => 'Email Address',
-            'pan_no' => 'PAN Number',
-            'address' => 'Address',
-            'city' => 'City',
-            'status' => 'Status',
+            'name'                     => 'Tenant Name',
+            'mobile'                   => 'Mobile Number',
+            'alternate_mobile'         => 'Alternate Mobile',
+            'email'                    => 'Email Address',
+            'address'                  => 'Current Address',
+            'permanent_address'        => 'Permanent Address',
+            'city'                     => 'City',
+            'occupation'               => 'Occupation / Profession',
+            'emergency_contact_name'   => 'Emergency Contact Name',
+            'emergency_contact_mobile' => 'Emergency Contact Mobile',
+            'identity_type'            => 'Identity Type',
+            'identity_number'          => 'Identity Number',
+            'document_file'            => 'Document File',
+            'status'                   => 'Status',
         ];
     }
 

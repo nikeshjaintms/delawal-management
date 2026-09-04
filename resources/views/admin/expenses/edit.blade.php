@@ -152,6 +152,40 @@ textarea.form-control { resize: vertical; min-height: 90px; }
             </div> 
             <div class="form-row">
                 <div class="form-group">
+                    <label class="form-label" for="project_id">Project <span class="opt">(Optional - Project-wise Expense / Filter)</span></label>
+                    <select name="project_id" id="project_id" class="form-control">
+                        <option value="">— All Projects / Standalone Properties —</option>
+                        @if(isset($projects))
+                            @foreach($projects as $proj)
+                                <option value="{{ $proj->id }}"
+                                        data-firm-id="{{ $proj->firm_id }}"
+                                        {{ old('project_id', $selectedProjectId ?? ($expense->project_id ?? ($expense->property->project_id ?? ''))) == $proj->id ? 'selected' : '' }}>
+                                    {{ $proj->project_name }} {{ $proj->propertyMaster ? '('.$proj->propertyMaster->property_name.')' : '' }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="property_id">Property / Unit <span class="opt">(Optional - Direct or Unit Expense)</span></label>
+                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
+                        <option value="">— General / Not property-specific —</option>
+                        @foreach($properties as $prop)
+                            <option value="{{ $prop->id }}"
+                                data-project-id="{{ $prop->project_id }}"
+                                data-firm-id="{{ $prop->firm_id }}"
+                                data-project="{{ $prop->project->project_name ?? ($prop->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
+                                {{ old('property_id', $expense->property_id) == $prop->id ? 'selected' : '' }}>
+                                {{ $prop->property_name }}{{ $prop->unit_no ? ' · Unit '.$prop->unit_no : '' }}
+                                @if(!$prop->project_id) [Direct Property] @else ({{ $prop->project->project_name ?? '' }}) @endif
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('property_id')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
                     <label class="form-label" for="expense_category_id">Expense Category <span class="opt">(optional)</span></label>
                     <select name="expense_category_id" id="expense_category_id" class="form-control @error('expense_category_id') is-invalid @enderror">
                         <option value="">— Select Category —</option>
@@ -163,26 +197,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                         @endforeach
                     </select>
                     @error('expense_category_id')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="property_id">Property <span class="opt">(optional)</span></label>
-                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
-                        <option value="">— General / Not property-specific —</option>
-                        @foreach($properties as $prop)
-                            <option value="{{ $prop->id }}"
-                                data-project="{{ $prop->project->project_name ?? ($prop->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
-                                {{ old('property_id', $expense->property_id) == $prop->id ? 'selected' : '' }}>
-                                {{ $prop->property_name }}{{ $prop->property_code ? ' ('.$prop->property_code.')' : '' }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('property_id')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label" for="project_display">Project</label>
-                    <input type="text" id="project_display" class="form-control form-control-readonly" readonly placeholder="Auto-determined">
                 </div>
             </div>
         </div>
@@ -320,29 +334,66 @@ function showFileName(input) {
     }
 }
 
-function updateProjectMapping() {
-    const select = document.getElementById('property_id');
-    if (!select) return;
-    const selectedOption = select.options[select.selectedIndex];
-    const projectDisplay = document.getElementById('project_display');
-    if (projectDisplay) {
-        if (!select.value || !selectedOption) {
-            projectDisplay.value = 'Auto-determined';
-        } else {
-            const projName = selectedOption.getAttribute('data-project');
-            projectDisplay.value = projName || 'No Project Assigned';
+document.addEventListener('DOMContentLoaded', function() {
+    const projectSelect = document.getElementById('project_id');
+    const propSelect = document.getElementById('property_id');
+    const allPropOptions = propSelect ? Array.from(propSelect.querySelectorAll('option')).slice(1) : [];
+
+    function filterPropertiesByProject() {
+        if (!propSelect) return;
+        const selectedProjectId = projectSelect ? projectSelect.value : '';
+        const currentPropVal = propSelect.value;
+
+        propSelect.innerHTML = '<option value="">— General / Not property-specific —</option>';
+
+        let visibleCount = 0;
+        allPropOptions.forEach(opt => {
+            const optProjId = opt.getAttribute('data-project-id');
+            if (!selectedProjectId || String(optProjId) === String(selectedProjectId)) {
+                propSelect.appendChild(opt.cloneNode(true));
+                visibleCount++;
+            }
+        });
+
+        if (visibleCount === 0 && selectedProjectId) {
+            const noOpt = document.createElement('option');
+            noOpt.value = '';
+            noOpt.textContent = '— No properties found for this project —';
+            propSelect.appendChild(noOpt);
+        }
+
+        // Restore value if available in options
+        const match = Array.from(propSelect.options).some(o => o.value === currentPropVal);
+        propSelect.value = match ? currentPropVal : '';
+    }
+
+    if (projectSelect) {
+        projectSelect.addEventListener('change', filterPropertiesByProject);
+    }
+
+    if (propSelect) {
+        propSelect.addEventListener('change', function() {
+            const selectedOpt = propSelect.options[propSelect.selectedIndex];
+            if (selectedOpt && selectedOpt.value) {
+                const projId = selectedOpt.getAttribute('data-project-id');
+                if (projectSelect && projId && projectSelect.value !== projId) {
+                    projectSelect.value = projId;
+                    filterPropertiesByProject();
+                    propSelect.value = selectedOpt.value;
+                }
+            }
+        });
+    }
+
+    // Initialize state
+    if (propSelect && propSelect.value) {
+        const initOpt = propSelect.options[propSelect.selectedIndex];
+        if (initOpt && initOpt.getAttribute('data-project-id') && projectSelect && !projectSelect.value) {
+            projectSelect.value = initOpt.getAttribute('data-project-id');
         }
     }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const propSelect = document.getElementById('property_id');
-    if (propSelect) {
-        propSelect.addEventListener('change', updateProjectMapping);
-        if (window.jQuery) {
-            jQuery('#property_id').on('change select2:select select2:unselect', updateProjectMapping);
-        }
-        updateProjectMapping();
+    if (projectSelect && projectSelect.value) {
+        filterPropertiesByProject();
     }
 });
 </script>

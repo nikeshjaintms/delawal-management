@@ -26,6 +26,12 @@ class PropertyDocumentRequest extends FormRequest
             $inputs['firm_id'] = $inputs['firm_ids'][0];
         }
         
+        if (empty($inputs['property_master_id']) && !empty($inputs['property_id'])) {
+            if (\App\Models\PropertyMaster::where('id', $inputs['property_id'])->exists()) {
+                $inputs['property_master_id'] = $inputs['property_id'];
+            }
+        }
+        
         $this->replace($inputs);
     }
 
@@ -46,17 +52,18 @@ class PropertyDocumentRequest extends FormRequest
         $firmId = $this->get('firm_id') ?: (auth()->check() && auth()->user() ? auth()->user()->firm_id : session('firm_id'));
 
         $rules = [
-            'firm_ids'        => 'nullable|array',
-            'firm_ids.*'      => 'exists:firms,id',
-            'firm_id'         => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
-            'property_id'     => 'required|exists:properties,id',
-            'document_type'   => 'required|string|max:255',
-            'document_title'  => 'required|string|max:255',
-            'document_file'   => $this->isMethod('post') ? 'required|file|max:5120' : 'nullable|file|max:5120',
-            'document_number' => 'nullable|string|max:255',
-            'expiry_date'     => 'nullable|date',
-            'remarks'         => 'nullable|string|max:1000',
-            'status'          => 'required|in:active,inactive',
+            'firm_ids'           => 'nullable|array',
+            'firm_ids.*'         => 'exists:firms,id',
+            'firm_id'            => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
+            'property_master_id' => 'nullable|exists:property_masters,id',
+            'property_id'        => 'nullable',
+            'document_type'      => 'required|string|max:255',
+            'document_title'     => 'required|string|max:255',
+            'document_file'      => 'nullable|file|max:5120',
+            'document_number'    => 'nullable|string|max:255',
+            'expiry_date'        => 'nullable|date',
+            'remarks'            => 'nullable|string|max:1000',
+            'status'             => 'required|in:active,inactive',
         ];
 
         // Replace placeholders in unique rules dynamically

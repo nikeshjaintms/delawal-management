@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title','Edit Property Status Record')
+@section('title','Edit Land Property Status')
 @section('page-title','Property Availability')
 
 @section('content')
@@ -18,12 +18,13 @@
 
 .btn-sc, .btn-secondary-custom {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 10px 20px; min-height: 42px; background: rgba(255, 255, 255, 0.06) !important;
-    color: #CBD5E1 !important; font-size: 14px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.14) !important;
-    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+    padding: 10px 20px; min-height: 42px; background: #1E293B !important;
+    color: #FFFFFF !important; font-size: 14px; font-weight: 700; border: 1px solid #475569 !important;
+    border-radius: 10px; text-decoration: none !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    transition: all .25s ease; cursor: pointer;
 }
 .btn-sc:hover, .btn-secondary-custom:hover {
-    background: rgba(255, 255, 255, 0.12) !important; color: #FFFFFF !important; transform: translateY(-2px);
+    background: #334155 !important; color: #FFFFFF !important; transform: translateY(-2px); border-color: #64748B !important;
 }
 
 .crud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
@@ -102,13 +103,13 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
 /* Property info live preview (Luxury Dark Glass) */
 .prop-info-box {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    background: rgba(59, 130, 246, 0.10) !important;
+    border: 1px solid rgba(59, 130, 246, 0.25) !important;
     border-radius: 14px !important;
     padding: 14px 18px !important;
-    margin-top: 14px !important;
+    margin-top: 6px !important;
+    margin-bottom: 8px !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20) !important;
-    display: none;
 }
 .prop-info-box .pi-row { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
 .prop-info-box .pi-item { font-size: 13.5px; color: #94A3B8 !important; font-weight: 600; }
@@ -117,8 +118,8 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Edit Status Record</h2>
-        <p>Updating: <strong>{{ $record->property->property_name ?? '—' }}</strong></p>
+        <h2>Edit Land Property Status</h2>
+        <p>Updating: <strong>{{ $record->target_name }}</strong></p>
     </div>
     <a href="{{ route('property-availability.index') }}" class="btn-sc"><i class="fa fa-arrow-left"></i> Back</a>
 </div>
@@ -132,29 +133,35 @@ textarea.form-control { resize: vertical; min-height: 90px; }
     <div class="section-heading"><i class="fa-solid fa-circle-check"></i> Status Information</div>
 
     <div class="form-grid" style="margin-bottom:18px">
-        <div class="form-group">
-            <label class="form-label" for="project_id">Project <span>*</span></label>
-            <select name="project_id" id="project_id" class="form-control @error('project_id') is-invalid @enderror" required onchange="onProjectChange(this.value)">
-                <option value="">— Select Project —</option>
+        <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label" for="property_master_id">Land Property (Property Master) <span>*</span></label>
+            <select name="property_master_id" id="property_master_id" class="form-control @error('property_master_id') is-invalid @enderror" required onchange="showPropInfo(this)">
+                <option value="">— Select Acquired Land Property —</option>
+                @foreach($propertyMasters as $pm)
+                @php
+                    $pmFirmIds = $pm->firms->pluck('id')->push($pm->firm_id)->filter()->unique()->values()->all();
+                    $pmTitle = $pm->property_name . ($pm->property_code ? ' (Code: '.$pm->property_code.')' : '') . ($pm->location ? ' — '.$pm->location : '');
+                    $isSelected = old('property_master_id', ($record->property_master_id ?: $record->property_id)) == $pm->id;
+                @endphp
+                <option value="{{ $pm->id }}"
+                        data-firm-ids="{{ implode(',', $pmFirmIds) }}"
+                        data-code="{{ $pm->property_code ?? '—' }}"
+                        data-location="{{ $pm->location ?? ($pm->city ?? '—') }}"
+                        data-status="{{ ucfirst($pm->status ?? 'available') }}"
+                        {{ $isSelected ? 'selected' : '' }}>
+                    {{ $pmTitle }} [Current: {{ ucfirst($pm->status ?? 'Available') }}]
+                </option>
+                @endforeach
             </select>
-            @error('project_id')<div class="text-error">{{ $message }}</div>@enderror
-        </div>
-
-        <div class="form-group">
-            <label class="form-label" for="property_id">Property <span>*</span></label>
-            <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required onchange="showPropInfo(this)">
-                <option value="">— Select Project First —</option>
-            </select>
-            @error('property_id')<div class="text-error">{{ $message }}</div>@enderror
+            @error('property_master_id')<div class="text-error">{{ $message }}</div>@enderror
         </div>
 
         <div class="form-group" style="grid-column:1/-1; margin-top:-6px; margin-bottom:0;">
             {{-- Live property info preview --}}
             <div class="prop-info-box" id="propInfoBox">
                 <div class="pi-row">
-                    <div class="pi-item">Project: <strong id="piProject">—</strong></div>
-                    <div class="pi-item">Type: <strong id="piType">—</strong></div>
-                    <div class="pi-item">Unit / Plot No: <strong id="piUnit">—</strong></div>
+                    <div class="pi-item">Property Code: <strong id="piCode">—</strong></div>
+                    <div class="pi-item">Location / City: <strong id="piLocation">—</strong></div>
                     <div class="pi-item">Current Status: <strong id="piStatus">—</strong></div>
                 </div>
             </div>
@@ -176,15 +183,16 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         <div class="form-group">
             <label class="form-label">Status Date <span>*</span></label>
             <input type="date" name="status_date"
-                   value="{{ old('status_date', $record->status_date->format('Y-m-d')) }}"
-                   class="form-control" required>
+                   value="{{ old('status_date', $record->status_date ? $record->status_date->format('Y-m-d') : date('Y-m-d')) }}"
+                   class="form-control @error('status_date') is-invalid @enderror" required>
             @error('status_date')<div class="text-error">{{ $message }}</div>@enderror
         </div>
     </div>
 
     <div class="form-group">
         <label class="form-label">Remarks</label>
-        <textarea name="remarks" class="form-control @error('remarks') is-invalid @enderror">{{ old('remarks', $record->remarks) }}</textarea>
+        <textarea name="remarks" class="form-control @error('remarks') is-invalid @enderror"
+                  placeholder="Reason for status change, acquisition notes, booking ref, etc.">{{ old('remarks', $record->remarks) }}</textarea>
         @error('remarks')<div class="text-error">{{ $message }}</div>@enderror
     </div>
 
@@ -196,178 +204,55 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 </form>
 
 <script>
-const allProjects = [
-    @foreach($projects as $proj)
-    @php
-        $projFirmIds = $proj->firms->pluck('id')->push($proj->firm_id)->filter()->unique()->values()->all();
-        $pTitle = $proj->project_name . ($proj->propertyMaster ? ' ('.$proj->propertyMaster->property_name.')' : '');
-    @endphp
-    {
-        id: {{ $proj->id }},
-        name: @json($pTitle),
-        firmIds: [{{ implode(',', $projFirmIds) }}]
-    },
-    @endforeach
-];
-
-const allProperties = [
-    @foreach($properties as $p)
-    @php
-        $propFirmIds = $p->firms->pluck('id')->push($p->firm_id)->filter()->unique()->values()->all();
-        $pName = $p->property_name . ($p->unit_no ? ' (Unit: '.$p->unit_no.')' : ($p->property_code ? ' ('.$p->property_code.')' : ''));
-        $pProjTitle = $p->project->project_name ?? ($p->project->propertyMaster->property_name ?? 'No Project Assigned');
-    @endphp
-    {
-        id: {{ $p->id }},
-        projectId: {{ $p->project_id ?: 'null' }},
-        firmIds: [{{ implode(',', $propFirmIds) }}],
-        name: @json($pName),
-        project: @json($pProjTitle),
-        type: @json($p->propertyType->name ?? '—'),
-        unit: @json($p->unit_no ?? '—'),
-        code: @json($p->property_code ?? ''),
-        status: @json(ucfirst(str_replace('_',' ',$p->status)))
-    },
-    @endforeach
-];
-
-function getSelectedFirmIds() {
-    const firmSelect = document.getElementById('firm_ids');
-    if (firmSelect) {
-        if (firmSelect.multiple) {
-            return Array.from(firmSelect.selectedOptions).map(o => parseInt(o.value)).filter(Boolean);
-        } else if (firmSelect.value) {
-            return [parseInt(firmSelect.value)];
-        }
-        return [];
-    }
-    const hiddenFirms = document.querySelectorAll('input[name="firm_ids[]"], input[name="firm_id"]');
-    const ids = [];
-    hiddenFirms.forEach(input => {
-        if (input.value) ids.push(parseInt(input.value));
-    });
-    return [...new Set(ids)];
-}
-
-function filterProjects(keepSelectedProjectId = null, keepSelectedPropertyId = null) {
-    const projSelect = document.getElementById('project_id');
-    if (!projSelect) return;
-
-    const selectedFirms = getSelectedFirmIds();
-    const currentVal = keepSelectedProjectId !== null ? keepSelectedProjectId : projSelect.value;
-
-    let filteredProjects = allProjects;
-    if (selectedFirms.length > 0) {
-        filteredProjects = allProjects.filter(p => {
-            if (!p.firmIds || p.firmIds.length === 0) return true;
-            return p.firmIds.some(fId => selectedFirms.includes(fId));
-        });
-    }
-
-    projSelect.innerHTML = '<option value="">— Select Project —</option>';
-    let selectedStillValid = false;
-
-    filteredProjects.forEach(proj => {
-        const opt = document.createElement('option');
-        opt.value = proj.id;
-        opt.textContent = proj.name;
-        if (currentVal && String(proj.id) === String(currentVal)) {
-            opt.selected = true;
-            selectedStillValid = true;
-        }
-        projSelect.appendChild(opt);
-    });
-
-    if (!selectedStillValid && currentVal) {
-        projSelect.value = '';
-    }
-
-    onProjectChange(projSelect.value, keepSelectedPropertyId);
-}
-
-function onProjectChange(projectId, keepSelectedPropertyId = null) {
-    const propSelect = document.getElementById('property_id');
-    const propInfoBox = document.getElementById('propInfoBox');
-    if (!propSelect) return;
-
-    const currentPropVal = keepSelectedPropertyId !== null ? keepSelectedPropertyId : propSelect.value;
-
-    if (!projectId) {
-        propSelect.innerHTML = '<option value="">— Select Project First —</option>';
-        propSelect.disabled = true;
-        if (propInfoBox) propInfoBox.style.display = 'none';
-        return;
-    }
-
-    propSelect.disabled = false;
-    const projectProps = allProperties.filter(p => String(p.projectId) === String(projectId));
-
-    if (projectProps.length === 0) {
-        propSelect.innerHTML = '<option value="">— No properties found in this project —</option>';
-        if (propInfoBox) propInfoBox.style.display = 'none';
-        return;
-    }
-
-    propSelect.innerHTML = '<option value="">— Select Property —</option>';
-    let selectedStillValid = false;
-
-    projectProps.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = p.name;
-        if (currentPropVal && String(p.id) === String(currentPropVal)) {
-            opt.selected = true;
-            selectedStillValid = true;
-        }
-        propSelect.appendChild(opt);
-    });
-
-    if (selectedStillValid && propSelect.value) {
-        showPropInfo(propSelect);
-    } else {
-        propSelect.value = '';
-        if (propInfoBox) propInfoBox.style.display = 'none';
-    }
-}
-
-function showPropInfo(sel) {
+function showPropInfo(select) {
     const box = document.getElementById('propInfoBox');
-    const id  = parseInt(sel.value);
-    const d = allProperties.find(p => p.id === id);
-
-    if (!id || !d || !box) {
+    const opt = select.options[select.selectedIndex];
+    if (!opt || !opt.value) {
         if (box) box.style.display = 'none';
         return;
     }
-
-    document.getElementById('piProject').textContent = d.project;
-    document.getElementById('piType').textContent    = d.type;
-    document.getElementById('piUnit').textContent    = d.unit;
-    document.getElementById('piStatus').textContent  = d.status;
-    box.style.display = 'block';
+    document.getElementById('piCode').textContent = opt.dataset.code || '—';
+    document.getElementById('piLocation').textContent = opt.dataset.location || '—';
+    document.getElementById('piStatus').textContent = opt.dataset.status || '—';
+    if (box) box.style.display = 'block';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    let initialPropId = "{{ old('property_id', $record->property_id) }}";
-    let initialProjId = "{{ old('project_id', $record->property->project_id ?? '') }}";
-
-    if (!initialProjId && initialPropId) {
-        const found = allProperties.find(p => String(p.id) === String(initialPropId));
-        if (found && found.projectId) {
-            initialProjId = found.projectId;
+function filterPropertiesByFirm(selectedFirmIds) {
+    const propSelect = document.getElementById('property_master_id');
+    if (!propSelect) return;
+    
+    Array.from(propSelect.options).forEach(opt => {
+        if (!opt.value) return;
+        const fStr = opt.getAttribute('data-firm-ids') || '';
+        const propFirms = fStr ? fStr.split(',').map(Number) : [];
+        if (!selectedFirmIds || selectedFirmIds.length === 0) {
+            opt.style.display = '';
+            opt.disabled = false;
+        } else {
+            const match = propFirms.some(id => selectedFirmIds.includes(id));
+            opt.style.display = match ? '' : 'none';
+            opt.disabled = !match;
         }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const propSelect = document.getElementById('property_master_id');
+    if (propSelect && propSelect.value) {
+        showPropInfo(propSelect);
     }
-
-    filterProjects(initialProjId, initialPropId);
-
-    if (window.jQuery && $('#firm_ids').length) {
-        $('#firm_ids').on('change select2:select select2:unselect', function() {
-            filterProjects();
+    
+    // Listen for firm-select changes if present
+    const firmMulti = document.getElementById('firm_ids');
+    if (firmMulti) {
+        $(firmMulti).on('change', function() {
+            const selected = $(this).val() ? $(this).val().map(Number) : [];
+            filterPropertiesByFirm(selected);
         });
-    }
-    const firmEl = document.getElementById('firm_ids');
-    if (firmEl) {
-        firmEl.addEventListener('change', () => filterProjects());
+        const initial = $(firmMulti).val() ? $(firmMulti).val().map(Number) : [];
+        if (initial.length > 0) {
+            filterPropertiesByFirm(initial);
+        }
     }
 });
 </script>

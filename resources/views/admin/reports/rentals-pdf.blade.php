@@ -108,7 +108,13 @@
         @php
             $status = strtolower($r->payment_status ?? 'pending');
             $badgeClass = $status === 'paid' ? 'b-paid' : ($status === 'partial' ? 'b-partial' : 'b-pending');
-            $monthName = \DateTime::createFromFormat('!m', $r->payment_month)->format('M');
+            $monthVal = $r->payment_month;
+            if (is_numeric($monthVal) && (int)$monthVal >= 1 && (int)$monthVal <= 12) {
+                $dt = \DateTime::createFromFormat('!m', (int)$monthVal);
+                $monthName = $dt ? $dt->format('M') : (string)$monthVal;
+            } else {
+                $monthName = (string)($monthVal ?? '—');
+            }
         @endphp
         <tr>
             <td style="color:#9CA3AF;">{{ $i+1 }}</td>

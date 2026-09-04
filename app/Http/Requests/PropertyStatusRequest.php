@@ -26,6 +26,12 @@ class PropertyStatusRequest extends FormRequest
             $inputs['firm_id'] = $inputs['firm_ids'][0];
         }
         
+        if (empty($inputs['property_master_id']) && !empty($inputs['property_id'])) {
+            if (\App\Models\PropertyMaster::where('id', $inputs['property_id'])->exists()) {
+                $inputs['property_master_id'] = $inputs['property_id'];
+            }
+        }
+        
         $this->replace($inputs);
     }
 
@@ -49,8 +55,8 @@ class PropertyStatusRequest extends FormRequest
             'firm_ids' => 'nullable|array',
             'firm_ids.*' => 'exists:firms,id',
             'firm_id' => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
-            'project_id' => 'nullable|exists:projects,id',
-            'property_id' => 'required|exists:properties,id',
+            'property_master_id' => 'nullable|exists:property_masters,id',
+            'property_id' => 'nullable',
             'status' => 'required|in:available,booked,sold,rented,reserved,under_maintenance',
             'status_date' => 'required|date',
             'remarks' => 'nullable|string|max:1000',

@@ -10,6 +10,7 @@ class PropertyDocument extends Model
 
     protected $fillable = [
         'firm_id',
+        'property_master_id',
         'property_id',
         'document_type',
         'document_title',
@@ -31,9 +32,29 @@ class PropertyDocument extends Model
         return $this->belongsTo(Firm::class);
     }
 
+    public function propertyMaster()
+    {
+        return $this->belongsTo(PropertyMaster::class, 'property_master_id');
+    }
+
     public function property()
     {
         return $this->belongsTo(Property::class);
+    }
+
+    public function getTargetNameAttribute(): string
+    {
+        return $this->propertyMaster ? $this->propertyMaster->property_name : ($this->property ? $this->property->property_name : '—');
+    }
+
+    public function getTargetCodeAttribute(): string
+    {
+        return $this->propertyMaster ? ($this->propertyMaster->property_code ?? '—') : ($this->property ? ($this->property->property_code ?? $this->property->unit_no ?? '—') : '—');
+    }
+
+    public function getTargetLocationAttribute(): string
+    {
+        return $this->propertyMaster ? ($this->propertyMaster->location ?? $this->propertyMaster->city ?? '—') : ($this->property ? ($this->property->location ?? '—') : '—');
     }
 
     public function creator()
@@ -48,30 +69,19 @@ class PropertyDocument extends Model
             'Sale Deed',
             'Agreement to Sale',
             'Title Deed',
+            '7/12 & 8-A Extract',
             'NOC',
+            'NA Order / Permission',
             'Occupancy Certificate',
             'Completion Certificate',
-            'Building Plan',
+            'Building / Layout Plan',
             'Property Tax Receipt',
             'Encumbrance Certificate',
             'Power of Attorney',
             'Lease Agreement',
             'Rental Agreement',
             'Insurance',
-            'Survey Map',
             'Other',
         ];
-    }
-
-    public function isExpired(): bool
-    {
-        return $this->expiry_date && $this->expiry_date->isPast();
-    }
-
-    public function isExpiringSoon(): bool
-    {
-        return $this->expiry_date
-            && !$this->expiry_date->isPast()
-            && $this->expiry_date->diffInDays(now()) <= 30;
     }
 }

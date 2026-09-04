@@ -18,12 +18,13 @@
 
 .btn-secondary-custom, a.btn-secondary-custom, button.btn-secondary-custom {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 10px 20px; min-height: 42px; background: rgba(255, 255, 255, 0.08) !important;
-    color: #FFFFFF !important; font-size: 14px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.18) !important;
-    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+    padding: 10px 20px; min-height: 42px; background: #1E293B !important;
+    color: #FFFFFF !important; font-size: 14px; font-weight: 700; border: 1px solid #475569 !important;
+    border-radius: 10px; text-decoration: none !important; box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    transition: all .25s ease; cursor: pointer;
 }
 .btn-secondary-custom:hover {
-    background: rgba(255, 255, 255, 0.16) !important; color: #FFFFFF !important; transform: translateY(-2px);
+    background: #334155 !important; color: #FFFFFF !important; transform: translateY(-2px); border-color: #64748B !important;
 }
 
 .crud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
@@ -130,7 +131,7 @@
 <div class="crud-header">
     <div class="crud-title">
         <h2>{{ $doc->document_title }}</h2>
-        <p>Property document details.</p>
+        <p>Land property document details.</p>
     </div>
     <div class="header-actions">
         <a href="{{ route('property-documents.edit', $doc) }}" class="btn-primary-custom"><i class="fa fa-edit"></i> Edit</a>
@@ -139,14 +140,22 @@
 </div>
 
 <div class="detail-card">
-    <div class="section-heading"><i class="fa-solid fa-file-lines"></i> Document Details</div>
+    <div class="section-heading"><i class="fa-solid fa-file-lines"></i> Land Property & Document Details</div>
     <div class="detail-grid">
         <div>
-            <div class="detail-label">Property</div>
+            <div class="detail-label">Land Property</div>
             <div class="detail-value">
-                <a href="{{ route('properties.show', $doc->property_id) }}" class="prop-link">
-                    {{ $doc->property->property_name ?? '—' }}
-                </a>
+                @if($doc->property_master_id)
+                    <a href="{{ route('property-masters.show', $doc->property_master_id) }}" class="prop-link">
+                        {{ $doc->target_name }}
+                    </a>
+                @elseif($doc->property_id)
+                    <a href="{{ route('properties.show', $doc->property_id) }}" class="prop-link">
+                        {{ $doc->target_name }}
+                    </a>
+                @else
+                    {{ $doc->target_name }}
+                @endif
             </div>
         </div>
         <div>
@@ -200,24 +209,31 @@
 
 <div class="detail-card">
     <div class="section-heading"><i class="fa-solid fa-file-arrow-down"></i> Document File</div>
-    @php
-        $ext = strtolower(pathinfo($doc->document_file, PATHINFO_EXTENSION));
-        $isImage = in_array($ext, ['jpg','jpeg','png','webp']);
-        $fileUrl = Storage::url($doc->document_file);
-    @endphp
+    @if($doc->document_file)
+        @php
+            $ext = strtolower(pathinfo($doc->document_file, PATHINFO_EXTENSION));
+            $isImage = in_array($ext, ['jpg','jpeg','png','webp']);
+            $fileUrl = Storage::url($doc->document_file);
+        @endphp
 
-    @if($isImage)
-        <img src="{{ $fileUrl }}" alt="Document" style="max-width: 100%; max-height: 500px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); display: block; margin-bottom: 18px;">
+        @if($isImage)
+            <img src="{{ $fileUrl }}" alt="Document" style="max-width: 100%; max-height: 500px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); display: block; margin-bottom: 18px;">
+        @else
+            <div style="padding: 28px; background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 14px; text-align: center; margin-bottom: 18px;">
+                <i class="fa-solid fa-file-pdf" style="font-size: 48px; color: #EF4444; margin-bottom: 12px; display: block;"></i>
+                <div style="font-size: 14.5px; font-weight: 600; color: #CBD5E1;">PDF Document — click below to view</div>
+            </div>
+        @endif
+
+        <a href="{{ $fileUrl }}" target="_blank" class="download-btn">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            {{ $isImage ? 'View Full Image' : 'Open / Download PDF' }}
+        </a>
     @else
-        <div style="padding: 28px; background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 14px; text-align: center; margin-bottom: 18px;">
-            <i class="fa-solid fa-file-pdf" style="font-size: 48px; color: #EF4444; margin-bottom: 12px; display: block;"></i>
-            <div style="font-size: 14.5px; font-weight: 600; color: #CBD5E1;">PDF Document — click below to view</div>
+        <div style="padding: 24px; background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 14px; text-align: center;">
+            <i class="fa-solid fa-file-circle-xmark" style="font-size: 36px; color: #94A3B8; margin-bottom: 10px; display: block;"></i>
+            <div style="font-size: 14px; font-weight: 600; color: #94A3B8;">No document file attached to this record.</div>
         </div>
     @endif
-
-    <a href="{{ $fileUrl }}" target="_blank" class="download-btn">
-        <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        {{ $isImage ? 'View Full Image' : 'Open / Download PDF' }}
-    </a>
 </div>
 @endsection

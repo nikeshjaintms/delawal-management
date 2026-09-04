@@ -38,9 +38,11 @@ class ExpenseController extends Controller
 
         $propQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
         $catQuery  = ExpenseCategory::where('status', 'active')->orderBy('name');
+        $projQuery = \App\Models\Project::with('propertyMaster')->orderBy('project_name');
 
         if ($firmId && (!$user || !$user->isAdmin())) {
             $propQuery->where('firm_id', $firmId);
+            $projQuery->where('firm_id', $firmId);
             $catQuery->whereHas('firms', function($q) use ($firmId) {
                 $q->where('firms.id', $firmId);
             });
@@ -48,6 +50,7 @@ class ExpenseController extends Controller
 
         return [
             'firms'      => $firms,
+            'projects'   => $projQuery->get(),
             'properties' => $propQuery->get(),
             'categories' => $catQuery->get(),
         ];
@@ -55,7 +58,7 @@ class ExpenseController extends Controller
 
     public function index(Request $request)
     {
-        $query = Expense::with(['firms', 'firm', 'property', 'expenseCategory']);
+        $query = Expense::with(['firms', 'firm', 'project', 'property.propertyType', 'property.project', 'expenseCategory']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -75,10 +78,15 @@ class ExpenseController extends Controller
                   ->orWhere('expense_category', 'like', "%{$s}%")
                   ->orWhere('paid_to', 'like', "%{$s}%")
                   ->orWhere('bill_no', 'like', "%{$s}%")
+                  ->orWhereHas('project', fn($pr) => $pr->where('project_name', 'like', "%{$s}%"))
                   ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
                   ->orWhereHas('firms', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
+        }
+
+        if ($request->filled('filter_project')) {
+            $query->where('project_id', $request->filter_project);
         }
 
         if ($request->filled('filter_property')) {
@@ -106,11 +114,12 @@ class ExpenseController extends Controller
 
         $firmsData  = $this->dropdowns($request->firm_id);
         $firms      = $firmsData['firms'];
+        $projects   = $firmsData['projects'];
         $properties = $firmsData['properties'];
         $categories = $firmsData['categories'];
 
         return view('admin.expenses.index', compact(
-            'expenses', 'firms', 'properties', 'categories', 'totalAmount'
+            'expenses', 'firms', 'projects', 'properties', 'categories', 'totalAmount'
         ));
     }
 
@@ -138,8 +147,15 @@ class ExpenseController extends Controller
                 ->store('expenses/bills', 'public');
         }
 
+        $projectId = $request->project_id ?: null;
+        if (!$projectId && $request->property_id) {
+            $prop = Property::find($request->property_id);
+            $projectId = $prop?->project_id ?: null;
+        }
+
         $expense = Expense::create([
             'firm_id'             => $primaryFirmId,
+            'project_id'          => $projectId,
             'property_id'         => $request->property_id ?: null,
             'expense_date'        => $request->expense_date,
             'expense_category_id' => $request->expense_category_id ?: null,
@@ -162,17 +178,20 @@ class ExpenseController extends Controller
 
     public function show(Expense $expense)
     {
-        $expense->load(['firms', 'firm', 'property.propertyType', 'expenseCategory']);
+        $expense->load(['firms', 'firm', 'project.propertyMaster', 'property.propertyType', 'property.project.propertyMaster', 'expenseCategory', 'vendor']);
         $this->authorise($expense);
         return view('admin.expenses.show', compact('expense'));
     }
 
     public function edit(Expense $expense)
     {
-        $expense->load(['firms', 'firm']);
+        $expense->load(['firms', 'firm', 'project', 'property.project']);
         $this->authorise($expense);
         return view('admin.expenses.edit', array_merge(
-            ['expense' => $expense],
+            [
+                'expense' => $expense,
+                'selectedProjectId' => $expense->project_id ?? $expense->property?->project_id,
+            ],
             $this->dropdowns($expense->firm_id)
         ));
     }
@@ -204,8 +223,15 @@ class ExpenseController extends Controller
                 ->store('expenses/bills', 'public');
         }
 
+        $projectId = $request->project_id ?: null;
+        if (!$projectId && $request->property_id) {
+            $prop = Property::find($request->property_id);
+            $projectId = $prop?->project_id ?: null;
+        }
+
         $expense->update([
             'firm_id'             => $primaryFirmId,
+            'project_id'          => $projectId,
             'property_id'         => $request->property_id ?: null,
             'expense_date'        => $request->expense_date,
             'expense_category_id' => $request->expense_category_id ?: null,

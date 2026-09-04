@@ -209,26 +209,28 @@ select.search-input option { background: #111827 !important; color: #FFFFFF !imp
                         <td><strong style="color: #FFFFFF;">{{ $rec->firm->firm_name ?? 'N/A' }}</strong></td>
                     @endif
                     <td>
-                        <strong style="color: #FFFFFF;">{{ $rec->property->property_name ?? '—' }}</strong>
-                        @if($rec->property->property_code)
-                            <div class="unit-txt">{{ $rec->property->property_code }}</div>
+                        <strong style="color: #FFFFFF;">{{ $rec->target_name }}</strong>
+                        @if($rec->target_code && $rec->target_code !== '—')
+                            <div class="unit-txt">{{ $rec->target_code }}</div>
                         @endif
                     </td>
                     <td>
-                        @if($rec->property?->propertyType)
+                        @if($rec->propertyMaster)
+                            <span class="prop-pill"><i class="fa-solid fa-map-location-dot"></i> Land / Property</span>
+                        @elseif($rec->property?->propertyType)
                             <span class="prop-pill">{{ $rec->property->propertyType->name }}</span>
                         @else
                             <span style="color:#94A3B8">—</span>
                         @endif
                     </td>
-                    <td><span style="color: #CBD5E1; font-weight: 700;">{{ $rec->property->unit_no ?? '—' }}</span></td>
+                    <td><span style="color: #CBD5E1; font-weight: 700;">{{ $rec->target_location }}</span></td>
                     <td>
                         <span class="badge badge-{{ $rec->status }}">
                             <i class="fa-solid fa-circle"></i>
                             {{ $rec->status_label }}
                         </span>
                     </td>
-                    <td><span style="color: #CBD5E1; font-weight: 600;">{{ $rec->status_date->format('d M Y') }}</span></td>
+                    <td><span style="color: #CBD5E1; font-weight: 600;">{{ $rec->status_date ? $rec->status_date->format('d M Y') : '—' }}</span></td>
                     <td>
                         @if($rec->remarks)
                             <span style="font-size:13px;color:#94A3B8; font-weight: 500;">
@@ -246,7 +248,7 @@ select.search-input option { background: #111827 !important; color: #FFFFFF !imp
                                   id="del-pa-{{ $rec->id }}" style="display:inline">
                                 @csrf @method('DELETE')
                                 <button type="button" class="btn-delete"
-                                    onclick="confirmDel({{ $rec->id }}, '{{ addslashes($rec->property->property_name ?? '') }}')">
+                                    onclick="confirmDel({{ $rec->id }}, '{{ addslashes($rec->target_name) }}')">
                                     <i class="fa fa-trash"></i> Delete
                                 </button>
                             </form>

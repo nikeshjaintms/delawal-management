@@ -38,6 +38,7 @@ class FinancialYearController extends Controller
             try {
                 $validated = $request->validated();
                 $validated['is_active'] = $request->boolean('is_active');
+                $validated['status'] = $validated['is_active'] ? 'active' : ($request->input('status', 'active'));
 
                 $year = FinancialYear::create($validated);
 
@@ -70,6 +71,7 @@ class FinancialYearController extends Controller
             try {
                 $validated = $request->validated();
                 $validated['is_active'] = $request->boolean('is_active');
+                $validated['status'] = $validated['is_active'] ? 'active' : ($request->input('status', 'active'));
 
                 $financialYear->update($validated);
 

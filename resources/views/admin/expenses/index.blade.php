@@ -160,6 +160,17 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                    class="search-input @error('search') is-invalid @enderror" placeholder="Title, paid to, bill no...">
         </div>
         <div class="filter-group">
+            <span class="filter-label">Project</span>
+            <select name="filter_project" class="filter-control @error('filter_project') is-invalid @enderror">
+                <option value="">All Projects</option>
+                @foreach($projects as $proj)
+                    <option value="{{ $proj->id }}" {{ request('filter_project') == $proj->id ? 'selected' : '' }}>
+                        {{ $proj->project_name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="filter-group">
             <span class="filter-label">Property</span>
             <select name="filter_property" class="filter-control @error('filter_property') is-invalid @enderror">
                 <option value="">All Properties</option>
@@ -204,7 +215,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
             <input type="date" name="filter_date" value="{{ request('filter_date') }}" class="filter-control @error('filter_date') is-invalid @enderror">
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_property','filter_category','filter_mode','filter_status','filter_date','firm_id']))
+        @if(request()->hasAny(['search','filter_project','filter_property','filter_category','filter_mode','filter_status','filter_date','firm_id']))
             <a href="{{ route('expenses.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
@@ -231,7 +242,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     <th>Date</th>
                     <th>Title</th>
                     <th>Category</th>
-                    <th>Property</th>
+                    <th>Project / Property</th>
                     <th>Amount</th>
                     <th>Mode</th>
                     <th>Paid To</th>
@@ -263,10 +274,19 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     </td>
                     <td>
                         @if($expense->property)
-                            <div style="font-weight:600;font-size:13px;color:#FFFFFF;">{{ $expense->property->property_name }}</div>
-                            @if($expense->property->property_code)
-                                <div style="font-size:11px;color:#94A3B8;">{{ $expense->property->property_code }}</div>
+                            <div style="font-weight:700;font-size:13px;color:#FFFFFF;">{{ $expense->property->property_name }}</div>
+                            @if($expense->property->unit_no)
+                                <div style="font-size:11px;color:#60A5FA;font-weight:700;">Unit: {{ $expense->property->unit_no }}</div>
                             @endif
+                            @if($expense->project ?? $expense->property->project)
+                                @php $pName = ($expense->project ?? $expense->property->project)->project_name; @endphp
+                                <div style="font-size:11px;color:#93C5FD;">{{ $pName }}</div>
+                            @else
+                                <div style="font-size:11px;color:#94A3B8;">[Direct Property]</div>
+                            @endif
+                        @elseif($expense->project)
+                            <div style="font-weight:700;font-size:13px;color:#60A5FA;">{{ $expense->project->project_name }}</div>
+                            <div style="font-size:11px;color:#CBD5E1;">[Project Expense]</div>
                         @else
                             <span style="color:#CBD5E1;">General</span>
                         @endif

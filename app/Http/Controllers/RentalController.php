@@ -102,25 +102,45 @@ class RentalController extends Controller
             $firmId = $user ? $user->firm_id : session('firm_id');
         }
 
-        $rental = Rental::create([
-            'firm_id'          => $firmId,
-            'property_id'      => $request->property_id,
-            'tenant_name'      => $request->tenant_name,
-            'tenant_mobile'    => $request->tenant_mobile,
-            'tenant_email'     => $request->tenant_email,
-            'rent_amount'      => $request->rent_amount,
-            'security_deposit' => $request->security_deposit,
-            'rent_start_date'  => $request->rent_start_date,
-            'rent_end_date'    => $request->rent_end_date,
-            'rent_due_date'    => $request->rent_due_date,
-            'payment_status'   => $request->payment_status,
-            'rental_status'    => $request->rental_status,
-            'remarks'          => $request->remarks,
-        ]);
+        $data = [
+            'firm_id'            => $firmId,
+            'property_id'        => $request->property_id,
+            'tenant_id'          => $request->tenant_id,
+            'agreement_no'       => $request->agreement_no,
+            'tenant_name'        => $request->tenant_name,
+            'tenant_mobile'      => $request->tenant_mobile,
+            'tenant_email'       => $request->tenant_email,
+            'rent_amount'        => $request->rent_amount,
+            'security_deposit'   => $request->security_deposit,
+            'maintenance_amount' => $request->maintenance_amount,
+            'rent_start_date'    => $request->rent_start_date,
+            'rent_end_date'      => $request->rent_end_date,
+            'handover_date'      => $request->handover_date,
+            'rent_due_date'      => $request->rent_due_date,
+            'lock_in_period'     => $request->lock_in_period,
+            'notice_period'      => $request->notice_period,
+            'meter_reading'      => $request->meter_reading,
+            'escalation_percent' => $request->escalation_percent,
+            'payment_status'     => $request->payment_status,
+            'rental_status'      => $request->rental_status,
+            'remarks'            => $request->remarks,
+        ];
+
+        if ($request->hasFile('agreement_document')) {
+            $data['agreement_document'] = $request->file('agreement_document')->store('rental_documents', 'public');
+        }
+
+        $rental = Rental::create($data);
+
+        if ($request->has('firm_ids') && is_array($request->firm_ids) && !empty($request->firm_ids)) {
+            $rental->syncFirms($request->firm_ids);
+        } elseif ($firmId) {
+            $rental->syncFirms([$firmId]);
+        }
 
         $this->updatePropertyStatus($rental);
 
-        return redirect()->route('rentals.index')->with('success', 'Rental record added successfully.');
+        return redirect()->route('rentals.index')->with('success', 'Rental agreement added successfully.');
     }
 
     public function show(Rental $rental)
@@ -133,7 +153,7 @@ class RentalController extends Controller
             abort(403);
         }
 
-        $rental->load(['firm', 'property.propertyType']);
+        $rental->load(['firm', 'property.propertyType', 'property.project.propertyMaster', 'tenant']);
 
         return view('admin.rentals.show', compact('rental'));
     }
@@ -192,25 +212,48 @@ class RentalController extends Controller
             $newFirmId = $rental->firm_id;
         }
 
-        $rental->update([
-            'firm_id'          => $newFirmId,
-            'property_id'      => $request->property_id,
-            'tenant_name'      => $request->tenant_name,
-            'tenant_mobile'    => $request->tenant_mobile,
-            'tenant_email'     => $request->tenant_email,
-            'rent_amount'      => $request->rent_amount,
-            'security_deposit' => $request->security_deposit,
-            'rent_start_date'  => $request->rent_start_date,
-            'rent_end_date'    => $request->rent_end_date,
-            'rent_due_date'    => $request->rent_due_date,
-            'payment_status'   => $request->payment_status,
-            'rental_status'    => $request->rental_status,
-            'remarks'          => $request->remarks,
-        ]);
+        $data = [
+            'firm_id'            => $newFirmId,
+            'property_id'        => $request->property_id,
+            'tenant_id'          => $request->tenant_id,
+            'agreement_no'       => $request->agreement_no,
+            'tenant_name'        => $request->tenant_name,
+            'tenant_mobile'      => $request->tenant_mobile,
+            'tenant_email'       => $request->tenant_email,
+            'rent_amount'        => $request->rent_amount,
+            'security_deposit'   => $request->security_deposit,
+            'maintenance_amount' => $request->maintenance_amount,
+            'rent_start_date'    => $request->rent_start_date,
+            'rent_end_date'      => $request->rent_end_date,
+            'handover_date'      => $request->handover_date,
+            'rent_due_date'      => $request->rent_due_date,
+            'lock_in_period'     => $request->lock_in_period,
+            'notice_period'      => $request->notice_period,
+            'meter_reading'      => $request->meter_reading,
+            'escalation_percent' => $request->escalation_percent,
+            'payment_status'     => $request->payment_status,
+            'rental_status'      => $request->rental_status,
+            'remarks'            => $request->remarks,
+        ];
+
+        if ($request->hasFile('agreement_document')) {
+            if ($rental->agreement_document && \Illuminate\Support\Facades\Storage::disk('public')->exists($rental->agreement_document)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($rental->agreement_document);
+            }
+            $data['agreement_document'] = $request->file('agreement_document')->store('rental_documents', 'public');
+        }
+
+        $rental->update($data);
+
+        if ($request->has('firm_ids') && is_array($request->firm_ids) && !empty($request->firm_ids)) {
+            $rental->syncFirms($request->firm_ids);
+        } elseif ($newFirmId) {
+            $rental->syncFirms([$newFirmId]);
+        }
 
         $this->updatePropertyStatus($rental);
 
-        return redirect()->route('rentals.index')->with('success', 'Rental record updated successfully.');
+        return redirect()->route('rentals.index')->with('success', 'Rental agreement updated successfully.');
     }
 
     public function destroy(Rental $rental)

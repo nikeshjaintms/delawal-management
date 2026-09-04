@@ -47,6 +47,7 @@ class ExpenseRequest extends FormRequest
             'expense_title'       => 'required|string|max:255',
             'expense_date'        => 'required|date',
             'expense_category_id' => 'nullable|exists:expense_categories,id',
+            'project_id'          => 'nullable|exists:projects,id',
             'property_id'         => 'nullable|exists:properties,id',
             'amount'              => 'required|numeric|min:0.01',
             'payment_mode'        => 'nullable|string|max:255',

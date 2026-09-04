@@ -101,16 +101,23 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 </div>
 
 <div class="card-box">
-    <form method="POST" action="{{ route('rentals.store') }}">
+    <form method="POST" action="{{ route('rentals.store') }}" enctype="multipart/form-data">
         @csrf
         @include('admin.components.firm-select')
 
         {{-- Property Details --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-building"></i> Property Details</div>
-            <div class="form-row">
+            <div class="section-title"><i class="fa-solid fa-building"></i> Property & Agreement Details</div>
+            <div class="form-row-3">
                 <div class="form-group">
-                    <label class="form-label" for="project_id">Project <span class="opt">(Select project to filter properties)</span></label>
+                    <label class="form-label" for="agreement_no">Agreement Number / Ref No</label>
+                    <input type="text" name="agreement_no" id="agreement_no" value="{{ old('agreement_no') }}"
+                           class="form-control @error('agreement_no') is-invalid @enderror" placeholder="e.g. AGR-2026-001">
+                    @error('agreement_no') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="project_id">Project <span class="opt">(Filter Properties)</span></label>
                     <select name="project_id" id="project_id" class="form-control">
                         <option value="">-- All / Select Project --</option>
                         @if(isset($projects))
@@ -151,6 +158,8 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-user"></i> Tenant Information</div>
             
+            <input type="hidden" name="tenant_id" id="tenant_id" value="{{ old('tenant_id') }}">
+
             <div class="form-group" style="margin-bottom: 18px;">
                 <label class="form-label" for="tenant_id_select">Select Tenant <span class="opt">(Choose from Tenant Master to Auto-Fetch)</span></label>
                 <select id="tenant_id_select" class="form-control">
@@ -158,10 +167,12 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     @if(isset($tenants))
                         @foreach($tenants as $t)
                             <option value="{{ $t->id }}"
+                                    data-id="{{ $t->id }}"
                                     data-name="{{ $t->name }}"
                                     data-mobile="{{ $t->mobile }}"
                                     data-email="{{ $t->email ?? '' }}"
-                                    data-firm-id="{{ $t->firm_id }}">
+                                    data-firm-id="{{ $t->firm_id }}"
+                                    {{ old('tenant_id') == $t->id ? 'selected' : '' }}>
                                 {{ $t->name }} ({{ $t->mobile }}) {{ $t->firm ? '— ' . $t->firm->firm_name : '' }}
                             </option>
                         @endforeach
@@ -172,7 +183,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                 </div>
             </div>
 
-            <div class="form-row">
+            <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label" for="tenant_name">Tenant Name <span>*</span></label>
                     <input type="text" name="tenant_name" id="tenant_name" value="{{ old('tenant_name') }}"
@@ -185,8 +196,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                            class="form-control @error('tenant_mobile') is-invalid @enderror" autocomplete="off" placeholder="Enter tenant contact number" required>
                     @error('tenant_mobile') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
-            </div>
-            <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="tenant_email">Tenant Email</label>
                     <input type="email" name="tenant_email" id="tenant_email" value="{{ old('tenant_email') }}"
@@ -196,10 +205,10 @@ textarea.form-control { resize: vertical; min-height: 90px; }
             </div>
         </div>
 
-        {{-- Rent Details --}}
+        {{-- Rent & Financials --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Rent & Deposit</div>
-            <div class="form-row">
+            <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Rent & Financials</div>
+            <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label" for="rent_amount">Monthly Rent Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="rent_amount" id="rent_amount" value="{{ old('rent_amount') }}"
@@ -212,12 +221,18 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                            class="form-control @error('security_deposit') is-invalid @enderror" placeholder="Enter security deposit amount">
                     @error('security_deposit') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
+                <div class="form-group">
+                    <label class="form-label" for="maintenance_amount">Maintenance Charges (₹/mo)</label>
+                    <input type="number" step="0.01" name="maintenance_amount" id="maintenance_amount" value="{{ old('maintenance_amount', 0) }}"
+                           class="form-control @error('maintenance_amount') is-invalid @enderror" placeholder="Society maintenance (if any)">
+                    @error('maintenance_amount') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
             </div>
         </div>
 
-        {{-- Dates --}}
+        {{-- Rental Period & Possession --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-calendar-days"></i> Rental Period</div>
+            <div class="section-title"><i class="fa-solid fa-calendar-days"></i> Rental Period & Possession</div>
             <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label" for="rent_start_date">Rent Start Date <span>*</span></label>
@@ -232,18 +247,64 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     @error('rent_end_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
+                    <label class="form-label" for="handover_date">Handover / Move-in Date</label>
+                    <input type="date" name="handover_date" id="handover_date"
+                           value="{{ old('handover_date') }}" class="form-control @error('handover_date') is-invalid @enderror">
+                    @error('handover_date') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <div class="form-row-3">
+                <div class="form-group">
                     <label class="form-label" for="rent_due_date">Rent Due Day of Month</label>
                     <input type="number" name="rent_due_date" id="rent_due_date" min="1" max="31"
                            value="{{ old('rent_due_date', 5) }}" class="form-control @error('rent_due_date') is-invalid @enderror" placeholder="e.g. 5">
-                    <div class="form-hint">Day of month when rent is due (1–31).</div>
+                    <div class="form-hint">Day of month (1–31).</div>
                     @error('rent_due_date') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="lock_in_period">Lock-in Period (Months)</label>
+                    <input type="number" name="lock_in_period" id="lock_in_period" min="0"
+                           value="{{ old('lock_in_period') }}" class="form-control @error('lock_in_period') is-invalid @enderror" placeholder="e.g. 6 or 11">
+                    @error('lock_in_period') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="notice_period">Notice Period (Days)</label>
+                    <input type="number" name="notice_period" id="notice_period" min="0"
+                           value="{{ old('notice_period', 30) }}" class="form-control @error('notice_period') is-invalid @enderror" placeholder="e.g. 30">
+                    @error('notice_period') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
         </div>
 
-        {{-- Status --}}
+        {{-- Utilities & Agreement Document --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-circle-dot"></i> Status</div>
+            <div class="section-title"><i class="fa-solid fa-file-contract"></i> Utilities & Agreement Document</div>
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label class="form-label" for="meter_reading">Electricity Starting Meter Reading</label>
+                    <input type="text" name="meter_reading" id="meter_reading" value="{{ old('meter_reading') }}"
+                           class="form-control @error('meter_reading') is-invalid @enderror" placeholder="e.g. 14502 kWh">
+                    @error('meter_reading') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="escalation_percent">Annual Rent Increment / Escalation (%)</label>
+                    <input type="number" step="0.01" name="escalation_percent" id="escalation_percent" min="0" max="100"
+                           value="{{ old('escalation_percent', 5) }}" class="form-control @error('escalation_percent') is-invalid @enderror" placeholder="e.g. 5 or 10">
+                    @error('escalation_percent') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="agreement_document">Upload Agreement (PDF/Image)</label>
+                    <input type="file" name="agreement_document" id="agreement_document"
+                           class="form-control @error('agreement_document') is-invalid @enderror" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                    <div class="form-hint">Notary / Agreement file.</div>
+                    @error('agreement_document') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+            </div>
+        </div>
+
+        {{-- Status & Remarks --}}
+        <div class="form-section">
+            <div class="section-title"><i class="fa-solid fa-circle-dot"></i> Status & Notes</div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="payment_status">Payment Status <span>*</span></label>
@@ -265,7 +326,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label" for="remarks">Remarks / Notes</label>
+                <label class="form-label" for="remarks">Remarks / Special Clauses</label>
                 <textarea name="remarks" id="remarks" class="form-control @error('remarks') is-invalid @enderror"
                           placeholder="Optional tenancy notes, special terms, etc.">{{ old('remarks') }}</textarea>
                 @error('remarks') <div class="text-error">{{ $message }}</div> @enderror
@@ -344,17 +405,21 @@ document.addEventListener('DOMContentLoaded', function() {
     function onTenantSelect() {
         if (!tenantSelect) return;
         const selectedOpt = tenantSelect.options[tenantSelect.selectedIndex];
+        const tenantIdInput = document.getElementById('tenant_id');
         if (selectedOpt && selectedOpt.value) {
+            const id = selectedOpt.getAttribute('data-id') || selectedOpt.value;
             const name = selectedOpt.getAttribute('data-name') || '';
             const mobile = selectedOpt.getAttribute('data-mobile') || '';
             const email = selectedOpt.getAttribute('data-email') || '';
 
+            if (tenantIdInput) tenantIdInput.value = id;
             if (name) tenantNameInput.value = name;
             if (mobile) tenantMobileInput.value = mobile;
             if (email) tenantEmailInput.value = email;
 
             if (tenantBadge) tenantBadge.style.display = 'block';
         } else {
+            if (tenantIdInput) tenantIdInput.value = '';
             if (tenantBadge) tenantBadge.style.display = 'none';
         }
     }

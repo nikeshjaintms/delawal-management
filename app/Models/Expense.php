@@ -10,6 +10,7 @@ class Expense extends Model
 
     protected $fillable = [
         'firm_id',
+        'project_id',
         'property_id',
         'vendor_id',
         'expense_date',
@@ -39,6 +40,11 @@ class Expense extends Model
     public function firm()
     {
         return $this->belongsTo(Firm::class);
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function property()

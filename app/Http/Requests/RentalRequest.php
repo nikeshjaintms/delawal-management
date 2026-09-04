@@ -50,21 +50,30 @@ class RentalRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
-            'firm_id'          => 'required|exists:firms,id',
-            'firm_ids'         => 'nullable|array',
-            'firm_ids.*'       => 'exists:firms,id',
-            'property_id'      => 'required|exists:properties,id',
-            'tenant_name'      => 'required|string|max:255',
-            'tenant_mobile'    => 'required|string|max:15',
-            'tenant_email'     => 'nullable|email|max:255',
-            'rent_amount'      => 'required|numeric|min:0.01',
-            'security_deposit' => 'nullable|numeric|min:0',
-            'rent_start_date'  => 'required|date',
-            'rent_end_date'    => 'nullable|date|after_or_equal:rent_start_date',
-            'rent_due_date'    => 'nullable|integer|min:1|max:31',
-            'payment_status'   => 'required|in:pending,partial,paid',
-            'rental_status'    => 'required|in:active,completed,cancelled',
-            'remarks'          => 'nullable|string|max:1000',
+            'firm_id'            => 'required|exists:firms,id',
+            'firm_ids'           => 'nullable|array',
+            'firm_ids.*'         => 'exists:firms,id',
+            'property_id'        => 'required|exists:properties,id',
+            'tenant_id'          => 'nullable|exists:tenants,id',
+            'agreement_no'       => 'nullable|string|max:100',
+            'tenant_name'        => 'required|string|max:255',
+            'tenant_mobile'      => 'required|string|max:15',
+            'tenant_email'       => 'nullable|email|max:255',
+            'rent_amount'        => 'required|numeric|min:0.01',
+            'security_deposit'   => 'nullable|numeric|min:0',
+            'maintenance_amount' => 'nullable|numeric|min:0',
+            'rent_start_date'    => 'required|date',
+            'rent_end_date'      => 'nullable|date|after_or_equal:rent_start_date',
+            'handover_date'      => 'nullable|date',
+            'rent_due_date'      => 'nullable|integer|min:1|max:31',
+            'lock_in_period'     => 'nullable|integer|min:0',
+            'notice_period'      => 'nullable|integer|min:0',
+            'meter_reading'      => 'nullable|string|max:100',
+            'escalation_percent' => 'nullable|numeric|min:0|max:100',
+            'payment_status'     => 'required|in:pending,partial,paid',
+            'rental_status'      => 'required|in:active,completed,cancelled',
+            'remarks'            => 'nullable|string|max:1000',
+            'agreement_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
         ];
 
         // Replace placeholders in unique rules dynamically
@@ -72,23 +81,6 @@ class RentalRequest extends FormRequest
             if (is_string($rule)) {
                 $replaced = str_replace('{ID}', $id ?: 'NULL', $rule);
                 $replaced = str_replace('{FIRM_ID}', $firmId, $replaced);
-                
-                // Dynamic Password rule for users
-                if ($field === 'password') {
-                    if ($this->isMethod('post')) {
-                        $replaced = 'required|string|min:6|same:confirm_password';
-                    } else {
-                        $replaced = 'nullable|string|min:6|same:confirm_password';
-                    }
-                }
-                if ($field === 'confirm_password') {
-                    if ($this->isMethod('post')) {
-                        $replaced = 'required';
-                    } else {
-                        $replaced = 'nullable';
-                    }
-                }
-                
                 $rules[$field] = $replaced;
             }
         }
@@ -99,18 +91,27 @@ class RentalRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'property_id'      => 'Property',
-            'tenant_name'      => 'Tenant Name',
-            'tenant_mobile'    => 'Tenant Mobile',
-            'tenant_email'     => 'Tenant Email',
-            'rent_amount'      => 'Rent Amount',
-            'security_deposit' => 'Security Deposit',
-            'rent_start_date'  => 'Rent Start Date',
-            'rent_end_date'    => 'Rent End Date',
-            'rent_due_date'    => 'Rent Due Day of Month',
-            'payment_status'   => 'Payment Status',
-            'rental_status'    => 'Rental Status',
-            'remarks'          => 'Remarks',
+            'property_id'        => 'Property',
+            'tenant_id'          => 'Tenant',
+            'agreement_no'       => 'Agreement Number',
+            'tenant_name'        => 'Tenant Name',
+            'tenant_mobile'      => 'Tenant Mobile',
+            'tenant_email'       => 'Tenant Email',
+            'rent_amount'        => 'Rent Amount',
+            'security_deposit'   => 'Security Deposit',
+            'maintenance_amount' => 'Maintenance Amount',
+            'rent_start_date'    => 'Rent Start Date',
+            'rent_end_date'      => 'Rent End Date',
+            'handover_date'      => 'Handover Date',
+            'rent_due_date'      => 'Rent Due Day of Month',
+            'lock_in_period'     => 'Lock-in Period',
+            'notice_period'      => 'Notice Period',
+            'meter_reading'      => 'Starting Meter Reading',
+            'escalation_percent' => 'Annual Increment %',
+            'payment_status'     => 'Payment Status',
+            'rental_status'      => 'Rental Status',
+            'remarks'            => 'Remarks',
+            'agreement_document' => 'Agreement Document',
         ];
     }
 

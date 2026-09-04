@@ -1,46 +1,46 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BrokerController;
-use App\Http\Controllers\VendorController;
-use App\Http\Controllers\TenantController;
-use App\Http\Controllers\PropertyTypeController;
-use App\Http\Controllers\PaymentModeController;
+use App\Http\Controllers\CreditNoteController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DebitNoteController;
 use App\Http\Controllers\ExpenseCategoryController;
-use App\Http\Controllers\PropertyMasterController;
-use App\Http\Controllers\PropertyController;
-use App\Http\Controllers\ProjectController;
-use App\Http\Controllers\PropertySaleController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\RentalController;
-use App\Http\Controllers\RentalPaymentController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ExpenseReportController;
+use App\Http\Controllers\FinancialYearController;
+use App\Http\Controllers\FirmController;
+use App\Http\Controllers\FormController;
+use App\Http\Controllers\FormSubmissionController;
+use App\Http\Controllers\InvoiceSettingController;
+use App\Http\Controllers\LedgerController;
+use App\Http\Controllers\LoanController;
+use App\Http\Controllers\LoanReportController;
 use App\Http\Controllers\MaterialCategoryController;
 use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PaymentModeController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\PropertyDocumentController;
+use App\Http\Controllers\PropertyMasterController;
+use App\Http\Controllers\PropertySaleController;
+use App\Http\Controllers\PropertyStatusController;
+use App\Http\Controllers\PropertyTypeController;
+use App\Http\Controllers\RentalController;
+use App\Http\Controllers\RentalPaymentController;
+use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StockInwardController;
 use App\Http\Controllers\StockOutwardController;
 use App\Http\Controllers\StockReportController;
-use App\Http\Controllers\ExpenseReportController;
-use App\Http\Controllers\LoanController;
-use App\Http\Controllers\LoanReportController;
-use App\Http\Controllers\LedgerController;
-use App\Http\Controllers\ReportsController;
-use App\Http\Controllers\CreditNoteController;
-use App\Http\Controllers\DebitNoteController;
-use App\Http\Controllers\AuditLogController;
-use App\Http\Controllers\BackupController;
+use App\Http\Controllers\TenantController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\FormController;
-use App\Http\Controllers\FormSubmissionController;
-use App\Http\Controllers\FirmController;
-use App\Http\Controllers\FinancialYearController;
-use App\Http\Controllers\InvoiceSettingController;
-use App\Http\Controllers\PropertyDocumentController;
-use App\Http\Controllers\PropertyStatusController;
+use App\Http\Controllers\VendorController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -77,6 +77,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::resource('contractors', \App\Http\Controllers\ContractorController::class)->middleware(['permission:project_view']);
     Route::get('properties/import/template', [PropertyController::class, 'downloadTemplate'])->name('properties.import.template')->middleware(['permission:property_view']);
     Route::post('properties/import/validate', [PropertyController::class, 'validateImport'])->name('properties.import.validate')->middleware(['permission:property_view']);
+    Route::post('properties/import/process', [PropertyController::class, 'processImport'])->name('properties.import.process')->middleware(['permission:property_view']);
     Route::post('properties/bulk-delete', [PropertyController::class, 'bulkDelete'])->name('properties.bulk-delete')->middleware(['permission:property_view']);
     Route::post('properties/{property}/quick-update', [PropertyController::class, 'quickUpdate'])->name('properties.quick-update')->middleware(['permission:property_view']);
     Route::resource('properties', PropertyController::class)->middleware(['permission:property_view']);
@@ -101,7 +102,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('purchase-orders/{purchase_order}/print', [\App\Http\Controllers\PurchaseOrderController::class, 'print'])->name('purchase-orders.print')->middleware(['permission:purchase_order_print']);
     Route::get('purchase-orders/{purchase_order}/pdf', [\App\Http\Controllers\PurchaseOrderController::class, 'downloadPdf'])->name('purchase-orders.pdf-download')->middleware(['permission:purchase_order_print']);
     Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->middleware(['permission:purchase_order_view']);
-    
+
     // Purchase Order Pending Items AJAX API for Stock Inward
     Route::get('purchase-orders/{purchase_order}/pending-items', [\App\Http\Controllers\StockInwardController::class, 'getPendingItems'])->name('purchase-orders.pending-items');
     Route::get('stock-inwards/{inward_number}/pending-outward-items', [\App\Http\Controllers\StockOutwardController::class, 'getPendingOutwardItems'])->name('stock-inwards.pending-outward-items');
@@ -110,7 +111,9 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
 
     // ── Inventory ────────────────────────────────────────────────────
     Route::resource('expenses', ExpenseController::class)->middleware(['permission:expense_view']);
-    Route::any('material-categories/{any?}', function() { return redirect()->route('materials.index'); })->where('any', '.*');
+    Route::any('material-categories/{any?}', function () {
+        return redirect()->route('materials.index');
+    })->where('any', '.*');
     Route::resource('materials', MaterialController::class)->middleware(['permission:inventory_view']);
     Route::resource('stock-inwards', StockInwardController::class)->middleware(['permission:inventory_view']);
     Route::resource('stock-outwards', StockOutwardController::class)->middleware(['permission:inventory_view']);
@@ -145,38 +148,38 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
 
     // ── Reports Module ───────────────────────────────────────────────
     Route::prefix('reports')->name('reports.')->middleware(['permission:reports_view'])->group(function () {
-        Route::get('/',          [ReportsController::class, 'index'])->name('index');
-        Route::get('gst-sales',  [ReportsController::class, 'gstSales'])->name('gst-sales');
-        Route::get('gst-sales/export-pdf',  [ReportsController::class, 'gstSalesExportPdf'])->name('gst-sales.pdf');
-        Route::get('gst-sales/export-excel',[ReportsController::class, 'gstSalesExportExcel'])->name('gst-sales.excel');
-        Route::get('gst-purchase',[ReportsController::class,'gstPurchase'])->name('gst-purchase');
-        Route::get('gst-purchase/export-pdf',  [ReportsController::class,'gstPurchaseExportPdf'])->name('gst-purchase.pdf');
-        Route::get('gst-purchase/export-excel',[ReportsController::class,'gstPurchaseExportExcel'])->name('gst-purchase.excel');
-        Route::get('credit-note',[ReportsController::class, 'creditNote'])->name('credit-note');
-        Route::get('credit-note/export-pdf',  [ReportsController::class, 'creditNoteExportPdf'])->name('credit-note.pdf');
-        Route::get('credit-note/export-excel',[ReportsController::class, 'creditNoteExportExcel'])->name('credit-note.excel');
+        Route::get('/', [ReportsController::class, 'index'])->name('index');
+        Route::get('gst-sales', [ReportsController::class, 'gstSales'])->name('gst-sales');
+        Route::get('gst-sales/export-pdf', [ReportsController::class, 'gstSalesExportPdf'])->name('gst-sales.pdf');
+        Route::get('gst-sales/export-excel', [ReportsController::class, 'gstSalesExportExcel'])->name('gst-sales.excel');
+        Route::get('gst-purchase', [ReportsController::class, 'gstPurchase'])->name('gst-purchase');
+        Route::get('gst-purchase/export-pdf', [ReportsController::class, 'gstPurchaseExportPdf'])->name('gst-purchase.pdf');
+        Route::get('gst-purchase/export-excel', [ReportsController::class, 'gstPurchaseExportExcel'])->name('gst-purchase.excel');
+        Route::get('credit-note', [ReportsController::class, 'creditNote'])->name('credit-note');
+        Route::get('credit-note/export-pdf', [ReportsController::class, 'creditNoteExportPdf'])->name('credit-note.pdf');
+        Route::get('credit-note/export-excel', [ReportsController::class, 'creditNoteExportExcel'])->name('credit-note.excel');
         Route::get('debit-note', [ReportsController::class, 'debitNote'])->name('debit-note');
-        Route::get('debit-note/export-pdf',  [ReportsController::class, 'debitNoteExportPdf'])->name('debit-note.pdf');
-        Route::get('debit-note/export-excel',[ReportsController::class, 'debitNoteExportExcel'])->name('debit-note.excel');
-        Route::get('profit-loss',[ReportsController::class, 'profitLoss'])->name('profit-loss');
-        Route::get('profit-loss/export-pdf',  [ReportsController::class, 'profitLossExportPdf'])->name('profit-loss.pdf');
-        Route::get('profit-loss/export-excel',[ReportsController::class, 'profitLossExportExcel'])->name('profit-loss.excel');
-        Route::get('balance-sheet',[ReportsController::class,'balanceSheet'])->name('balance-sheet');
-        Route::get('balance-sheet/export-excel',[ReportsController::class,'balanceSheetExportExcel'])->name('balance-sheet.excel');
-        Route::get('cash-flow',  [ReportsController::class, 'cashFlow'])->name('cash-flow');
-        Route::get('cash-flow/export-excel',[ReportsController::class,'cashFlowExportExcel'])->name('cash-flow.excel');
-        Route::get('sales',      [ReportsController::class, 'sales'])->name('sales');
-        Route::get('sales/export-pdf',  [ReportsController::class,'salesExportPdf'])->name('sales.pdf');
-        Route::get('sales/export-excel',[ReportsController::class,'salesExportExcel'])->name('sales.excel');
-        Route::get('payments',   [ReportsController::class, 'payments'])->name('payments');
-        Route::get('payments/export-pdf',  [ReportsController::class,'paymentsExportPdf'])->name('payments.pdf');
-        Route::get('payments/export-excel',[ReportsController::class,'paymentsExportExcel'])->name('payments.excel');
-        Route::get('rentals',    [ReportsController::class, 'rentals'])->name('rentals');
-        Route::get('rentals/export-pdf',  [ReportsController::class,'rentalsExportPdf'])->name('rentals.pdf');
-        Route::get('rentals/export-excel',[ReportsController::class,'rentalsExportExcel'])->name('rentals.excel');
-        Route::get('inventory',  [ReportsController::class, 'inventory'])->name('inventory');
-        Route::get('inventory/export-pdf',  [ReportsController::class, 'inventoryExportPdf'])->name('inventory.pdf');
-        Route::get('inventory/export-excel',[ReportsController::class, 'inventoryExportExcel'])->name('inventory.excel');
+        Route::get('debit-note/export-pdf', [ReportsController::class, 'debitNoteExportPdf'])->name('debit-note.pdf');
+        Route::get('debit-note/export-excel', [ReportsController::class, 'debitNoteExportExcel'])->name('debit-note.excel');
+        Route::get('profit-loss', [ReportsController::class, 'profitLoss'])->name('profit-loss');
+        Route::get('profit-loss/export-pdf', [ReportsController::class, 'profitLossExportPdf'])->name('profit-loss.pdf');
+        Route::get('profit-loss/export-excel', [ReportsController::class, 'profitLossExportExcel'])->name('profit-loss.excel');
+        Route::get('balance-sheet', [ReportsController::class, 'balanceSheet'])->name('balance-sheet');
+        Route::get('balance-sheet/export-excel', [ReportsController::class, 'balanceSheetExportExcel'])->name('balance-sheet.excel');
+        Route::get('cash-flow', [ReportsController::class, 'cashFlow'])->name('cash-flow');
+        Route::get('cash-flow/export-excel', [ReportsController::class, 'cashFlowExportExcel'])->name('cash-flow.excel');
+        Route::get('sales', [ReportsController::class, 'sales'])->name('sales');
+        Route::get('sales/export-pdf', [ReportsController::class, 'salesExportPdf'])->name('sales.pdf');
+        Route::get('sales/export-excel', [ReportsController::class, 'salesExportExcel'])->name('sales.excel');
+        Route::get('payments', [ReportsController::class, 'payments'])->name('payments');
+        Route::get('payments/export-pdf', [ReportsController::class, 'paymentsExportPdf'])->name('payments.pdf');
+        Route::get('payments/export-excel', [ReportsController::class, 'paymentsExportExcel'])->name('payments.excel');
+        Route::get('rentals', [ReportsController::class, 'rentals'])->name('rentals');
+        Route::get('rentals/export-pdf', [ReportsController::class, 'rentalsExportPdf'])->name('rentals.pdf');
+        Route::get('rentals/export-excel', [ReportsController::class, 'rentalsExportExcel'])->name('rentals.excel');
+        Route::get('inventory', [ReportsController::class, 'inventory'])->name('inventory');
+        Route::get('inventory/export-pdf', [ReportsController::class, 'inventoryExportPdf'])->name('inventory.pdf');
+        Route::get('inventory/export-excel', [ReportsController::class, 'inventoryExportExcel'])->name('inventory.excel');
     });
 
     // ── Admin-Only Restricted Routes ─────────────────────────────────

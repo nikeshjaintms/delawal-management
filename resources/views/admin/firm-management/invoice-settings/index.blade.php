@@ -4,33 +4,95 @@
 
 @section('content')
 <style>
-.btn-primary-custom,a.btn-primary-custom,button.btn-primary-custom{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;min-height:42px;background:linear-gradient(135deg,#1E5AA8,#2F6FE4);color:#fff !important;font-size:14px;font-weight:600;line-height:1;border:none;border-radius:10px;text-decoration:none !important;box-shadow:0 8px 20px rgba(47,111,228,.25);transition:all .25s ease;cursor:pointer;font-family:var(--font-primary)}
-.btn-primary-custom:hover{color:#fff !important;text-decoration:none !important;transform:translateY(-2px);box-shadow:0 12px 28px rgba(47,111,228,.35)}
-.btn-danger-custom,a.btn-danger-custom,button.btn-danger-custom{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;min-height:38px;background:linear-gradient(135deg,#dc3545,#b02a37);color:#fff !important;font-size:13px;font-weight:600;line-height:1;border:none;border-radius:9px;text-decoration:none !important;box-shadow:0 6px 16px rgba(220,53,69,.2);transition:all .25s ease;cursor:pointer;font-family:var(--font-primary)}
-.btn-danger-custom:hover{color:#fff !important;text-decoration:none !important;transform:translateY(-2px)}
-.btn-action-custom,a.btn-action-custom,button.btn-action-custom{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 12px;min-height:34px;background:#F4F7FB;color:#1E5AA8 !important;font-size:13px;font-weight:600;line-height:1;border:1px solid rgba(30,90,168,.18);border-radius:8px;text-decoration:none !important;transition:all .25s ease;cursor:pointer;font-family:var(--font-primary)}
-.btn-action-custom:hover{background:#1E5AA8;color:#fff !important;text-decoration:none !important}
-.btn-primary-custom i,.btn-danger-custom i,.btn-action-custom i{font-size:13px;line-height:1}
-.crud-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:15px}
-.crud-title h2{font-size:22px;font-weight:700;color:var(--text-primary);margin-bottom:4px}
-.crud-title p{font-size:13.5px;color:var(--text-secondary)}
-.filter-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
-.filter-select{padding:10px 14px;border:1.5px solid var(--border-color);border-radius:8px;font-size:13.5px;font-family:var(--font-primary);outline:none;background:#fff}
-.btn-search{background:var(--text-primary);color:#fff;padding:10px 18px;border-radius:8px;border:none;font-size:13.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
-.btn-reset{padding:10px 14px;color:var(--text-secondary);text-decoration:none;font-size:13.5px;display:inline-flex;align-items:center;gap:5px}
-.table-container{width:100%;overflow-x:auto}
-.premium-table{width:100%;border-collapse:collapse;font-size:13px}
-.premium-table th{padding:12px 14px;background:#F8FAFC;color:#475569;font-weight:700;border-bottom:2px solid var(--border-color);font-size:11px;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap}
-.premium-table td{padding:13px 14px;border-bottom:1px solid #F1F5F9;vertical-align:middle;white-space:nowrap}
-.premium-table tbody tr:hover{background:#F0F7FF}
-.badge{display:inline-block;padding:4px 10px;font-size:11px;font-weight:600;border-radius:20px;text-transform:uppercase}
-.badge-active{background:rgba(16,185,129,.1);color:#059669}
-.badge-inactive{background:rgba(239,68,68,.1);color:#DC2626}
-.prefix-pill{display:inline-block;background:var(--blue-light);color:var(--blue);font-size:11px;font-weight:700;border-radius:6px;padding:3px 8px;margin:1px}
-.action-col{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.pagination-wrap{margin-top:20px;display:flex;justify-content:center}
-.alert-success{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);color:#065F46;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13.5px;display:flex;align-items:center;gap:8px}
-.alert-danger-box{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);color:#991B1B;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13.5px;display:flex;align-items:center;gap:8px}
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+.crud-title h2 { font-size: 24px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 13.5px; color: #FFFFFF !important; font-weight: 700 !important; margin: 0; }
+
+.btn-primary-custom, a.btn-primary-custom, button.btn-primary-custom {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; min-height: 42px; background: #2563EB !important;
+    color: #FFFFFF !important; font-size: 14px; font-weight: 700; border: 1px solid #3B82F6 !important;
+    border-radius: 10px; text-decoration: none !important; box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+    transition: all .25s ease; cursor: pointer;
+}
+.btn-primary-custom:hover { background: #1D4ED8 !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(37,99,235,0.50); }
+
+.btn-secondary-custom, a.btn-secondary-custom, button.btn-secondary-custom {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; min-height: 42px; background: #1E293B !important;
+    color: #FFFFFF !important; font-size: 14px; font-weight: 700; border: 1px solid #475569 !important;
+    border-radius: 10px; text-decoration: none !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    transition: all .25s ease; cursor: pointer;
+}
+.btn-secondary-custom:hover { background: #334155 !important; color: #FFFFFF !important; transform: translateY(-2px); border-color: #64748B !important; }
+
+.btn-danger-custom, a.btn-danger-custom, button.btn-danger-custom {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 14px; min-height: 38px; background: #DC2626 !important;
+    color: #FFFFFF !important; font-size: 13px; font-weight: 700; border: 1px solid #EF4444 !important;
+    border-radius: 9px; text-decoration: none !important; box-shadow: 0 4px 14px rgba(220,38,38,0.35);
+    transition: all .25s ease; cursor: pointer;
+}
+.btn-danger-custom:hover { background: #B91C1C !important; transform: translateY(-2px); }
+
+.btn-action-custom, a.btn-action-custom, button.btn-action-custom {
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 7px 12px; min-height: 34px; background: rgba(59, 130, 246, 0.15) !important;
+    color: #60A5FA !important; font-size: 13px; font-weight: 700; border: 1px solid rgba(59, 130, 246, 0.30) !important;
+    border-radius: 8px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+}
+.btn-action-custom:hover { background: #2563EB !important; color: #FFFFFF !important; }
+
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 24px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 24px;
+}
+.filter-bar {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center;
+    background: rgba(255, 255, 255, 0.04) !important; padding: 14px 18px !important;
+    border-radius: 14px !important; border: 1px solid rgba(255, 255, 255, 0.10) !important;
+}
+.filter-select {
+    padding: 10px 14px; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 13.5px; color: #FFFFFF !important; outline: none;
+}
+.filter-select option { background: #101622 !important; color: #FFFFFF !important; }
+
+.btn-search {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 20px;
+    border-radius: 10px; border: 1px solid #3B82F6 !important; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+.btn-search:hover { background: #1D4ED8 !important; transform: translateY(-2px); }
+
+.btn-reset { padding: 10px 14px; color: #CBD5E1 !important; text-decoration: none; font-size: 13.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+.btn-reset:hover { color: #FFFFFF !important; }
+
+.table-container { width: 100%; overflow-x: auto; background: rgba(16, 22, 34, 0.70) !important; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.10); }
+.premium-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.premium-table th {
+    padding: 14px 16px; background: rgba(255, 255, 255, 0.05) !important;
+    color: #94A3B8 !important; font-weight: 800; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .8px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    white-space: nowrap;
+}
+.premium-table td {
+    padding: 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    color: #E2E8F0 !important; font-weight: 500; vertical-align: middle; white-space: nowrap;
+}
+.premium-table tbody tr:hover { background: rgba(255, 255, 255, 0.05) !important; }
+
+.badge { display: inline-block; padding: 4px 12px; font-size: 11px; font-weight: 700; border-radius: 20px; text-transform: uppercase; }
+.badge-active { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-inactive { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+.prefix-pill { display: inline-block; background: rgba(59, 130, 246, 0.18); color: #60A5FA; font-size: 11.5px; font-weight: 700; border-radius: 6px; padding: 3px 8px; margin: 1px; border: 1px solid rgba(59, 130, 246, 0.30); }
+.action-col { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 </style>
 
 <div class="crud-header">
@@ -42,10 +104,9 @@
 </div>
 
 @if(session('success'))
-<div class="alert-success"><i class="fa-solid fa-circle-check"></i> {{ session('success') }}</div>
-@endif
-@if(session('error'))
-<div class="alert-danger-box"><i class="fa-solid fa-circle-exclamation"></i> {{ session('error') }}</div>
+<div class="alert-success" style="background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3); color: #34D399; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; font-weight: 600;">
+    <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
+</div>
 @endif
 
 <div class="card-box">
@@ -65,46 +126,62 @@
         <table class="premium-table">
             <thead>
                 <tr>
-                    <th>#</th><th>Firm</th><th>Financial Year</th><th>Prefixes</th>
-                    <th>Starting #</th><th>Current #</th><th>Status</th><th>Actions</th>
+                    <th>#</th>
+                    <th>Firm Name</th>
+                    <th>Financial Year</th>
+                    <th>Booking / Sale</th>
+                    <th>Receipt</th>
+                    <th>Rental</th>
+                    <th>Purchase</th>
+                    <th>Credit / Debit</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-            @forelse($settings as $i => $setting)
+                @forelse($settings as $i => $s)
                 <tr>
-                    <td>{{ method_exists($settings, 'firstItem') ? ($settings->firstItem() + $i) : ($i + 1) }}</td>
-                    <td>{{ $setting->firm_names }}</td>
-                    <td>{{ $setting->financialYear->year_name ?? '—' }}</td>
+                    <td>{{ $i + 1 }}</td>
+                    <td><strong style="color: #FFFFFF;">{{ $s->firm->firm_name ?? 'All Firms' }}</strong></td>
+                    <td>{{ $s->financialYear->year_name ?? '—' }}</td>
                     <td>
-                        <span class="prefix-pill">{{ $setting->sales_prefix }}</span>
-                        <span class="prefix-pill">{{ $setting->purchase_prefix }}</span>
-                        <span class="prefix-pill">{{ $setting->payment_prefix }}</span>
-                        <span class="prefix-pill">{{ $setting->receipt_prefix }}</span>
-                        <span style="font-size:11px;color:var(--text-secondary);margin-left:2px">+5 more</span>
+                        <span class="prefix-pill">B: {{ $s->booking_prefix }}</span>
+                        <span class="prefix-pill">S: {{ $s->sale_prefix }}</span>
                     </td>
-                    <td>{{ $setting->starting_number }}</td>
-                    <td><strong>{{ $setting->current_number }}</strong></td>
-                    <td><span class="badge badge-{{ $setting->status }}">{{ ucfirst($setting->status) }}</span></td>
                     <td>
-                        <div class="table-action-buttons">
-                            <a href="{{ route('invoice-settings.show', $setting) }}" class="btn-action-custom"><i class="fa fa-eye"></i> View</a>
-                            <a href="{{ route('invoice-settings.edit', $setting) }}" class="btn-action-custom"><i class="fa fa-edit"></i> Edit</a>
-                            <form action="{{ route('invoice-settings.destroy', $setting) }}" method="POST" onsubmit="return confirm('Delete this invoice setting?')" style="display:inline">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn-danger-custom"><i class="fa fa-trash"></i> Delete</button>
-                            </form>
+                        <span class="prefix-pill">R: {{ $s->receipt_prefix }}</span>
+                        <span class="prefix-pill">P: {{ $s->payment_prefix }}</span>
+                    </td>
+                    <td>
+                        <span class="prefix-pill">Rent: {{ $s->rental_prefix }}</span>
+                    </td>
+                    <td>
+                        <span class="prefix-pill">PO: {{ $s->po_prefix }}</span>
+                        <span class="prefix-pill">Pur: {{ $s->purchase_prefix }}</span>
+                    </td>
+                    <td>
+                        <span class="prefix-pill">CN: {{ $s->credit_note_prefix }}</span>
+                        <span class="prefix-pill">DN: {{ $s->debit_note_prefix }}</span>
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ $s->status }}">{{ ucfirst($s->status) }}</span>
+                    </td>
+                    <td>
+                        <div class="action-col">
+                            <a href="{{ route('invoice-settings.show', $s) }}" class="btn-action-custom"><i class="fa fa-eye"></i> View</a>
+                            <a href="{{ route('invoice-settings.edit', $s) }}" class="btn-action-custom"><i class="fa fa-pen"></i> Edit</a>
                         </div>
                     </td>
                 </tr>
-            @empty
-                <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-secondary)">No invoice settings found. <a href="{{ route('invoice-settings.create') }}" style="color:var(--blue)">Add one</a>.</td></tr>
-            @endforelse
+                @empty
+                <tr>
+                    <td colspan="10" style="text-align: center; color: #94A3B8; padding: 30px;">
+                        No invoice series settings configured yet.
+                    </td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
-    @if(method_exists($settings, 'links'))
-        <div class="pagination-wrap">{{ $settings->links() }}</div>
-    @endif
 </div>
 @endsection
-

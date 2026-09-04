@@ -44,7 +44,7 @@ class IncomeRequest extends FormRequest
             'firm_ids'        => 'nullable|array',
             'firm_ids.*'      => 'exists:firms,id',
             'firm_id'         => 'nullable|exists:firms,id',
-            'property_id'     => 'required|exists:properties,id',
+            'property_id'     => 'nullable|exists:properties,id',
             'income_date'     => 'required|date',
             'income_type'     => 'required|string|max:255',
             'amount'          => 'required|numeric|min:0.01',

@@ -202,6 +202,9 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                         <td>
                             <div class="tenant-name">{{ $rental->tenant_name }}</div>
                             <div class="tenant-mobile">{{ $rental->tenant_mobile }}</div>
+                            @if($rental->agreement_no)
+                                <div style="font-size:11px;color:#60A5FA;font-weight:700;">#{{ $rental->agreement_no }}</div>
+                            @endif
                         </td>
                         <td class="amount-col">₹{{ number_format($rental->rent_amount, 0) }}</td>
                         <td style="color:#CBD5E1;">

@@ -12,9 +12,14 @@ class Tenant extends Model
         'firm_id',
         'name',
         'mobile',
+        'alternate_mobile',
         'email',
         'address',
+        'permanent_address',
         'city',
+        'occupation',
+        'emergency_contact_name',
+        'emergency_contact_mobile',
         'identity_type',
         'identity_number',
         'document_file',
@@ -24,5 +29,10 @@ class Tenant extends Model
     public function firm()
     {
         return $this->belongsTo(Firm::class);
+    }
+
+    public function rentals()
+    {
+        return $this->hasMany(Rental::class);
     }
 }

@@ -78,22 +78,22 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .btn-reset:hover { color: #FFFFFF !important; }
 
 .btn-export {
-    background: rgba(16, 185, 129, 0.15) !important; color: #34D399 !important;
-    padding: 10px 16px !important; border-radius: 10px; border: 1px solid rgba(52, 211, 153, 0.30) !important;
+    background: linear-gradient(135deg, #10B981, #059669) !important; color: #FFFFFF !important;
+    padding: 10px 16px !important; border-radius: 10px; border: 1px solid #10B981 !important;
     font-size: 13.5px; font-weight: 700; cursor: pointer; text-decoration: none !important;
     display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0 !important; white-space: nowrap !important;
-    align-self: flex-end !important; transition: all .2s ease;
+    align-self: flex-end !important; transition: all .2s ease; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
 }
-.btn-export:hover { background: #059669 !important; color: #FFFFFF !important; transform: translateY(-2px); }
+.btn-export:hover { background: linear-gradient(135deg, #059669, #047857) !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55); }
 
 .btn-export-pdf {
-    background: rgba(239, 68, 68, 0.15) !important; color: #F87171 !important;
-    padding: 10px 16px !important; border-radius: 10px; border: 1px solid rgba(239, 68, 68, 0.30) !important;
+    background: linear-gradient(135deg, #EF4444, #DC2626) !important; color: #FFFFFF !important;
+    padding: 10px 16px !important; border-radius: 10px; border: 1px solid #EF4444 !important;
     font-size: 13.5px; font-weight: 700; cursor: pointer; text-decoration: none !important;
     display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0 !important; white-space: nowrap !important;
-    align-self: flex-end !important; transition: all .2s ease;
+    align-self: flex-end !important; transition: all .2s ease; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
 }
-.btn-export-pdf:hover { background: #DC2626 !important; color: #FFFFFF !important; transform: translateY(-2px); }
+.btn-export-pdf:hover { background: linear-gradient(135deg, #DC2626, #B91C1C) !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.55); }
 
 .table-responsive-wrapper { width: 100%; overflow-x: auto; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.10); }
 

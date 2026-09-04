@@ -151,9 +151,18 @@
         <div class="detail-item">
             <div class="detail-label">
                 <i class="fa-solid fa-phone"></i>
-                Mobile
+                Primary Mobile
             </div>
             <div class="detail-value">{{ $tenant->mobile }}</div>
+        </div>
+
+        <!-- Alternate Mobile -->
+        <div class="detail-item">
+            <div class="detail-label">
+                <i class="fa-solid fa-mobile-screen"></i>
+                Alternate Mobile
+            </div>
+            <div class="detail-value {{ $tenant->alternate_mobile ? '' : 'empty' }}">{{ $tenant->alternate_mobile ?? 'Not provided' }}</div>
         </div>
 
         <!-- Email -->
@@ -169,6 +178,15 @@
             @endif
         </div>
 
+        <!-- Occupation -->
+        <div class="detail-item">
+            <div class="detail-label">
+                <i class="fa-solid fa-briefcase"></i>
+                Occupation / Profession
+            </div>
+            <div class="detail-value {{ $tenant->occupation ? '' : 'empty' }}">{{ $tenant->occupation ?? 'Not provided' }}</div>
+        </div>
+
         <!-- City -->
         <div class="detail-item">
             <div class="detail-label">
@@ -182,45 +200,31 @@
             @endif
         </div>
 
-        <!-- Identity Type -->
+        <!-- Identity Type & Number -->
         <div class="detail-item">
             <div class="detail-label">
                 <i class="fa-solid fa-id-card"></i>
-                Identity Type
+                Identity Info
             </div>
-            @if($tenant->identity_type)
-                <div class="detail-value">
-                    <span class="identity-chip">
-                        <i class="fa-solid fa-id-card" style="font-size:10px;"></i>
-                        {{ $tenant->identity_type }}
-                    </span>
-                </div>
+            @if($tenant->identity_type || $tenant->identity_number)
+                <div class="detail-value">{{ $tenant->identity_type ?? 'ID' }}: {{ $tenant->identity_number ?? '—' }}</div>
             @else
                 <div class="detail-value empty">Not provided</div>
             @endif
         </div>
 
-        <!-- Identity Number -->
+        <!-- Emergency Contact -->
         <div class="detail-item">
             <div class="detail-label">
-                <i class="fa-solid fa-hashtag"></i>
-                Identity Number
+                <i class="fa-solid fa-phone-volume"></i>
+                Emergency Contact
             </div>
-            @if($tenant->identity_number)
-                <div class="detail-value">{{ $tenant->identity_number }}</div>
-            @else
-                <div class="detail-value empty">Not provided</div>
-            @endif
-        </div>
-
-        <!-- Status -->
-        <div class="detail-item">
-            <div class="detail-label">
-                <i class="fa-solid fa-circle-dot"></i>
-                Status
-            </div>
-            <div class="detail-value">
-                <span class="badge badge-{{ $tenant->status }}">{{ ucfirst($tenant->status) }}</span>
+            <div class="detail-value {{ ($tenant->emergency_contact_name || $tenant->emergency_contact_mobile) ? '' : 'empty' }}">
+                @if($tenant->emergency_contact_name || $tenant->emergency_contact_mobile)
+                    {{ $tenant->emergency_contact_name ?? '—' }} ({{ $tenant->emergency_contact_mobile ?? '—' }})
+                @else
+                    Not provided
+                @endif
             </div>
         </div>
 
@@ -241,17 +245,22 @@
             @endif
         </div>
 
-        <!-- Address (Full Width) -->
-        <div class="detail-item detail-item-full">
+        <!-- Current Address -->
+        <div class="detail-item">
             <div class="detail-label">
                 <i class="fa-solid fa-location-dot"></i>
-                Address
+                Current Address
             </div>
-            @if($tenant->address)
-                <div class="detail-value">{{ $tenant->address }}</div>
-            @else
-                <div class="detail-value empty">Not provided</div>
-            @endif
+            <div class="detail-value {{ $tenant->address ? '' : 'empty' }}">{{ $tenant->address ?? 'Not provided' }}</div>
+        </div>
+
+        <!-- Permanent Address -->
+        <div class="detail-item">
+            <div class="detail-label">
+                <i class="fa-solid fa-house-chimney-user"></i>
+                Permanent Address
+            </div>
+            <div class="detail-value {{ $tenant->permanent_address ? '' : 'empty' }}">{{ $tenant->permanent_address ?? 'Not provided' }}</div>
         </div>
     </div>
 

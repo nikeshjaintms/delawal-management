@@ -66,16 +66,21 @@ class TenantController extends Controller
         }
 
         $tenant = Tenant::create([
-            'firm_id'         => $firmId,
-            'name'            => $request->name,
-            'mobile'          => $request->mobile,
-            'email'           => $request->email,
-            'address'         => $request->address,
-            'city'            => $request->city,
-            'identity_type'   => $request->identity_type,
-            'identity_number' => $request->identity_number,
-            'document_file'   => $documentPath,
-            'status'          => $request->status ?? 'active',
+            'firm_id'                  => $firmId,
+            'name'                     => $request->name,
+            'mobile'                   => $request->mobile,
+            'alternate_mobile'         => $request->alternate_mobile,
+            'email'                    => $request->email,
+            'address'                  => $request->address,
+            'permanent_address'        => $request->permanent_address,
+            'city'                     => $request->city,
+            'occupation'               => $request->occupation,
+            'emergency_contact_name'   => $request->emergency_contact_name,
+            'emergency_contact_mobile' => $request->emergency_contact_mobile,
+            'identity_type'            => $request->identity_type,
+            'identity_number'          => $request->identity_number,
+            'document_file'            => $documentPath,
+            'status'                   => $request->status ?? 'active',
         ]);
 
         if ($request->has('firm_ids') && method_exists($tenant, 'firms')) {
@@ -141,16 +146,21 @@ class TenantController extends Controller
         }
 
         $tenant->update([
-            'firm_id'         => $newFirmId,
-            'name'            => $request->name,
-            'mobile'          => $request->mobile,
-            'email'           => $request->email,
-            'address'         => $request->address,
-            'city'            => $request->city,
-            'identity_type'   => $request->identity_type,
-            'identity_number' => $request->identity_number,
-            'document_file'   => $documentPath,
-            'status'          => $request->status ?? 'active',
+            'firm_id'                  => $newFirmId,
+            'name'                     => $request->name,
+            'mobile'                   => $request->mobile,
+            'alternate_mobile'         => $request->alternate_mobile,
+            'email'                    => $request->email,
+            'address'                  => $request->address,
+            'permanent_address'        => $request->permanent_address,
+            'city'                     => $request->city,
+            'occupation'               => $request->occupation,
+            'emergency_contact_name'   => $request->emergency_contact_name,
+            'emergency_contact_mobile' => $request->emergency_contact_mobile,
+            'identity_type'            => $request->identity_type,
+            'identity_number'          => $request->identity_number,
+            'document_file'            => $documentPath,
+            'status'                   => $request->status ?? 'active',
         ]);
 
         if ($request->has('firm_ids') && method_exists($tenant, 'firms')) {

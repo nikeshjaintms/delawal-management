@@ -20,11 +20,12 @@
 
 .btn-secondary-custom, a.btn-secondary-custom, button.btn-secondary-custom {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 10px 20px; min-height: 42px; background: rgba(255, 255, 255, 0.08) !important;
-    color: #FFFFFF !important; font-size: 14px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+    padding: 10px 20px; min-height: 42px; background: #1E293B !important;
+    color: #FFFFFF !important; font-size: 14px; font-weight: 700; border: 1px solid #475569 !important;
+    border-radius: 10px; text-decoration: none !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    transition: all .25s ease; cursor: pointer;
 }
-.btn-secondary-custom:hover { background: rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; transform: translateY(-2px); }
+.btn-secondary-custom:hover { background: #334155 !important; color: #FFFFFF !important; transform: translateY(-2px); border-color: #64748B !important; }
 
 .form-card {
     background: rgba(20, 27, 41, 0.60) !important;
@@ -97,9 +98,9 @@ textarea.form-control { resize: vertical; min-height: 80px; }
         <div class="form-group">
             <label class="form-label">Password</label>
             <div style="position: relative;">
-                <input type="password" name="password" id="password" autocomplete="new-password" class="form-control @error('password') is-invalid @enderror" placeholder="Leave blank to keep current" style="padding-right: 40px;">
-                <button type="button" class="btn-toggle-pwd" data-target="password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #CBD5E1;">
-                    <i class="fa-regular fa-eye"></i>
+                <input type="password" name="password" id="password" autocomplete="new-password" class="form-control @error('password') is-invalid @enderror" placeholder="Leave blank to keep current" style="padding-right: 44px;">
+                <button type="button" class="btn-toggle-pwd" data-target="password" onclick="togglePasswordVisibility('password', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94A3B8; font-size: 15px; padding: 6px; z-index: 10;">
+                    <i class="fa-solid fa-eye" style="pointer-events: none;"></i>
                 </button>
             </div>
             @error('password')<div class="text-error">{{ $message }}</div>@enderror
@@ -107,9 +108,9 @@ textarea.form-control { resize: vertical; min-height: 80px; }
         <div class="form-group">
             <label class="form-label">Confirm Password</label>
             <div style="position: relative;">
-                <input type="password" name="confirm_password" id="confirm_password" autocomplete="new-password" class="form-control @error('confirm_password') is-invalid @enderror" placeholder="Leave blank to keep current" style="padding-right: 40px;">
-                <button type="button" class="btn-toggle-pwd" data-target="confirm_password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #CBD5E1;">
-                    <i class="fa-regular fa-eye"></i>
+                <input type="password" name="confirm_password" id="confirm_password" autocomplete="new-password" class="form-control @error('confirm_password') is-invalid @enderror" placeholder="Leave blank to keep current" style="padding-right: 44px;">
+                <button type="button" class="btn-toggle-pwd" data-target="confirm_password" onclick="togglePasswordVisibility('confirm_password', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94A3B8; font-size: 15px; padding: 6px; z-index: 10;">
+                    <i class="fa-solid fa-eye" style="pointer-events: none;"></i>
                 </button>
             </div>
             @error('confirm_password')<div class="text-error">{{ $message }}</div>@enderror
@@ -229,6 +230,25 @@ function previewLogo(input) {
         const reader = new FileReader();
         reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
         reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function togglePasswordVisibility(fieldId, buttonElement) {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    const icon = buttonElement.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    } else {
+        input.type = 'password';
+        if (icon) {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
     }
 }
 </script>

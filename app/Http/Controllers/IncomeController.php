@@ -39,7 +39,13 @@ class IncomeController extends Controller
             });
         }
 
-        $propQuery = \App\Models\Property::with(['propertyType', 'project.propertyMaster'])->orderBy('property_name');
+        $projQuery = \App\Models\Project::with(['propertyMaster', 'firm'])->where('status', 'active')->orderBy('project_name');
+        if ($firmId && (!$user || !$user->isAdmin())) {
+            $projQuery->where('firm_id', $firmId);
+        }
+        $projects = $projQuery->get();
+
+        $propQuery = \App\Models\Property::with(['propertyType', 'project.propertyMaster', 'firm'])->orderBy('property_name');
         if ($firmId && (!$user || !$user->isAdmin())) {
             $propQuery->where('firm_id', $firmId);
         }
@@ -48,6 +54,7 @@ class IncomeController extends Controller
         return [
             'firms'        => $firms,
             'paymentModes' => $pmQuery->get(),
+            'projects'     => $projects,
             'properties'   => $properties,
         ];
     }

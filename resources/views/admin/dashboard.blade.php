@@ -70,17 +70,17 @@
 
     /* --- KPI Grid --- */
     .kpi-grid-4 {
-        display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px;
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px;
     }
     .kpi-grid {
-        display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 20px;
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px;
     }
     .kpi-grid-2 {
-        display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 28px;
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px;
     }
-    @media(max-width:1400px) { .kpi-grid-4 { grid-template-columns: repeat(4, 1fr); } .kpi-grid, .kpi-grid-2 { grid-template-columns: repeat(4, 1fr); } }
-    @media(max-width:1100px) { .kpi-grid-4, .kpi-grid, .kpi-grid-2 { grid-template-columns: repeat(2, 1fr); } }
-    @media(max-width:480px)  { .kpi-grid-4, .kpi-grid, .kpi-grid-2 { grid-template-columns: 1fr; } }
+    @media(max-width:1440px) { .kpi-grid-4, .kpi-grid, .kpi-grid-2 { grid-template-columns: repeat(4, 1fr); } }
+    @media(max-width:1280px) { .kpi-grid-4, .kpi-grid, .kpi-grid-2 { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
+    @media(max-width:580px)  { .kpi-grid-4, .kpi-grid, .kpi-grid-2 { grid-template-columns: 1fr; } }
 
     /* --- KPI Cards --- */
     .kpi-card {
@@ -89,11 +89,11 @@
         backdrop-filter: blur(14px) saturate(160%) !important;
         -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
         border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        border-radius: 20px !important;
-        padding: 18px 20px; position: relative; overflow: hidden;
+        border-radius: 18px !important;
+        padding: 14px 14px; position: relative; overflow: hidden;
         box-shadow: 0 12px 32px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
         transition: transform 0.22s cubic-bezier(0.4,0,0.2,1), box-shadow 0.22s cubic-bezier(0.4,0,0.2,1), border-color 0.22s ease, background 0.22s ease;
-        display: flex; align-items: center; gap: 16px;
+        display: flex; align-items: center; gap: 10px; min-width: 0;
     }
     .kpi-card:hover {
         transform: translateY(-3px) !important;
@@ -105,8 +105,8 @@
 
     /* Icon Box styling in stat cards */
     .kpi-icon-box {
-        width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center; font-size: 18px;
+        width: 36px; height: 36px; min-width: 36px; border-radius: 10px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; font-size: 15px;
         background: rgba(59, 130, 246, 0.20); border: 1px solid rgba(59, 130, 246, 0.35); color: #60A5FA;
         transition: transform 0.2s ease;
     }
@@ -122,10 +122,10 @@
 
     .kpi-card:hover .kpi-icon-box { transform: scale(1.10); }
     .kpi-deco { display: none !important; }
-    .kpi-info { display: flex; flex-direction: column; z-index: 2; flex: 1; min-width: 0; }
-    .kpi-label { font-size: 11px; font-weight: 800; color: #FFFFFF !important; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .kpi-value { font-size: 28px; font-weight: 800; color: #FFFFFF !important; line-height: 1.1; margin-bottom: 2px; font-variant-numeric: tabular-nums; }
-    .kpi-badge { font-size: 12px; font-weight: 700; display: inline-block; width: fit-content; white-space: nowrap; }
+    .kpi-info { display: flex; flex-direction: column; z-index: 2; flex: 1; min-width: 0; overflow: hidden; }
+    .kpi-label { font-size: 10.5px; font-weight: 800; color: #CBD5E1 !important; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; line-height: 1.2; white-space: normal; word-break: break-word; }
+    .kpi-value { font-size: clamp(14px, 1.1vw, 17px) !important; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-bottom: 2px; font-variant-numeric: tabular-nums; white-space: nowrap; letter-spacing: -0.4px; }
+    .kpi-badge { font-size: 11px; font-weight: 700; display: inline-block; width: fit-content; white-space: nowrap; }
 
     .bk-blue   { color: #3B82F6 !important; }
     .bk-green  { color: #10B981 !important; }
@@ -440,14 +440,12 @@
         <div style="width:6px;height:18px;background:linear-gradient(180deg,#10B981,#14B8A6);border-radius:4px;flex-shrink:0;"></div>
         <h3>System-Wide Finances</h3>
         <div class="kpi-section-divider"></div>
-    </div>
-
-    <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+    </div>    <div class="kpi-grid-4" style="margin-bottom: 24px;">
         <div class="kpi-card">
             <div class="kpi-icon-box ik-orange"><i class="fa-solid fa-file-invoice-dollar"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Bookings</span>
-                <span class="kpi-value" style="color:#F97316;">{{ number_format($totalBookings) }}</span>
+                <span class="kpi-value" style="color:#F97316;" title="{{ number_format($totalBookings) }}">{{ number_format($totalBookings) }}</span>
                 <span class="kpi-badge bk-orange">Sales Contracts</span>
             </div>
             <div class="kpi-deco deco-orange"></div>
@@ -456,7 +454,7 @@
             <div class="kpi-icon-box ik-green"><i class="fa-solid fa-money-bill-trend-up"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Revenue</span>
-                <span class="kpi-value" style="color:#10B981;">₹{{ number_format($totalReceivedAmt, 0) }}</span>
+                <span class="kpi-value" style="color:#10B981;" title="₹{{ number_format($totalReceivedAmt, 0) }}">₹{{ number_format($totalReceivedAmt, 0) }}</span>
                 <span class="kpi-badge bk-green">Total Received</span>
             </div>
             <div class="kpi-deco deco-green"></div>
@@ -465,7 +463,7 @@
             <div class="kpi-icon-box ik-red"><i class="fa-solid fa-receipt"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Expenses</span>
-                <span class="kpi-value" style="color:#EF4444;">₹{{ number_format($totalExpenses, 0) }}</span>
+                <span class="kpi-value" style="color:#EF4444;" title="₹{{ number_format($totalExpenses, 0) }}">₹{{ number_format($totalExpenses, 0) }}</span>
                 <span class="kpi-badge bk-red">All Outflows</span>
             </div>
             <div class="kpi-deco deco-red"></div>
@@ -474,7 +472,7 @@
             <div class="kpi-icon-box {{ $netProfit >= 0 ? 'ik-green' : 'ik-red' }}"><i class="fa-solid fa-{{ $netProfit >= 0 ? 'arrow-trend-up' : 'arrow-trend-down' }}"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Net Profit (Est.)</span>
-                <span class="kpi-value" style="color:{{ $netProfit >= 0 ? '#10B981' : '#EF4444' }};">₹{{ number_format($netProfit, 0) }}</span>
+                <span class="kpi-value" style="color:{{ $netProfit >= 0 ? '#10B981' : '#EF4444' }};" title="₹{{ number_format($netProfit, 0) }}">₹{{ number_format($netProfit, 0) }}</span>
                 <span class="kpi-badge {{ $netProfit >= 0 ? 'bk-green' : 'bk-red' }}">{{ $netProfit >= 0 ? 'Profit' : 'Loss' }}</span>
             </div>
             <div class="kpi-deco {{ $netProfit >= 0 ? 'deco-green' : 'deco-red' }}"></div>

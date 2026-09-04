@@ -10,6 +10,7 @@ class PropertyStatus extends Model
 
     protected $fillable = [
         'firm_id',
+        'property_master_id',
         'property_id',
         'status',
         'status_date',
@@ -27,9 +28,29 @@ class PropertyStatus extends Model
         return $this->belongsTo(Firm::class);
     }
 
+    public function propertyMaster()
+    {
+        return $this->belongsTo(PropertyMaster::class, 'property_master_id');
+    }
+
     public function property()
     {
         return $this->belongsTo(Property::class);
+    }
+
+    public function getTargetNameAttribute(): string
+    {
+        return $this->propertyMaster ? $this->propertyMaster->property_name : ($this->property ? $this->property->property_name : '—');
+    }
+
+    public function getTargetCodeAttribute(): string
+    {
+        return $this->propertyMaster ? ($this->propertyMaster->property_code ?? '—') : ($this->property ? ($this->property->property_code ?? $this->property->unit_no ?? '—') : '—');
+    }
+
+    public function getTargetLocationAttribute(): string
+    {
+        return $this->propertyMaster ? ($this->propertyMaster->location ?? $this->propertyMaster->city ?? '—') : ($this->property ? ($this->property->location ?? '—') : '—');
     }
 
     public function updatedBy()

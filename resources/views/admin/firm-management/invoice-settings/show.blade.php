@@ -22,11 +22,12 @@
 
 .btn-secondary-custom, a.btn-secondary-custom, button.btn-secondary-custom {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 10px 20px; min-height: 42px; background: rgba(255, 255, 255, 0.06) !important;
-    color: #CBD5E1 !important; font-size: 14px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.14) !important;
-    border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
+    padding: 10px 20px; min-height: 42px; background: #1E293B !important;
+    color: #FFFFFF !important; font-size: 14px; font-weight: 700; border: 1px solid #475569 !important;
+    border-radius: 10px; text-decoration: none !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    transition: all .25s ease; cursor: pointer;
 }
-.btn-secondary-custom:hover { background: rgba(255, 255, 255, 0.12) !important; color: #FFFFFF !important; transform: translateY(-2px); }
+.btn-secondary-custom:hover { background: #334155 !important; color: #FFFFFF !important; transform: translateY(-2px); border-color: #64748B !important; }
 
 .detail-card, .card-box {
     background: rgba(20, 27, 41, 0.60) !important;

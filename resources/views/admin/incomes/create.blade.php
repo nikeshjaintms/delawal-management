@@ -105,29 +105,42 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label" for="property_id">Property <span>*</span></label>
-                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required>
-                        <option value="">— Select Property —</option>
+                    <label class="form-label" for="project_id">Project <span class="opt">(Optional Filter / Selection)</span></label>
+                    <select name="project_id" id="project_id" class="form-control">
+                        <option value="">-- All Projects / Direct Properties --</option>
+                        @foreach($projects as $proj)
+                            <option value="{{ $proj->id }}"
+                                    data-firm-id="{{ $proj->firm_id }}"
+                                    {{ old('project_id') == $proj->id ? 'selected' : '' }}>
+                                {{ $proj->project_name }} {{ $proj->propertyMaster ? '('.$proj->propertyMaster->property_name.')' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="property_id">Property <span class="opt">(Direct or Project Property)</span></label>
+                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
+                        <option value="">-- Select Property / Unit --</option>
                         @foreach($properties as $property)
                             <option value="{{ $property->id }}"
-                                    data-type="{{ $property->propertyType->name ?? 'No Property Type Assigned' }}"
-                                    data-project="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
+                                    data-project-id="{{ $property->project_id ?? '' }}"
+                                    data-project-name="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? '') }}"
+                                    data-type="{{ $property->propertyType->name ?? 'Standalone Property' }}"
+                                    data-firm-id="{{ $property->firm_id }}"
                                     {{ old('property_id') == $property->id ? 'selected' : '' }}>
-                                {{ $property->property_name }} @if($property->property_code) ({{ $property->property_code }}) @endif
+                                {{ $property->property_name }}
+                                @if($property->unit_no) · Unit {{ $property->unit_no }} @endif
+                                @if(!$property->project_id) [Direct Property] @else ({{ $property->project->project_name ?? '' }}) @endif
                             </option>
                         @endforeach
                     </select>
                     @error('property_id')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
+
                 <div class="form-group">
                     <label class="form-label" for="property_type_display">Property Type</label>
                     <input type="text" id="property_type_display" class="form-control form-control-readonly" readonly placeholder="Auto-determined">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label" for="project_display">Project</label>
-                    <input type="text" id="project_display" class="form-control form-control-readonly" readonly placeholder="Auto-determined">
                 </div>
             </div>
 
@@ -136,12 +149,12 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     <label class="form-label" for="income_date">Income Date <span>*</span></label>
                     <input type="date" name="income_date" id="income_date"
                            value="{{ old('income_date', date('Y-m-d')) }}"
-                           class="form-control @error('income_date') is-invalid @enderror">
+                           class="form-control @error('income_date') is-invalid @enderror" required>
                     @error('income_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="income_type">Income Type <span>*</span></label>
-                    <select name="income_type" id="income_type" class="form-control @error('income_type') is-invalid @enderror">
+                    <select name="income_type" id="income_type" class="form-control @error('income_type') is-invalid @enderror" required>
                         <option value="">— Select Type —</option>
                         @foreach(['Rent','Property Sale','Commission','Interest','Other'] as $t)
                             <option value="{{ $t }}" {{ old('income_type') == $t ? 'selected' : '' }}>{{ $t }}</option>
@@ -156,7 +169,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     <label class="form-label" for="amount">Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="amount" id="amount"
                            value="{{ old('amount') }}"
-                           class="form-control @error('amount') is-invalid @enderror" placeholder="0.00" min="0">
+                           class="form-control @error('amount') is-invalid @enderror" placeholder="0.00" min="0" required>
                     @error('amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
@@ -222,35 +235,78 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    if (window.jQuery && jQuery.fn.select2) {
-        jQuery('#property_id').select2({
-            placeholder: "Search and select property...",
-            allowClear: true,
-            width: '100%'
+    const projectSelect  = document.getElementById('project_id');
+    const propertySelect = document.getElementById('property_id');
+    const propTypeInput  = document.getElementById('property_type_display');
+
+    function filterProperties() {
+        const selectedProjId = projectSelect ? projectSelect.value : '';
+        const currentPropVal = propertySelect ? propertySelect.value : '';
+
+        if (!propertySelect) return;
+
+        let hasSelectedOption = false;
+
+        Array.from(propertySelect.options).forEach((opt, idx) => {
+            if (idx === 0) return; // Keep placeholder
+            const optProjId = opt.getAttribute('data-project-id');
+
+            if (!selectedProjId) {
+                // Show all properties (direct and project-wise)
+                opt.style.display = '';
+                opt.disabled = false;
+                if (opt.value === currentPropVal) hasSelectedOption = true;
+            } else if (optProjId === selectedProjId) {
+                // Show properties belonging to this project
+                opt.style.display = '';
+                opt.disabled = false;
+                if (opt.value === currentPropVal) hasSelectedOption = true;
+            } else {
+                // Hide other properties
+                opt.style.display = 'none';
+                opt.disabled = true;
+            }
         });
+
+        if (!hasSelectedOption && selectedProjId && currentPropVal) {
+            propertySelect.value = '';
+        }
+        updatePropertyType();
     }
 
-    function updatePropertyInfo() {
-        const select = document.getElementById('property_id');
-        if (!select) return;
-        const selectedOption = select.options[select.selectedIndex];
-        const propType = selectedOption ? selectedOption.getAttribute('data-type') : '';
-        const projName = selectedOption ? selectedOption.getAttribute('data-project') : '';
-        const val = select.value;
-        if (!val || !selectedOption) {
-            document.getElementById('property_type_display').value = 'Auto-determined';
-            if (document.getElementById('project_display')) document.getElementById('project_display').value = 'Auto-determined';
+    function updatePropertyType() {
+        if (!propertySelect) return;
+        const selectedOpt = propertySelect.options[propertySelect.selectedIndex];
+        if (selectedOpt && selectedOpt.value) {
+            const propType = selectedOpt.getAttribute('data-type') || 'Standalone Property';
+            const projId   = selectedOpt.getAttribute('data-project-id');
+            if (propTypeInput) propTypeInput.value = propType;
+
+            // Auto-sync project dropdown if not already set or changed
+            if (projId && projectSelect && projectSelect.value !== projId) {
+                projectSelect.value = projId;
+            } else if (!projId && projectSelect && projectSelect.value !== '') {
+                projectSelect.value = '';
+            }
         } else {
-            document.getElementById('property_type_display').value = propType || 'No Property Type Assigned';
-            if (document.getElementById('project_display')) document.getElementById('project_display').value = projName || 'No Project Assigned';
+            if (propTypeInput) propTypeInput.value = 'Auto-determined';
         }
     }
 
-    if (window.jQuery) {
-        jQuery('#property_id').on('change select2:select select2:unselect', updatePropertyInfo);
+    if (projectSelect) {
+        projectSelect.addEventListener('change', function() {
+            filterProperties();
+        });
     }
-    document.getElementById('property_id')?.addEventListener('change', updatePropertyInfo);
-    updatePropertyInfo();
+
+    if (propertySelect) {
+        propertySelect.addEventListener('change', function() {
+            updatePropertyType();
+        });
+    }
+
+    // Initialize on load
+    updatePropertyType();
 });
 </script>
 @endsection

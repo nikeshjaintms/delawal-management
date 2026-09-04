@@ -651,42 +651,42 @@
         box-shadow: 0 6px 22px rgba(13, 148, 136, 0.5) !important;
     }
 
-    /* Global Export & Action Buttons */
+    /* Global Export & Action Buttons - Direct Solid Vibrant Colors */
     .btn-export-csv, .btn-export-excel, a.btn-export-csv, a.btn-export-excel {
         display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 7px !important;
-        padding: 9px 18px !important; background: rgba(255, 255, 255, 0.08) !important;
-        color: #FFFFFF !important; font-size: 13.5px !important; font-weight: 700 !important; border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        padding: 9px 18px !important; background: linear-gradient(135deg, #10B981, #059669) !important;
+        color: #FFFFFF !important; font-size: 13.5px !important; font-weight: 700 !important; border: 1px solid #10B981 !important;
         border-radius: 10px !important; text-decoration: none !important; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1) !important; cursor: pointer !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important; white-space: nowrap !important;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important; white-space: nowrap !important;
     }
     .btn-export-csv:hover, .btn-export-excel:hover, a.btn-export-csv:hover, a.btn-export-excel:hover {
-        background: linear-gradient(135deg, #10B981, #059669) !important; border-color: #10B981 !important; color: #FFFFFF !important;
+        background: linear-gradient(135deg, #059669, #047857) !important; border-color: #059669 !important; color: #FFFFFF !important;
         transform: translateY(-2px) scale(1.02) !important; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55) !important;
     }
     .btn-export-csv:hover i, .btn-export-excel:hover i { transform: scale(1.12) !important; }
 
     .btn-export-pdf, a.btn-export-pdf {
         display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 7px !important;
-        padding: 9px 18px !important; background: rgba(255, 255, 255, 0.08) !important;
-        color: #FFFFFF !important; font-size: 13.5px !important; font-weight: 700 !important; border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        padding: 9px 18px !important; background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+        color: #FFFFFF !important; font-size: 13.5px !important; font-weight: 700 !important; border: 1px solid #EF4444 !important;
         border-radius: 10px !important; text-decoration: none !important; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1) !important; cursor: pointer !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important; white-space: nowrap !important;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35) !important; white-space: nowrap !important;
     }
     .btn-export-pdf:hover, a.btn-export-pdf:hover {
-        background: linear-gradient(135deg, #EF4444, #DC2626) !important; border-color: #EF4444 !important; color: #FFFFFF !important;
+        background: linear-gradient(135deg, #DC2626, #B91C1C) !important; border-color: #DC2626 !important; color: #FFFFFF !important;
         transform: translateY(-2px) scale(1.02) !important; box-shadow: 0 6px 20px rgba(239, 68, 68, 0.55) !important;
     }
     .btn-export-pdf:hover i { transform: scale(1.12) !important; }
 
     .btn-export-print, a.btn-export-print {
         display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 7px !important;
-        padding: 9px 18px !important; background: rgba(255, 255, 255, 0.08) !important;
-        color: #FFFFFF !important; font-size: 13.5px !important; font-weight: 700 !important; border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        padding: 9px 18px !important; background: linear-gradient(135deg, #6366F1, #4F46E5) !important;
+        color: #FFFFFF !important; font-size: 13.5px !important; font-weight: 700 !important; border: 1px solid #6366F1 !important;
         border-radius: 10px !important; text-decoration: none !important; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1) !important; cursor: pointer !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important; white-space: nowrap !important;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important; white-space: nowrap !important;
     }
     .btn-export-print:hover, a.btn-export-print:hover {
-        background: linear-gradient(135deg, #6366F1, #4F46E5) !important; border-color: #6366F1 !important; color: #FFFFFF !important;
+        background: linear-gradient(135deg, #4F46E5, #4338CA) !important; border-color: #4F46E5 !important; color: #FFFFFF !important;
         transform: translateY(-2px) scale(1.02) !important; box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55) !important;
     }
     .btn-export-print:hover i { transform: scale(1.12) !important; }
@@ -1471,11 +1471,11 @@
         -moz-appearance: textfield !important;
     }
 
-    /* Uniform Export & Print Buttons System (Default Dark Glass -> Vibrant Solid Colors on Hover) */
+    /* Uniform Export & Print Buttons System (Direct Solid Colors) */
     .btn-export-pdf, .btn-pdf, a.btn-export-pdf, a.btn-pdf {
-        background: rgba(255, 255, 255, 0.08) !important;
+        background: linear-gradient(135deg, #EF4444, #DC2626) !important;
         color: #FFFFFF !important;
-        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border: 1px solid #EF4444 !important;
         border-radius: 10px !important;
         padding: 9px 18px !important;
         font-size: 13.5px !important;
@@ -1486,21 +1486,21 @@
         text-decoration: none !important;
         white-space: nowrap !important;
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35) !important;
         cursor: pointer !important;
     }
     .btn-export-pdf:hover, .btn-pdf:hover, a.btn-export-pdf:hover, a.btn-pdf:hover {
-        background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+        background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
         color: #FFFFFF !important;
-        border-color: #EF4444 !important;
+        border-color: #DC2626 !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 20px rgba(239, 68, 68, 0.55) !important;
     }
 
     .btn-excel, .btn-export, .btn-export-excel, .btn-export-csv, a.btn-excel, a.btn-export, a.btn-export-excel, a.btn-export-csv {
-        background: rgba(255, 255, 255, 0.08) !important;
+        background: linear-gradient(135deg, #10B981, #059669) !important;
         color: #FFFFFF !important;
-        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border: 1px solid #10B981 !important;
         border-radius: 10px !important;
         padding: 9px 18px !important;
         font-size: 13.5px !important;
@@ -1511,21 +1511,21 @@
         text-decoration: none !important;
         white-space: nowrap !important;
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
         cursor: pointer !important;
     }
     .btn-excel:hover, .btn-export:hover, .btn-export-excel:hover, .btn-export-csv:hover, a.btn-excel:hover, a.btn-export:hover, a.btn-export-excel:hover, a.btn-export-csv:hover {
-        background: linear-gradient(135deg, #10B981, #059669) !important;
+        background: linear-gradient(135deg, #059669, #047857) !important;
         color: #FFFFFF !important;
-        border-color: #10B981 !important;
+        border-color: #059669 !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55) !important;
     }
 
     .btn-print, .btn-export-print, a.btn-print, a.btn-export-print {
-        background: rgba(255, 255, 255, 0.08) !important;
+        background: linear-gradient(135deg, #6366F1, #4F46E5) !important;
         color: #FFFFFF !important;
-        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border: 1px solid #6366F1 !important;
         border-radius: 10px !important;
         padding: 9px 18px !important;
         font-size: 13.5px !important;
@@ -1536,13 +1536,13 @@
         text-decoration: none !important;
         white-space: nowrap !important;
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
         cursor: pointer !important;
     }
     .btn-print:hover, .btn-export-print:hover, a.btn-print:hover, a.btn-export-print:hover {
-        background: linear-gradient(135deg, #6366F1, #4F46E5) !important;
+        background: linear-gradient(135deg, #4F46E5, #4338CA) !important;
         color: #FFFFFF !important;
-        border-color: #6366F1 !important;
+        border-color: #4F46E5 !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55) !important;
     }
@@ -2473,20 +2473,6 @@
                     </a>
                 </li>
                 @endif
-                @if($authUser->hasPermission('expense_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('expenses.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'expenses.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-receipt"></i><span>Expenses</span>
-                    </a>
-                </li>
-                @endif
-                @if($authUser->hasPermission('purchase_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('purchases.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'purchases.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-cart-shopping"></i><span>Purchases</span>
-                    </a>
-                </li>
-                @endif
 
                 @if($authUser->hasPermission('receipt_view'))
                 <li class="submenu-item">
@@ -2498,13 +2484,13 @@
 
                 @if($authUser->hasPermission('loan_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('emi-schedules.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'emi-schedules.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-calendar-minus"></i><span>EMI Schedule</span>
+                    <a href="{{ route('loans.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'loans.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-landmark"></i><span>Loan Management</span>
                     </a>
                 </li>
                 <li class="submenu-item">
-                    <a href="{{ route('loans.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'loans.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-landmark"></i><span>Loan Management</span>
+                    <a href="{{ route('emi-schedules.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'emi-schedules.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-calendar-minus"></i><span>EMI Schedule</span>
                     </a>
                 </li>
                 @endif
@@ -3168,20 +3154,20 @@ input[type="month"]::-webkit-calendar-picker-indicator:hover,
     transform: scale(1.15);
 }
 
-/* ── UNIVERSAL EXPORT & PRINT BUTTONS (Default Glass -> Color on Hover) ── */
+/* ── UNIVERSAL EXPORT & PRINT BUTTONS (Direct Solid Colors) ── */
 html body .btn-export-pdf,
 html body .btn-pdf {
-    background: rgba(255, 255, 255, 0.08) !important;
+    background: linear-gradient(135deg, #EF4444, #DC2626) !important;
     color: #FFFFFF !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border: 1px solid #EF4444 !important;
     border-radius: 10px !important;
     font-weight: 700 !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35) !important;
 }
 html body .btn-export-pdf:hover,
 html body .btn-pdf:hover {
-    background: linear-gradient(135deg, #EF4444, #DC2626) !important;
-    border-color: #EF4444 !important;
+    background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
+    border-color: #DC2626 !important;
     color: #FFFFFF !important;
     transform: translateY(-2px) !important;
     box-shadow: 0 6px 20px rgba(239, 68, 68, 0.55) !important;
@@ -3191,19 +3177,19 @@ html body .btn-excel,
 html body .btn-export,
 html body .btn-export-excel,
 html body .btn-export-csv {
-    background: rgba(255, 255, 255, 0.08) !important;
+    background: linear-gradient(135deg, #10B981, #059669) !important;
     color: #FFFFFF !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border: 1px solid #10B981 !important;
     border-radius: 10px !important;
     font-weight: 700 !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
 }
 html body .btn-excel:hover,
 html body .btn-export:hover,
 html body .btn-export-excel:hover,
 html body .btn-export-csv:hover {
-    background: linear-gradient(135deg, #10B981, #059669) !important;
-    border-color: #10B981 !important;
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    border-color: #059669 !important;
     color: #FFFFFF !important;
     transform: translateY(-2px) !important;
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55) !important;
@@ -3211,17 +3197,17 @@ html body .btn-export-csv:hover {
 
 html body .btn-print,
 html body .btn-export-print {
-    background: rgba(255, 255, 255, 0.08) !important;
+    background: linear-gradient(135deg, #6366F1, #4F46E5) !important;
     color: #FFFFFF !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border: 1px solid #6366F1 !important;
     border-radius: 10px !important;
     font-weight: 700 !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
 }
 html body .btn-print:hover,
 html body .btn-export-print:hover {
-    background: linear-gradient(135deg, #6366F1, #4F46E5) !important;
-    border-color: #6366F1 !important;
+    background: linear-gradient(135deg, #4F46E5, #4338CA) !important;
+    border-color: #4F46E5 !important;
     color: #FFFFFF !important;
     transform: translateY(-2px) !important;
     box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55) !important;
@@ -3337,10 +3323,92 @@ button.swal2-cancel:hover {
 .swal2-timer-progress-bar {
     background: linear-gradient(90deg, #3B82F6, #10B981) !important;
 }
+
+/* Hide default browser password reveal eye icons to prevent click conflicts */
+input::-ms-reveal,
+input::-ms-clear {
+    display: none !important;
+}
+input::-webkit-credentials-auto-fill-button {
+    visibility: hidden !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    right: 0 !important;
+}
+.btn-toggle-pwd, .pwd-toggle-btn {
+    cursor: pointer !important;
+    user-select: none !important;
+}
+.btn-toggle-pwd i, .pwd-toggle-btn i {
+    pointer-events: none !important;
+}
 </style>
 
 <script>
+window.togglePasswordVisibility = function(fieldId, buttonElement) {
+    var input = document.getElementById(fieldId);
+    if (!input && buttonElement) {
+        var wrapper = buttonElement.closest('div, .pwd-wrapper, .form-group');
+        if (wrapper) {
+            input = wrapper.querySelector('input[type="password"], input[type="text"]');
+        }
+    }
+    if (!input) return;
+
+    var icon = buttonElement ? buttonElement.querySelector('i') : null;
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+            icon.style.color = '#60A5FA';
+        }
+    } else {
+        input.type = 'password';
+        if (icon) {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+            icon.style.color = '#94A3B8';
+        }
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Global delegation for any password toggle button
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-toggle-pwd, .pwd-toggle-btn, [data-toggle="password"]');
+        if (!btn) return;
+        
+        var targetId = btn.getAttribute('data-target');
+        var input = targetId ? document.getElementById(targetId) : null;
+        if (!input) {
+            var wrapper = btn.closest('div, .pwd-wrapper, .form-group');
+            if (wrapper) {
+                input = wrapper.querySelector('input[type="password"], input[type="text"]');
+            }
+        }
+        if (input) {
+            e.preventDefault();
+            e.stopPropagation();
+            var icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (icon) {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                    icon.style.color = '#60A5FA';
+                }
+            } else {
+                input.type = 'password';
+                if (icon) {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                    icon.style.color = '#94A3B8';
+                }
+            }
+        }
+    });
+
     @if(session('success'))
         Swal.fire({
             icon: 'success',

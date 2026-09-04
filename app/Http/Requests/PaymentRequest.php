@@ -16,9 +16,25 @@ class PaymentRequest extends FormRequest
     protected function prepareForValidation()
     {
         $inputs = $this->all();
+
+        // Resolve firm_ids array from super admin form-select
+        if (isset($inputs['firm_ids']) && is_array($inputs['firm_ids']) && !empty($inputs['firm_ids'])) {
+            $inputs['firm_id'] = (int) $inputs['firm_ids'][0];
+        }
+
+        if (empty($inputs['firm_id'])) {
+            if (!empty($inputs['property_sale_id'])) {
+                $sale = \App\Models\PropertySale::find($inputs['property_sale_id']);
+                if ($sale && !empty($sale->firm_id)) {
+                    $inputs['firm_id'] = (int) $sale->firm_id;
+                }
+            }
+        }
+
         if (empty($inputs['firm_id'])) {
             $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
         }
+
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
                 $inputs[$key] = trim($value);
@@ -44,7 +60,9 @@ class PaymentRequest extends FormRequest
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
 
         $rules = [
-            'firm_id'          => 'required|exists:firms,id',
+            'firm_id'          => 'nullable|exists:firms,id',
+            'firm_ids'         => 'nullable|array',
+            'firm_ids.*'       => 'exists:firms,id',
             'property_sale_id' => 'required|exists:property_sales,id',
             'payment_date'     => 'required|date',
             'payment_amount'   => 'required|numeric|min:0.01',
@@ -58,23 +76,6 @@ class PaymentRequest extends FormRequest
             if (is_string($rule)) {
                 $replaced = str_replace('{ID}', $id ?: 'NULL', $rule);
                 $replaced = str_replace('{FIRM_ID}', $firmId, $replaced);
-                
-                // Dynamic Password rule for users
-                if ($field === 'password') {
-                    if ($this->isMethod('post')) {
-                        $replaced = 'required|string|min:6|same:confirm_password';
-                    } else {
-                        $replaced = 'nullable|string|min:6|same:confirm_password';
-                    }
-                }
-                if ($field === 'confirm_password') {
-                    if ($this->isMethod('post')) {
-                        $replaced = 'required';
-                    } else {
-                        $replaced = 'nullable';
-                    }
-                }
-                
                 $rules[$field] = $replaced;
             }
         }
@@ -85,6 +86,8 @@ class PaymentRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'firm_id'          => 'Firm',
+            'firm_ids'         => 'Firm(s)',
             'property_sale_id' => 'Property Booking / Sale',
             'payment_date'     => 'Payment Date',
             'payment_amount'   => 'New Payment Amount',

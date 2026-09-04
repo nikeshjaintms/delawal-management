@@ -11,17 +11,26 @@ class Rental extends Model
     protected $fillable = [
         'firm_id',
         'property_id',
+        'tenant_id',
+        'agreement_no',
         'tenant_name',
         'tenant_mobile',
         'tenant_email',
         'rent_amount',
         'security_deposit',
+        'maintenance_amount',
         'rent_start_date',
         'rent_end_date',
+        'handover_date',
         'rent_due_date',
+        'lock_in_period',
+        'notice_period',
+        'meter_reading',
+        'escalation_percent',
         'payment_status',
         'rental_status',
         'remarks',
+        'agreement_document',
     ];
 
     public function firm()
@@ -32,6 +41,11 @@ class Rental extends Model
     public function property()
     {
         return $this->belongsTo(Property::class);
+    }
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
     }
 
     public function rentalPayments()
