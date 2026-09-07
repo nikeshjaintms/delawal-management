@@ -436,6 +436,13 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
     $totalInvest    = $propertyMaster->acquisitionBatches->sum('total_purchase_amount');
     $unassignedPlots = $propertyMaster->plots->whereNull('project_id')->count();
     $assignedPlots  = $propertyMaster->plots->whereNotNull('project_id')->count();
+    $totalAreaSqft  = $propertyMaster->plots->sum(function($p) {
+        $val = floatval(preg_replace('/[^0-9.]/', '', $p->size ?? '0'));
+        if (strtolower($p->size_unit ?? '') === 'sq.yard') {
+            return $val * 9;
+        }
+        return $val;
+    });
 @endphp
 
 <!-- ================================================================
@@ -515,6 +522,13 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
         </div>
     </div>
     <div class="kpi-card">
+        <div class="kpi-icon kpi-teal"><i class="fa-solid fa-ruler-combined"></i></div>
+        <div class="kpi-content">
+            <span class="kpi-label">Total Area</span>
+            <span class="kpi-val">{{ number_format($totalAreaSqft) }} <small style="font-size: 11px; font-weight: normal; color: #94A3B8;">sq.ft</small></span>
+        </div>
+    </div>
+    <div class="kpi-card">
         <div class="kpi-icon kpi-amber"><i class="fa-solid fa-indian-rupee-sign"></i></div>
         <div class="kpi-content">
             <span class="kpi-label">Total Purchase Value</span>
@@ -524,7 +538,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
     <div class="kpi-card">
         <div class="kpi-icon kpi-green"><i class="fa-solid fa-circle-check"></i></div>
         <div class="kpi-content">
-            <span class="kpi-label">Available / Unassigned</span>
+            <span class="kpi-label">Available / Free</span>
             <span class="kpi-val">{{ $unassignedPlots }} Plots</span>
         </div>
     </div>
@@ -565,6 +579,11 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                         <code style="background: rgba(167, 139, 250, 0.18); color: #C4B5FD; border: 1px solid rgba(167, 139, 250, 0.35); padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 800;">
                             {{ $batch->batch_number ?: 'BATCH-' . str_pad($batch->id, 3, '0', STR_PAD_LEFT) }}
                         </code>
+                        @if($batch->plot_numbers_range !== '-')
+                        <span style="background: rgba(59, 130, 246, 0.18); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.35); padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+                            <i class="fa-solid fa-hashtag" style="font-size: 10px;"></i> {{ $batch->plot_numbers_range }}
+                        </span>
+                        @endif
                         <span class="badge {{ $batch->status === 'active' ? 'badge-active' : 'badge-inactive' }}">
                             {{ ucfirst($batch->status) }}
                         </span>
@@ -593,20 +612,24 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             <!-- Batch Stat Strip -->
             <div class="batch-stats-strip">
                 <div class="bss-item">
-                    <span class="bss-label">Total Plots</span>
-                    <span class="bss-val" style="color: #60A5FA;">{{ $batch->plots->count() }} Plots</span>
+                    <span class="bss-label">Acquired Plots</span>
+                    <span class="bss-val" style="color: #60A5FA;">{{ $batch->plots->count() }} Plots <small style="font-size: 11.5px; color: #94A3B8; font-weight: normal;">({{ $batch->plot_numbers_range }})</small></span>
+                </div>
+                <div class="bss-item">
+                    <span class="bss-label">Total Area</span>
+                    <span class="bss-val" style="color: #2DD4BF;">{{ number_format($batch->total_area_sqft) }} <small style="font-size: 11px; font-weight: normal; color: #94A3B8;">sq.ft</small></span>
                 </div>
                 <div class="bss-item">
                     <span class="bss-label">Purchase Rate</span>
                     <span class="bss-val" style="color: #FBBF24;">₹{{ number_format($batch->purchase_rate, 2) }} <small style="font-size: 11px; font-weight: normal; color: #94A3B8;">/{{ str_replace('_', ' ', $batch->rate_unit) }}</small></span>
                 </div>
                 <div class="bss-item">
-                    <span class="bss-label">Purchase Date</span>
-                    <span class="bss-val">{{ $batch->purchase_date ? $batch->purchase_date->format('d M Y') : '-' }}</span>
-                </div>
-                <div class="bss-item">
                     <span class="bss-label">Total Amount</span>
                     <span class="bss-val" style="color: #34D399;">₹{{ number_format($batch->total_purchase_amount ?: ($batch->purchase_rate * $batch->plots->count()), 2) }}</span>
+                </div>
+                <div class="bss-item">
+                    <span class="bss-label">Purchase Date</span>
+                    <span class="bss-val">{{ $batch->purchase_date ? $batch->purchase_date->format('d M Y') : '-' }}</span>
                 </div>
                 <div class="bss-item">
                     <span class="bss-label">Availability</span>
@@ -810,23 +833,29 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                 </div>
                 <div class="m-form-group">
                     <label class="m-form-label">Purchase Rate (INR) <span>*</span></label>
-                    <input type="number" step="0.01" name="purchase_rate" id="modal_purchase_rate" class="m-form-control" placeholder="e.g. 10000" oninput="calculateTotalAmount()" required>
+                    <input type="number" step="0.01" name="purchase_rate" id="modal_purchase_rate" class="m-form-control" placeholder="e.g. 1200" oninput="calculateTotalAmount()" required>
                 </div>
             </div>
 
             <div class="m-form-row">
                 <div class="m-form-group">
-                    <label class="m-form-label">Rate Unit <span>*</span></label>
-                    <select name="rate_unit" class="m-form-control" required>
-                        <option value="per_plot" selected>Per Plot / Unit</option>
-                        <option value="per_sqft">Per Sq. Ft</option>
-                        <option value="per_sqyd">Per Sq. Yard</option>
+                    <label class="m-form-label">Rate Unit (Calculation Basis) <span>*</span></label>
+                    <select name="rate_unit" id="modal_rate_unit" class="m-form-control" onchange="calculateTotalAmount()" required>
+                        <option value="per_plot" selected>Per Plot / Unit (₹ Rate × Total Plots)</option>
+                        <option value="per_sqft">Per Sq. Ft (₹ Rate × Total Sq. Ft)</option>
+                        <option value="per_sqyd">Per Sq. Yard (₹ Rate × Total Sq. Yd)</option>
                     </select>
                 </div>
                 <div class="m-form-group">
                     <label class="m-form-label">Total Purchase Amount (INR)</label>
-                    <input type="number" step="0.01" name="total_purchase_amount" id="modal_total_amount" class="m-form-control" placeholder="Auto calculated or custom">
+                    <input type="number" step="0.01" name="total_purchase_amount" id="modal_total_amount" class="m-form-control" placeholder="Auto calculated or custom" style="font-weight: 800; color: #34D399; font-size: 15px;">
                 </div>
+            </div>
+
+            <!-- Live Calculation Breakdown Strip -->
+            <div id="modal_calc_breakdown" style="background: rgba(16, 185, 129, 0.10); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 9px 14px; margin-bottom: 16px; font-size: 13px; color: #34D399; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <span style="font-weight: 800; font-size: 13.5px;"><i class="fa-solid fa-indian-rupee-sign" style="margin-right: 5px;"></i> <span id="calc_formula_text">Total Price: ₹16,800.00</span></span>
+                <span id="calc_basis_badge" style="background: rgba(16, 185, 129, 0.20); padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">Rate: ₹1,200.00 / Plot (14 Plots)</span>
             </div>
 
             <div class="m-form-group">
@@ -851,33 +880,56 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                     </label>
                 </div>
 
+                <!-- Live Acquired Plot Numbers and Total Area Summary Banner -->
+                <div id="batch_live_summary" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.30); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div style="font-size: 13px; color: #93C5FD; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-tag" style="color: #60A5FA;"></i>
+                        <span id="live_plot_range_text">Acquiring: Plot {{ $propertyMaster->getNextPlotSequenceNumber() }} to Plot {{ (int)$propertyMaster->getNextPlotSequenceNumber() + 13 }} (14 Units)</span>
+                    </div>
+                    <div style="font-size: 13px; color: #34D399; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-ruler-combined"></i>
+                        <span id="live_total_sqft_text">Total Area: 0 sq.ft</span>
+                    </div>
+                </div>
+
                 <div id="generator_fields">
                     <div class="m-form-row">
                         <div class="m-form-group">
                             <label class="m-form-label">Number of Plots to Create <span>*</span></label>
-                            <input type="number" min="1" max="500" name="plot_count" id="modal_plot_count" class="m-form-control" value="14" oninput="calculateTotalAmount()">
+                            <input type="number" min="1" max="500" name="plot_count" id="modal_plot_count" class="m-form-control" value="14" oninput="updatePlotRangeAndCalc()">
                         </div>
                         <div class="m-form-group">
                             <label class="m-form-label">Plot Name Prefix</label>
-                            <input type="text" name="plot_prefix" class="m-form-control" value="Plot ">
+                            <input type="text" name="plot_prefix" id="modal_plot_prefix" class="m-form-control" value="Plot " oninput="updatePlotRangeAndCalc()">
                         </div>
                     </div>
 
                     <div class="m-form-row">
                         <div class="m-form-group">
                             <label class="m-form-label">Starting Plot Number (Continuous)</label>
-                            <input type="number" min="1" name="start_number" class="m-form-control" value="{{ $propertyMaster->getNextPlotSequenceNumber() }}" placeholder="e.g. {{ $propertyMaster->getNextPlotSequenceNumber() }}">
+                            <input type="number" min="1" name="start_number" id="modal_start_number" class="m-form-control" value="{{ $propertyMaster->getNextPlotSequenceNumber() }}" placeholder="e.g. {{ $propertyMaster->getNextPlotSequenceNumber() }}" oninput="updatePlotRangeAndCalc()">
                         </div>
                         <div class="m-form-group">
-                            <label class="m-form-label">Plot Size (Area)</label>
-                            <input type="text" name="plot_size" class="m-form-control" placeholder="e.g. 1200">
+                            <label class="m-form-label">Ending Plot Number (Auto Preview)</label>
+                            <input type="text" id="modal_end_number" class="m-form-control" style="background: rgba(255,255,255,0.05); color: #93C5FD; font-weight: 700;" readonly value="Plot {{ (int)$propertyMaster->getNextPlotSequenceNumber() + 13 }}">
+                        </div>
+                    </div>
+
+                    <div class="m-form-row">
+                        <div class="m-form-group">
+                            <label class="m-form-label">Plot Size (Each Area)</label>
+                            <input type="number" step="0.01" name="plot_size" id="modal_plot_size" class="m-form-control" placeholder="e.g. 1200" oninput="updatePlotRangeAndCalc()">
+                        </div>
+                        <div class="m-form-group">
+                            <label class="m-form-label">Total Square Feet (Total Area)</label>
+                            <input type="number" step="0.01" name="total_sqft" id="modal_total_sqft" class="m-form-control" style="background: rgba(16, 185, 129, 0.10); color: #34D399; font-weight: 800; border-color: rgba(16, 185, 129, 0.30);" placeholder="Auto calculated or custom" oninput="calculateFromTotalSqft()">
                         </div>
                     </div>
 
                     <div class="m-form-row">
                         <div class="m-form-group">
                             <label class="m-form-label">Size Unit</label>
-                            <select name="plot_size_unit" class="m-form-control">
+                            <select name="plot_size_unit" id="modal_size_unit" class="m-form-control" onchange="updatePlotRangeAndCalc()">
                                 <option value="sq.ft" selected>sq.ft</option>
                                 <option value="sq.yard">sq.yard</option>
                                 <option value="sq.meter">sq.meter</option>
@@ -940,40 +992,65 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                 <div id="targetBatchName" style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin-top: 2px;"></div>
             </div>
 
+            <!-- Live Range for Add Plots -->
+            <div id="add_plots_live_summary" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.30); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div style="font-size: 13px; color: #34D399; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-tag"></i>
+                    <span id="ap_live_plot_range_text">Adding Plots: Plot {{ $propertyMaster->getNextPlotSequenceNumber() }} to Plot {{ (int)$propertyMaster->getNextPlotSequenceNumber() + 4 }} (5 Units)</span>
+                </div>
+                <div style="font-size: 13px; color: #60A5FA; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-ruler-combined"></i>
+                    <span id="ap_live_total_sqft_text">Total Area: 0 sq.ft</span>
+                </div>
+            </div>
+
             <div class="m-form-row">
                 <div class="m-form-group">
                     <label class="m-form-label">Number of Plots to Add <span>*</span></label>
-                    <input type="number" min="1" max="500" name="plot_count" class="m-form-control" value="5" required>
+                    <input type="number" min="1" max="500" name="plot_count" id="ap_plot_count" class="m-form-control" value="5" required oninput="updateAddPlotsRangeAndCalc()">
                 </div>
                 <div class="m-form-group">
                     <label class="m-form-label">Plot Name Prefix</label>
-                    <input type="text" name="plot_prefix" class="m-form-control" value="Plot ">
+                    <input type="text" name="plot_prefix" id="ap_plot_prefix" class="m-form-control" value="Plot " oninput="updateAddPlotsRangeAndCalc()">
                 </div>
             </div>
 
             <div class="m-form-row">
                 <div class="m-form-group">
                     <label class="m-form-label">Starting Number (Continuous)</label>
-                    <input type="number" min="1" name="start_number" id="ap_start_number" class="m-form-control" value="{{ $propertyMaster->getNextPlotSequenceNumber() }}" placeholder="e.g. {{ $propertyMaster->getNextPlotSequenceNumber() }}">
+                    <input type="number" min="1" name="start_number" id="ap_start_number" class="m-form-control" value="{{ $propertyMaster->getNextPlotSequenceNumber() }}" placeholder="e.g. {{ $propertyMaster->getNextPlotSequenceNumber() }}" oninput="updateAddPlotsRangeAndCalc()">
                 </div>
                 <div class="m-form-group">
-                    <label class="m-form-label">Purchase Rate (INR)</label>
-                    <input type="number" step="0.01" name="purchase_rate" id="ap_purchase_rate" class="m-form-control" placeholder="Inherit from batch">
+                    <label class="m-form-label">Ending Plot Number (Auto Preview)</label>
+                    <input type="text" id="ap_end_number" class="m-form-control" style="background: rgba(255,255,255,0.05); color: #34D399; font-weight: 700;" readonly value="Plot {{ (int)$propertyMaster->getNextPlotSequenceNumber() + 4 }}">
                 </div>
             </div>
 
             <div class="m-form-row">
                 <div class="m-form-group">
-                    <label class="m-form-label">Plot Size (Area)</label>
-                    <input type="text" name="plot_size" class="m-form-control" placeholder="e.g. 1200">
+                    <label class="m-form-label">Plot Size (Each Area)</label>
+                    <input type="number" step="0.01" name="plot_size" id="ap_plot_size" class="m-form-control" placeholder="e.g. 1200" oninput="updateAddPlotsRangeAndCalc()">
                 </div>
                 <div class="m-form-group">
+                    <label class="m-form-label">Total Square Feet (Total Area)</label>
+                    <input type="number" step="0.01" name="total_sqft" id="ap_total_sqft" class="m-form-control" style="background: rgba(59, 130, 246, 0.10); color: #60A5FA; font-weight: 800; border-color: rgba(59, 130, 246, 0.30);" placeholder="Auto calculated or custom" oninput="calculateFromApTotalSqft()">
+                </div>
+            </div>
+
+            <div class="m-form-row">
+                <div class="m-form-group">
                     <label class="m-form-label">Size Unit</label>
-                    <select name="plot_size_unit" class="m-form-control">
+                    <select name="plot_size_unit" id="ap_plot_size_unit" class="m-form-control" onchange="updateAddPlotsRangeAndCalc()">
                         <option value="sq.ft" selected>sq.ft</option>
                         <option value="sq.yard">sq.yard</option>
                         <option value="sq.meter">sq.meter</option>
+                        <option value="acre">acre</option>
+                        <option value="bigha">bigha</option>
                     </select>
+                </div>
+                <div class="m-form-group">
+                    <label class="m-form-label">Purchase Rate (INR)</label>
+                    <input type="number" step="0.01" name="purchase_rate" id="ap_purchase_rate" class="m-form-control" placeholder="Inherit from batch">
                 </div>
             </div>
 
@@ -1083,6 +1160,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
 <script>
 function openAddBatchModal() {
     document.getElementById('addBatchModal').classList.add('active');
+    updatePlotRangeAndCalc();
 }
 function closeAddBatchModal() {
     document.getElementById('addBatchModal').classList.remove('active');
@@ -1093,6 +1171,7 @@ function openAddPlotsModal(batchId, batchName, purchaseRate) {
     document.getElementById('targetBatchName').textContent = batchName;
     document.getElementById('ap_purchase_rate').value = purchaseRate;
     document.getElementById('addPlotsModal').classList.add('active');
+    updateAddPlotsRangeAndCalc();
 }
 function closeAddPlotsModal() {
     document.getElementById('addPlotsModal').classList.remove('active');
@@ -1118,20 +1197,164 @@ function closeQuickEditPlotModal() {
 
 function toggleGeneratorFields(checked) {
     const fields = document.getElementById('generator_fields');
+    const summary = document.getElementById('batch_live_summary');
     fields.style.display = checked ? 'block' : 'none';
+    if (summary) summary.style.display = checked ? 'flex' : 'none';
     if (!checked) {
         document.getElementById('modal_plot_count').value = '0';
     } else {
         document.getElementById('modal_plot_count').value = '14';
     }
+    updatePlotRangeAndCalc();
+}
+
+function updatePlotRangeAndCalc() {
+    const start = parseInt(document.getElementById('modal_start_number').value) || 1;
+    const count = parseInt(document.getElementById('modal_plot_count').value) || 0;
+    const prefix = document.getElementById('modal_plot_prefix') ? document.getElementById('modal_plot_prefix').value : 'Plot ';
+    const plotSize = parseFloat(document.getElementById('modal_plot_size').value) || 0;
+    const sizeUnit = document.getElementById('modal_size_unit') ? document.getElementById('modal_size_unit').value : 'sq.ft';
+
+    // Ending number preview
+    const end = count > 0 ? (start + count - 1) : start;
+    const endInput = document.getElementById('modal_end_number');
+    if (endInput) {
+        endInput.value = count > 0 ? (prefix + end) : '-';
+    }
+
+    // Live plot numbers text
+    const rangeText = document.getElementById('live_plot_range_text');
+    if (rangeText) {
+        if (count > 0) {
+            rangeText.textContent = `Acquiring: ${prefix}${start} to ${prefix}${end} (${count} Plots)`;
+        } else {
+            rangeText.textContent = 'No plots will be generated';
+        }
+    }
+
+    // Total sqft calculation
+    let totalSqft = 0;
+    if (count > 0 && plotSize > 0) {
+        totalSqft = count * plotSize;
+    }
+    const totalSqftInput = document.getElementById('modal_total_sqft');
+    if (totalSqftInput && document.activeElement !== totalSqftInput) {
+        totalSqftInput.value = totalSqft > 0 ? totalSqft.toFixed(2) : '';
+    }
+
+    const liveSqftText = document.getElementById('live_total_sqft_text');
+    if (liveSqftText) {
+        liveSqftText.textContent = `Total Area: ${totalSqft > 0 ? totalSqft.toLocaleString() + ' ' + sizeUnit : '0 ' + sizeUnit}`;
+    }
+
     calculateTotalAmount();
 }
 
 function calculateTotalAmount() {
     const rate = parseFloat(document.getElementById('modal_purchase_rate').value) || 0;
     const count = parseInt(document.getElementById('modal_plot_count').value) || 0;
-    if (rate > 0 && count > 0) {
-        document.getElementById('modal_total_amount').value = (rate * count).toFixed(2);
+    const rateUnit = document.getElementById('modal_rate_unit') ? document.getElementById('modal_rate_unit').value : 'per_plot';
+    const totalSqft = parseFloat(document.getElementById('modal_total_sqft') ? document.getElementById('modal_total_sqft').value : 0) || 0;
+
+    const amountInput = document.getElementById('modal_total_amount');
+    const formulaText = document.getElementById('calc_formula_text');
+    const basisBadge  = document.getElementById('calc_basis_badge');
+
+    let total = 0;
+    let rateBadgeStr = '';
+
+    if (rateUnit === 'per_sqft') {
+        const effectiveSqft = totalSqft > 0 ? totalSqft : (count * (parseFloat(document.getElementById('modal_plot_size').value) || 0));
+        total = rate * effectiveSqft;
+        rateBadgeStr = `Rate: ₹${rate.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / sq.ft (${effectiveSqft.toLocaleString()} sq.ft)`;
+    } else if (rateUnit === 'per_sqyd') {
+        const effectiveSqft = totalSqft > 0 ? totalSqft : (count * (parseFloat(document.getElementById('modal_plot_size').value) || 0));
+        const effectiveSqyd = effectiveSqft / 9;
+        total = rate * effectiveSqyd;
+        rateBadgeStr = `Rate: ₹${rate.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / sq.yd (${effectiveSqyd.toFixed(2)} sq.yd)`;
+    } else {
+        total = rate * count;
+        rateBadgeStr = `Rate: ₹${rate.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / Plot (${count} Plots)`;
+    }
+
+    if (amountInput) {
+        amountInput.value = total > 0 ? total.toFixed(2) : '';
+    }
+    if (formulaText) {
+        if (total > 0) {
+            formulaText.innerHTML = `<strong>Total Price: ₹${total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>`;
+        } else {
+            formulaText.textContent = 'Enter rate & plots to calculate total price';
+        }
+    }
+    if (basisBadge) {
+        basisBadge.textContent = rate > 0 ? rateBadgeStr : 'Auto Calculated';
+    }
+}
+
+function calculateFromTotalSqft() {
+    const totalSqft = parseFloat(document.getElementById('modal_total_sqft').value) || 0;
+    const count = parseInt(document.getElementById('modal_plot_count').value) || 0;
+    const sizeUnit = document.getElementById('modal_size_unit') ? document.getElementById('modal_size_unit').value : 'sq.ft';
+    if (totalSqft > 0 && count > 0) {
+        const eachSize = totalSqft / count;
+        document.getElementById('modal_plot_size').value = eachSize.toFixed(2);
+    }
+    const liveSqftText = document.getElementById('live_total_sqft_text');
+    if (liveSqftText) {
+        liveSqftText.textContent = `Total Area: ${totalSqft > 0 ? totalSqft.toLocaleString() + ' ' + sizeUnit : '0 ' + sizeUnit}`;
+    }
+    calculateTotalAmount();
+}
+
+function updateAddPlotsRangeAndCalc() {
+    const start = parseInt(document.getElementById('ap_start_number').value) || 1;
+    const count = parseInt(document.getElementById('ap_plot_count').value) || 0;
+    const prefix = document.getElementById('ap_plot_prefix') ? document.getElementById('ap_plot_prefix').value : 'Plot ';
+    const plotSize = parseFloat(document.getElementById('ap_plot_size').value) || 0;
+    const sizeUnit = document.getElementById('ap_plot_size_unit') ? document.getElementById('ap_plot_size_unit').value : 'sq.ft';
+
+    const end = count > 0 ? (start + count - 1) : start;
+    const endInput = document.getElementById('ap_end_number');
+    if (endInput) {
+        endInput.value = count > 0 ? (prefix + end) : '-';
+    }
+
+    const rangeText = document.getElementById('ap_live_plot_range_text');
+    if (rangeText) {
+        if (count > 0) {
+            rangeText.textContent = `Adding Plots: ${prefix}${start} to ${prefix}${end} (${count} Units)`;
+        } else {
+            rangeText.textContent = 'No plots specified';
+        }
+    }
+
+    let totalSqft = 0;
+    if (count > 0 && plotSize > 0) {
+        totalSqft = count * plotSize;
+    }
+    const totalSqftInput = document.getElementById('ap_total_sqft');
+    if (totalSqftInput && document.activeElement !== totalSqftInput) {
+        totalSqftInput.value = totalSqft > 0 ? totalSqft.toFixed(2) : '';
+    }
+
+    const liveSqftText = document.getElementById('ap_live_total_sqft_text');
+    if (liveSqftText) {
+        liveSqftText.textContent = `Total Area: ${totalSqft > 0 ? totalSqft.toLocaleString() + ' ' + sizeUnit : '0 ' + sizeUnit}`;
+    }
+}
+
+function calculateFromApTotalSqft() {
+    const totalSqft = parseFloat(document.getElementById('ap_total_sqft').value) || 0;
+    const count = parseInt(document.getElementById('ap_plot_count').value) || 0;
+    const sizeUnit = document.getElementById('ap_plot_size_unit') ? document.getElementById('ap_plot_size_unit').value : 'sq.ft';
+    if (totalSqft > 0 && count > 0) {
+        const eachSize = totalSqft / count;
+        document.getElementById('ap_plot_size').value = eachSize.toFixed(2);
+    }
+    const liveSqftText = document.getElementById('ap_live_total_sqft_text');
+    if (liveSqftText) {
+        liveSqftText.textContent = `Total Area: ${totalSqft > 0 ? totalSqft.toLocaleString() + ' ' + sizeUnit : '0 ' + sizeUnit}`;
     }
 }
 

@@ -75,4 +75,37 @@ class AcquisitionBatch extends Model
     {
         return $this->plots()->whereNotNull('project_id')->count();
     }
+
+    public function getTotalAreaSqftAttribute()
+    {
+        return $this->plots->sum(function($p) {
+            $val = floatval(preg_replace('/[^0-9.]/', '', $p->size ?? '0'));
+            if (strtolower($p->size_unit ?? '') === 'sq.yard') {
+                return $val * 9;
+            }
+            return $val;
+        });
+    }
+
+    public function getPlotNumbersRangeAttribute()
+    {
+        $plots = $this->plots;
+        if ($plots->isEmpty()) {
+            return '-';
+        }
+        $units = $plots->pluck('unit_no')->filter()->values();
+        if ($units->isNotEmpty()) {
+            $first = $units->first();
+            $last = $units->last();
+            if ($first === $last) {
+                return '#' . $first;
+            }
+            return '#' . $first . ' - #' . $last;
+        }
+        $names = $plots->pluck('property_name')->filter()->values();
+        if ($names->count() === 1) {
+            return $names->first();
+        }
+        return $names->first() . ' - ' . $names->last();
+    }
 }

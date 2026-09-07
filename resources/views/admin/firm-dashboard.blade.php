@@ -56,12 +56,20 @@
     .dqa-btn:hover { transform: translateY(-2px) scale(1.03) !important; color: #FFFFFF !important; }
     .dqa-btn:hover i { color: #FFFFFF !important; transform: scale(1.15) !important; }
 
-    .dqa-blue:hover   { background: #2563EB !important; border-color: #3B82F6 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(37, 99, 235, 0.5) !important; }
-    .dqa-green:hover  { background: #10B981 !important; border-color: #34D399 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(16, 185, 129, 0.5) !important; }
-    .dqa-purple:hover { background: #8B5CF6 !important; border-color: #A78BFA !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(139, 92, 246, 0.5) !important; }
-    .dqa-red:hover    { background: #EF4444 !important; border-color: #F87171 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(239, 68, 68, 0.5) !important; }
-    .dqa-amber:hover  { background: #D97706 !important; border-color: #FBBF24 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(217, 119, 6, 0.5) !important; }
-    .dqa-teal:hover   { background: #0D9488 !important; border-color: #2DD4BF !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(13, 148, 136, 0.5) !important; }
+    .dqa-indigo:hover  { background: #4F46E5 !important; border-color: #6366F1 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(79, 70, 229, 0.5) !important; }
+    .dqa-slate:hover   { background: #475569 !important; border-color: #64748B !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(71, 85, 105, 0.5) !important; }
+    .dqa-sky:hover     { background: #0284C7 !important; border-color: #38BDF8 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(2, 132, 199, 0.5) !important; }
+    .dqa-purple:hover  { background: #9333EA !important; border-color: #A855F7 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(147, 51, 234, 0.5) !important; }
+    .dqa-teal:hover    { background: #0D9488 !important; border-color: #14B8A6 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(13, 148, 136, 0.5) !important; }
+    .dqa-amber:hover   { background: #D97706 !important; border-color: #F59E0B !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(217, 119, 6, 0.5) !important; }
+    .dqa-blue:hover    { background: #2563EB !important; border-color: #3B82F6 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(37, 99, 235, 0.5) !important; }
+    .dqa-violet:hover  { background: #7C3AED !important; border-color: #8B5CF6 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(124, 58, 237, 0.5) !important; }
+    .dqa-emerald:hover { background: #059669 !important; border-color: #10B981 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(5, 150, 105, 0.5) !important; }
+    .dqa-rose:hover    { background: #E11D48 !important; border-color: #F43F5E !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(225, 29, 72, 0.5) !important; }
+    .dqa-red:hover     { background: #DC2626 !important; border-color: #EF4444 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(220, 38, 38, 0.5) !important; }
+    .dqa-green:hover   { background: #16A34A !important; border-color: #22C55E !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(22, 163, 74, 0.5) !important; }
+    .dqa-bronze:hover  { background: #854D0E !important; border-color: #A16207 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(133, 77, 14, 0.5) !important; }
+    .dqa-fuchsia:hover { background: #C026D3 !important; border-color: #D946EF !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(192, 38, 211, 0.5) !important; }
 
     /* --- KPI Section Header --- */
     .kpi-section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
@@ -217,11 +225,17 @@
                 <p class="dash-welcome-sub">Here's your firm overview for today — {{ now()->format('l, d F Y') }}.</p>
             </div>
             <div class="dash-quick-actions">
-                <a href="{{ route('properties.create') }}"  class="dqa-btn dqa-blue"><i class="fa-solid fa-plus"></i> Add Property</a>
-                <a href="{{ route('customers.create') }}"   class="dqa-btn dqa-green"><i class="fa-solid fa-user-plus"></i> Add Customer</a>
-                <a href="{{ route('payments.create') }}"    class="dqa-btn dqa-purple"><i class="fa-solid fa-money-bill-wave"></i> Add Payment</a>
-                <a href="{{ route('expenses.create') }}"    class="dqa-btn dqa-red"><i class="fa-solid fa-receipt"></i> Add Expense</a>
-                <a href="{{ route('rentals.create') }}"     class="dqa-btn dqa-teal"><i class="fa-solid fa-key"></i> Add Rental</a>
+                <a href="{{ route('property-masters.create') }}" class="dqa-btn dqa-purple"><i class="fa-solid fa-building"></i> Add Property</a>
+                <a href="{{ route('projects.create') }}" class="dqa-btn dqa-teal"><i class="fa-solid fa-city"></i> Add Project</a>
+                <a href="{{ route('contractors.create') }}" class="dqa-btn dqa-amber"><i class="fa-solid fa-helmet-safety"></i> Add Contractor</a>
+                <a href="{{ route('customers.create') }}" class="dqa-btn dqa-blue"><i class="fa-solid fa-users"></i> Add Customer</a>
+                <a href="{{ route('brokers.create') }}" class="dqa-btn dqa-violet"><i class="fa-solid fa-user-tie"></i> Add Broker</a>
+                <a href="{{ route('bookings.create') }}" class="dqa-btn dqa-emerald"><i class="fa-solid fa-calendar-check"></i> Add Booking</a>
+                <a href="{{ route('payments.create') }}" class="dqa-btn dqa-rose"><i class="fa-solid fa-money-bill-wave"></i> Add Payment</a>
+                <a href="{{ route('expenses.create') }}" class="dqa-btn dqa-red"><i class="fa-solid fa-receipt"></i> Add Expense</a>
+                <a href="{{ route('incomes.create') }}" class="dqa-btn dqa-green"><i class="fa-solid fa-arrow-trend-up"></i> Add Income</a>
+                <a href="{{ route('materials.create') }}" class="dqa-btn dqa-bronze"><i class="fa-solid fa-box"></i> Add Material</a>
+                <a href="{{ route('rentals.create') }}" class="dqa-btn dqa-fuchsia"><i class="fa-solid fa-key"></i> Add Rental</a>
             </div>
         </div>
     </div>

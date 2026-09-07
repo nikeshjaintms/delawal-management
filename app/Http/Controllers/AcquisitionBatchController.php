@@ -36,11 +36,23 @@ class AcquisitionBatchController extends Controller
             $documentPath = $request->file('document_file')->store('acquisition-batches/documents', 'public');
         }
 
-        $plotCount = (int) ($request->plot_count ?: $request->total_plots ?: 0);
+        $plotCount    = (int) ($request->plot_count ?: $request->total_plots ?: 0);
         $purchaseRate = (float) $request->purchase_rate;
-        $totalAmount = $request->filled('total_purchase_amount') && $request->total_purchase_amount > 0
-            ? (float) $request->total_purchase_amount
-            : ($purchaseRate * $plotCount);
+        $totalSqft    = (float) ($request->total_sqft ?: 0);
+        $plotSize     = (float) ($request->plot_size ?: 0);
+        $rateUnit     = $request->rate_unit ?: 'per_plot';
+
+        if ($request->filled('total_purchase_amount') && (float)$request->total_purchase_amount > 0) {
+            $totalAmount = (float) $request->total_purchase_amount;
+        } elseif ($rateUnit === 'per_sqft' && ($totalSqft > 0 || ($plotCount > 0 && $plotSize > 0))) {
+            $calcSqft = $totalSqft > 0 ? $totalSqft : ($plotCount * $plotSize);
+            $totalAmount = $purchaseRate * $calcSqft;
+        } elseif ($rateUnit === 'per_sqyd' && ($totalSqft > 0 || ($plotCount > 0 && $plotSize > 0))) {
+            $calcSqft = $totalSqft > 0 ? $totalSqft : ($plotCount * $plotSize);
+            $totalAmount = $purchaseRate * ($calcSqft / 9);
+        } else {
+            $totalAmount = $purchaseRate * $plotCount;
+        }
 
         return DB::transaction(function () use ($request, $propertyMaster, $firmId, $batchNumber, $documentPath, $plotCount, $purchaseRate, $totalAmount) {
             // Concurrency guard: check if batch with same name already created in this property

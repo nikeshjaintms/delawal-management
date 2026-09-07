@@ -281,6 +281,12 @@
         }
         .form-input.is-invalid { border-color: rgba(239,68,68,0.65); }
 
+        /* Hide default browser password reveal */
+        input::-ms-reveal,
+        input::-ms-clear {
+            display: none !important;
+        }
+
         /* Autofill */
         .form-input:-webkit-autofill,
         .form-input:-webkit-autofill:focus {
