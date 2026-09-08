@@ -832,12 +832,16 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                     <input type="date" name="purchase_date" class="m-form-control" value="{{ date('Y-m-d') }}" required>
                 </div>
                 <div class="m-form-group">
-                    <label class="m-form-label">Purchase Rate (INR) <span>*</span></label>
-                    <input type="number" step="0.01" name="purchase_rate" id="modal_purchase_rate" class="m-form-control" placeholder="e.g. 1200" oninput="calculateTotalAmount()" required>
+                    <label class="m-form-label">Total Plots to Acquire / Units <span>*</span></label>
+                    <input type="number" min="1" max="1000" name="total_plots" id="modal_top_plot_count" class="m-form-control" value="14" placeholder="e.g. 14" oninput="syncPlotCount(this.value, 'top')" required>
                 </div>
             </div>
 
             <div class="m-form-row">
+                <div class="m-form-group">
+                    <label class="m-form-label">Purchase Rate (INR) <span>*</span></label>
+                    <input type="number" step="0.01" name="purchase_rate" id="modal_purchase_rate" class="m-form-control" placeholder="e.g. 1200" oninput="calculateTotalAmount()" required>
+                </div>
                 <div class="m-form-group">
                     <label class="m-form-label">Rate Unit (Calculation Basis) <span>*</span></label>
                     <select name="rate_unit" id="modal_rate_unit" class="m-form-control" onchange="calculateTotalAmount()" required>
@@ -846,9 +850,20 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                         <option value="per_sqyd">Per Sq. Yard (₹ Rate × Total Sq. Yd)</option>
                     </select>
                 </div>
+            </div>
+
+            <div class="m-form-row">
                 <div class="m-form-group">
                     <label class="m-form-label">Total Purchase Amount (INR)</label>
                     <input type="number" step="0.01" name="total_purchase_amount" id="modal_total_amount" class="m-form-control" placeholder="Auto calculated or custom" style="font-weight: 800; color: #34D399; font-size: 15px;">
+                </div>
+                <div class="m-form-group">
+                    <label class="m-form-label">Status <span>*</span></label>
+                    <select name="status" class="m-form-control" required>
+                        <option value="active" selected>Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="archived">Archived</option>
+                    </select>
                 </div>
             </div>
 
@@ -856,15 +871,6 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             <div id="modal_calc_breakdown" style="background: rgba(16, 185, 129, 0.10); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 9px 14px; margin-bottom: 16px; font-size: 13px; color: #34D399; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                 <span style="font-weight: 800; font-size: 13.5px;"><i class="fa-solid fa-indian-rupee-sign" style="margin-right: 5px;"></i> <span id="calc_formula_text">Total Price: ₹16,800.00</span></span>
                 <span id="calc_basis_badge" style="background: rgba(16, 185, 129, 0.20); padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">Rate: ₹1,200.00 / Plot (14 Plots)</span>
-            </div>
-
-            <div class="m-form-group">
-                <label class="m-form-label">Status <span>*</span></label>
-                <select name="status" class="m-form-control" required>
-                    <option value="active" selected>Active</option>
-                    <option value="completed">Completed</option>
-                    <option value="archived">Archived</option>
-                </select>
             </div>
 
             <!-- Instant Bulk Plot Generator Toggle -->
@@ -896,7 +902,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                     <div class="m-form-row">
                         <div class="m-form-group">
                             <label class="m-form-label">Number of Plots to Create <span>*</span></label>
-                            <input type="number" min="1" max="500" name="plot_count" id="modal_plot_count" class="m-form-control" value="14" oninput="updatePlotRangeAndCalc()">
+                            <input type="number" min="1" max="1000" name="plot_count" id="modal_plot_count" class="m-form-control" value="14" oninput="syncPlotCount(this.value, 'gen')">
                         </div>
                         <div class="m-form-group">
                             <label class="m-form-label">Plot Name Prefix</label>
@@ -1195,24 +1201,58 @@ function closeQuickEditPlotModal() {
     document.getElementById('quickEditPlotModal').classList.remove('active');
 }
 
+function syncPlotCount(val, source) {
+    const parsed = parseInt(val);
+    const countVal = (!isNaN(parsed) && parsed >= 0) ? parsed : '';
+    
+    const topInput = document.getElementById('modal_top_plot_count');
+    const genInput = document.getElementById('modal_plot_count');
+    
+    if (source === 'top' && genInput) {
+        genInput.value = countVal;
+    } else if (source === 'gen' && topInput) {
+        topInput.value = countVal;
+    }
+    
+    updatePlotRangeAndCalc();
+}
+
 function toggleGeneratorFields(checked) {
     const fields = document.getElementById('generator_fields');
     const summary = document.getElementById('batch_live_summary');
-    fields.style.display = checked ? 'block' : 'none';
+    if (fields) fields.style.display = checked ? 'block' : 'none';
     if (summary) summary.style.display = checked ? 'flex' : 'none';
+    
+    const topInput = document.getElementById('modal_top_plot_count');
+    const genInput = document.getElementById('modal_plot_count');
+    
     if (!checked) {
-        document.getElementById('modal_plot_count').value = '0';
+        if (genInput) genInput.value = '0';
     } else {
-        document.getElementById('modal_plot_count').value = '14';
+        const currentCount = parseInt(topInput?.value) || 14;
+        if (genInput) genInput.value = currentCount > 0 ? currentCount : 14;
+        if (topInput && (!topInput.value || parseInt(topInput.value) <= 0)) {
+            topInput.value = 14;
+        }
     }
     updatePlotRangeAndCalc();
 }
 
 function updatePlotRangeAndCalc() {
-    const start = parseInt(document.getElementById('modal_start_number').value) || 1;
-    const count = parseInt(document.getElementById('modal_plot_count').value) || 0;
+    const topInput = document.getElementById('modal_top_plot_count');
+    const genInput = document.getElementById('modal_plot_count');
+    const isGeneratorActive = document.getElementById('generate_plots_toggle')?.checked !== false;
+
+    let count = 0;
+    if (topInput && topInput.value !== '') {
+        count = parseInt(topInput.value) || 0;
+    } else if (genInput && genInput.value !== '') {
+        count = parseInt(genInput.value) || 0;
+    }
+
+    const start = parseInt(document.getElementById('modal_start_number')?.value) || 1;
     const prefix = document.getElementById('modal_plot_prefix') ? document.getElementById('modal_plot_prefix').value : 'Plot ';
-    const plotSize = parseFloat(document.getElementById('modal_plot_size').value) || 0;
+    const plotSize = parseFloat(document.getElementById('modal_plot_size')?.value) || 0;
     const sizeUnit = document.getElementById('modal_size_unit') ? document.getElementById('modal_size_unit').value : 'sq.ft';
 
     // Ending number preview
@@ -1225,10 +1265,12 @@ function updatePlotRangeAndCalc() {
     // Live plot numbers text
     const rangeText = document.getElementById('live_plot_range_text');
     if (rangeText) {
-        if (count > 0) {
+        if (count > 0 && isGeneratorActive) {
             rangeText.textContent = `Acquiring: ${prefix}${start} to ${prefix}${end} (${count} Plots)`;
+        } else if (!isGeneratorActive) {
+            rangeText.textContent = `Batch will be created without auto-generating plots (${count} Plots counted)`;
         } else {
-            rangeText.textContent = 'No plots will be generated';
+            rangeText.textContent = 'Enter number of plots to acquire';
         }
     }
 
@@ -1251,8 +1293,11 @@ function updatePlotRangeAndCalc() {
 }
 
 function calculateTotalAmount() {
-    const rate = parseFloat(document.getElementById('modal_purchase_rate').value) || 0;
-    const count = parseInt(document.getElementById('modal_plot_count').value) || 0;
+    const rate = parseFloat(document.getElementById('modal_purchase_rate')?.value) || 0;
+    const topCount = parseInt(document.getElementById('modal_top_plot_count')?.value);
+    const genCount = parseInt(document.getElementById('modal_plot_count')?.value);
+    const count = (!isNaN(topCount) && topCount >= 0) ? topCount : ((!isNaN(genCount) && genCount >= 0) ? genCount : 0);
+
     const rateUnit = document.getElementById('modal_rate_unit') ? document.getElementById('modal_rate_unit').value : 'per_plot';
     const totalSqft = parseFloat(document.getElementById('modal_total_sqft') ? document.getElementById('modal_total_sqft').value : 0) || 0;
 
@@ -1264,11 +1309,11 @@ function calculateTotalAmount() {
     let rateBadgeStr = '';
 
     if (rateUnit === 'per_sqft') {
-        const effectiveSqft = totalSqft > 0 ? totalSqft : (count * (parseFloat(document.getElementById('modal_plot_size').value) || 0));
+        const effectiveSqft = totalSqft > 0 ? totalSqft : (count * (parseFloat(document.getElementById('modal_plot_size')?.value) || 0));
         total = rate * effectiveSqft;
         rateBadgeStr = `Rate: ₹${rate.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / sq.ft (${effectiveSqft.toLocaleString()} sq.ft)`;
     } else if (rateUnit === 'per_sqyd') {
-        const effectiveSqft = totalSqft > 0 ? totalSqft : (count * (parseFloat(document.getElementById('modal_plot_size').value) || 0));
+        const effectiveSqft = totalSqft > 0 ? totalSqft : (count * (parseFloat(document.getElementById('modal_plot_size')?.value) || 0));
         const effectiveSqyd = effectiveSqft / 9;
         total = rate * effectiveSqyd;
         rateBadgeStr = `Rate: ₹${rate.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / sq.yd (${effectiveSqyd.toFixed(2)} sq.yd)`;
@@ -1288,13 +1333,15 @@ function calculateTotalAmount() {
         }
     }
     if (basisBadge) {
-        basisBadge.textContent = rate > 0 ? rateBadgeStr : 'Auto Calculated';
+        basisBadge.textContent = rate > 0 ? rateBadgeStr : (count > 0 ? `${count} Plots` : 'Auto Calculated');
     }
 }
 
 function calculateFromTotalSqft() {
-    const totalSqft = parseFloat(document.getElementById('modal_total_sqft').value) || 0;
-    const count = parseInt(document.getElementById('modal_plot_count').value) || 0;
+    const totalSqft = parseFloat(document.getElementById('modal_total_sqft')?.value) || 0;
+    const topCount = parseInt(document.getElementById('modal_top_plot_count')?.value);
+    const genCount = parseInt(document.getElementById('modal_plot_count')?.value);
+    const count = (!isNaN(topCount) && topCount > 0) ? topCount : ((!isNaN(genCount) && genCount > 0) ? genCount : 0);
     const sizeUnit = document.getElementById('modal_size_unit') ? document.getElementById('modal_size_unit').value : 'sq.ft';
     if (totalSqft > 0 && count > 0) {
         const eachSize = totalSqft / count;
