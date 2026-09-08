@@ -122,20 +122,59 @@ class PurchaseController extends Controller
         ]);
 
         $purchase->syncFirms($firmIds);
+        $this->syncProperty($purchase);
 
-        return redirect()->route('purchases.index')->with('success', "Property Buy record '{$propertyName}' added successfully.");
+        return redirect()->route('purchases.index')->with('success', "Property Buy record '{$propertyName}' added successfully and available for direct sale.");
+    }
+
+    private function syncProperty(Purchase $purchase): void
+    {
+        $property = null;
+        if ($purchase->property_id) {
+            $property = \App\Models\Property::find($purchase->property_id);
+        }
+
+        $propertyTypeId = null;
+        if (!empty($purchase->property_type)) {
+            $pt = \App\Models\PropertyType::where('name', $purchase->property_type)->first();
+            if ($pt) $propertyTypeId = $pt->id;
+        }
+
+        $propertyData = [
+            'firm_id'          => $purchase->firm_id,
+            'project_id'       => null, // Standalone direct property without project
+            'property_type_id' => $propertyTypeId,
+            'property_name'    => $purchase->display_name,
+            'property_code'    => $purchase->property_code,
+            'location'         => $purchase->location,
+            'address'          => $purchase->address,
+            'size'             => $purchase->area,
+            'size_unit'        => $purchase->area_unit ?: 'Sq.Ft',
+            'price'            => $purchase->purchase_amount ?: 0,
+            'purchase_rate'    => $purchase->purchase_amount ?: 0,
+            'purchase_date'    => $purchase->purchase_date,
+            'status'           => 'available',
+            'description'      => $purchase->remarks ?: "Direct purchased property from vendor",
+        ];
+
+        if ($property) {
+            $property->update($propertyData);
+        } else {
+            $newProp = \App\Models\Property::create($propertyData);
+            $purchase->updateQuietly(['property_id' => $newProp->id]);
+        }
     }
 
     public function show(Purchase $purchase)
     {
-        $purchase->load(['firms', 'firm']);
+        $purchase->load(['firms', 'firm', 'property']);
         $this->authorise($purchase);
         return view('admin.purchases.show', compact('purchase'));
     }
 
     public function edit(Purchase $purchase)
     {
-        $purchase->load(['firms', 'firm']);
+        $purchase->load(['firms', 'firm', 'property']);
         $this->authorise($purchase);
         return view('admin.purchases.edit', array_merge(['purchase' => $purchase], $this->dropdowns($purchase->firm_id)));
     }
@@ -177,6 +216,7 @@ class PurchaseController extends Controller
         ]);
 
         $purchase->syncFirms($firmIds);
+        $this->syncProperty($purchase);
 
         return redirect()->route('purchases.index')->with('success', "Property Buy record '{$propertyName}' updated successfully.");
     }
@@ -185,6 +225,18 @@ class PurchaseController extends Controller
     {
         $this->authorise($purchase);
         $name = $purchase->display_name;
+
+        if ($purchase->property_id) {
+            $prop = \App\Models\Property::find($purchase->property_id);
+            if ($prop) {
+                $hasSales = \App\Models\PropertySale::where('property_id', $prop->id)->exists();
+                $hasBookings = \App\Models\Booking::where('property_id', $prop->id)->exists();
+                if (!$hasSales && !$hasBookings) {
+                    $prop->delete();
+                }
+            }
+        }
+
         $purchase->delete();
         return redirect()->route('purchases.index')->with('success', "Property Buy record '{$name}' deleted successfully.");
     }

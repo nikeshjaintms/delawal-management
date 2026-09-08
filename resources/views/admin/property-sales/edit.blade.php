@@ -5,38 +5,72 @@
 
 @section('content')
 <style>
-    .crud-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
-    .crud-title h2 { font-size:22px; font-weight:700; color:var(--text-primary); margin-bottom:4px; }
-    .crud-title p  { font-size:13.5px; color:var(--text-secondary); }
-    .card-box { background:var(--card-bg); border:1px solid var(--border-color); border-radius:12px; padding:30px; box-shadow:var(--soft-shadow); max-width:900px; margin:0 auto; }
-    .section-title { font-size:13px; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border-color); }
-    .form-section { margin-bottom:28px; }
-    .form-group { margin-bottom:20px; }
-    .form-row  { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-    .form-row-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
-    @media(max-width:768px){ .form-row-3{ grid-template-columns:1fr 1fr; } }
-    @media(max-width:576px){ .form-row,.form-row-3{ grid-template-columns:1fr; gap:0; } }
-    .form-label { display:block; font-size:13.5px; font-weight:600; color:var(--text-primary); margin-bottom:8px; }
-    .form-label span { color:#EF4444; }
-    .form-control { width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; font-size:14px; font-family:var(--font-primary); color:var(--text-primary); outline:none; transition:var(--transition); background-color:#FFFFFF; }
-    .form-control:focus { border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-light); }
-    textarea.form-control { resize:vertical; min-height:90px; }
-    .text-error { color:#EF4444; font-size:12.5px; margin-top:6px; font-weight:500; }
-    .form-hint  { font-size:12px; color:var(--text-secondary); margin-top:5px; }
-    .calc-hint  { font-size:11.5px; color:var(--gold); margin-top:5px; font-weight:600; }
-    .current-doc-link { display:inline-flex; align-items:center; gap:6px; color:var(--gold); font-size:13px; font-weight:600; text-decoration:none; margin-top:6px; padding:5px 12px; border:1px solid rgba(212,175,55,0.35); border-radius:7px; background:var(--gold-light); }
-    .current-doc-link:hover { background:rgba(212,175,55,0.2); color:#B58D1B; }
-    .form-actions { display:flex; align-items:center; gap:15px; margin-top:30px; padding-top:20px; border-top:1px solid var(--border-color); }
-    .btn-gold { background-color:var(--gold); color:#FFF; padding:11px 24px; border-radius:8px; font-size:14px; font-weight:600; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:var(--transition); box-shadow:0 4px 10px rgba(212,175,55,0.2); font-family:var(--font-primary); }
-    .btn-gold:hover { background-color:#B58D1B; transform:translateY(-1px); }
-    .btn-outline { border:1px solid var(--border-color); background:transparent; color:var(--text-secondary); padding:11px 24px; border-radius:8px; text-decoration:none; font-size:14px; font-weight:600; transition:var(--transition); }
-    .btn-outline:hover { background:#F9FAFB; color:var(--text-primary); border-color:#D1D5DB; }
+/* ── Luxury Dark Glass System ── */
+.crud-header { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+.crud-title h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
+.crud-title p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
+
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important; padding: 32px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 28px;
+    max-width: 960px; margin-left: auto; margin-right: auto;
+}
+
+.section-title {
+    font-size: 13px; font-weight: 800; color: #60A5FA !important; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 18px; padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10); display: flex; align-items: center; gap: 8px;
+}
+.form-section { margin-bottom: 24px; }
+.form-group { margin-bottom: 20px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+@media(max-width:768px){ .form-row-3 { grid-template-columns: 1fr 1fr; } }
+@media(max-width:576px){ .form-row, .form-row-3 { grid-template-columns: 1fr; gap: 0; } }
+
+.form-label { display: block; font-size: 13px; font-weight: 700; color: #CBD5E1 !important; margin-bottom: 8px; }
+.form-label span { color: #F87171 !important; }
+.form-hint { font-size: 12px; color: #94A3B8 !important; margin-top: 5px; }
+
+.form-control {
+    width: 100%; padding: 10px 14px; background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    font-size: 14px; color: #FFFFFF !important; outline: none; transition: all .2s ease;
+    box-sizing: border-box !important;
+}
+select.form-control option { background: #101622 !important; color: #FFFFFF !important; }
+.form-control::placeholder { color: #94A3B8 !important; }
+.form-control:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
+.form-control[readonly] { background: rgba(16, 22, 34, 0.40) !important; color: #94A3B8 !important; border-color: rgba(255, 255, 255, 0.08) !important; cursor: not-allowed; }
+textarea.form-control { resize: vertical; min-height: 85px; }
+
+.text-error { color: #F87171 !important; font-size: 12.5px; margin-top: 6px; font-weight: 600; }
+.calc-hint { font-size: 11.5px; color: #FBBF24 !important; margin-top: 5px; font-weight: 600; }
+
+.form-actions { display: flex; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
+.btn-gold {
+    background: #2563EB !important; color: #FFFFFF !important; padding: 11px 24px;
+    border-radius: 10px; font-size: 14px; font-weight: 700; border: 1px solid #3B82F6 !important;
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+    display: inline-flex; align-items: center; gap: 8px; text-decoration: none !important;
+}
+.btn-gold:hover { background: #1D4ED8 !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(37,99,235,0.50); }
+.btn-outline {
+    border: 1px solid rgba(255, 255, 255, 0.15) !important; background: rgba(255, 255, 255, 0.05) !important;
+    color: #CBD5E1 !important; padding: 11px 24px; border-radius: 10px; text-decoration: none !important;
+    font-size: 14px; font-weight: 600; transition: all .2s ease;
+}
+.btn-outline:hover { background: rgba(255, 255, 255, 0.10) !important; color: #FFFFFF !important; }
 </style>
 
 <div class="crud-header">
     <div class="crud-title">
         <h2>Edit Property Sale</h2>
-        <p>Update sale or booking record — <strong>{{ $propertySale->property->property_name ?? '' }}</strong></p>
+        <p>Update property sale agreement and payment status.</p>
     </div>
 </div>
 
@@ -47,32 +81,36 @@
 
         {{-- Parties --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-handshake"></i> Sale Parties</div>
+            <div class="section-title"><i class="fa-solid fa-handshake"></i> Sale Parties & Property</div>
             @include('admin.components.firm-select', ['model' => $propertySale])
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label" for="project_id">Project</label>
+                    <label class="form-label" for="project_id">Project / Scheme</label>
                     <select name="project_id" id="project_id" class="form-control">
-                        <option value="">— Select Project to Filter Properties —</option>
+                        <option value="">— All Properties (Direct & Projects) —</option>
+                        <option value="direct" {{ old('project_id', $propertySale->property?->project_id ? '' : 'direct') == 'direct' ? 'selected' : '' }}>📌 Standalone / Direct Properties (No Project)</option>
                         @foreach($projects as $proj)
                             <option value="{{ $proj->id }}" {{ old('project_id', $propertySale->property?->project_id) == $proj->id ? 'selected' : '' }}>
                                 {{ $proj->project_name }}
                             </option>
                         @endforeach
                     </select>
-                    <div class="form-hint">Select project to filter property units.</div>
+                    <div class="form-hint">Filter by project or select direct standalone properties.</div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="property_id">Property <span>*</span></label>
-                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
+                    <label class="form-label" for="property_id">Property / Unit <span>*</span></label>
+                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required>
                         <option value="">-- Select Property --</option>
                         @foreach($properties as $property)
                             <option value="{{ $property->id }}"
-                                data-project-id="{{ $property->project_id ?? '' }}"
-                                data-project="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
-                                {{ old('property_id', $propertySale->property_id) == $property->id ? 'selected' : '' }}>
+                                    data-project-id="{{ $property->project_id ?? '' }}"
+                                    data-project="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? '') }}"
+                                    data-price="{{ $property->price ?? '' }}"
+                                    {{ old('property_id', $propertySale->property_id) == $property->id ? 'selected' : '' }}>
                                 {{ $property->property_name }}
-                                @if($property->property_code) ({{ $property->property_code }}) @endif
+                                @if(!$property->project_id) [Direct Property / Standalone] @endif
+                                @if($property->unit_no) (Unit: {{ $property->unit_no }}) @endif
+                                @if($property->property_code) [{{ $property->property_code }}] @endif
                                 — {{ ucfirst($property->status) }}
                             </option>
                         @endforeach
@@ -83,16 +121,21 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="customer_id">Customer <span>*</span></label>
-                    <select name="customer_id" id="customer_id" class="form-control @error('customer_id') is-invalid @enderror">
+                    <select name="customer_id" id="customer_id" class="form-control @error('customer_id') is-invalid @enderror" required>
                         <option value="">-- Select Customer --</option>
                         @foreach($customers as $customer)
-                            <option value="{{ $customer->id }}"
-                                {{ old('customer_id', $propertySale->customer_id) == $customer->id ? 'selected' : '' }}>
+                            <option value="{{ $customer->id }}" {{ old('customer_id', $propertySale->customer_id) == $customer->id ? 'selected' : '' }}>
                                 {{ $customer->name }} — {{ $customer->mobile }}
                             </option>
                         @endforeach
                     </select>
                     @error('customer_id') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="sale_date">Sale Date</label>
+                    <input type="date" name="sale_date" id="sale_date"
+                           value="{{ old('sale_date', is_string($propertySale->sale_date) ? $propertySale->sale_date : ($propertySale->sale_date ? \Carbon\Carbon::parse($propertySale->sale_date)->format('Y-m-d') : '')) }}" class="form-control @error('sale_date') is-invalid @enderror">
+                    @error('sale_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
             <div class="form-row">
@@ -101,20 +144,12 @@
                     <select name="broker_id" id="broker_id" class="form-control @error('broker_id') is-invalid @enderror">
                         <option value="">-- Select Broker (Optional) --</option>
                         @foreach($brokers as $broker)
-                            <option value="{{ $broker->id }}"
-                                {{ old('broker_id', $propertySale->broker_id) == $broker->id ? 'selected' : '' }}>
+                            <option value="{{ $broker->id }}" {{ old('broker_id', $propertySale->broker_id) == $broker->id ? 'selected' : '' }}>
                                 {{ $broker->name }} — {{ $broker->mobile }}
                             </option>
                         @endforeach
                     </select>
                     @error('broker_id') <div class="text-error">{{ $message }}</div> @enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="sale_date">Sale Date</label>
-                    <input type="date" name="sale_date" id="sale_date"
-                           value="{{ old('sale_date', $propertySale->sale_date ? \Carbon\Carbon::parse($propertySale->sale_date)->format('Y-m-d') : '') }}"
-                           class="form-control">
-                    @error('sale_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
         </div>
@@ -124,25 +159,25 @@
             <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Amount Details</div>
             <div class="form-row-3">
                 <div class="form-group">
-                    <label class="form-label" for="sale_amount">Sale Amount (₹)</label>
+                    <label class="form-label" for="sale_amount">Total Sale Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="sale_amount" id="sale_amount"
-                           value="{{ old('sale_amount', $propertySale->sale_amount) }}"
-                           class="form-control" placeholder="Enter total sale amount" oninput="calcRemaining()">
+                           value="{{ old('sale_amount', $propertySale->sale_amount) }}" class="form-control @error('sale_amount') is-invalid @enderror"
+                           placeholder="Enter total sale amount" oninput="calcRemaining()" required>
                     @error('sale_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="booking_amount">Booking Amount (₹)</label>
+                    <label class="form-label" for="booking_amount">Paid / Booking Amount (₹)</label>
                     <input type="number" step="0.01" name="booking_amount" id="booking_amount"
-                           value="{{ old('booking_amount', $propertySale->booking_amount) }}"
-                           class="form-control" placeholder="Enter advance / booking amount" oninput="calcRemaining()">
+                           value="{{ old('booking_amount', $propertySale->booking_amount) }}" class="form-control @error('booking_amount') is-invalid @enderror"
+                           placeholder="Enter advance / booking amount" oninput="calcRemaining()">
                     @error('booking_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="remaining_amount">Remaining Amount (₹)</label>
                     <input type="number" step="0.01" name="remaining_amount" id="remaining_amount"
-                           value="{{ old('remaining_amount', $propertySale->remaining_amount) }}"
-                           class="form-control" placeholder="Auto-calculated">
-                    <div class="calc-hint"><i class="fa-solid fa-calculator" style="font-size:10px;"></i> Auto = Sale − Booking</div>
+                           value="{{ old('remaining_amount', $propertySale->remaining_amount) }}" class="form-control @error('remaining_amount') is-invalid @enderror"
+                           placeholder="Auto-calculated" readonly>
+                    <div class="calc-hint"><i class="fa-solid fa-calculator" style="font-size:10px;"></i> Auto = Sale − Paid</div>
                     @error('remaining_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
@@ -177,12 +212,7 @@
                     <label class="form-label" for="agreement_file">Agreement / Document</label>
                     <input type="file" name="agreement_file" id="agreement_file" class="form-control @error('agreement_file') is-invalid @enderror">
                     @if($propertySale->agreement_file)
-                        <a href="{{ asset('storage/' . $propertySale->agreement_file) }}" target="_blank" class="current-doc-link">
-                            <i class="fa-solid fa-file-arrow-down"></i> View Current Agreement
-                        </a>
-                        <div class="form-hint">Upload a new file to replace the current agreement.</div>
-                    @else
-                        <div class="form-hint">Upload sale agreement (PDF, DOC, JPG, etc.).</div>
+                        <div class="form-hint">Current file: <a href="{{ asset('storage/' . $propertySale->agreement_file) }}" target="_blank" style="color: #60A5FA;">View Document</a></div>
                     @endif
                     @error('agreement_file') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
@@ -197,24 +227,34 @@
 
         <div class="form-actions">
             <button type="submit" class="btn-gold">
-                <i class="fa-solid fa-floppy-disk"></i> Update Property Sale
+                <i class="fa-solid fa-check"></i> Update Property Sale
             </button>
-            <a href="{{ route('property-sales.index') }}" class="btn-outline">Back</a>
+            <a href="{{ route('property-sales.index') }}" class="btn-outline">Cancel</a>
         </div>
     </form>
 </div>
 
 <script>
 function calcRemaining() {
-    const sale    = parseFloat(document.getElementById('sale_amount').value)    || 0;
+    const sale = parseFloat(document.getElementById('sale_amount').value) || 0;
     const booking = parseFloat(document.getElementById('booking_amount').value) || 0;
-    const remaining = sale - booking;
-    document.getElementById('remaining_amount').value = remaining >= 0 ? remaining.toFixed(2) : '';
+    const remaining = Math.max(0, sale - booking);
+    document.getElementById('remaining_amount').value = remaining.toFixed(2);
+
+    const paymentStatus = document.getElementById('payment_status');
+    if (sale > 0 && booking >= sale) {
+        paymentStatus.value = 'paid';
+    } else if (booking > 0) {
+        paymentStatus.value = 'partial';
+    } else {
+        paymentStatus.value = 'pending';
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     const projSelect = document.getElementById('project_id');
     const propSelect = document.getElementById('property_id');
+    const saleAmountInput = document.getElementById('sale_amount');
 
     function filterPropertiesByProject() {
         if (!projSelect || !propSelect) return;
@@ -227,7 +267,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             const optProjId = opt.dataset.projectId || '';
-            if (!selectedProjId || !optProjId || optProjId === selectedProjId) {
+            if (!selectedProjId) {
+                opt.hidden = false;
+                opt.disabled = false;
+            } else if (selectedProjId === 'direct') {
+                if (!optProjId) {
+                    opt.hidden = false;
+                    opt.disabled = false;
+                } else {
+                    opt.hidden = true;
+                    opt.disabled = true;
+                }
+            } else if (optProjId === selectedProjId) {
                 opt.hidden = false;
                 opt.disabled = false;
             } else {
@@ -249,6 +300,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const opt = this.selectedOptions[0];
             if (opt && opt.dataset.projectId && (!projSelect.value || projSelect.value !== opt.dataset.projectId)) {
                 projSelect.value = opt.dataset.projectId;
+            } else if (opt && !opt.dataset.projectId && projSelect.value && projSelect.value !== 'direct') {
+                projSelect.value = 'direct';
+            }
+
+            if (opt && opt.dataset.price) {
+                const price = parseFloat(opt.dataset.price);
+                if (price > 0 && (!saleAmountInput.value || saleAmountInput.value === '0')) {
+                    saleAmountInput.value = price.toFixed(2);
+                    calcRemaining();
+                }
             }
         });
 

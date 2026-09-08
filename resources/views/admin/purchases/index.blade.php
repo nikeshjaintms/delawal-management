@@ -232,6 +232,18 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     </td>
                     <td style="text-align:right;">
                         <div class="action-buttons-wrap" style="justify-content:flex-end;">
+                            @if($purchase->property_id)
+                                <a href="{{ route('property-sales.create', ['property_id' => $purchase->property_id]) }}"
+                                   style="background: rgba(16,185,129,0.18); color: #34D399; border: 1px solid rgba(16,185,129,0.35); padding: 6px 10px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all .2s ease;"
+                                   title="Sell this property directly">
+                                    <i class="fa-solid fa-handshake"></i> Sell
+                                </a>
+                                <a href="{{ route('bookings.create', ['property_id' => $purchase->property_id]) }}"
+                                   style="background: rgba(245,158,11,0.18); color: #FBBF24; border: 1px solid rgba(245,158,11,0.35); padding: 6px 10px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all .2s ease;"
+                                   title="Book this property">
+                                    <i class="fa-solid fa-bookmark"></i> Book
+                                </a>
+                            @endif
                             <a href="{{ route('purchases.show', $purchase->id) }}" class="btn-view" title="View Details">
                                 <i class="fa fa-eye"></i> View
                             </a>

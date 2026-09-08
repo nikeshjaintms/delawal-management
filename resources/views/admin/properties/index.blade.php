@@ -403,6 +403,13 @@
                         </td>
                         <td>
                             <div class="action-buttons-wrap">
+                                @if($property->status === 'available')
+                                    <a href="{{ route('property-sales.create', ['property_id' => $property->id]) }}"
+                                       style="background: rgba(16,185,129,0.18); color: #34D399; border: 1px solid rgba(16,185,129,0.35); padding: 5px 9px; border-radius: 8px; text-decoration: none; font-size: 11.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
+                                       title="Sell Property Directly">
+                                        <i class="fa-solid fa-handshake"></i> Sell
+                                    </a>
+                                @endif
                                 <a href="{{ route('properties.show', $property->id) }}" class="btn-view">
                                     <i class="fa fa-eye"></i> View
                                 </a>

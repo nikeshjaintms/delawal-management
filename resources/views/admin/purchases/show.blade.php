@@ -150,6 +150,14 @@
     </div>
 
     <div class="form-actions">
+        @if($purchase->property_id)
+            <a href="{{ route('property-sales.create', ['property_id' => $purchase->property_id]) }}" class="btn-gold" style="background:#10B981 !important; border-color:#059669 !important;">
+                <i class="fa-solid fa-handshake"></i> Sell Property Directly
+            </a>
+            <a href="{{ route('bookings.create', ['property_id' => $purchase->property_id]) }}" class="btn-gold" style="background:#F59E0B !important; border-color:#D97706 !important;">
+                <i class="fa-solid fa-bookmark"></i> Book Property
+            </a>
+        @endif
         <a href="{{ route('purchases.edit', $purchase->id) }}" class="btn-gold">
             <i class="fa-regular fa-pen-to-square"></i> Edit Property Buy
         </a>

@@ -11,6 +11,7 @@ class Purchase extends Model
     protected $fillable = [
         'firm_id',
         'vendor_id',
+        'property_id',
         'property_name',
         'property_type',
         'property_code',
@@ -32,8 +33,9 @@ class Purchase extends Model
         'status',
     ];
 
-    public function firm()   { return $this->belongsTo(Firm::class); }
-    public function vendor() { return $this->belongsTo(Vendor::class); }
+    public function firm()     { return $this->belongsTo(Firm::class); }
+    public function vendor()   { return $this->belongsTo(Vendor::class); }
+    public function property() { return $this->belongsTo(Property::class); }
 
     /**
      * Get display title: property_name or fallback to item_name

@@ -145,8 +145,8 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
         <table class="premium-table">
             <thead>
                 <tr>
-                    <th>#</th><th>Firm</th><th>Booking Date</th><th>Property</th><th>Customer</th><th>Broker</th>
-                    <th>Booking Amount</th><th>Status</th><th>Payment</th><th style="width:200px;">Action</th>
+                    <th>#</th><th>Firm</th><th>Booking Date</th><th>Property</th><th>Customer</th>
+                    <th>Net Amount</th><th>Paid Amount</th><th>Payment Mode</th><th>Status</th><th>Payment</th><th style="width:200px;">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -155,12 +155,33 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     <td>{{ method_exists($bookings, 'firstItem') ? ($bookings->firstItem() + $key) : ($key + 1) }}</td>
                     <td><strong style="color: #FFFFFF !important;">{{ $booking->firm->firm_name ?? '-' }}</strong></td>
                     <td>{{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') : '-' }}</td>
-                    <td><strong>{{ $booking->property->property_name ?? '-' }}</strong></td>
+                    <td>
+                        <strong>{{ $booking->property->property_name ?? '-' }}</strong>
+                        @if($booking->property?->unit_no) <span style="font-size:11px;color:#94A3B8;">({{ $booking->property->unit_no }})</span> @endif
+                    </td>
                     <td>{{ $booking->customer->name ?? '-' }}</td>
-                    <td>{{ $booking->broker->name ?? '-' }}</td>
+                    <td>
+                        @if($booking->final_amount)
+                            <strong style="color:#60A5FA !important;">₹{{ number_format($booking->final_amount, 2) }}</strong>
+                            @if($booking->discount_amount > 0)
+                                <div style="font-size:11px;color:#FBBF24;">-₹{{ number_format($booking->discount_amount, 2) }} Off</div>
+                            @endif
+                        @elseif($booking->total_amount)
+                            ₹{{ number_format($booking->total_amount, 2) }}
+                        @else -
+                        @endif
+                    </td>
                     <td>
                         @if($booking->booking_amount)
                             <span class="amount-chip">₹{{ number_format($booking->booking_amount, 2) }}</span>
+                        @else -
+                        @endif
+                    </td>
+                    <td>
+                        @if($booking->paymentMode || $booking->payment_mode)
+                            <span style="font-size:12px;color:#CBD5E1;background:rgba(255,255,255,0.08);padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);">
+                                {{ $booking->paymentMode->name ?? $booking->payment_mode }}
+                            </span>
                         @else -
                         @endif
                     </td>
@@ -180,7 +201,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="10" align="center" style="padding:30px;color:#CBD5E1;">No bookings found.</td></tr>
+                <tr><td colspan="11" align="center" style="padding:30px;color:#CBD5E1;">No bookings found.</td></tr>
                 @endforelse
             </tbody>
         </table>
