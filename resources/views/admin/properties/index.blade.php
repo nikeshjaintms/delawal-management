@@ -373,9 +373,19 @@
                         <td><strong>{{ $property->property_name }}</strong></td>
                         <td>
                             @if($property->project)
-                                <a href="{{ route('projects.show', $property->project->id) }}" style="color: var(--gold); font-weight: 600; text-decoration: none;">
+                                <a href="{{ route('projects.show', $property->project->id) }}" style="color: #60A5FA; font-weight: 600; text-decoration: none;">
                                     {{ $property->project->project_name }}
                                 </a>
+                                @if($property->propertyMaster || $property->project->propertyMaster)
+                                    <div style="font-size: 11px; color: #94A3B8; margin-top: 2px;">
+                                        <i class="fa-solid fa-link" style="font-size: 9px;"></i> {{ $property->propertyMaster?->property_name ?? $property->project->propertyMaster?->property_name }}
+                                    </div>
+                                @endif
+                            @elseif($property->propertyMaster)
+                                <a href="{{ route('property-masters.show', $property->propertyMaster->id) }}" style="color: #60A5FA; font-weight: 600; text-decoration: none;">
+                                    {{ $property->propertyMaster->property_name }}
+                                </a>
+                                <div style="font-size: 11px; color: #94A3B8; margin-top: 2px;">(Master Property)</div>
                             @else
                                 <span style="color: var(--text-secondary);">-</span>
                             @endif

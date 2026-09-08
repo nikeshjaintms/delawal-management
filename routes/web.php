@@ -76,6 +76,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('projects/{project}/contractors', [\App\Http\Controllers\ContractorController::class, 'getByProject'])->name('projects.contractors')->middleware(['auth']);
     Route::resource('contractors', \App\Http\Controllers\ContractorController::class)->middleware(['permission:project_view']);
     Route::get('properties/import/template', [PropertyController::class, 'downloadTemplate'])->name('properties.import.template')->middleware(['permission:property_view']);
+    Route::get('properties/master-info', [PropertyController::class, 'getMasterInfo'])->name('properties.master-info')->middleware(['permission:property_view']);
     Route::post('properties/import/validate', [PropertyController::class, 'validateImport'])->name('properties.import.validate')->middleware(['permission:property_view']);
     Route::post('properties/import/process', [PropertyController::class, 'processImport'])->name('properties.import.process')->middleware(['permission:property_view']);
     Route::post('properties/bulk-delete', [PropertyController::class, 'bulkDelete'])->name('properties.bulk-delete')->middleware(['permission:property_view']);

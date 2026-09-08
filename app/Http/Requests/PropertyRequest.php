@@ -47,7 +47,8 @@ class PropertyRequest extends FormRequest
 
         $rules = [
             'firm_id' => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
-            'project_id' => 'required|exists:projects,id',
+            'property_master_id' => 'nullable|exists:property_masters,id',
+            'project_id' => 'nullable|exists:projects,id',
             'property_name' => 'required|string|max:255',
             'property_type_id' => 'required|exists:property_types,id',
             'property_code' => 'required|string|max:100|unique:properties,property_code,{ID},id,firm_id,{FIRM_ID}',

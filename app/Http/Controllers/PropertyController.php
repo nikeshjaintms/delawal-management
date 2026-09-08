@@ -26,7 +26,7 @@ class PropertyController extends Controller
     public function index(Request $request)
     {
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
-        $query = Property::with(['propertyType', 'firm', 'project']);
+        $query = Property::with(['propertyType', 'firm', 'project.propertyMaster', 'propertyMaster']);
 
         if ($isAdmin) {
             if ($request->filled('firm_id')) {
@@ -65,6 +65,100 @@ class PropertyController extends Controller
     }
 
     // ----------------------------------------------------------------
+    // GET MASTER / PROJECT INFO (AUTO-FETCH ENDPOINT)
+    // ----------------------------------------------------------------
+    public function getMasterInfo(Request $request)
+    {
+        $projectId = $request->get('project_id');
+        $propertyMasterId = $request->get('property_master_id');
+        $code = $request->get('code');
+
+        $project = null;
+        $propertyMaster = null;
+
+        if ($projectId) {
+            $project = \App\Models\Project::with(['propertyMaster.firm', 'firm'])->find($projectId);
+            if ($project && $project->propertyMaster) {
+                $propertyMaster = $project->propertyMaster;
+            } elseif ($project && $project->property_id) {
+                $propertyMaster = \App\Models\PropertyMaster::with('firm')->find($project->property_id);
+            }
+        } elseif ($propertyMasterId) {
+            $propertyMaster = \App\Models\PropertyMaster::with(['projects', 'firm'])->find($propertyMasterId);
+            if ($propertyMaster && $propertyMaster->projects->isNotEmpty()) {
+                $project = $propertyMaster->projects->first();
+            }
+        } elseif ($code) {
+            $cleanCode = strtolower(trim($code));
+            $propertyMaster = \App\Models\PropertyMaster::with(['projects', 'firm'])
+                ->whereRaw('LOWER(property_code) = ?', [$cleanCode])
+                ->orWhereRaw('LOWER(property_name) = ?', [$cleanCode])
+                ->first();
+            if ($propertyMaster && $propertyMaster->projects->isNotEmpty()) {
+                $project = $propertyMaster->projects->first();
+            } else {
+                $project = \App\Models\Project::with(['propertyMaster.firm', 'firm'])
+                    ->whereRaw('LOWER(project_code) = ?', [$cleanCode])
+                    ->orWhereRaw('LOWER(project_name) = ?', [$cleanCode])
+                    ->first();
+                if ($project && $project->propertyMaster) {
+                    $propertyMaster = $project->propertyMaster;
+                }
+            }
+        }
+
+        if (!$project && !$propertyMaster) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Property Master / Project not found.',
+            ], 404);
+        }
+
+        $firmId = $project?->firm_id ?? $propertyMaster?->firm_id;
+        $firm = $project?->firm ?? $propertyMaster?->firm ?? \App\Models\Firm::find($firmId);
+
+        $imageUrl = null;
+        if ($propertyMaster && $propertyMaster->main_image) {
+            $imageUrl = asset('storage/' . $propertyMaster->main_image);
+        } elseif ($project && $project->project_image) {
+            $imageUrl = asset('storage/' . $project->project_image);
+        }
+
+        // Calculate next sequence number for unique plot code suggestion
+        $count = 0;
+        if ($propertyMaster) {
+            $count = Property::where('property_master_id', $propertyMaster->id)->count() + 1;
+        } elseif ($project) {
+            $count = Property::where('project_id', $project->id)->count() + 1;
+        }
+        $prefix = $project ? ($project->project_code ?: 'PLOT') : ($propertyMaster->property_code ?: 'PROP');
+        $suggestedCode = $prefix . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'firm_id' => $firmId,
+                'firm_name' => $firm?->firm_name ?? '',
+                'property_master_id' => $propertyMaster?->id,
+                'property_master_name' => $propertyMaster?->property_name ?? '',
+                'property_master_code' => $propertyMaster?->property_code ?? '',
+                'project_id' => $project?->id,
+                'project_name' => $project?->project_name ?? '',
+                'project_code' => $project?->project_code ?? '',
+                'location' => $project?->location ?? $propertyMaster?->location ?? '',
+                'city' => $project?->city ?? $propertyMaster?->city ?? '',
+                'address' => $project?->address ?? $propertyMaster?->address ?? '',
+                'state' => $project?->state ?? $propertyMaster?->state ?? '',
+                'pincode' => $project?->pincode ?? $propertyMaster?->pincode ?? '',
+                'description' => $project?->description ?? $propertyMaster?->description ?? '',
+                'status' => 'available',
+                'image_url' => $imageUrl,
+                'suggested_code' => $suggestedCode,
+            ]
+        ]);
+    }
+
+    // ----------------------------------------------------------------
     // CREATE
     // ----------------------------------------------------------------
     public function create()
@@ -74,15 +168,17 @@ class PropertyController extends Controller
 
         if ($isAdmin) {
             $propertyTypes = PropertyType::orderBy('name')->get();
-            $projects = \App\Models\Project::orderBy('project_name')->get();
+            $projects = \App\Models\Project::with(['propertyMaster', 'firm'])->orderBy('project_name')->get();
+            $propertyMasters = \App\Models\PropertyMaster::with(['firm', 'projects'])->orderBy('property_name')->get();
         } else {
             $propertyTypes = PropertyType::whereHas('firms', function ($q) use ($firmId) {
                 $q->where('firms.id', $firmId);
             })->orderBy('name')->get();
-            $projects = \App\Models\Project::where('firm_id', $firmId)->orderBy('project_name')->get();
+            $projects = \App\Models\Project::with(['propertyMaster', 'firm'])->where('firm_id', $firmId)->orderBy('project_name')->get();
+            $propertyMasters = \App\Models\PropertyMaster::with(['firm', 'projects'])->where('firm_id', $firmId)->orderBy('property_name')->get();
         }
 
-        return view('admin.properties.create', compact('propertyTypes', 'projects'));
+        return view('admin.properties.create', compact('propertyTypes', 'projects', 'propertyMasters'));
     }
 
     // ----------------------------------------------------------------
@@ -92,6 +188,14 @@ class PropertyController extends Controller
     {
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         $firmId = $isAdmin ? $request->firm_id : (auth()->user() ? auth()->user()->firm_id : session('firm_id'));
+
+        $propertyMasterId = $request->property_master_id;
+        if (empty($propertyMasterId) && $request->filled('project_id')) {
+            $proj = \App\Models\Project::find($request->project_id);
+            if ($proj && $proj->property_id) {
+                $propertyMasterId = $proj->property_id;
+            }
+        }
 
         $mainImagePath = null;
         $documentPath = null;
@@ -110,7 +214,8 @@ class PropertyController extends Controller
 
         Property::create([
             'firm_id' => $firmId,
-            'project_id' => $request->project_id,
+            'property_master_id' => $propertyMasterId ?: null,
+            'project_id' => $request->project_id ?: null,
             'property_type_id' => $request->property_type_id ?: null,
             'property_name' => $request->property_name,
             'property_code' => $request->property_code,
@@ -131,7 +236,7 @@ class PropertyController extends Controller
 
         return redirect()
             ->route('properties.index')
-            ->with('success', 'Property added successfully.');
+            ->with('success', 'Bulk Plot / Property added successfully.');
     }
 
     // ----------------------------------------------------------------
@@ -140,7 +245,7 @@ class PropertyController extends Controller
     public function show(Property $property)
     {
         $this->authorise($property);
-        $property->load(['propertyType', 'documents' => fn($q) => $q->latest()]);
+        $property->load(['propertyType', 'propertyMaster', 'project', 'documents' => fn($q) => $q->latest()]);
 
         return view('admin.properties.show', compact('property'));
     }
@@ -155,15 +260,17 @@ class PropertyController extends Controller
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         if ($isAdmin) {
             $propertyTypes = PropertyType::orderBy('name')->get();
-            $projects = \App\Models\Project::where('firm_id', $property->firm_id)->orderBy('project_name')->get();
+            $projects = \App\Models\Project::with(['propertyMaster', 'firm'])->where('firm_id', $property->firm_id)->orderBy('project_name')->get();
+            $propertyMasters = \App\Models\PropertyMaster::with(['firm', 'projects'])->where('firm_id', $property->firm_id)->orderBy('property_name')->get();
         } else {
             $propertyTypes = PropertyType::whereHas('firms', function ($q) use ($property) {
                 $q->where('firms.id', $property->firm_id);
             })->orderBy('name')->get();
-            $projects = \App\Models\Project::where('firm_id', $property->firm_id)->orderBy('project_name')->get();
+            $projects = \App\Models\Project::with(['propertyMaster', 'firm'])->where('firm_id', $property->firm_id)->orderBy('project_name')->get();
+            $propertyMasters = \App\Models\PropertyMaster::with(['firm', 'projects'])->where('firm_id', $property->firm_id)->orderBy('property_name')->get();
         }
 
-        return view('admin.properties.edit', compact('property', 'propertyTypes', 'projects'));
+        return view('admin.properties.edit', compact('property', 'propertyTypes', 'projects', 'propertyMasters'));
     }
 
     // ----------------------------------------------------------------
@@ -175,6 +282,16 @@ class PropertyController extends Controller
 
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         $firmId = $isAdmin ? $request->firm_id : $property->firm_id;
+
+        $propertyMasterId = $request->property_master_id;
+        if (empty($propertyMasterId) && $request->filled('project_id')) {
+            $proj = \App\Models\Project::find($request->project_id);
+            if ($proj && $proj->property_id) {
+                $propertyMasterId = $proj->property_id;
+            }
+        } elseif (empty($propertyMasterId) && empty($request->project_id)) {
+            $propertyMasterId = $property->property_master_id;
+        }
 
         $mainImagePath = $property->main_image;
         $documentPath = $property->document_file;
@@ -199,7 +316,8 @@ class PropertyController extends Controller
 
         $property->update([
             'firm_id' => $firmId,
-            'project_id' => $request->project_id,
+            'property_master_id' => $propertyMasterId ?: null,
+            'project_id' => $request->project_id ?: null,
             'property_type_id' => $request->property_type_id ?: null,
             'property_name' => $request->property_name,
             'property_code' => $request->property_code,
@@ -220,7 +338,7 @@ class PropertyController extends Controller
 
         return redirect()
             ->route('properties.index')
-            ->with('success', 'Property updated successfully.');
+            ->with('success', 'Bulk Plot / Property updated successfully.');
     }
 
     public function quickUpdate(Request $request, Property $property)
@@ -640,12 +758,22 @@ class PropertyController extends Controller
         $firms = \App\Models\Firm::all();
         $firmsByName = $firms->pluck('id', 'firm_name')->mapWithKeys(fn($id, $name) => [strtolower(trim($name)) => $id]);
 
-        $projects = \App\Models\Project::all();
+        $projects = \App\Models\Project::with(['firm', 'propertyMaster'])->get();
         $projectsByKey = [];
         foreach ($projects as $p) {
             $projectsByKey[$p->firm_id][strtolower(trim($p->project_name))] = $p->id;
             if ($p->project_code) {
                 $projectsByKey[$p->firm_id][strtolower(trim($p->project_code))] = $p->id;
+            }
+        }
+
+        $propertyMasters = \App\Models\PropertyMaster::with(['projects', 'firm'])->get();
+        $mastersByKey = [];
+        $mastersByCode = [];
+        foreach ($propertyMasters as $pm) {
+            $mastersByKey[$pm->firm_id][strtolower(trim($pm->property_name))] = $pm->id;
+            if ($pm->property_code) {
+                $mastersByCode[$pm->firm_id][strtolower(trim($pm->property_code))] = $pm->id;
             }
         }
 
@@ -738,7 +866,7 @@ class PropertyController extends Controller
                         $targetFirmId = $contextFirmId;
                         $targetFirmName = $firms->firstWhere('id', $targetFirmId)?->firm_name ?? $firmInput;
                     } else {
-                        $errors[] = "Invalid Firm '{$firmInput}'. Firm does not exist.";
+                        $errors[] = "Row {$r}: Invalid Firm '{$firmInput}'. Firm does not exist.";
                     }
                 } else {
                     $targetFirmId = $contextFirmId ?: ($userFirmId ?: ($firms->first()?->id));
@@ -749,56 +877,81 @@ class PropertyController extends Controller
                 $targetFirmName = $firms->firstWhere('id', $targetFirmId)?->firm_name ?? '';
             }
 
-            // Project Validation with Smart Fallback & Context Prioritization
+            // Project and Property Master Resolution (Auto-Fetch & Link)
             $projectId = null;
             $projectName = '';
+            $propertyMasterId = null;
+            $propertyMasterName = '';
             $projKey = strtolower(trim($projectInput));
 
             if ($contextProject && (empty($projectInput) || strtolower(trim($contextProject->project_name)) === $projKey || strtolower(trim($contextProject->project_code)) === $projKey)) {
                 $projectId = $contextProject->id;
                 $projectName = $contextProject->project_name;
+                $propertyMasterId = $contextProject->property_id;
                 $targetFirmId = $contextProject->firm_id;
                 $targetFirmName = $contextProject->firm?->firm_name ?? $targetFirmName;
-            } elseif (empty($projectInput)) {
-                $defaultProj = $contextProject ?: (\App\Models\Project::where('firm_id', $targetFirmId)->first() ?: $projects->first());
-                if ($defaultProj) {
-                    $projectId = $defaultProj->id;
-                    $projectName = $defaultProj->project_name;
-                } else {
-                    $errors[] = 'Project Name is required.';
-                }
-            } else {
+            } elseif (!empty($projectInput)) {
                 if ($targetFirmId && isset($projectsByKey[$targetFirmId][$projKey])) {
                     $projectId = $projectsByKey[$targetFirmId][$projKey];
-                    $projectName = $projectInput;
+                    $matchedProj = $projects->firstWhere('id', $projectId);
+                    $projectName = $matchedProj?->project_name ?? $projectInput;
+                    $propertyMasterId = $matchedProj?->property_id;
                 } elseif ($contextProject && (strtolower(trim($contextProject->project_name)) === $projKey || strtolower(trim($contextProject->project_code)) === $projKey)) {
                     $projectId = $contextProject->id;
                     $projectName = $contextProject->project_name;
+                    $propertyMasterId = $contextProject->property_id;
                 } else {
                     $firmMatch = $projects->where('firm_id', $targetFirmId)->first(fn($p) => strtolower(trim($p->project_name)) === $projKey || strtolower(trim($p->project_code)) === $projKey);
                     if ($firmMatch) {
                         $projectId = $firmMatch->id;
                         $projectName = $firmMatch->project_name;
+                        $propertyMasterId = $firmMatch->property_id;
                     } else {
-                        $globalMatch = $projects->first(fn($p) => strtolower(trim($p->project_name)) === $projKey || strtolower(trim($p->project_code)) === $projKey || str_contains(strtolower(trim($p->project_name)), $projKey));
-                        if ($globalMatch) {
-                            $projectId = $globalMatch->id;
-                            $projectName = $globalMatch->project_name;
-                            if (empty($firmInput)) {
-                                $targetFirmId = $globalMatch->firm_id;
-                                $targetFirmName = $globalMatch->firm?->firm_name ?? $targetFirmName;
-                            }
+                        // Check if projectInput matches a PropertyMaster name or code directly
+                        $masterMatch = $propertyMasters->where('firm_id', $targetFirmId)->first(fn($pm) => strtolower(trim($pm->property_name)) === $projKey || strtolower(trim($pm->property_code)) === $projKey);
+                        if ($masterMatch) {
+                            $propertyMasterId = $masterMatch->id;
+                            $propertyMasterName = $masterMatch->property_name;
+                            $projectId = $masterMatch->projects->first()?->id;
+                            $projectName = $masterMatch->projects->first()?->project_name ?? $masterMatch->property_name;
                         } else {
-                            $defaultProj = $contextProject ?: (\App\Models\Project::where('firm_id', $targetFirmId)->first() ?: $projects->first());
-                            if ($defaultProj) {
-                                $projectId = $defaultProj->id;
-                                $projectName = $defaultProj->project_name;
+                            $globalMatch = $projects->first(fn($p) => strtolower(trim($p->project_name)) === $projKey || strtolower(trim($p->project_code)) === $projKey || str_contains(strtolower(trim($p->project_name)), $projKey));
+                            if ($globalMatch) {
+                                $projectId = $globalMatch->id;
+                                $projectName = $globalMatch->project_name;
+                                $propertyMasterId = $globalMatch->property_id;
+                                if (empty($firmInput)) {
+                                    $targetFirmId = $globalMatch->firm_id;
+                                    $targetFirmName = $globalMatch->firm?->firm_name ?? $targetFirmName;
+                                }
                             } else {
-                                $errors[] = "Invalid Project '{$projectInput}'. No matching project found.";
+                                $errors[] = "Row {$r}: Project / Property Master '{$projectInput}' not found in database.";
                             }
                         }
                     }
                 }
+            } else {
+                $defaultProj = $contextProject ?: (\App\Models\Project::where('firm_id', $targetFirmId)->first() ?: $projects->first());
+                if ($defaultProj) {
+                    $projectId = $defaultProj->id;
+                    $projectName = $defaultProj->project_name;
+                    $propertyMasterId = $defaultProj->property_id;
+                } else {
+                    $errors[] = "Row {$r}: Project Name or Property Master is required.";
+                }
+            }
+
+            // Auto-fetch missing location, city, address from matched Project / Property Master
+            if ($projectId) {
+                $currProj = $projects->firstWhere('id', $projectId);
+                if (empty($city) && $currProj) $city = $currProj->city;
+                if (empty($location) && $currProj) $location = $currProj->location;
+                if (empty($address) && $currProj) $address = $currProj->address;
+            } elseif ($propertyMasterId) {
+                $currMaster = $propertyMasters->firstWhere('id', $propertyMasterId);
+                if (empty($city) && $currMaster) $city = $currMaster->city;
+                if (empty($location) && $currMaster) $location = $currMaster->location;
+                if (empty($address) && $currMaster) $address = $currMaster->address;
             }
 
             // Property Type Validation (With 4-Step Smart Resilient Fallback)
@@ -868,12 +1021,12 @@ class PropertyController extends Controller
                             $propertyTypeId = $plotPt->id;
                             $typeName = $plotPt->name;
                         } else {
-                            $errors[] = "Invalid Property Type '{$typeInput}'. Type does not exist in master.";
+                            $errors[] = "Row {$r}: Invalid Property Type '{$typeInput}'. Type does not exist in master.";
                         }
                     }
                 }
             } else {
-                $errors[] = 'Property Type is required.';
+                $errors[] = "Row {$r}: Property Type is required.";
             }
 
             // Property Code Validation & Action Determination (NEW vs UPDATE)
@@ -881,7 +1034,7 @@ class PropertyController extends Controller
             $existingPropertyId = null;
 
             if (empty($code)) {
-                $errors[] = 'Property Code is required.';
+                $errors[] = "Row {$r}: Property Code is required.";
             } else {
                 $codeKey = strtolower($code);
 
@@ -896,7 +1049,7 @@ class PropertyController extends Controller
                 // Batch Duplicate Check (Same code repeated inside uploaded Excel file)
                 $batchKey = ($targetFirmId ?: 0) . '_' . $codeKey;
                 if (isset($batchCodes[$batchKey])) {
-                    $errors[] = "Duplicate Property Code '{$code}' in Excel row {$batchCodes[$batchKey]}.";
+                    $errors[] = "Row {$r}: Duplicate Property Code '{$code}' (already used in row {$batchCodes[$batchKey]}).";
                 } else {
                     $batchCodes[$batchKey] = $r;
                 }
@@ -904,13 +1057,13 @@ class PropertyController extends Controller
 
             // Property Name Validation
             if (empty($name)) {
-                $errors[] = 'Property Name is required.';
+                $errors[] = "Row {$r}: Property Name is required.";
             }
 
             // Status Validation
             $status = $statusInput ?: 'available';
             if (!in_array($status, $validStatuses)) {
-                $errors[] = "Invalid Status '{$statusInput}'. Must be available, booked, sold, or rented.";
+                $errors[] = "Row {$r}: Invalid Status '{$statusInput}'. Must be available, booked, sold, or rented.";
             }
 
             // Price Validation
@@ -918,7 +1071,7 @@ class PropertyController extends Controller
             if ($priceInput !== null && $priceInput !== '') {
                 $cleanPrice = str_replace(',', '', $priceInput);
                 if (!is_numeric($cleanPrice) || (float) $cleanPrice < 0) {
-                    $errors[] = "Invalid Price '{$priceInput}'. Must be a valid positive number.";
+                    $errors[] = "Row {$r}: Invalid Price '{$priceInput}'. Must be a valid positive number.";
                 } else {
                     $price = (float) $cleanPrice;
                 }
@@ -929,7 +1082,7 @@ class PropertyController extends Controller
             if (!empty($facingInput)) {
                 $facingLower = strtolower($facingInput);
                 if (!in_array($facingLower, $validFacings)) {
-                    $errors[] = "Invalid Facing direction '{$facingInput}'.";
+                    $errors[] = "Row {$r}: Invalid Facing direction '{$facingInput}'.";
                 } else {
                     $facing = ucwords($facingLower);
                 }
@@ -939,7 +1092,7 @@ class PropertyController extends Controller
             $sizeUnit = null;
             if (!empty($sizeUnitInput)) {
                 if (!in_array($sizeUnitInput, $validSizeUnits)) {
-                    $errors[] = "Invalid Size Unit '{$sizeUnitInput}'. Allowed: sq.ft, sq.yard, sq.meter, acre, bigha.";
+                    $errors[] = "Row {$r}: Invalid Size Unit '{$sizeUnitInput}'. Allowed: sq.ft, sq.yard, sq.meter, acre, bigha.";
                 } else {
                     $sizeUnit = $sizeUnitInput;
                 }
@@ -972,6 +1125,7 @@ class PropertyController extends Controller
                 'existing_id' => $existingPropertyId,
                 'firm_id' => $targetFirmId,
                 'firm_name' => $targetFirmName,
+                'property_master_id' => $propertyMasterId,
                 'project_id' => $projectId,
                 'project_name' => $projectName ?: $projectInput,
                 'property_type_id' => $propertyTypeId,
@@ -1085,6 +1239,7 @@ class PropertyController extends Controller
 
                 $propertyData = [
                     'firm_id' => $row['firm_id'],
+                    'property_master_id' => $row['property_master_id'] ?? null,
                     'project_id' => $row['project_id'],
                     'property_type_id' => $row['property_type_id'],
                     'property_code' => $row['property_code'],
@@ -1107,6 +1262,7 @@ class PropertyController extends Controller
                     if ($existingProperty) {
                         $updateFields = [
                             'firm_id' => $row['firm_id'],
+                            'property_master_id' => $row['property_master_id'] ?? $existingProperty->property_master_id,
                             'project_id' => $row['project_id'],
                             'property_type_id' => $row['property_type_id'],
                             'property_code' => $row['property_code'],
