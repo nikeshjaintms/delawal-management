@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
-@section('title', 'Edit Purchase')
-@section('page-title', 'Purchase Management')
+@section('title', 'Edit Property Buy')
+@section('page-title', 'Property Buy')
 @section('content')
 <style>
 /* ── Luxury Dark Glass System ── */
@@ -15,18 +15,20 @@
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     border-radius: 24px !important; padding: 32px !important;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 28px;
-    max-width: 900px; margin-left: auto; margin-right: auto;
+    max-width: 960px; margin-left: auto; margin-right: auto;
 }
 
 .section-title {
-    font-size: 12px; font-weight: 800; color: #60A5FA !important; text-transform: uppercase;
-    letter-spacing: 1px; margin-bottom: 18px; padding-bottom: 8px;
+    font-size: 13px; font-weight: 800; color: #60A5FA !important; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 18px; padding-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.10); display: flex; align-items: center; gap: 8px;
 }
-.form-section { margin-bottom: 30px; }
+.form-section { margin-bottom: 24px; }
 .form-group { margin-bottom: 20px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-@media(max-width:576px){ .form-row { grid-template-columns: 1fr; gap: 0; } }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+@media(max-width:768px){ .form-row-3 { grid-template-columns: 1fr 1fr; } }
+@media(max-width:576px){ .form-row, .form-row-3 { grid-template-columns: 1fr; gap: 0; } }
 
 .form-label { display: block; font-size: 13px; font-weight: 700; color: #CBD5E1 !important; margin-bottom: 8px; }
 .form-label span { color: #F87171 !important; }
@@ -41,7 +43,7 @@
 select.form-control option { background: #101622 !important; color: #FFFFFF !important; }
 .form-control::placeholder { color: #94A3B8 !important; }
 .form-control:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
-textarea.form-control { resize: vertical; min-height: 90px; }
+textarea.form-control { resize: vertical; min-height: 85px; }
 
 .text-error { color: #F87171 !important; font-size: 12.5px; margin-top: 6px; font-weight: 600; }
 
@@ -60,7 +62,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 .select2-results__option { color: #CBD5E1 !important; }
 .select2-results__option--highlighted[aria-selected] { background-color: #2563EB !important; color: #FFFFFF !important; }
 
-.form-actions { display: flex; align-items: center; gap: 14px; margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
+.form-actions { display: flex; align-items: center; gap: 14px; margin-top: 28px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
 
 .btn-gold {
     background: #2563EB !important; color: #FFFFFF !important; padding: 11px 24px;
@@ -81,8 +83,8 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Edit Purchase</h2>
-        <p>Update purchase — <strong>{{ $purchase->item_name }}</strong></p>
+        <h2>Edit Property Buy</h2>
+        <p>Update property — <strong>{{ $purchase->display_name }}</strong></p>
     </div>
 </div>
 
@@ -91,129 +93,113 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         @csrf
         @method('PUT')
 
+        {{-- Firm Selection --}}
+        @include('admin.components.firm-select', ['model' => $purchase])
+
+        {{-- Property Details --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-box-open"></i> Purchase Details</div>
-            @include('admin.components.firm-select', ['model' => $purchase])
+            <div class="section-title">
+                <i class="fa-solid fa-building"></i> Property Details
+            </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label" for="item_name">Item Name <span>*</span></label>
-                    <input type="text" name="item_name" id="item_name"
-                           value="{{ old('item_name', $purchase->item_name) }}"
-                           class="form-control" placeholder="e.g. Cement, Steel Rods">
-                    @error('item_name')<div class="text-error">{{ $message }}</div>@enderror
+                    <label class="form-label" for="property_name">Property / Plot Name <span>*</span></label>
+                    <input type="text" name="property_name" id="property_name"
+                           value="{{ old('property_name', $purchase->property_name ?: $purchase->item_name) }}"
+                           class="form-control @error('property_name') is-invalid @enderror"
+                           placeholder="e.g. Delawala Prime Plot #14" required>
+                    @error('property_name')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="vendor_id">Vendor <span class="opt">(optional)</span></label>
-                    <select name="vendor_id" id="vendor_id" class="form-control @error('vendor_id') is-invalid @enderror">
-                        <option value="">No Vendor</option>
-                        @foreach($vendors as $vendor)
-                            <option value="{{ $vendor->id }}"
-                                {{ old('vendor_id', $purchase->vendor_id) == $vendor->id ? 'selected' : '' }}>
-                                {{ $vendor->name }}
-                            </option>
+                    <label class="form-label" for="property_type">Property Type</label>
+                    <select name="property_type" id="property_type" class="form-control @error('property_type') is-invalid @enderror">
+                        <option value="">— Select Type —</option>
+                        @foreach(['Plot', 'Flat', 'House', 'Commercial', 'Land', 'Other'] as $pt)
+                            <option value="{{ $pt }}" {{ old('property_type', $purchase->property_type) == $pt ? 'selected' : '' }}>{{ $pt }}</option>
                         @endforeach
                     </select>
-                    @error('vendor_id')<div class="text-error">{{ $message }}</div>@enderror
+                    @error('property_type')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label" for="purchase_date">Purchase Date <span>*</span></label>
-                    <input type="date" name="purchase_date" id="purchase_date"
-                           value="{{ old('purchase_date', \Carbon\Carbon::parse($purchase->purchase_date)->format('Y-m-d')) }}"
-                           class="form-control">
-                    @error('purchase_date')<div class="text-error">{{ $message }}</div>@enderror
+                    <label class="form-label" for="property_code">Property Number / Code <span class="opt">(optional)</span></label>
+                    <input type="text" name="property_code" id="property_code"
+                           value="{{ old('property_code', $purchase->property_code) }}"
+                           class="form-control @error('property_code') is-invalid @enderror"
+                           placeholder="e.g. PLT-104 / FLAT-302">
+                    @error('property_code')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="quantity">Quantity</label>
-                    <input type="number" name="quantity" id="quantity"
-                           value="{{ old('quantity', $purchase->quantity) }}"
-                           class="form-control" placeholder="1" min="0" step="any">
-                    @error('quantity')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label" for="purchase_amount">Purchase Amount (₹) <span>*</span></label>
-                    <input type="number" step="0.01" name="purchase_amount" id="purchase_amount"
-                           value="{{ old('purchase_amount', $purchase->purchase_amount) }}"
-                           class="form-control @error('purchase_amount') is-invalid @enderror" placeholder="0.00" min="0">
-                    @error('purchase_amount')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="payment_mode">Payment Mode</label>
-                    <select name="payment_mode" id="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror">
-                        <option value="">— Select Mode —</option>
-                        @php
-                            $firmId = Auth::user()?->firm_id ?? session('firm_id');
-                            $pModes = \App\Models\PaymentMode::where('status', 'active')
-                                ->when($firmId, function($q) use ($firmId) {
-                                    $q->where(function($sub) use ($firmId) {
-                                        $sub->whereHas('firms', fn($f) => $f->where('firms.id', $firmId))
-                                            ->orWhereDoesntHave('firms');
-                                    });
-                                })
-                                ->orderBy('name')
-                                ->get();
-                            if ($pModes->isEmpty()) {
-                                $pModes = \App\Models\PaymentMode::where('status', 'active')->orderBy('name')->get();
-                            }
-                        @endphp
-                        @foreach($pModes as $pm)
-                            <option value="{{ $pm->name }}" {{ old('payment_mode', $purchase->payment_mode) == $pm->name ? 'selected' : '' }}>{{ $pm->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('payment_mode')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label" for="payment_status">Payment Status <span>*</span></label>
-                    <select name="payment_status" id="payment_status" class="form-control @error('payment_status') is-invalid @enderror">
-                        @foreach(['unpaid','partial','paid'] as $ps)
-                            <option value="{{ $ps }}"
-                                {{ old('payment_status', $purchase->payment_status) == $ps ? 'selected' : '' }}>
-                                {{ ucfirst($ps) }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('payment_status')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="reference_no">Reference No <span class="opt">(optional)</span></label>
-                    <input type="text" name="reference_no" id="reference_no"
-                           value="{{ old('reference_no', $purchase->reference_no) }}"
-                           class="form-control" placeholder="Bill / Invoice / PO number">
-                    @error('reference_no')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label" for="status">Status <span>*</span></label>
-                    <select name="status" id="status" class="form-control @error('status') is-invalid @enderror">
-                        <option value="active"   {{ old('status', $purchase->status) == 'active'   ? 'selected' : '' }}>Active</option>
-                        <option value="inactive" {{ old('status', $purchase->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                    </select>
-                    @error('status')<div class="text-error">{{ $message }}</div>@enderror
+                    <label class="form-label" for="location">Location <span class="opt">(optional)</span></label>
+                    <input type="text" name="location" id="location"
+                           value="{{ old('location', $purchase->location) }}"
+                           class="form-control @error('location') is-invalid @enderror"
+                           placeholder="e.g. Vesu, VIP Road, Surat">
+                    @error('location')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="remarks">Remarks <span class="opt">(optional)</span></label>
-                <textarea name="remarks" id="remarks" class="form-control @error('remarks') is-invalid @enderror"
-                          placeholder="Any additional notes...">{{ old('remarks', $purchase->remarks) }}</textarea>
-                @error('remarks')<div class="text-error">{{ $message }}</div>@enderror
+                <label class="form-label" for="address">Address <span class="opt">(optional)</span></label>
+                <textarea name="address" id="address" class="form-control @error('address') is-invalid @enderror"
+                          placeholder="Full address or property description...">{{ old('address', $purchase->address) }}</textarea>
+                @error('address')<div class="text-error">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label class="form-label" for="survey_no">Survey No. <span class="opt">(optional)</span></label>
+                    <input type="text" name="survey_no" id="survey_no"
+                           value="{{ old('survey_no', $purchase->survey_no) }}"
+                           class="form-control @error('survey_no') is-invalid @enderror"
+                           placeholder="e.g. 142/A">
+                    @error('survey_no')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="tp_no">TP No. <span class="opt">(optional)</span></label>
+                    <input type="text" name="tp_no" id="tp_no"
+                           value="{{ old('tp_no', $purchase->tp_no) }}"
+                           class="form-control @error('tp_no') is-invalid @enderror"
+                           placeholder="e.g. TP-28">
+                    @error('tp_no')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="fp_no">FP No. <span class="opt">(optional)</span></label>
+                    <input type="text" name="fp_no" id="fp_no"
+                           value="{{ old('fp_no', $purchase->fp_no) }}"
+                           class="form-control @error('fp_no') is-invalid @enderror"
+                           placeholder="e.g. FP-45">
+                    @error('fp_no')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="area">Area <span class="opt">(optional)</span></label>
+                    <input type="number" step="0.01" name="area" id="area"
+                           value="{{ old('area', $purchase->area) }}"
+                           class="form-control @error('area') is-invalid @enderror"
+                           placeholder="e.g. 1250.00" min="0">
+                    @error('area')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="area_unit">Area Unit</label>
+                    <select name="area_unit" id="area_unit" class="form-control @error('area_unit') is-invalid @enderror">
+                        @foreach(['Sq.Ft', 'Sq.Yd', 'Sq.Mtr', 'Acre'] as $u)
+                            <option value="{{ $u }}" {{ old('area_unit', $purchase->area_unit ?? 'Sq.Ft') == $u ? 'selected' : '' }}>{{ $u }}</option>
+                        @endforeach
+                    </select>
+                    @error('area_unit')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
             </div>
         </div>
 
         <div class="form-actions">
             <button type="submit" class="btn-gold">
-                <i class="fa-solid fa-floppy-disk"></i> Update Purchase
+                <i class="fa-solid fa-floppy-disk"></i> Update Property Buy
             </button>
             <a href="{{ route('purchases.index') }}" class="btn-outline">
                 <i class="fa-solid fa-arrow-left"></i> Cancel

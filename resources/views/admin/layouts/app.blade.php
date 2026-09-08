@@ -2225,7 +2225,7 @@
 
         {{-- 1. Property Management --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="1. Property Management">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'property-masters.') || str_starts_with($currentRoute ?? '', 'purchases.') || str_starts_with($currentRoute ?? '', 'property-availability.') || str_starts_with($currentRoute ?? '', 'property-documents.')) ? 'parent-active' : '' }}" data-label="1. Property Management">
                 <i class="fa-solid fa-building"></i><span>1. Property Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
@@ -2234,6 +2234,14 @@
                 <li class="submenu-item">
                     <a href="{{ route('property-masters.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'property-masters.') ? 'active' : '' }}">
                         <i class="fa-solid fa-building"></i><span>Property Master</span>
+                    </a>
+                </li>
+                @endif
+
+                @if($authUser->hasPermission('purchase_view') || $authUser->hasPermission('property_view'))
+                <li class="submenu-item">
+                    <a href="{{ route('purchases.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'purchases.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-cart-shopping"></i><span>Property Buy</span>
                     </a>
                 </li>
                 @endif
@@ -3413,7 +3421,7 @@ document.addEventListener('DOMContentLoaded', function() {
         Swal.fire({
             icon: 'success',
             title: 'Success!',
-            text: "{{ session('success') }}",
+            text: {!! json_encode(session('success')) !!},
             background: 'rgba(18, 25, 38, 0.96)',
             color: '#FFFFFF',
             confirmButtonColor: '#2563EB',
@@ -3433,7 +3441,7 @@ document.addEventListener('DOMContentLoaded', function() {
         Swal.fire({
             icon: 'error',
             title: 'Notice',
-            text: "{{ session('error') }}",
+            text: {!! json_encode(session('error')) !!},
             background: 'rgba(18, 25, 38, 0.96)',
             color: '#FFFFFF',
             confirmButtonColor: '#EF4444',
@@ -3441,6 +3449,30 @@ document.addEventListener('DOMContentLoaded', function() {
             showClass: {
                 popup: 'animate__animated animate__shakeX animate__faster'
             }
+        });
+    @endif
+
+    @if(session('warning'))
+        Swal.fire({
+            icon: 'warning',
+            title: 'Warning',
+            text: {!! json_encode(session('warning')) !!},
+            background: 'rgba(18, 25, 38, 0.96)',
+            color: '#FFFFFF',
+            confirmButtonColor: '#F59E0B',
+            confirmButtonText: 'OK'
+        });
+    @endif
+
+    @if(session('info'))
+        Swal.fire({
+            icon: 'info',
+            title: 'Information',
+            text: {!! json_encode(session('info')) !!},
+            background: 'rgba(18, 25, 38, 0.96)',
+            color: '#FFFFFF',
+            confirmButtonColor: '#3B82F6',
+            confirmButtonText: 'OK'
         });
     @endif
 });

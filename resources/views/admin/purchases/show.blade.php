@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
-@section('title', 'View Purchase')
-@section('page-title', 'Purchase Management')
+@section('title', 'View Property Buy')
+@section('page-title', 'Property Buy')
 @section('content')
 <style>
 /* ── Luxury Dark Glass System ── */
@@ -15,11 +15,19 @@
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     border-radius: 24px !important; padding: 32px !important;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 28px;
-    max-width: 860px; margin-left: auto; margin-right: auto;
+    max-width: 960px; margin-left: auto; margin-right: auto;
 }
 
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-@media(max-width:576px){ .detail-grid { grid-template-columns: 1fr; } }
+.section-head {
+    font-size: 13px; font-weight: 800; color: #60A5FA !important; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 18px; padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10); display: flex; align-items: center; gap: 8px;
+}
+
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 24px; }
+.detail-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 24px; }
+@media(max-width:768px){ .detail-grid-3 { grid-template-columns: 1fr 1fr; } }
+@media(max-width:576px){ .detail-grid, .detail-grid-3 { grid-template-columns: 1fr; } }
 
 .detail-item {
     padding: 16px 18px; background: rgba(16, 22, 34, 0.65) !important;
@@ -38,14 +46,9 @@
 .detail-value { font-size: 14.5px; font-weight: 700; color: #FFFFFF !important; word-break: break-word; }
 .detail-value.empty { color: #94A3B8 !important; font-weight: 400; font-style: italic; }
 
-.badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 20px; text-transform: uppercase; white-space: nowrap !important; }
-.badge-unpaid   { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
-.badge-partial  { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
-.badge-paid     { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
-.badge-active   { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
-.badge-inactive { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+.chip { background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; padding: 4px 10px; border-radius: 8px; font-size: 12.5px; font-weight: 700; border: 1px solid rgba(59, 130, 246, 0.30); display: inline-block; }
 
-.form-actions { display: flex; align-items: center; gap: 14px; margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
+.form-actions { display: flex; align-items: center; gap: 14px; margin-top: 10px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
 
 .btn-gold {
     background: #2563EB !important; color: #FFFFFF !important; padding: 11px 24px;
@@ -66,94 +69,89 @@
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Purchase Details</h2>
-        <p>Full details for: <strong>{{ $purchase->item_name }}</strong></p>
+        <h2>Property Buy Details</h2>
+        <p>Overview of: <strong>{{ $purchase->display_name }}</strong></p>
     </div>
 </div>
 
 <div class="card-box">
-    <div class="detail-grid">
+    {{-- ── Property Details ── --}}
+    <div class="section-head">
+        <i class="fa-solid fa-building"></i> Property Details
+    </div>
 
+    <div class="detail-grid">
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
             <div class="detail-value">{{ $purchase->firm_names }}</div>
         </div>
 
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-box-open"></i> Item Name</div>
-            <div class="detail-value">{{ $purchase->item_name }}</div>
+            <div class="detail-label"><i class="fa-solid fa-hotel"></i> Property / Plot Name</div>
+            <div class="detail-value">{{ $purchase->display_name }}</div>
         </div>
 
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-truck-field"></i> Vendor</div>
+            <div class="detail-label"><i class="fa-solid fa-shapes"></i> Property Type</div>
             <div class="detail-value">
-                {{ $purchase->vendor ? $purchase->vendor->name : '—' }}
-            </div>
-        </div>
-
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-regular fa-calendar"></i> Purchase Date</div>
-            <div class="detail-value">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d M Y') }}</div>
-        </div>
-
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-hashtag"></i> Quantity</div>
-            <div class="detail-value">{{ $purchase->quantity ?? '—' }}</div>
-        </div>
-
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Purchase Amount</div>
-            <div class="detail-value" style="color:#FBBF24 !important;">₹{{ number_format($purchase->purchase_amount, 2) }}</div>
-        </div>
-
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-wallet"></i> Payment Mode</div>
-            <div class="detail-value">
-                @if($purchase->payment_mode)
-                    <span style="background:rgba(255,255,255,0.08);color:#E2E8F0;padding:4px 10px;border-radius:6px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,0.10);display:inline-block;">{{ $purchase->payment_mode }}</span>
+                @if($purchase->property_type)
+                    <span class="chip">{{ $purchase->property_type }}</span>
                 @else
-                    <span style="color:#94A3B8;">—</span>
+                    <span class="empty">Not specified</span>
                 @endif
             </div>
         </div>
 
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-circle-half-stroke"></i> Payment Status</div>
-            <div class="detail-value">
-                <span class="badge badge-{{ $purchase->payment_status ?? 'unpaid' }}">
-                    {{ ucfirst($purchase->payment_status ?? 'unpaid') }}
-                </span>
-            </div>
+            <div class="detail-label"><i class="fa-solid fa-hashtag"></i> Property Number / Code</div>
+            <div class="detail-value">{{ $purchase->property_code ?: '—' }}</div>
         </div>
 
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-file-invoice"></i> Reference No</div>
-            <div class="detail-value">{{ $purchase->reference_no ?? '—' }}</div>
+            <div class="detail-label"><i class="fa-solid fa-location-dot"></i> Location</div>
+            <div class="detail-value">{{ $purchase->location ?: '—' }}</div>
         </div>
 
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-circle-dot"></i> Status</div>
+            <div class="detail-label"><i class="fa-solid fa-ruler-combined"></i> Area</div>
             <div class="detail-value">
-                <span class="badge badge-{{ $purchase->status ?? 'active' }}">
-                    {{ ucfirst($purchase->status ?? 'active') }}
-                </span>
+                @if($purchase->area)
+                    <span style="color: #34D399; font-size: 16px;">{{ number_format($purchase->area, 2) }}</span>
+                    <span style="color: #94A3B8; font-size: 13px; margin-left: 4px;">{{ $purchase->area_unit ?? 'Sq.Ft' }}</span>
+                @else
+                    <span class="empty">—</span>
+                @endif
             </div>
         </div>
 
         <div class="detail-item detail-item-full">
-            <div class="detail-label"><i class="fa-solid fa-note-sticky"></i> Remarks</div>
-            @if($purchase->remarks)
-                <div class="detail-value" style="font-weight:400;font-size:14px;line-height:1.6;color:#CBD5E1 !important;">{{ $purchase->remarks }}</div>
-            @else
-                <div class="detail-value empty">No remarks provided</div>
-            @endif
+            <div class="detail-label"><i class="fa-solid fa-map-pin"></i> Address</div>
+            <div class="detail-value {{ $purchase->address ? '' : 'empty' }}">
+                {{ $purchase->address ?: 'No address specified' }}
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-grid-3">
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-file-contract"></i> Survey No.</div>
+            <div class="detail-value">{{ $purchase->survey_no ?: '—' }}</div>
         </div>
 
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-map"></i> TP No.</div>
+            <div class="detail-value">{{ $purchase->tp_no ?: '—' }}</div>
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-draw-polygon"></i> FP No.</div>
+            <div class="detail-value">{{ $purchase->fp_no ?: '—' }}</div>
+        </div>
     </div>
 
     <div class="form-actions">
         <a href="{{ route('purchases.edit', $purchase->id) }}" class="btn-gold">
-            <i class="fa-regular fa-pen-to-square"></i> Edit Purchase
+            <i class="fa-regular fa-pen-to-square"></i> Edit Property Buy
         </a>
         <a href="{{ route('purchases.index') }}" class="btn-outline">
             <i class="fa-solid fa-arrow-left"></i> Back to List

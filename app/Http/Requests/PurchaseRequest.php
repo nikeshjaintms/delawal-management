@@ -21,84 +21,69 @@ class PurchaseRequest extends FormRequest
                 $inputs[$key] = trim($value);
             }
         }
+        if (empty($inputs['item_name']) && !empty($inputs['property_name'])) {
+            $inputs['item_name'] = $inputs['property_name'];
+        }
+        if (empty($inputs['purchase_date'])) {
+            $inputs['purchase_date'] = date('Y-m-d');
+        }
+        if (!isset($inputs['purchase_amount']) || $inputs['purchase_amount'] === '') {
+            $inputs['purchase_amount'] = 0;
+        }
+        if (empty($inputs['payment_status'])) {
+            $inputs['payment_status'] = 'unpaid';
+        }
+        if (empty($inputs['status'])) {
+            $inputs['status'] = 'active';
+        }
         $this->replace($inputs);
     }
 
     public function rules(): array
     {
-        $id = null;
-        if ($this->route()) {
-            foreach ($this->route()->parameters() as $param) {
-                if (is_object($param)) {
-                    $id = $param->id;
-                    break;
-                } elseif (is_numeric($param)) {
-                    $id = $param;
-                    break;
-                }
-            }
-        }
-        $firmId = auth()->check() ? auth()->user()->firm_id : 0;
-
-        $rules = [
+        return [
             'firm_ids'         => 'nullable|array',
             'firm_ids.*'       => 'exists:firms,id',
             'firm_id'          => 'nullable|exists:firms,id',
-            'vendor_id'       => 'nullable|exists:vendors,id',
-            'item_name'       => 'required|string|max:255',
-            'purchase_date'   => 'required|date',
-            'purchase_amount' => 'required|numeric|min:0',
-            'quantity'        => 'nullable|integer|min:1',
-            'payment_mode'    => 'nullable|string|max:255',
-            'payment_status'  => 'required|in:unpaid,partial,paid',
-            'reference_no'    => 'nullable|string|max:255',
-            'status'          => 'required|in:active,inactive',
-            'remarks'         => 'nullable|string|max:1000',
+            'vendor_id'        => 'nullable|exists:vendors,id',
+            'property_name'    => 'required|string|max:255',
+            'property_type'    => 'nullable|string|max:100',
+            'property_code'    => 'nullable|string|max:100',
+            'location'         => 'nullable|string|max:255',
+            'address'          => 'nullable|string|max:1000',
+            'survey_no'        => 'nullable|string|max:100',
+            'tp_no'            => 'nullable|string|max:100',
+            'fp_no'            => 'nullable|string|max:100',
+            'area'             => 'nullable|numeric|min:0',
+            'area_unit'        => 'nullable|string|max:50',
+            'item_name'        => 'nullable|string|max:255',
+            'purchase_date'    => 'nullable|date',
+            'purchase_amount'  => 'nullable|numeric|min:0',
+            'quantity'         => 'nullable|numeric|min:0',
+            'payment_mode'     => 'nullable|string|max:255',
+            'payment_status'   => 'nullable|string|max:50',
+            'reference_no'     => 'nullable|string|max:255',
+            'status'           => 'nullable|string|max:50',
+            'remarks'          => 'nullable|string|max:1000',
         ];
-
-        // Replace placeholders in unique rules dynamically
-        foreach ($rules as $field => $rule) {
-            if (is_string($rule)) {
-                $replaced = str_replace('{ID}', $id ?: 'NULL', $rule);
-                $replaced = str_replace('{FIRM_ID}', $firmId, $replaced);
-                
-                // Dynamic Password rule for users
-                if ($field === 'password') {
-                    if ($this->isMethod('post')) {
-                        $replaced = 'required|string|min:6|same:confirm_password';
-                    } else {
-                        $replaced = 'nullable|string|min:6|same:confirm_password';
-                    }
-                }
-                if ($field === 'confirm_password') {
-                    if ($this->isMethod('post')) {
-                        $replaced = 'required';
-                    } else {
-                        $replaced = 'nullable';
-                    }
-                }
-                
-                $rules[$field] = $replaced;
-            }
-        }
-
-        return $rules;
     }
 
     public function attributes(): array
     {
         return [
             'firm_id'         => 'Firm',
-            'vendor_id'       => 'Vendor',
-            'item_name'       => 'Item Name',
-            'purchase_date'   => 'Purchase Date',
-            'purchase_amount' => 'Purchase Amount',
-            'quantity'        => 'Quantity',
-            'payment_mode'    => 'Payment Mode',
-            'payment_status'  => 'Payment Status',
-            'reference_no'    => 'Reference No',
-            'status'          => 'Status',
-            'remarks'         => 'Remarks',
+            'vendor_id'       => 'Vendor / Seller',
+            'property_name'   => 'Property / Plot Name',
+            'property_type'   => 'Property Type',
+            'property_code'   => 'Property Number / Code',
+            'location'        => 'Location',
+            'address'         => 'Address',
+            'survey_no'       => 'Survey No.',
+            'tp_no'           => 'TP No.',
+            'fp_no'           => 'FP No.',
+            'area'            => 'Area',
+            'area_unit'       => 'Area Unit',
+            'item_name'       => 'Item / Property Name',
         ];
     }
 
