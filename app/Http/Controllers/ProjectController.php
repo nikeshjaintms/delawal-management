@@ -294,9 +294,11 @@ class ProjectController extends Controller
     {
         $this->authorise($project);
 
-        if ($project->properties()->count() > 0) {
+        // Check if any plots in this project are already booked or sold
+        $bookedOrSold = $project->properties()->whereIn('status', ['booked', 'sold'])->count();
+        if ($bookedOrSold > 0) {
             return redirect()->back()
-                ->with('error', 'Cannot delete Project because it has associated bulk records.');
+                ->with('error', "Cannot delete Project because {$bookedOrSold} plot(s) are already booked or sold.");
         }
 
         if ($project->project_image) {
@@ -304,11 +306,28 @@ class ProjectController extends Controller
         }
 
         $propertyId = $project->property_id;
-        $project->delete();
+
+        DB::transaction(function () use ($project) {
+            // Unassign batch and master plots back to available inventory
+            $project->properties()
+                ->where(function ($q) {
+                    $q->whereNotNull('property_master_id')
+                      ->orWhereNotNull('acquisition_batch_id');
+                })
+                ->update(['project_id' => null]);
+
+            // Delete any remaining standalone plots created solely for this project
+            $project->properties()->delete();
+
+            // Delete contractors attached to this project
+            $project->contractors()->delete();
+
+            $project->delete();
+        });
 
         if ($propertyId) {
             return redirect()->route('property-masters.show', $propertyId)
-                ->with('success', 'Project deleted successfully.');
+                ->with('success', 'Project deleted successfully and unbooked plots returned to available inventory.');
         }
 
         return redirect()->route('projects.index')->with('success', 'Project deleted successfully.');

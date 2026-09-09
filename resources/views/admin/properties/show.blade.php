@@ -127,7 +127,7 @@
                 @endif
                 @if($property->size)
                     <span style="font-size:13px;color:var(--text-secondary);">
-                        {{ $property->size }} {{ $property->size_unit }}
+                        {{ $property->formatted_size }}
                     </span>
                 @endif
             </div>
@@ -200,7 +200,7 @@
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-ruler"></i> Size</div>
             @if($property->size)
-                <div class="detail-value">{{ $property->size }} {{ $property->size_unit }}</div>
+                <div class="detail-value">{{ $property->formatted_size }}</div>
             @else
                 <div class="detail-value empty">Not provided</div>
             @endif

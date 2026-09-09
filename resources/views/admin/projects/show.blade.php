@@ -656,7 +656,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                                 <small style="color: #94A3B8; display: block; font-size: 11px;">{{ \Carbon\Carbon::parse($property->purchase_date)->format('d M Y') }}</small>
                             @endif
                         </td>
-                        <td>{{ $property->size ? $property->size . ' ' . ($property->size_unit ?? 'sq.ft') : '-' }}</td>
+                        <td>{{ $property->formatted_size }}</td>
                         <td>{{ $property->facing ?: '-' }}</td>
                         <td>
                             <span class="badge badge-{{ strtolower($property->status ?? 'available') }}">

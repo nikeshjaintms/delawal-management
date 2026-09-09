@@ -14,6 +14,15 @@ class PropertyMaster extends Model
         'firm_id',
         'property_name',
         'property_code',
+        'purchase_price',
+        'purchase_date',
+        'purchase_rate',
+        'total_area',
+        'area_unit',
+        'seller_name',
+        'vendor_id',
+        'payment_mode',
+        'payment_status',
         'location',
         'address',
         'city',
@@ -27,6 +36,11 @@ class PropertyMaster extends Model
         'created_by',
         'updated_by',
     ];
+
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
+    }
 
     public function firm()
     {

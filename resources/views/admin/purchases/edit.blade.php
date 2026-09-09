@@ -23,7 +23,7 @@
     letter-spacing: 1px; margin-bottom: 18px; padding-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.10); display: flex; align-items: center; gap: 8px;
 }
-.form-section { margin-bottom: 24px; }
+.form-section { margin-bottom: 28px; }
 .form-group { margin-bottom: 20px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
@@ -47,20 +47,13 @@ textarea.form-control { resize: vertical; min-height: 85px; }
 
 .text-error { color: #F87171 !important; font-size: 12.5px; margin-top: 6px; font-weight: 600; }
 
-/* Select2 Glass Styling Overrides */
-.select2-container--default .select2-selection--multiple,
-.select2-container--default .select2-selection--single {
-    background-color: rgba(16, 22, 34, 0.65) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
-    border-radius: 10px !important;
-    color: #FFFFFF !important; min-height: 42px !important; padding: 4px 8px !important;
+.price-highlight-box {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.08) 100%);
+    border: 1.5px solid rgba(16, 185, 129, 0.35);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 24px;
 }
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-    color: #FFFFFF !important; line-height: 32px !important;
-}
-.select2-dropdown { background-color: #101622 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; }
-.select2-results__option { color: #CBD5E1 !important; }
-.select2-results__option--highlighted[aria-selected] { background-color: #2563EB !important; color: #FFFFFF !important; }
 
 .form-actions { display: flex; align-items: center; gap: 14px; margin-top: 28px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
 
@@ -96,10 +89,10 @@ textarea.form-control { resize: vertical; min-height: 85px; }
         {{-- Firm Selection --}}
         @include('admin.components.firm-select', ['model' => $purchase])
 
-        {{-- Property Details --}}
+        {{-- 1. Property Details --}}
         <div class="form-section">
             <div class="section-title">
-                <i class="fa-solid fa-building"></i> Property Details
+                <i class="fa-solid fa-building"></i> 1. Property & Location Details
             </div>
 
             <div class="form-row">
@@ -194,6 +187,101 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                     </select>
                     @error('area_unit')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
+            </div>
+        </div>
+
+        {{-- 2. Financial & Purchase Price Details --}}
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fa-solid fa-indian-rupee-sign"></i> 2. Purchase Price & Financial Details
+            </div>
+
+            <div class="price-highlight-box">
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="purchase_amount" style="color: #34D399 !important; font-size: 14px;">
+                            <i class="fa-solid fa-money-bill-wave"></i> Purchase Price / Buy Amount (₹) <span>*</span>
+                        </label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 14px; top: 11px; color: #34D399; font-weight: 700; font-size: 15px;">₹</span>
+                            <input type="number" step="0.01" name="purchase_amount" id="purchase_amount"
+                                   value="{{ old('purchase_amount', $purchase->purchase_amount) }}"
+                                   class="form-control @error('purchase_amount') is-invalid @enderror"
+                                   placeholder="e.g. 2500000.00" min="0" required
+                                   style="padding-left: 32px; font-weight: 700; font-size: 16px; color: #34D399 !important; border-color: rgba(16, 185, 129, 0.4) !important;">
+                        </div>
+                        <div class="form-hint" style="color: #A7F3D0;">Total price at which this property was purchased.</div>
+                        @error('purchase_amount')<div class="text-error">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="purchase_date">
+                            <i class="fa-solid fa-calendar-day"></i> Purchase Date <span>*</span>
+                        </label>
+                        <input type="date" name="purchase_date" id="purchase_date"
+                               value="{{ old('purchase_date', $purchase->purchase_date ? date('Y-m-d', strtotime($purchase->purchase_date)) : date('Y-m-d')) }}"
+                               class="form-control @error('purchase_date') is-invalid @enderror" required>
+                        @error('purchase_date')<div class="text-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="vendor_id">
+                        <i class="fa-solid fa-user-tie"></i> Seller / Vendor / Owner <span class="opt">(optional)</span>
+                    </label>
+                    <select name="vendor_id" id="vendor_id" class="form-control @error('vendor_id') is-invalid @enderror">
+                        <option value="">— Select Seller / Vendor —</option>
+                        @if(isset($vendors))
+                            @foreach($vendors as $v)
+                                <option value="{{ $v->id }}" {{ old('vendor_id', $purchase->vendor_id) == $v->id ? 'selected' : '' }}>
+                                    {{ $v->name }} {{ $v->phone ? '(' . $v->phone . ')' : '' }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                    @error('vendor_id')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="payment_mode">Payment Mode</label>
+                    <select name="payment_mode" id="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror">
+                        <option value="">— Select Payment Mode —</option>
+                        @foreach(['Bank Transfer / RTGS / NEFT', 'Cheque', 'Cash', 'UPI', 'Other'] as $mode)
+                            <option value="{{ $mode }}" {{ old('payment_mode', $purchase->payment_mode) == $mode ? 'selected' : '' }}>{{ $mode }}</option>
+                        @endforeach
+                    </select>
+                    @error('payment_mode')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="payment_status">Payment Status</label>
+                    <select name="payment_status" id="payment_status" class="form-control @error('payment_status') is-invalid @enderror">
+                        @foreach(['paid' => 'Paid (Full)', 'partial' => 'Partial Payment', 'unpaid' => 'Unpaid / Due'] as $val => $lbl)
+                            <option value="{{ $val }}" {{ old('payment_status', $purchase->payment_status) == $val ? 'selected' : '' }}>{{ $lbl }}</option>
+                        @endforeach
+                    </select>
+                    @error('payment_status')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="reference_no">Cheque / Transaction Ref No. <span class="opt">(optional)</span></label>
+                    <input type="text" name="reference_no" id="reference_no"
+                           value="{{ old('reference_no', $purchase->reference_no) }}"
+                           class="form-control @error('reference_no') is-invalid @enderror"
+                           placeholder="e.g. CHQ-481920 / UTR-8291038">
+                    @error('reference_no')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="remarks">Purchase Remarks / Notes <span class="opt">(optional)</span></label>
+                <textarea name="remarks" id="remarks" class="form-control @error('remarks') is-invalid @enderror"
+                          placeholder="Special terms, payment schedule, registry notes, or deed details...">{{ old('remarks', $purchase->remarks) }}</textarea>
+                @error('remarks')<div class="text-error">{{ $message }}</div>@enderror
             </div>
         </div>
 

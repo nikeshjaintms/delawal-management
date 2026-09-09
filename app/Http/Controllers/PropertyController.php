@@ -686,23 +686,23 @@ class PropertyController extends Controller
 
         // Exact match dictionary
         $exactDictionary = [
-            'type' => ['propertytype', 'proptype', 'type', 'category', 'propertycategory', 'kind', 'projecttype'],
-            'project' => ['projectname', 'projectcode', 'project'],
-            'code' => ['propertycode', 'propcode', 'code', 'unitcode'],
-            'name' => ['propertyname', 'propname', 'name', 'title'],
-            'firm' => ['firmname', 'firm', 'company', 'companyname'],
-            'status' => ['propertystatus', 'status', 'state'],
-            'location' => ['location', 'loc'],
-            'city' => ['city', 'town'],
-            'address' => ['address', 'addr'],
-            'size_unit' => ['sizeunit', 'unit'],
-            'size' => ['size', 'area', 'sqft'],
-            'price' => ['price', 'cost', 'amount', 'rate', 'value', 'priceinr'],
-            'unit_no' => ['unitno', 'unitnumber', 'plotno', 'flatno'],
-            'floor_no' => ['floorno', 'floor'],
-            'facing' => ['facing', 'direction'],
+            'type'        => ['propertytype', 'proptype', 'type', 'category', 'propertycategory', 'kind', 'projecttype'],
+            'project'     => ['projectname', 'projectcode', 'project', 'mastername', 'propertymaster'],
+            'code'        => ['propertycode', 'propcode', 'code', 'unitcode', 'plotcode'],
+            'name'        => ['propertyname', 'propname', 'name', 'title', 'plotname'],
+            'firm'        => ['firmname', 'firm', 'company', 'companyname'],
+            'status'      => ['propertystatus', 'status', 'state'],
+            'location'    => ['location', 'loc', 'landmark'],
+            'city'        => ['city', 'town'],
+            'address'     => ['address', 'addr'],
+            'size_unit'   => ['sizeunit', 'unit', 'measurementunit', 'areatype', 'areauom', 'uom', 'unittype'],
+            'size'        => ['size', 'area', 'plotsize', 'plotarea', 'sizearea', 'size/area', 'sqft', 'areainsqft', 'areainsqyd', 'carpetarea', 'builtuparea', 'superarea', 'dimensionsize', 'dimension', 'sqyards', 'sqmeter', 'acre', 'bigha', 'plotareainsqft'],
+            'price'       => ['price', 'cost', 'amount', 'rate', 'value', 'priceinr', 'price(inr)', 'askingprice', 'sellingprice'],
+            'unit_no'     => ['unitno', 'unitnumber', 'plotno', 'flatno', 'unit', 'plot', 'number', 'no', 'unit#', 'plot#'],
+            'floor_no'    => ['floorno', 'floor', 'level'],
+            'facing'      => ['facing', 'direction', 'orientation', 'plotfacing'],
             'description' => ['description', 'desc', 'details', 'notes', 'remarks', 'propertydescription'],
-            'image' => ['imagefilename', 'image', 'mainimage', 'propertyimage', 'photo', 'img'],
+            'image'       => ['imagefilename', 'image', 'mainimage', 'propertyimage', 'photo', 'img'],
         ];
 
         // Pass 1: Exact normalized dictionary match
@@ -742,6 +742,14 @@ class PropertyController extends Controller
                 $columnMap['firm'] = $colLetter;
             } elseif (!isset($columnMap['name']) && str_contains($norm, 'name')) {
                 $columnMap['name'] = $colLetter;
+            } elseif (!isset($columnMap['size']) && (str_contains($norm, 'size') || str_contains($norm, 'area') || str_contains($norm, 'sqft'))) {
+                $columnMap['size'] = $colLetter;
+            } elseif (!isset($columnMap['size_unit']) && str_contains($norm, 'unit') && !str_contains($norm, 'unitno') && !str_contains($norm, 'unitnumber')) {
+                $columnMap['size_unit'] = $colLetter;
+            } elseif (!isset($columnMap['facing']) && str_contains($norm, 'facing')) {
+                $columnMap['facing'] = $colLetter;
+            } elseif (!isset($columnMap['price']) && (str_contains($norm, 'price') || str_contains($norm, 'amount') || str_contains($norm, 'rate'))) {
+                $columnMap['price'] = $colLetter;
             } elseif (!isset($columnMap['image']) && (str_contains($norm, 'image') || str_contains($norm, 'photo'))) {
                 $columnMap['image'] = $colLetter;
             }
@@ -841,8 +849,61 @@ class PropertyController extends Controller
             $location = isset($columnMap['location']) ? trim((string) ($rowData[$columnMap['location']] ?? '')) : null;
             $city = isset($columnMap['city']) ? trim((string) ($rowData[$columnMap['city']] ?? '')) : null;
             $address = isset($columnMap['address']) ? trim((string) ($rowData[$columnMap['address']] ?? '')) : null;
-            $size = isset($columnMap['size']) ? trim((string) ($rowData[$columnMap['size']] ?? '')) : null;
-            $sizeUnitInput = isset($columnMap['size_unit']) ? strtolower(trim((string) ($rowData[$columnMap['size_unit']] ?? ''))) : null;
+            
+            // Size & Size Unit Parsing with Smart Extraction
+            $rawSize = isset($columnMap['size']) ? trim((string) ($rowData[$columnMap['size']] ?? '')) : '';
+            $rawSizeUnit = isset($columnMap['size_unit']) ? trim((string) ($rowData[$columnMap['size_unit']] ?? '')) : '';
+
+            $rawSize = str_replace(["\xc2\xa0", '&nbsp;'], ' ', $rawSize);
+            $rawSizeUnit = str_replace(["\xc2\xa0", '&nbsp;'], ' ', $rawSizeUnit);
+
+            $size = null;
+            $detectedUnit = null;
+
+            if ($rawSize !== '') {
+                $lowerSize = strtolower($rawSize);
+                if (preg_match('/(sq\.?\s*ft|sqft|square\s*feet|sq\s*feet|feet|ft)/i', $lowerSize)) {
+                    $detectedUnit = 'sq.ft';
+                } elseif (preg_match('/(sq\.?\s*yd|sqyd|sq\.?\s*yard|square\s*yard|gaj|var)/i', $lowerSize)) {
+                    $detectedUnit = 'sq.yard';
+                } elseif (preg_match('/(sq\.?\s*mt|sqm|sq\.?\s*meter|square\s*meter|meter|mtr)/i', $lowerSize)) {
+                    $detectedUnit = 'sq.meter';
+                } elseif (preg_match('/(acre|acres)/i', $lowerSize)) {
+                    $detectedUnit = 'acre';
+                } elseif (preg_match('/(bigha|vigha)/i', $lowerSize)) {
+                    $detectedUnit = 'bigha';
+                }
+
+                $cleanSize = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawSize));
+                if ($cleanSize !== '' && is_numeric($cleanSize)) {
+                    $size = (float) $cleanSize;
+                }
+            }
+
+            $sizeUnit = null;
+            if (!empty($rawSizeUnit)) {
+                $normUnit = strtolower(preg_replace('/[^a-zA-Z]/', '', $rawSizeUnit));
+                if (in_array($normUnit, ['sqft', 'sqfeet', 'squarefeet', 'feet', 'ft'])) {
+                    $sizeUnit = 'sq.ft';
+                } elseif (in_array($normUnit, ['sqyd', 'sqyard', 'sqyards', 'squareyard', 'squareyards', 'gaj', 'var'])) {
+                    $sizeUnit = 'sq.yard';
+                } elseif (in_array($normUnit, ['sqmt', 'sqmeter', 'sqmeters', 'squaremeter', 'sqm', 'meter', 'mtr'])) {
+                    $sizeUnit = 'sq.meter';
+                } elseif (in_array($normUnit, ['acre', 'acres'])) {
+                    $sizeUnit = 'acre';
+                } elseif (in_array($normUnit, ['bigha', 'vigha', 'bighas'])) {
+                    $sizeUnit = 'bigha';
+                } elseif (in_array(strtolower($rawSizeUnit), $validSizeUnits)) {
+                    $sizeUnit = strtolower($rawSizeUnit);
+                } else {
+                    $sizeUnit = 'sq.ft';
+                }
+            } elseif ($detectedUnit) {
+                $sizeUnit = $detectedUnit;
+            } elseif ($size !== null) {
+                $sizeUnit = 'sq.ft';
+            }
+
             $priceInput = isset($columnMap['price']) ? trim((string) ($rowData[$columnMap['price']] ?? '')) : null;
             $unitNo = isset($columnMap['unit_no']) ? trim((string) ($rowData[$columnMap['unit_no']] ?? '')) : null;
             $floorNo = isset($columnMap['floor_no']) ? trim((string) ($rowData[$columnMap['floor_no']] ?? '')) : null;
@@ -1080,22 +1141,33 @@ class PropertyController extends Controller
             // Facing Validation
             $facing = null;
             if (!empty($facingInput)) {
-                $facingLower = strtolower($facingInput);
-                if (!in_array($facingLower, $validFacings)) {
-                    $errors[] = "Row {$r}: Invalid Facing direction '{$facingInput}'.";
-                } else {
-                    $facing = ucwords($facingLower);
+                $facingLower = strtolower(preg_replace('/[^a-zA-Z\-]/', '', str_replace(' ', '-', $facingInput)));
+                $validFacingMap = [
+                    'east'       => 'East',
+                    'west'       => 'West',
+                    'north'      => 'North',
+                    'south'      => 'South',
+                    'north-east' => 'North-East',
+                    'northeast'  => 'North-East',
+                    'ne'         => 'North-East',
+                    'north-west' => 'North-West',
+                    'northwest'  => 'North-West',
+                    'nw'         => 'North-West',
+                    'south-east' => 'South-East',
+                    'southeast'  => 'South-East',
+                    'se'         => 'South-East',
+                    'south-west' => 'South-West',
+                    'southwest'  => 'South-West',
+                    'sw'         => 'South-West',
+                ];
+                if (isset($validFacingMap[$facingLower])) {
+                    $facing = $validFacingMap[$facingLower];
                 }
             }
 
-            // Size Unit Validation
-            $sizeUnit = null;
-            if (!empty($sizeUnitInput)) {
-                if (!in_array($sizeUnitInput, $validSizeUnits)) {
-                    $errors[] = "Row {$r}: Invalid Size Unit '{$sizeUnitInput}'. Allowed: sq.ft, sq.yard, sq.meter, acre, bigha.";
-                } else {
-                    $sizeUnit = $sizeUnitInput;
-                }
+            // Size Unit Validation (keep detected/parsed $sizeUnit if valid, or default to sq.ft if size is set)
+            if (empty($sizeUnit) && $size !== null) {
+                $sizeUnit = 'sq.ft';
             }
 
             // Image file mapping check

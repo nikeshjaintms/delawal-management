@@ -150,6 +150,7 @@
                     <th>Property Name</th>
                     <th>Code</th>
                     <th>Firm</th>
+                    <th>Buy Price</th>
                     <th>City / Location</th>
                     <th>Projects</th>
                     <th>Status</th>
@@ -166,6 +167,16 @@
                         </td>
                         <td><code>{{ $property->property_code }}</code></td>
                         <td>{{ $property->firm->firm_name ?? '-' }}</td>
+                        <td>
+                            @if($property->purchase_price > 0)
+                                <strong style="color: #34D399; font-size: 14px;">₹{{ number_format($property->purchase_price, 2) }}</strong>
+                                @if($property->purchase_date)
+                                    <div style="font-size: 11px; color: #94A3B8;">{{ date('d M Y', strtotime($property->purchase_date)) }}</div>
+                                @endif
+                            @else
+                                <span style="color: #94A3B8;">—</span>
+                            @endif
+                        </td>
                         <td>{{ $property->city ?? $property->location ?? '-' }}</td>
                         <td>
                             <a href="{{ route('projects.index', ['property_id' => $property->id]) }}" style="color: #60A5FA !important; font-weight: 700; text-decoration: none;">
@@ -201,7 +212,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+                        <td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 30px;">
                             No Property records found.
                         </td>
                     </tr>

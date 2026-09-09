@@ -393,11 +393,7 @@
                         <td>{{ $property->propertyType->name ?? '-' }}</td>
                         <td>{{ $property->city ?? '-' }}</td>
                         <td>
-                            @if($property->size)
-                                {{ $property->size }} {{ $property->size_unit }}
-                            @else
-                                -
-                            @endif
+                            {{ $property->formatted_size }}
                         </td>
                         <td>
                             @if($property->price !== null)

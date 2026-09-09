@@ -56,7 +56,9 @@ class PropertyMasterController extends Controller
             $firms = Firm::where('id', $firmId)->get();
         }
 
-        return view('admin.property-masters.create', compact('firms'));
+        $vendors = \App\Models\Vendor::where('status', 'active')->orderBy('name')->get();
+
+        return view('admin.property-masters.create', compact('firms', 'vendors'));
     }
 
     public function store(PropertyMasterRequest $request)
@@ -82,21 +84,30 @@ class PropertyMasterController extends Controller
         }
 
         $propertyMaster = PropertyMaster::create([
-            'firm_id'       => $firmId,
-            'property_name' => $request->property_name,
-            'property_code' => $propertyCode,
-            'location'      => $request->location,
-            'address'       => $request->address,
-            'city'          => $request->city,
-            'state'         => $request->state,
-            'country'       => $request->country,
-            'pincode'       => $request->pincode,
-            'description'   => $request->description,
-            'status'        => $request->status,
-            'main_image'    => $mainImagePath,
-            'document_file' => $documentPath,
-            'created_by'    => auth()->id(),
-            'updated_by'    => auth()->id(),
+            'firm_id'        => $firmId,
+            'property_name'  => $request->property_name,
+            'property_code'  => $propertyCode,
+            'purchase_price' => $request->purchase_price ?: 0,
+            'purchase_date'  => $request->purchase_date ?: date('Y-m-d'),
+            'purchase_rate'  => $request->purchase_rate ?: null,
+            'total_area'     => $request->total_area ?: null,
+            'area_unit'      => $request->area_unit ?: 'Sq.Ft',
+            'seller_name'    => $request->seller_name,
+            'vendor_id'      => $request->vendor_id ?: null,
+            'payment_mode'   => $request->payment_mode,
+            'payment_status' => $request->payment_status ?: 'paid',
+            'location'       => $request->location,
+            'address'        => $request->address,
+            'city'           => $request->city,
+            'state'          => $request->state,
+            'country'        => $request->country,
+            'pincode'        => $request->pincode,
+            'description'    => $request->description,
+            'status'         => $request->status,
+            'main_image'     => $mainImagePath,
+            'document_file'  => $documentPath,
+            'created_by'     => auth()->id(),
+            'updated_by'     => auth()->id(),
         ]);
 
         return redirect()->route('property-masters.show', $propertyMaster->id)
@@ -108,6 +119,7 @@ class PropertyMasterController extends Controller
         $this->authorise($propertyMaster);
         $propertyMaster->load([
             'firm',
+            'vendor',
             'acquisitionBatches' => fn($q) => $q->orderBy('id', 'asc')->with(['plots.project']),
             'projects.properties.acquisitionBatch',
             'plots' => fn($q) => $q->with(['acquisitionBatch', 'project', 'propertyType'])
@@ -132,7 +144,9 @@ class PropertyMasterController extends Controller
             $firms = Firm::where('id', $firmId)->get();
         }
 
-        return view('admin.property-masters.edit', compact('propertyMaster', 'firms'));
+        $vendors = \App\Models\Vendor::where('status', 'active')->orderBy('name')->get();
+
+        return view('admin.property-masters.edit', compact('propertyMaster', 'firms', 'vendors'));
     }
 
     public function update(PropertyMasterRequest $request, PropertyMaster $propertyMaster)
@@ -160,20 +174,29 @@ class PropertyMasterController extends Controller
         }
 
         $propertyMaster->update([
-            'firm_id'       => $firmId,
-            'property_name' => $request->property_name,
-            'property_code' => $request->property_code ?: $propertyMaster->property_code,
-            'location'      => $request->location,
-            'address'       => $request->address,
-            'city'          => $request->city,
-            'state'         => $request->state,
-            'country'       => $request->country,
-            'pincode'       => $request->pincode,
-            'description'   => $request->description,
-            'status'        => $request->status,
-            'main_image'    => $mainImagePath,
-            'document_file' => $documentPath,
-            'updated_by'    => auth()->id(),
+            'firm_id'        => $firmId,
+            'property_name'  => $request->property_name,
+            'property_code'  => $request->property_code ?: $propertyMaster->property_code,
+            'purchase_price' => $request->purchase_price !== null ? $request->purchase_price : ($propertyMaster->purchase_price ?? 0),
+            'purchase_date'  => $request->purchase_date ?: $propertyMaster->purchase_date,
+            'purchase_rate'  => $request->purchase_rate ?: $propertyMaster->purchase_rate,
+            'total_area'     => $request->total_area ?: $propertyMaster->total_area,
+            'area_unit'      => $request->area_unit ?: ($propertyMaster->area_unit ?? 'Sq.Ft'),
+            'seller_name'    => $request->seller_name ?: $propertyMaster->seller_name,
+            'vendor_id'      => $request->vendor_id ?: $propertyMaster->vendor_id,
+            'payment_mode'   => $request->payment_mode ?: $propertyMaster->payment_mode,
+            'payment_status' => $request->payment_status ?: ($propertyMaster->payment_status ?? 'paid'),
+            'location'       => $request->location,
+            'address'        => $request->address,
+            'city'           => $request->city,
+            'state'          => $request->state,
+            'country'        => $request->country,
+            'pincode'        => $request->pincode,
+            'description'    => $request->description,
+            'status'         => $request->status,
+            'main_image'     => $mainImagePath,
+            'document_file'  => $documentPath,
+            'updated_by'     => auth()->id(),
         ]);
 
         return redirect()->route('property-masters.show', $propertyMaster->id)

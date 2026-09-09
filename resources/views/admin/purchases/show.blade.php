@@ -149,6 +149,91 @@
         </div>
     </div>
 
+    {{-- ── Financial & Purchase Price Details ── --}}
+    <div class="section-head" style="margin-top: 30px; color: #34D399 !important;">
+        <i class="fa-solid fa-indian-rupee-sign"></i> Purchase Price & Financial Details
+    </div>
+
+    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.08) 100%); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
+        <div class="detail-grid">
+            <div class="detail-item" style="background: rgba(16, 22, 34, 0.85) !important; border-color: rgba(16, 185, 129, 0.4) !important;">
+                <div class="detail-label" style="color: #34D399 !important;"><i class="fa-solid fa-money-bill-wave" style="color:#34D399 !important;"></i> Total Purchase Price / Buy Amount</div>
+                <div class="detail-value" style="font-size: 22px; font-weight: 800; color: #34D399 !important;">
+                    ₹{{ number_format($purchase->purchase_amount ?? 0, 2) }}
+                </div>
+            </div>
+
+            <div class="detail-item" style="background: rgba(16, 22, 34, 0.85) !important;">
+                <div class="detail-label"><i class="fa-solid fa-calendar-day"></i> Purchase Date</div>
+                <div class="detail-value">
+                    {{ $purchase->purchase_date ? date('d M, Y', strtotime($purchase->purchase_date)) : '—' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-user-tie"></i> Seller / Vendor / Owner</div>
+            <div class="detail-value">
+                @if($purchase->vendor)
+                    <strong style="color: #FFFFFF;">{{ $purchase->vendor->name }}</strong>
+                    @if($purchase->vendor->phone)
+                        <div style="font-size: 12px; color: #94A3B8; margin-top: 3px;">
+                            <i class="fa-solid fa-phone" style="font-size: 10px;"></i> {{ $purchase->vendor->phone }}
+                        </div>
+                    @endif
+                @else
+                    <span class="empty">Not specified</span>
+                @endif
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-credit-card"></i> Payment Mode</div>
+            <div class="detail-value">
+                @if($purchase->payment_mode)
+                    <span class="chip" style="background: rgba(139, 92, 246, 0.15) !important; color: #A78BFA !important; border-color: rgba(139, 92, 246, 0.35) !important;">
+                        {{ $purchase->payment_mode }}
+                    </span>
+                @else
+                    <span class="empty">—</span>
+                @endif
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-receipt"></i> Payment Status</div>
+            <div class="detail-value">
+                @if(strtolower($purchase->payment_status) === 'paid')
+                    <span class="chip" style="background: rgba(16, 185, 129, 0.15) !important; color: #34D399 !important; border-color: rgba(16, 185, 129, 0.35) !important;">
+                        <i class="fa-solid fa-circle-check"></i> Paid (Full)
+                    </span>
+                @elseif(strtolower($purchase->payment_status) === 'partial')
+                    <span class="chip" style="background: rgba(245, 158, 11, 0.15) !important; color: #FBBF24 !important; border-color: rgba(245, 158, 11, 0.35) !important;">
+                        <i class="fa-solid fa-clock"></i> Partial Payment
+                    </span>
+                @else
+                    <span class="chip" style="background: rgba(239, 68, 68, 0.15) !important; color: #F87171 !important; border-color: rgba(239, 68, 68, 0.35) !important;">
+                        <i class="fa-solid fa-circle-xmark"></i> Unpaid / Due
+                    </span>
+                @endif
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-barcode"></i> Cheque / Ref No.</div>
+            <div class="detail-value" style="font-family: monospace;">{{ $purchase->reference_no ?: '—' }}</div>
+        </div>
+
+        <div class="detail-item detail-item-full">
+            <div class="detail-label"><i class="fa-solid fa-note-sticky"></i> Remarks / Notes</div>
+            <div class="detail-value {{ $purchase->remarks ? '' : 'empty' }}">
+                {{ $purchase->remarks ?: 'No remarks specified' }}
+            </div>
+        </div>
+    </div>
+
     <div class="form-actions">
         @if($purchase->property_id)
             <a href="{{ route('property-sales.create', ['property_id' => $purchase->property_id]) }}" class="btn-gold" style="background:#10B981 !important; border-color:#059669 !important;">

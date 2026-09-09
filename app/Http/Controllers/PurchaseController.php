@@ -33,9 +33,15 @@ class PurchaseController extends Controller
         $firmId = $selectedFirmId ?? ($user ? $user->firm_id : session('firm_id'));
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $vendors = Vendor::where('status', 'active')->orderBy('name')->get();
+        $paymentModes = class_exists(\App\Models\PaymentMode::class)
+            ? \App\Models\PaymentMode::where('status', 'active')->get()
+            : collect();
 
         return [
             'firms'         => $firms,
+            'vendors'       => $vendors,
+            'paymentModes'  => $paymentModes,
             'propertyTypes' => self::PROPERTY_TYPES,
             'areaUnits'     => self::AREA_UNITS,
         ];
@@ -43,7 +49,7 @@ class PurchaseController extends Controller
 
     public function index(Request $request)
     {
-        $query = Purchase::with(['firms', 'firm']);
+        $query = Purchase::with(['firms', 'firm', 'vendor', 'property']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -167,7 +173,7 @@ class PurchaseController extends Controller
 
     public function show(Purchase $purchase)
     {
-        $purchase->load(['firms', 'firm', 'property']);
+        $purchase->load(['firms', 'firm', 'vendor', 'property']);
         $this->authorise($purchase);
         return view('admin.purchases.show', compact('purchase'));
     }

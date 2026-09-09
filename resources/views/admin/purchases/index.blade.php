@@ -171,6 +171,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     <th>Property / Plot Name</th>
                     <th>Type</th>
                     <th>Property Code</th>
+                    <th>Buy Price</th>
                     <th>Location</th>
                     <th>Area</th>
                     <th>Survey / TP / FP</th>
@@ -200,6 +201,16 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     <td>
                         @if($purchase->property_code)
                             <span style="font-family:monospace;font-size:12.5px;color:#CBD5E1;">{{ $purchase->property_code }}</span>
+                        @else
+                            <span style="color:#94A3B8;">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($purchase->purchase_amount > 0)
+                            <strong style="color:#34D399;font-size:14px;display:block;">₹{{ number_format($purchase->purchase_amount, 2) }}</strong>
+                            @if($purchase->purchase_date)
+                                <small style="color:#94A3B8;font-size:11px;">{{ date('d M Y', strtotime($purchase->purchase_date)) }}</small>
+                            @endif
                         @else
                             <span style="color:#94A3B8;">—</span>
                         @endif
@@ -263,7 +274,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" align="center" style="padding:40px;color:#CBD5E1;">
+                    <td colspan="10" align="center" style="padding:40px;color:#CBD5E1;">
                         <i class="fa-solid fa-building" style="font-size:28px;opacity:0.3;margin-bottom:8px;display:block;"></i>
                         No Property Buy records found.
                     </td>

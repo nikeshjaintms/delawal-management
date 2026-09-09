@@ -8,11 +8,12 @@ use App\Models\Property;
 use App\Models\PropertyMaster;
 use App\Models\PropertyType;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class BulkPlotAutoFetchTest extends TestCase
 {
+    use DatabaseTransactions;
     protected $user;
     protected $firm;
     protected $propertyMaster;

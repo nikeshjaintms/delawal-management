@@ -68,6 +68,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::resource('expense-categories', ExpenseCategoryController::class)->middleware(['permission:expense_category_view']);
 
     // ── Property Management ──────────────────────────────────────────
+    Route::get('acquisition-batches/template', [\App\Http\Controllers\AcquisitionBatchController::class, 'downloadTemplate'])->name('acquisition-batches.download-template')->middleware(['permission:property_view']);
     Route::resource('property-masters', PropertyMasterController::class)->middleware(['permission:property_view']);
     Route::resource('acquisition-batches', \App\Http\Controllers\AcquisitionBatchController::class)->middleware(['permission:property_view']);
     Route::post('acquisition-batches/{acquisition_batch}/add-plots', [\App\Http\Controllers\AcquisitionBatchController::class, 'addPlots'])->name('acquisition-batches.add-plots')->middleware(['permission:property_view']);

@@ -78,4 +78,29 @@ class Property extends Model
     {
         return $this->hasMany(Income::class);
     }
+
+    public function getFormattedSizeAttribute(): string
+    {
+        if (empty($this->size)) {
+            return '-';
+        }
+
+        $sizeStr = trim((string) $this->size);
+
+        // If size already contains descriptive text/units (e.g. "1255 sq.ft Built Up", "530 sq.ft"), return as-is
+        if (preg_match('/[a-zA-Z]/', $sizeStr)) {
+            return $sizeStr;
+        }
+
+        // If purely numeric, append size_unit if valid and not a project/firm name
+        $unit = trim((string) ($this->size_unit ?? ''));
+        if (!empty($unit)) {
+            $invalidUnits = ['galaxy homes', 'delawala', 'default', 'none', 'null'];
+            if (!in_array(strtolower($unit), $invalidUnits) && !Project::where('project_name', $unit)->exists()) {
+                return $sizeStr . ' ' . $unit;
+            }
+        }
+
+        return $sizeStr . ' sq.ft';
+    }
 }
