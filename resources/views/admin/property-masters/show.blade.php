@@ -148,360 +148,379 @@
     box-shadow: 0 8px 24px rgba(0,0,0,0.30) !important;
 }
 .kpi-icon {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 18px;
     flex-shrink: 0;
 }
-.kpi-purple { background: rgba(139, 92, 246, 0.20); border: 1px solid rgba(139, 92, 246, 0.40); color: #A78BFA; }
-.kpi-blue   { background: rgba(59, 130, 246, 0.20); border: 1px solid rgba(59, 130, 246, 0.40); color: #60A5FA; }
-.kpi-green  { background: rgba(16, 185, 129, 0.20); border: 1px solid rgba(16, 185, 129, 0.40); color: #34D399; }
-.kpi-amber  { background: rgba(245, 158, 11, 0.20); border: 1px solid rgba(245, 158, 11, 0.40); color: #FBBF24; }
-.kpi-teal   { background: rgba(20, 184, 166, 0.20); border: 1px solid rgba(20, 184, 166, 0.40); color: #2DD4BF; }
+.kpi-content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.kpi-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.kpi-val {
+    font-size: 17px;
+    font-weight: 800;
+    color: #FFFFFF;
+    line-height: 1.2;
+    margin-top: 2px;
+}
 
-.kpi-content { display: flex; flex-direction: column; }
-.kpi-label { font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; }
-.kpi-val { font-size: 17px; font-weight: 800; color: #FFFFFF; line-height: 1.2; margin-top: 2px; }
-
-/* ── Buttons & Badges ── */
-.btn-primary-custom, a.btn-primary-custom, button.btn-primary-custom, .btn-gold {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 10px 18px; min-height: 40px; background: #2563EB !important;
-    color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; border: 1px solid #3B82F6 !important;
-    border-radius: 10px; text-decoration: none !important; box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+/* ── Custom Action Buttons ── */
+.btn-gold {
+    background: linear-gradient(135deg, #D4AF37 0%, #AA820A 100%);
+    color: #FFFFFF !important;
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    border: none;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
+    text-decoration: none;
 }
-.btn-primary-custom:hover, .btn-gold:hover {
-    background: #1D4ED8 !important; color: #FFFFFF !important;
+.btn-gold:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35);
 }
 
-.btn-secondary-custom, a.btn-secondary-custom, button.btn-secondary-custom, .btn-outline {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 10px 18px; min-height: 40px; background: rgba(255, 255, 255, 0.08) !important;
-    color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.20) !important;
-    border-radius: 10px; text-decoration: none !important; cursor: pointer;
+.btn-secondary-custom {
+    background: rgba(255, 255, 255, 0.08);
+    color: #CBD5E1 !important;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
-.btn-secondary-custom:hover, .btn-outline:hover {
-    background: rgba(255, 255, 255, 0.16) !important; color: #FFFFFF !important; border-color: rgba(255, 255, 255, 0.30) !important;
+.btn-secondary-custom:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #FFFFFF !important;
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .btn-success-custom {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 10px 18px; min-height: 40px; background: #059669 !important;
-    color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; border: 1px solid #10B981 !important;
-    border-radius: 10px; text-decoration: none !important; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.30);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.35) 100%);
+    color: #34D399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.40);
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 .btn-success-custom:hover {
-    background: #047857 !important; color: #FFFFFF !important;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.35) 0%, rgba(5, 150, 105, 0.50) 100%);
+    border-color: #10B981;
+    color: #FFFFFF !important;
 }
 
-.tbl-actions-wrap {
+.btn-purple-custom {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.22) 0%, rgba(147, 51, 234, 0.32) 100%);
+    color: #C084FC !important;
+    border: 1px solid rgba(168, 85, 247, 0.38);
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
-    justify-content: flex-end;
     gap: 8px;
-}
-
-.btn-tbl-edit {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    height: 32px;
-    padding: 0 14px;
-    background: #2563EB !important;
-    color: #FFFFFF !important;
-    font-size: 12.5px;
-    font-weight: 700;
-    border: 1px solid #3B82F6 !important;
-    border-radius: 8px;
-    text-decoration: none !important;
     cursor: pointer;
-    box-sizing: border-box;
-    line-height: 1;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
-    transition: background 0.15s ease;
+    transition: all 0.2s;
 }
-.btn-tbl-edit:hover {
-    background: #1D4ED8 !important;
+.btn-purple-custom:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.35) 0%, rgba(147, 51, 234, 0.48) 100%);
+    border-color: #A855F7;
     color: #FFFFFF !important;
 }
 
-.btn-tbl-view {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    height: 32px;
-    padding: 0 14px;
-    background: #059669 !important;
-    color: #FFFFFF !important;
-    font-size: 12.5px;
-    font-weight: 700;
-    border: 1px solid #10B981 !important;
-    border-radius: 8px;
-    text-decoration: none !important;
-    cursor: pointer;
-    box-sizing: border-box;
-    line-height: 1;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
-    transition: background 0.15s ease;
-}
-.btn-tbl-view:hover {
-    background: #047857 !important;
-    color: #FFFFFF !important;
-}
-
+/* ── Badges ── */
 .badge {
-    display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px;
-    font-size: 11px; font-weight: 800; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: capitalize;
 }
-.badge-active, .badge-available { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
-.badge-inactive, .badge-sold { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
-.badge-booked { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
-.badge-project { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
+.badge-active { background: rgba(16, 185, 129, 0.18); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35); }
+.badge-inactive { background: rgba(239, 68, 68, 0.18); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.35); }
+.badge-available { background: rgba(16, 185, 129, 0.18); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35); }
+.badge-in-project { background: rgba(59, 130, 246, 0.18); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.35); }
+.badge-booked { background: rgba(245, 158, 11, 0.18); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.35); }
+.badge-sold { background: rgba(168, 85, 247, 0.18); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.35); }
+.badge-paid { background: rgba(16, 185, 129, 0.18); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35); }
+.badge-partial { background: rgba(245, 158, 11, 0.18); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.35); }
+.badge-unpaid { background: rgba(239, 68, 68, 0.18); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.35); }
 
-/* ── Acquisition Batch Card ── */
-.batch-card {
-    background: rgba(16, 22, 34, 0.75) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 18px !important;
-    padding: 20px !important;
-    margin-bottom: 20px;
-}
-
-.batch-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-.batch-title-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.batch-title { font-size: 18px; font-weight: 800; color: #FFFFFF !important; }
-
-.batch-stats-strip {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 12px 16px;
-    margin-bottom: 16px;
-}
-@media (max-width: 860px) { .batch-stats-strip { grid-template-columns: repeat(2, 1fr); } }
-
-.bss-item { display: flex; flex-direction: column; }
-.bss-label { font-size: 10.5px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; }
-.bss-val { font-size: 14.5px; font-weight: 800; color: #FFFFFF; margin-top: 2px; }
-
-.table-wrapper {
-    width: 100%;
+/* ── Luxury Table Design ── */
+.custom-table-responsive {
     overflow-x: auto;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.10);
-    background: rgba(10, 14, 23, 0.65);
+    background: rgba(15, 23, 42, 0.40);
 }
-.custom-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.custom-table th {
-    padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: #94A3B8 !important;
-    font-weight: 800 !important;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
     text-align: left;
-    white-space: nowrap;
+}
+.custom-table th {
+    background: rgba(30, 41, 59, 0.70);
+    color: #94A3B8;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 12px 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+    white-space: nowrap;
 }
 .custom-table td {
     padding: 12px 16px;
+    color: #E2E8F0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    color: #E2E8F0 !important;
-    font-weight: 600;
     vertical-align: middle;
-    white-space: nowrap;
 }
-.custom-table tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
-.custom-table tbody tr:last-child td { border-bottom: none; }
-
-/* ── Modal Styling ── */
-.modal-backdrop-custom {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px);
-    z-index: 1000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+.custom-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.05);
 }
-.modal-backdrop-custom.active { display: flex; }
-.modal-box-custom {
-    background: #101622;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 20px;
-    width: 100%;
-    max-width: 680px;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 28px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.60);
-    position: relative;
-}
-.modal-header-custom {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-}
-.modal-header-custom h3 { font-size: 20px; font-weight: 800; color: #FFFFFF; }
-.modal-close-btn {
-    background: transparent; border: none; font-size: 20px; color: #94A3B8; cursor: pointer; transition: color .2s;
-}
-.modal-close-btn:hover { color: #FFFFFF; }
-
-.m-form-group { margin-bottom: 16px; }
-.m-form-label { display: block; font-size: 13px; font-weight: 700; color: #E2E8F0; margin-bottom: 6px; }
-.m-form-label span { color: #EF4444; }
-.m-form-control {
-    width: 100%; padding: 10px 14px; background: rgba(255, 255, 255, 0.06);
-    border: 1.5px solid rgba(255, 255, 255, 0.14); border-radius: 10px; color: #FFFFFF; font-size: 13.5px; outline: none; transition: border-color .2s;
-}
-.m-form-control:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); }
-select.m-form-control option { background: #101622; color: #FFFFFF; }
-.m-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 580px) { .m-form-row { grid-template-columns: 1fr; gap: 0; } }
-
-.generator-box {
-    background: rgba(59, 130, 246, 0.08);
-    border: 1px solid rgba(59, 130, 246, 0.25);
-    border-radius: 14px;
-    padding: 16px;
-    margin-top: 14px;
-    margin-bottom: 16px;
+.custom-table tbody tr:last-child td {
+    border-bottom: none;
 }
 
-/* ── Plot Source Tabs & Excel Upload ── */
-.plot-source-nav {
+/* ── Filter / Search Controls ── */
+.filter-tabs {
     display: flex;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    border-radius: 12px;
-    padding: 4px;
-    margin-bottom: 14px;
-}
-.plot-source-nav-btn {
-    flex: 1;
-    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    background: transparent;
+}
+.filter-tab-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: #94A3B8;
+    padding: 6px 14px;
+    border-radius: 8px;
     font-size: 12.5px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
 }
-.plot-source-nav-btn:hover {
+.filter-tab-btn.active, .filter-tab-btn:hover {
+    background: rgba(59, 130, 246, 0.22);
+    border-color: #3B82F6;
     color: #FFFFFF;
-    background: rgba(255, 255, 255, 0.06);
 }
-.plot-source-nav-btn.active {
-    background: #2563EB !important;
-    color: #FFFFFF !important;
-    border-color: #3B82F6 !important;
-    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
+
+.search-input-wrap {
+    position: relative;
+    min-width: 240px;
 }
-.excel-upload-zone {
-    background: rgba(16, 185, 129, 0.06);
-    border: 1.5px dashed rgba(16, 185, 129, 0.35);
-    border-radius: 12px;
-    padding: 18px 16px;
-    text-align: center;
+.search-input-wrap i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748B;
+    font-size: 13px;
 }
-.excel-upload-zone:hover {
-    border-color: #10B981;
-    background: rgba(16, 185, 129, 0.10);
+.search-input-box {
+    width: 100%;
+    padding: 7px 12px 7px 34px;
+    background: rgba(15, 23, 42, 0.60);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #FFFFFF;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.search-input-box:focus {
+    border-color: #60A5FA;
+}
+
+/* ── Modals ── */
+.modal-backdrop-custom {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+}
+.modal-backdrop-custom.active {
+    display: flex;
+}
+.modal-box-custom {
+    background: #0F172A;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 620px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.60);
+    overflow: hidden;
+    animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+.modal-header-custom {
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(30, 41, 59, 0.50);
+}
+.modal-header-custom h3 {
+    font-size: 17px;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.modal-close-btn {
+    background: transparent;
+    border: none;
+    color: #94A3B8;
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.15s;
+    line-height: 1;
+}
+.modal-close-btn:hover { color: #FFFFFF; }
+.modal-body-custom {
+    padding: 24px;
+    max-height: 78vh;
+    overflow-y: auto;
+}
+.m-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+@media (max-width: 600px) { .m-form-row { grid-template-columns: 1fr; gap: 12px; } }
+.m-form-group { display: flex; flex-direction: column; }
+.m-form-label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #CBD5E1;
+    margin-bottom: 6px;
+}
+.m-form-label span { color: #EF4444; }
+.m-form-control {
+    width: 100%;
+    padding: 9px 13px;
+    background: rgba(30, 41, 59, 0.70);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    color: #FFFFFF;
+    font-size: 13.5px;
+    outline: none;
+    transition: all 0.2s;
+}
+.m-form-control:focus {
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
 }
 </style>
 
-{{-- Breadcrumb --}}
+<!-- Breadcrumb -->
 <div class="breadcrumb-nav">
-    <span><i class="fa-solid fa-city" style="color: #60A5FA; margin-right: 6px;"></i>Property Management</span>
-    <i class="fa-solid fa-chevron-right separator"></i>
-    <a href="{{ route('property-masters.index') }}">Property Master</a>
-    <i class="fa-solid fa-chevron-right separator"></i>
+    <a href="{{ route('dashboard') }}"><i class="fa-solid fa-house"></i></a>
+    <span class="separator">/</span>
+    <a href="{{ route('property-masters.index') }}">Property Masters</a>
+    <span class="separator">/</span>
     <span class="active">{{ $propertyMaster->property_name }}</span>
 </div>
 
+<!-- Header -->
 <div class="crud-header">
     <div class="crud-title">
         <h2>{{ $propertyMaster->property_name }}</h2>
-        <p>Property Master, Acquisition Batches &amp; Projects Hierarchy</p>
+        <p>Comprehensive property details, plot management, and project associations.</p>
     </div>
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button type="button" class="btn-gold" onclick="openAddBatchModal()">
-            <i class="fa-solid fa-layer-group"></i> + Add Acquisition Batch
-        </button>
-        <a href="{{ route('projects.create', ['property_id' => $propertyMaster->id]) }}" class="btn-success-custom">
-            <i class="fa-solid fa-diagram-project"></i> + Create Project
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('property-masters.detail-pdf', $propertyMaster->id) }}" target="_blank" class="btn-secondary-custom" style="background: rgba(252, 105, 0, 0.18) !important; border-color: rgba(252, 105, 0, 0.45) !important; color: #FF8A3D !important;">
+            <i class="fa-solid fa-file-pdf"></i> Print / PDF Dossier
         </a>
-        @if(Auth::user() && Auth::user()->hasPermission('property_edit'))
-            <a href="{{ route('property-masters.edit', $propertyMaster->id) }}" class="btn-secondary-custom">
-                <i class="fa-regular fa-pen-to-square"></i> Edit
-            </a>
-        @endif
+        <a href="{{ route('property-masters.edit', $propertyMaster->id) }}" class="btn-secondary-custom">
+            <i class="fa-solid fa-pen-to-square"></i> Edit Property
+        </a>
+        <a href="{{ route('projects.create', ['property_id' => $propertyMaster->id]) }}" class="btn-gold">
+            <i class="fa-solid fa-diagram-project"></i> Create Project
+        </a>
         <a href="{{ route('property-masters.index') }}" class="btn-secondary-custom">
-            <i class="fa-solid fa-arrow-left"></i> Back
+            <i class="fa-solid fa-arrow-left"></i> Back to List
         </a>
     </div>
 </div>
 
 @if(session('success'))
-    <div style="background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.35); color: #34D399; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
+    <div style="background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.35); color: #34D399; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-circle-check"></i>
+        <span>{{ session('success') }}</span>
     </div>
 @endif
+
 @if(session('error'))
-    <div style="background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-circle-xmark"></i> {{ session('error') }}
-    </div>
-@endif
-@if($errors->any())
-    <div style="background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-weight: 700;">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom: 6px;">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span>Please resolve the following error(s):</span>
-        </div>
-        <ul style="margin: 0; padding-left: 24px; font-size: 13.5px; font-weight: 600;">
-            @foreach($errors->all() as $err)
-                <li>{{ $err }}</li>
-            @endforeach
-        </ul>
+    <div style="background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-circle-xmark"></i>
+        <span>{{ session('error') }}</span>
     </div>
 @endif
 
 @php
-    $totalBatches   = $propertyMaster->acquisitionBatches->count();
-    $totalPlots     = $propertyMaster->plots->count();
-    $batchesInvest  = $propertyMaster->acquisitionBatches->sum('total_purchase_amount');
-    $masterPrice    = floatval($propertyMaster->purchase_price ?? 0);
-    $totalInvest    = ($masterPrice > 0 && $batchesInvest > 0) ? ($masterPrice + $batchesInvest) : ($masterPrice ?: $batchesInvest);
-    $unassignedPlots = $propertyMaster->plots->whereNull('project_id')->count();
-    $assignedPlots  = $propertyMaster->plots->whereNotNull('project_id')->count();
-    $totalAreaSqft  = $propertyMaster->plots->sum(function($p) {
+    $totalPlots      = $propertyMaster->plots->count();
+    $unassignedPlots = $propertyMaster->plots->whereNull('project_id')->where('status', 'available')->count();
+    $assignedPlots   = $propertyMaster->plots->whereNotNull('project_id')->count();
+    $bookedSoldPlots = $propertyMaster->plots->whereIn('status', ['booked', 'sold', 'reserved'])->count();
+    
+    $totalAreaSqft   = $propertyMaster->plots->sum(function($p) {
         $val = floatval(preg_replace('/[^0-9.]/', '', $p->size ?? '0'));
-        if (strtolower($p->size_unit ?? '') === 'sq.yard') {
+        if (strtolower($p->size_unit ?? '') === 'sq.yard' || strtolower($p->size_unit ?? '') === 'sq.yd') {
             return $val * 9;
         }
         return $val;
@@ -517,11 +536,10 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
 @endphp
 
 <!-- ================================================================
-     TOP SECTION: FULL WIDTH PROPERTY MASTER OVERVIEW HERO CARD
+     HERO OVERVIEW CARD
 ================================================================ -->
 <div class="card-box">
     <div class="property-hero-grid">
-        <!-- Hero Avatar / Image -->
         <div class="property-hero-avatar">
             @if($propertyMaster->main_image)
                 <img src="{{ asset('storage/' . $propertyMaster->main_image) }}" alt="{{ $propertyMaster->property_name }}">
@@ -530,7 +548,6 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             @endif
         </div>
 
-        <!-- Meta Grid -->
         <div class="property-meta-grid">
             <div class="pm-item">
                 <span class="pm-label">Property Code</span>
@@ -541,12 +558,37 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                 <span class="pm-value" style="color: #93C5FD;">{{ $propertyMaster->firm->firm_name ?? '-' }}</span>
             </div>
             <div class="pm-item">
-                <span class="pm-label" style="color: #34D399;"><i class="fa-solid fa-money-bill-wave"></i> Purchase Price / Buy Amount</span>
-                <span class="pm-value" style="color: #34D399; font-size: 17px; font-weight: 800;">
+                <span class="pm-label" style="color: #60A5FA;"><i class="fa-solid fa-money-bill-wave"></i> Total Purchase Price</span>
+                <span class="pm-value" style="color: #60A5FA; font-size: 17px; font-weight: 800;">
                     @if($propertyMaster->purchase_price > 0)
                         ₹{{ number_format($propertyMaster->purchase_price, 2) }}
                     @else
                         <span style="color: #94A3B8; font-size: 14px; font-weight: 500;">—</span>
+                    @endif
+                </span>
+            </div>
+            <div class="pm-item">
+                <span class="pm-label" style="color: #34D399;"><i class="fa-solid fa-circle-check"></i> Paid Amount</span>
+                <span class="pm-value" style="color: #34D399; font-size: 16px; font-weight: 800;">
+                    ₹{{ number_format($propertyMaster->paid_amount ?? 0, 2) }}
+                </span>
+            </div>
+            <div class="pm-item">
+                <span class="pm-label" style="color: #F87171;"><i class="fa-solid fa-clock-rotate-left"></i> Due Balance</span>
+                <span class="pm-value" style="color: #F87171; font-size: 16px; font-weight: 800;">
+                    ₹{{ number_format($propertyMaster->due_amount ?? 0, 2) }}
+                </span>
+            </div>
+            <div class="pm-item">
+                <span class="pm-label"><i class="fa-solid fa-receipt"></i> Payment Status</span>
+                <span class="pm-value">
+                    @php $pStatus = $propertyMaster->payment_status ?? 'unpaid'; @endphp
+                    @if($pStatus === 'paid')
+                        <span class="badge badge-paid"><i class="fa-solid fa-circle-check"></i> Full Paid</span>
+                    @elseif($pStatus === 'partial')
+                        <span class="badge badge-partial"><i class="fa-solid fa-hourglass-half"></i> Partial Paid</span>
+                    @else
+                        <span class="badge badge-unpaid"><i class="fa-solid fa-circle-xmark"></i> Unpaid</span>
                     @endif
                 </span>
             </div>
@@ -589,269 +631,269 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                 </span>
             </div>
             <div class="pm-item" style="grid-column: 1 / -1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span class="pm-label" style="margin-bottom: 0;">Payment Progress ({{ $propertyMaster->paid_percentage }}% Paid)</span>
+                    <span style="font-size: 12px; color: #94A3B8; font-weight: 600;">₹{{ number_format($propertyMaster->paid_amount ?? 0, 2) }} of ₹{{ number_format($propertyMaster->purchase_price ?? 0, 2) }}</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="width: {{ $propertyMaster->paid_percentage }}%; height: 100%; background: linear-gradient(90deg, #10B981, #34D399); border-radius: 999px; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+            @if($propertyMaster->address || $propertyMaster->notes)
+            <div class="pm-item" style="grid-column: 1 / -1;">
                 <span class="pm-label">Address &amp; Notes</span>
                 <span class="pm-value" style="font-size: 13.5px; font-weight: 600; color: #CBD5E1;">
                     @if($propertyMaster->address) {{ $propertyMaster->address }}, @endif
                     @if($propertyMaster->state) {{ $propertyMaster->state }} @endif
                     @if($propertyMaster->pincode) - {{ $propertyMaster->pincode }} @endif
-                    @if(!$propertyMaster->address && !$propertyMaster->city) <span style="color: #94A3B8;">No address specified</span> @endif
+                    @if($propertyMaster->notes) <div style="margin-top: 4px; font-size: 12.5px; color: #94A3B8;"><i class="fa-solid fa-note-sticky"></i> {{ $propertyMaster->notes }}</div> @endif
                 </span>
             </div>
+            @endif
         </div>
     </div>
-
-    @if($propertyMaster->description)
-        <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 13px; color: #CBD5E1;">
-            <strong style="color: #94A3B8; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 3px;">Description:</strong>
-            {{ $propertyMaster->description }}
-        </div>
-    @endif
 </div>
 
-{{-- KPI Summary Strip (Full Width) --}}
-<div class="kpi-strip">
+<!-- ================================================================
+     KPI SUMMARY STRIP
+================================================================ -->
+<div class="kpi-strip" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
     <div class="kpi-card">
-        <div class="kpi-icon kpi-purple"><i class="fa-solid fa-layer-group"></i></div>
-        <div class="kpi-content">
-            <span class="kpi-label">Acquisition Batches</span>
-            <span class="kpi-val">{{ $totalBatches }}</span>
+        <div class="kpi-icon" style="background: rgba(59, 130, 246, 0.18); color: #60A5FA;">
+            <i class="fa-solid fa-border-all"></i>
         </div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-icon kpi-blue"><i class="fa-solid fa-boxes-stacked"></i></div>
         <div class="kpi-content">
-            <span class="kpi-label">Total Plots Acquired</span>
+            <span class="kpi-label">Total Plots</span>
             <span class="kpi-val">{{ $totalPlots }}</span>
         </div>
     </div>
+
     <div class="kpi-card">
-        <div class="kpi-icon kpi-teal"><i class="fa-solid fa-ruler-combined"></i></div>
+        <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.18); color: #34D399;">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
         <div class="kpi-content">
-            <span class="kpi-label">Total Area</span>
-            <span class="kpi-val">{{ number_format($totalAreaSqft) }} <small style="font-size: 11px; font-weight: normal; color: #94A3B8;">sq.ft</small></span>
+            <span class="kpi-label">Available Free</span>
+            <span class="kpi-val" style="color: #34D399;">{{ $unassignedPlots }}</span>
         </div>
     </div>
+
     <div class="kpi-card">
-        <div class="kpi-icon kpi-amber"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+        <div class="kpi-icon" style="background: rgba(168, 85, 247, 0.18); color: #C084FC;">
+            <i class="fa-solid fa-diagram-project"></i>
+        </div>
         <div class="kpi-content">
-            <span class="kpi-label">Total Purchase Value</span>
-            <span class="kpi-val">₹{{ number_format($totalInvest, 2) }}</span>
+            <span class="kpi-label">In Projects</span>
+            <span class="kpi-val" style="color: #C084FC;">{{ $assignedPlots }}</span>
         </div>
     </div>
+
     <div class="kpi-card">
-        <div class="kpi-icon kpi-green"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.18); color: #34D399;">
+            <i class="fa-solid fa-money-bill-wave"></i>
+        </div>
         <div class="kpi-content">
-            <span class="kpi-label">Available / Free</span>
-            <span class="kpi-val">{{ $unassignedPlots }} Plots</span>
+            <span class="kpi-label">Paid Amount</span>
+            <span class="kpi-val" style="color: #34D399; font-size: 15px;">₹{{ number_format($propertyMaster->paid_amount ?? 0, 2) }}</span>
         </div>
     </div>
+
     <div class="kpi-card">
-        <div class="kpi-icon kpi-teal"><i class="fa-solid fa-diagram-project"></i></div>
+        <div class="kpi-icon" style="background: rgba(239, 68, 68, 0.18); color: #F87171;">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
         <div class="kpi-content">
-            <span class="kpi-label">Assigned to Projects</span>
-            <span class="kpi-val">{{ $assignedPlots }} Plots</span>
+            <span class="kpi-label">Due Balance</span>
+            <span class="kpi-val" style="color: #F87171; font-size: 15px;">₹{{ number_format($propertyMaster->due_amount ?? 0, 2) }}</span>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(20, 184, 166, 0.18); color: #2DD4BF;">
+            <i class="fa-solid fa-ruler-combined"></i>
+        </div>
+        <div class="kpi-content">
+            <span class="kpi-label">Total Sq. Ft</span>
+            <span class="kpi-val" style="color: #2DD4BF;">{{ number_format($totalAreaSqft) }}</span>
         </div>
     </div>
 </div>
 
 <!-- ================================================================
-     BOTTOM SECTION 1: ACQUISITION BATCHES (FULL WIDTH)
+     DIRECT PLOTS MANAGEMENT SECTION
 ================================================================ -->
 <div class="card-box">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
         <div>
-            <h3 style="font-size: 18px; font-weight: 800; color: #FFFFFF; margin: 0; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-layer-group" style="color: #A78BFA;"></i>
-                Acquisition Batches ({{ $totalBatches }})
+            <h3 style="font-size: 19px; font-weight: 800; color: #FFFFFF; margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-shapes" style="color: #60A5FA;"></i>
+                Plots &amp; Units Inventory ({{ $totalPlots }})
             </h3>
             <p style="font-size: 13px; color: #94A3B8; margin: 3px 0 0 0;">
-                Plots purchased at different times and rates remain separately identifiable.
+                Directly manage plots, generate sequential units, or import from Excel.
             </p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <a href="{{ route('acquisition-batches.download-template') }}" class="btn-secondary-custom" style="padding: 7px 14px; min-height: 36px; font-size: 13px; color: #34D399 !important; border-color: rgba(16, 185, 129, 0.35) !important;" title="Download sample Excel / CSV template for importing plots">
-                <i class="fa-solid fa-file-excel" style="color: #10B981;"></i> Download Excel Template
+            <a href="{{ route('property-masters.plots.template') }}" class="btn-secondary-custom" title="Download Excel format template">
+                <i class="fa-solid fa-file-excel" style="color: #10B981;"></i> Template
             </a>
-            <button type="button" class="btn-gold" onclick="openAddBatchModal()" style="padding: 7px 16px; min-height: 36px; font-size: 13px;">
-                <i class="fa-solid fa-plus"></i> Add Acquisition Batch
+            <button type="button" class="btn-secondary-custom" onclick="openModal('importExcelModal')">
+                <i class="fa-solid fa-file-import" style="color: #60A5FA;"></i> Import Excel
+            </button>
+            <button type="button" class="btn-purple-custom" onclick="openModal('bulkPlotsModal')">
+                <i class="fa-solid fa-bolt"></i> Bulk Generate
+            </button>
+            <button type="button" class="btn-gold" onclick="openModal('addPlotModal')">
+                <i class="fa-solid fa-plus"></i> Add Plot
             </button>
         </div>
     </div>
 
-    @forelse($propertyMaster->acquisitionBatches as $batch)
-        <div class="batch-card" id="batch-card-{{ $batch->id }}">
-            <div class="batch-card-header">
-                <div>
-                    <div class="batch-title-wrap">
-                        <span class="batch-title">{{ $batch->batch_name }}</span>
-                        <code style="background: rgba(167, 139, 250, 0.18); color: #C4B5FD; border: 1px solid rgba(167, 139, 250, 0.35); padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 800;">
-                            {{ $batch->batch_number ?: 'BATCH-' . str_pad($batch->id, 3, '0', STR_PAD_LEFT) }}
-                        </code>
-                        @if($batch->plot_numbers_range !== '-')
-                        <span style="background: rgba(59, 130, 246, 0.18); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.35); padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700;">
-                            <i class="fa-solid fa-hashtag" style="font-size: 10px;"></i> {{ $batch->plot_numbers_range }}
-                        </span>
-                        @endif
-                        <span class="badge {{ $batch->status === 'active' ? 'badge-active' : 'badge-inactive' }}">
-                            {{ ucfirst($batch->status) }}
-                        </span>
-                    </div>
-                    @if($batch->description)
-                        <div style="font-size: 13px; color: #94A3B8; margin-top: 4px;">{{ $batch->description }}</div>
-                    @endif
-                </div>
-                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <button type="button" class="btn-success-custom" onclick="openAddPlotsModal({{ $batch->id }}, '{{ addslashes($batch->batch_name) }}', {{ $batch->purchase_rate }})" style="padding: 6px 12px; min-height: 32px; font-size: 12.5px;">
-                        <i class="fa-solid fa-plus"></i> Add Plots
-                    </button>
-                    <button type="button" class="btn-secondary-custom" onclick="toggleBatchPlots({{ $batch->id }})" style="padding: 6px 12px; min-height: 32px; font-size: 12.5px;">
-                        <i class="fa-solid fa-list-check"></i> <span id="toggle-text-{{ $batch->id }}">View Plots ({{ $batch->plots->count() }})</span>
-                    </button>
-                    <form action="{{ route('acquisition-batches.destroy', $batch->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this acquisition batch and its unbooked plots?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn-secondary-custom" style="padding: 6px 10px; min-height: 32px; color: #FCA5A5 !important;" title="Delete Batch">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Batch Stat Strip -->
-            <div class="batch-stats-strip">
-                <div class="bss-item">
-                    <span class="bss-label">Acquired Plots</span>
-                    <span class="bss-val" style="color: #60A5FA;">{{ $batch->plots->count() }} Plots <small style="font-size: 11.5px; color: #94A3B8; font-weight: normal;">({{ $batch->plot_numbers_range }})</small></span>
-                </div>
-                <div class="bss-item">
-                    <span class="bss-label">Total Area</span>
-                    <span class="bss-val" style="color: #2DD4BF;">{{ number_format($batch->total_area_sqft) }} <small style="font-size: 11px; font-weight: normal; color: #94A3B8;">sq.ft</small></span>
-                </div>
-                <div class="bss-item">
-                    <span class="bss-label">Purchase Rate</span>
-                    <span class="bss-val" style="color: #FBBF24;">₹{{ number_format($batch->purchase_rate, 2) }} <small style="font-size: 11px; font-weight: normal; color: #94A3B8;">/{{ str_replace('_', ' ', $batch->rate_unit) }}</small></span>
-                </div>
-                <div class="bss-item">
-                    <span class="bss-label">Total Amount</span>
-                    <span class="bss-val" style="color: #34D399;">₹{{ number_format($batch->total_purchase_amount ?: ($batch->purchase_rate * $batch->plots->count()), 2) }}</span>
-                </div>
-                <div class="bss-item">
-                    <span class="bss-label">Purchase Date</span>
-                    <span class="bss-val">{{ $batch->purchase_date ? $batch->purchase_date->format('d M Y') : '-' }}</span>
-                </div>
-                <div class="bss-item">
-                    <span class="bss-label">Availability</span>
-                    <span class="bss-val" style="font-size: 13px;">
-                        <span style="color: #34D399;">{{ $batch->plots->whereNull('project_id')->count() }} Free</span> /
-                        <span style="color: #60A5FA;">{{ $batch->plots->whereNotNull('project_id')->count() }} in Project</span>
-                    </span>
-                </div>
-            </div>
-
-            <!-- Expandable Plots List Table -->
-            <div id="batch-plots-wrap-{{ $batch->id }}" style="display: none; margin-top: 14px;">
-                <div class="table-wrapper">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th>Plot Name</th>
-                                <th>Code</th>
-                                <th>Size</th>
-                                <th>Facing</th>
-                                <th>Purchase Rate</th>
-                                <th>Assigned Project</th>
-                                <th>Status</th>
-                                <th style="text-align: right;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($batch->plots as $plot)
-                                <tr>
-                                    <td>
-                                        <strong style="color: #FFFFFF;">{{ $plot->property_name }}</strong>
-                                    </td>
-                                    <td><code style="background: rgba(255,255,255,0.06); color: #60A5FA; padding: 2px 6px; border-radius: 4px; font-size: 12px;">{{ $plot->property_code }}</code></td>
-                                    <td>{{ $plot->formatted_size }}</td>
-                                    <td>{{ $plot->facing ?: '-' }}</td>
-                                    <td><strong style="color: #FBBF24;">₹{{ number_format($plot->purchase_rate ?: $batch->purchase_rate, 2) }}</strong></td>
-                                    <td>
-                                        @if($plot->project)
-                                            <a href="{{ route('projects.show', $plot->project_id) }}" class="badge badge-project" style="text-decoration: none;">
-                                                <i class="fa-solid fa-diagram-project"></i> {{ $plot->project->project_name }}
-                                            </a>
-                                        @else
-                                            <span class="badge badge-available"><i class="fa-solid fa-unlock"></i> Unassigned</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-{{ $plot->status }}">
-                                            {{ ucfirst($plot->status) }}
-                                        </span>
-                                    </td>
-                                    <td style="text-align: right; white-space: nowrap;">
-                                        <div class="tbl-actions-wrap">
-                                            <button type="button" class="btn-tbl-edit" onclick="openQuickEditPlotModal({{ $plot->id }}, '{{ addslashes($plot->property_name) }}', '{{ addslashes($plot->property_code) }}', '{{ $plot->size }}', '{{ $plot->size_unit }}', '{{ $plot->facing }}', '{{ $plot->purchase_rate }}', '{{ $plot->price }}', '{{ $plot->status }}', '{{ addslashes($plot->description ?? '') }}')">
-                                                <i class="fa-regular fa-pen-to-square"></i> Edit
-                                            </button>
-                                            <a href="{{ route('properties.show', $plot->id) }}" class="btn-tbl-view">
-                                                <i class="fa-regular fa-eye"></i> View
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="8" style="text-align: center; color: #94A3B8; padding: 20px;">
-                                        No plots created in this batch yet. Click <strong style="color: #34D399;">+ Add Plots</strong> above.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <!-- Filter Strip -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+        <div class="filter-tabs">
+            <button type="button" class="filter-tab-btn active" onclick="filterPlots('all', this)">All ({{ $totalPlots }})</button>
+            <button type="button" class="filter-tab-btn" onclick="filterPlots('available', this)">Available Free ({{ $unassignedPlots }})</button>
+            <button type="button" class="filter-tab-btn" onclick="filterPlots('in-project', this)">In Project ({{ $assignedPlots }})</button>
+            <button type="button" class="filter-tab-btn" onclick="filterPlots('booked', this)">Booked</button>
+            <button type="button" class="filter-tab-btn" onclick="filterPlots('sold', this)">Sold</button>
         </div>
-    @empty
-        <div style="text-align: center; padding: 36px; background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 16px;">
-            <div style="font-size: 32px; color: #A78BFA; margin-bottom: 10px;"><i class="fa-solid fa-layer-group"></i></div>
-            <h4 style="font-size: 16px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">No Acquisition Batches Added Yet</h4>
-            <p style="font-size: 13.5px; color: #94A3B8; max-width: 460px; margin: 0 auto 16px auto;">
-                Add plots in acquisition batches with their respective purchase rates and dates to start managing inventory under this Property.
-            </p>
-            <button type="button" class="btn-gold" onclick="openAddBatchModal()">
-                <i class="fa-solid fa-plus"></i> Create First Acquisition Batch
-            </button>
+
+        <div class="search-input-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="plotSearchInput" class="search-input-box" placeholder="Search plot name, unit, code..." oninput="searchPlots(this.value)">
         </div>
-    @endforelse
+    </div>
+
+    <!-- Plots Table -->
+    <div class="custom-table-responsive">
+        <table class="custom-table" id="plotsTable">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Unit #</th>
+                    <th>Plot Name</th>
+                    <th>Plot Code</th>
+                    <th>Type</th>
+                    <th>Size &amp; Facing</th>
+                    <th>Purchase Rate / Price</th>
+                    <th>Assigned Project</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($propertyMaster->plots as $plot)
+                    @php
+                        $filterCategory = 'available';
+                        if ($plot->status === 'booked' || $plot->status === 'sold' || $plot->status === 'reserved') {
+                            $filterCategory = $plot->status;
+                        } elseif ($plot->project_id) {
+                            $filterCategory = 'in-project';
+                        }
+                    @endphp
+                    <tr class="plot-row" data-category="{{ $filterCategory }}" data-search="{{ strtolower($plot->property_name . ' ' . $plot->property_code . ' ' . $plot->unit_no . ' ' . ($plot->project?->project_name ?? '')) }}">
+                        <td>
+                            <strong style="color: #FFFFFF; font-size: 14px;">#{{ $plot->unit_no ?: $plot->id }}</strong>
+                        </td>
+                        <td>
+                            <strong style="color: #F8FAFC; font-size: 14px;">{{ $plot->property_name }}</strong>
+                        </td>
+                        <td>
+                            <code style="background: rgba(255, 255, 255, 0.08); color: #60A5FA; padding: 2px 6px; border-radius: 4px; font-size: 12px;">{{ $plot->property_code }}</code>
+                        </td>
+                        <td>
+                            <span style="color: #CBD5E1;">{{ $plot->propertyType->name ?? 'Plot' }}</span>
+                        </td>
+                        <td>
+                            <div style="font-size: 13px;">
+                                @if($plot->size)
+                                    <span style="color: #2DD4BF; font-weight: 700;">{{ $plot->formatted_size }}</span>
+                                @else
+                                    <span style="color: #94A3B8;">—</span>
+                                @endif
+                                @if($plot->facing)
+                                    <small style="color: #94A3B8; display: block;">Facing: {{ $plot->facing }}</small>
+                                @endif
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 13px;">
+                                <strong style="color: #FBBF24;">₹{{ number_format($plot->purchase_rate ?: 0, 2) }}</strong>
+                                @if($plot->price && $plot->price != $plot->purchase_rate)
+                                    <small style="color: #94A3B8; display: block;">Sell: ₹{{ number_format($plot->price, 2) }}</small>
+                                @endif
+                            </div>
+                        </td>
+                        <td>
+                            @if($plot->project)
+                                <a href="{{ route('projects.show', $plot->project->id) }}" style="color: #93C5FD; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="fa-solid fa-diagram-project" style="font-size: 11px;"></i> {{ $plot->project->project_name }}
+                                </a>
+                            @else
+                                <span style="color: #94A3B8; font-size: 12px; font-style: italic;">Unassigned (Free)</span>
+                            @endif
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ $plot->status }}">
+                                <i class="fa-solid fa-circle-dot"></i> {{ ucfirst($plot->status) }}
+                            </span>
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: inline-flex; gap: 6px;">
+                                <a href="{{ route('properties.edit', $plot->id) }}" class="btn-secondary-custom" style="padding: 4px 8px; font-size: 12px;" title="Edit Plot Details">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <form action="{{ route('properties.destroy', $plot->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this plot?')" style="display: inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-secondary-custom" style="padding: 4px 8px; font-size: 12px; color: #F87171 !important;" title="Delete Plot">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: #94A3B8; padding: 36px;">
+                            <div style="font-size: 36px; margin-bottom: 8px; color: #475569;"><i class="fa-solid fa-border-none"></i></div>
+                            <strong style="color: #FFFFFF; font-size: 15px; display: block; margin-bottom: 4px;">No plots created yet</strong>
+                            <span>Add single plots, generate multiple sequential plots, or import from Excel.</span>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <!-- ================================================================
-     BOTTOM SECTION 2: MANAGED PROJECTS (FULL WIDTH)
+     ASSOCIATED PROJECTS SECTION
 ================================================================ -->
 <div class="card-box">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
         <div>
             <h3 style="font-size: 18px; font-weight: 800; color: #FFFFFF; margin: 0; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-diagram-project" style="color: #38BDF8;"></i>
-                Managed Projects ({{ $propertyMaster->projects->count() }})
+                <i class="fa-solid fa-diagram-project" style="color: #A78BFA;"></i>
+                Associated Projects ({{ $propertyMaster->projects->count() }})
             </h3>
             <p style="font-size: 13px; color: #94A3B8; margin: 3px 0 0 0;">
-                Projects created by combining plots from one or multiple acquisition batches.
+                Projects using land or plots from this Property Master.
             </p>
         </div>
-        <a href="{{ route('projects.create', ['property_id' => $propertyMaster->id]) }}" class="btn-primary-custom" style="padding: 7px 16px; min-height: 36px; font-size: 13px;">
-            <i class="fa-solid fa-plus"></i> Create Project
+        <a href="{{ route('projects.create', ['property_id' => $propertyMaster->id]) }}" class="btn-gold" style="font-size: 13px; padding: 6px 14px;">
+            <i class="fa-solid fa-plus"></i> New Project
         </a>
     </div>
 
-    <div class="table-wrapper">
+    <div class="custom-table-responsive">
         <table class="custom-table">
             <thead>
                 <tr>
                     <th>Project Name</th>
                     <th>Code</th>
                     <th>Type</th>
-                    <th>Plots Breakdown</th>
+                    <th>Plots Allocated</th>
                     <th>Status</th>
                     <th style="text-align: right;">Action</th>
                 </tr>
@@ -859,8 +901,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             <tbody>
                 @forelse($propertyMaster->projects as $project)
                     @php
-                        $projectPlots = $project->properties;
-                        $batchBreakdown = $projectPlots->groupBy('acquisition_batch_id');
+                        $plotsCount = $project->properties()->where('property_master_id', $propertyMaster->id)->count();
                     @endphp
                     <tr>
                         <td>
@@ -871,19 +912,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                         <td><code style="background: rgba(255, 255, 255, 0.08); color: #60A5FA; padding: 2px 6px; border-radius: 4px; font-size: 12.5px;">{{ $project->project_code }}</code></td>
                         <td><span style="color: #CBD5E1; text-transform: capitalize;">{{ $project->project_type }}</span></td>
                         <td>
-                            <div style="display: flex; flex-direction: column; gap: 3px;">
-                                <strong style="color: #FFFFFF;">{{ $projectPlots->count() }} Total Plots</strong>
-                                @if($batchBreakdown->count() > 0)
-                                    <small style="color: #94A3B8; font-size: 11.5px;">
-                                        @foreach($batchBreakdown as $bId => $pGroup)
-                                            @php $bName = $pGroup->first()->acquisitionBatch?->batch_name ?? 'Direct Plots'; @endphp
-                                            <span style="display: inline-block; background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; margin-right: 4px; margin-top: 2px;">
-                                                {{ $pGroup->count() }} from {{ $bName }}
-                                            </span>
-                                        @endforeach
-                                    </small>
-                                @endif
-                            </div>
+                            <strong style="color: #34D399;">{{ $plotsCount }} Plots</strong> from this Master
                         </td>
                         <td>
                             <span class="badge {{ $project->status === 'active' ? 'badge-active' : 'badge-inactive' }}">
@@ -898,7 +927,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" style="text-align: center; color: #94A3B8; padding: 28px; font-weight: 600;">
+                        <td colspan="6" style="text-align: center; color: #94A3B8; padding: 24px; font-weight: 600;">
                             No Projects created under this Property yet.
                         </td>
                     </tr>
@@ -909,172 +938,41 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
 </div>
 
 <!-- ================================================================
-     MODAL 1: ADD ACQUISITION BATCH (DIRECT GENERATOR OR EXCEL IMPORT)
+     MODAL 1: ADD SINGLE PLOT
 ================================================================ -->
-<div class="modal-backdrop-custom" id="addBatchModal">
-    <div class="modal-box-custom" style="max-width: 720px;">
+<div class="modal-backdrop-custom" id="addPlotModal">
+    <div class="modal-box-custom">
         <div class="modal-header-custom">
-            <h3><i class="fa-solid fa-layer-group" style="color: #A78BFA; margin-right: 8px;"></i>Add Acquisition Batch</h3>
-            <button type="button" class="modal-close-btn" onclick="closeAddBatchModal()">&times;</button>
+            <h3><i class="fa-solid fa-plus-circle" style="color: #D4AF37;"></i> Add Single Plot</h3>
+            <button type="button" class="modal-close-btn" onclick="closeModal('addPlotModal')">&times;</button>
         </div>
-
-        <form id="addBatchForm" action="{{ route('acquisition-batches.store') }}" method="POST" enctype="multipart/form-data" onsubmit="return handleBatchSubmit(event, this)">
+        <form action="{{ route('property-masters.add-plot', $propertyMaster->id) }}" method="POST">
             @csrf
-            <input type="hidden" name="property_master_id" value="{{ $propertyMaster->id }}">
-            <input type="hidden" name="firm_id" value="{{ $propertyMaster->firm_id }}">
-            <input type="hidden" name="plot_source" id="modal_batch_plot_source" value="direct_generator">
-
-            <div class="m-form-row">
-                <div class="m-form-group">
-                    <label class="m-form-label">Batch Name <span>*</span></label>
-                    <input type="text" name="batch_name" class="m-form-control" placeholder="e.g. Acquisition Batch 1" required>
-                </div>
-                <div class="m-form-group">
-                    <label class="m-form-label">Batch Number / Code</label>
-                    <input type="text" name="batch_number" class="m-form-control" placeholder="Auto-generated if empty">
-                </div>
-            </div>
-
-            <div class="m-form-row">
-                <div class="m-form-group">
-                    <label class="m-form-label">Purchase Date <span>*</span></label>
-                    <input type="date" name="purchase_date" class="m-form-control" value="{{ date('Y-m-d') }}" required>
-                </div>
-                <div class="m-form-group">
-                    <label class="m-form-label">Total Plots to Acquire / Units <span>*</span></label>
-                    <input type="number" min="0" max="1000" name="total_plots" id="modal_top_plot_count" class="m-form-control" value="14" placeholder="e.g. 14" oninput="syncPlotCount(this.value, 'top')" required>
-                </div>
-            </div>
-
-            <div class="m-form-row">
-                <div class="m-form-group">
-                    <label class="m-form-label">Purchase Rate (INR) <span>*</span></label>
-                    <input type="number" step="0.01" name="purchase_rate" id="modal_purchase_rate" class="m-form-control" placeholder="e.g. 1200" oninput="calculateTotalAmount()" required>
-                </div>
-                <div class="m-form-group">
-                    <label class="m-form-label">Rate Unit (Calculation Basis) <span>*</span></label>
-                    <select name="rate_unit" id="modal_rate_unit" class="m-form-control" onchange="calculateTotalAmount()" required>
-                        <option value="per_plot" selected>Per Plot / Unit (₹ Rate × Total Plots)</option>
-                        <option value="per_sqft">Per Sq. Ft (₹ Rate × Total Sq. Ft)</option>
-                        <option value="per_sqyd">Per Sq. Yard (₹ Rate × Total Sq. Yd)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="m-form-row" id="modal_area_row" style="display: none;">
-                <div class="m-form-group" id="modal_sqft_group" style="display: none; grid-column: 1 / -1;">
-                    <label class="m-form-label" style="display: flex; justify-content: space-between;">
-                        <span>Total Area (Sq. Ft) <span>*</span></span>
-                        <small style="color: #60A5FA; font-weight: 700;">Rate Basis: ₹ Rate × Total Sq. Ft</small>
-                    </label>
-                    <input type="number" step="0.01" name="total_sqft" id="modal_total_sqft" class="m-form-control" style="background: rgba(16, 185, 129, 0.10); color: #34D399; font-weight: 800; border-color: rgba(16, 185, 129, 0.30);" placeholder="Enter total sq.ft or auto-calculated from plots" oninput="calculateFromTotalSqft()">
-                </div>
-                <div class="m-form-group" id="modal_sqyd_group" style="display: none; grid-column: 1 / -1;">
-                    <label class="m-form-label" style="display: flex; justify-content: space-between;">
-                        <span>Total Area (Sq. Yard / વાર) <span>*</span></span>
-                        <small style="color: #FBBF24; font-weight: 700;">Rate Basis: ₹ Rate × Total Sq. Yd (વાર)</small>
-                    </label>
-                    <input type="number" step="0.01" id="modal_total_sqyd" class="m-form-control" style="background: rgba(245, 158, 11, 0.10); color: #FBBF24; font-weight: 800; border-color: rgba(245, 158, 11, 0.30);" placeholder="Enter total sq.yd (વાર) or auto-calculated" oninput="calculateFromTotalSqyd()">
-                </div>
-            </div>
-
-            <div class="m-form-row">
-                <div class="m-form-group">
-                    <label class="m-form-label">Total Purchase Amount (INR)</label>
-                    <input type="number" step="0.01" name="total_purchase_amount" id="modal_total_amount" class="m-form-control" placeholder="Auto calculated or custom" style="font-weight: 800; color: #34D399; font-size: 15px;">
-                </div>
-                <div class="m-form-group">
-                    <label class="m-form-label">Status <span>*</span></label>
-                    <select name="status" class="m-form-control" required>
-                        <option value="active" selected>Active</option>
-                        <option value="completed">Completed</option>
-                        <option value="archived">Archived</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Live Calculation Breakdown Strip -->
-            <div id="modal_calc_breakdown" style="background: rgba(16, 185, 129, 0.10); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 9px 14px; margin-bottom: 16px; font-size: 13px; color: #34D399; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                <span style="font-weight: 800; font-size: 13.5px;"><i class="fa-solid fa-indian-rupee-sign" style="margin-right: 5px;"></i> <span id="calc_formula_text">Total Price: ₹16,800.00</span></span>
-                <span id="calc_basis_badge" style="background: rgba(16, 185, 129, 0.20); padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">Rate: ₹1,200.00 / Plot (14 Plots)</span>
-            </div>
-
-            <!-- Plot Creation Method Selection (Direct / Excel / None) -->
-            <div style="margin-top: 18px; margin-bottom: 8px;">
-                <label class="m-form-label" style="font-size: 13.5px; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-sliders" style="color: #60A5FA;"></i> How would you like to add plots to this batch?
-                </label>
-                <div class="plot-source-nav">
-                    <button type="button" class="plot-source-nav-btn active" id="tab_btn_batch_direct" onclick="switchBatchPlotSource('direct_generator')">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Direct Auto Generator
-                    </button>
-                    <button type="button" class="plot-source-nav-btn" id="tab_btn_batch_excel" onclick="switchBatchPlotSource('excel_import')">
-                        <i class="fa-solid fa-file-excel"></i> Upload Excel / CSV
-                    </button>
-                    <button type="button" class="plot-source-nav-btn" id="tab_btn_batch_none" onclick="switchBatchPlotSource('none')">
-                        <i class="fa-solid fa-folder-plus"></i> Batch Only (No Plots Now)
-                    </button>
-                </div>
-            </div>
-
-            <!-- OPTION 1: DIRECT AUTO GENERATOR -->
-            <div id="batch_direct_section" class="generator-box" style="margin-top: 0;">
-                <!-- Live Acquired Plot Numbers and Total Area Summary Banner -->
-                <div id="batch_live_summary" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.30); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div style="font-size: 13px; color: #93C5FD; font-weight: 700; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-tag" style="color: #60A5FA;"></i>
-                        <span id="live_plot_range_text">Acquiring: Plot {{ $propertyMaster->getNextPlotSequenceNumber() }} to Plot {{ (int)$propertyMaster->getNextPlotSequenceNumber() + 13 }} (14 Units)</span>
+            <div class="modal-body-custom">
+                <div class="m-form-row">
+                    <div class="m-form-group">
+                        <label class="m-form-label">Plot Name <span>*</span></label>
+                        <input type="text" name="property_name" class="m-form-control" placeholder="e.g. Plot 15" required>
                     </div>
-                    <div style="font-size: 13px; color: #34D399; font-weight: 800; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-ruler-combined"></i>
-                        <span id="live_total_sqft_text">Total Area: 0 sq.ft</span>
+                    <div class="m-form-group">
+                        <label class="m-form-label">Unit / Plot Number</label>
+                        <input type="text" name="unit_no" class="m-form-control" value="{{ $propertyMaster->getNextPlotSequenceNumber() }}" placeholder="e.g. 15">
                     </div>
                 </div>
 
                 <div class="m-form-row">
                     <div class="m-form-group">
-                        <label class="m-form-label">Number of Plots to Create <span>*</span></label>
-                        <input type="number" min="1" max="1000" name="plot_count" id="modal_plot_count" class="m-form-control" value="14" oninput="syncPlotCount(this.value, 'gen')">
-                    </div>
-                    <div class="m-form-group">
-                        <label class="m-form-label">Plot Name Prefix</label>
-                        <input type="text" name="plot_prefix" id="modal_plot_prefix" class="m-form-control" value="Plot " oninput="updatePlotRangeAndCalc()">
-                    </div>
-                </div>
-
-                <div class="m-form-row">
-                    <div class="m-form-group">
-                        <label class="m-form-label">Starting Plot Number (Continuous)</label>
-                        <input type="number" min="1" name="start_number" id="modal_start_number" class="m-form-control" value="{{ $propertyMaster->getNextPlotSequenceNumber() }}" placeholder="e.g. {{ $propertyMaster->getNextPlotSequenceNumber() }}" oninput="updatePlotRangeAndCalc()">
-                    </div>
-                    <div class="m-form-group">
-                        <label class="m-form-label">Ending Plot Number (Auto Preview)</label>
-                        <input type="text" id="modal_end_number" class="m-form-control" style="background: rgba(255,255,255,0.05); color: #93C5FD; font-weight: 700;" readonly value="Plot {{ (int)$propertyMaster->getNextPlotSequenceNumber() + 13 }}">
-                    </div>
-                </div>
-
-                <div class="m-form-row">
-                    <div class="m-form-group">
-                        <label class="m-form-label">Plot Size (Each Plot Area)</label>
-                        <input type="number" step="0.01" name="plot_size" id="modal_plot_size" class="m-form-control" placeholder="e.g. 1200" oninput="updatePlotRangeAndCalc()">
-                    </div>
-                    <div class="m-form-group">
-                        <label class="m-form-label">Size Unit</label>
-                        <select name="plot_size_unit" id="modal_size_unit" class="m-form-control" onchange="updatePlotRangeAndCalc()">
-                            <option value="sq.ft" selected>sq.ft (Square Feet)</option>
-                            <option value="sq.yard">sq.yard (Square Yard / વાર)</option>
-                            <option value="sq.meter">sq.meter</option>
-                            <option value="acre">acre</option>
-                            <option value="bigha">bigha</option>
+                        <label class="m-form-label">Property Type</label>
+                        <select name="property_type_id" class="m-form-control">
+                            @foreach($propertyTypes as $type)
+                                <option value="{{ $type->id }}">{{ $type->name }}</option>
+                            @endforeach
                         </select>
                     </div>
-                </div>
-
-                <div class="m-form-row">
                     <div class="m-form-group">
                         <label class="m-form-label">Facing Direction</label>
-                        <select name="plot_facing" class="m-form-control">
-                            <option value="">Select (Optional)</option>
+                        <select name="facing" class="m-form-control">
+                            <option value="">Select Direction</option>
                             <option value="East">East</option>
                             <option value="West">West</option>
                             <option value="North">North</option>
@@ -1086,824 +984,254 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                         </select>
                     </div>
                 </div>
-            </div>
-
-            <!-- OPTION 2: EXCEL / CSV IMPORT -->
-            <div id="batch_excel_section" class="generator-box" style="display: none; margin-top: 0; background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.30);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-                    <div>
-                        <strong style="color: #FFFFFF; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-                            <i class="fa-solid fa-file-excel" style="color: #10B981;"></i>
-                            Import Plots from Excel / CSV Spreadsheet
-                        </strong>
-                        <p style="font-size: 12.5px; color: #94A3B8; margin: 3px 0 0 0;">
-                            Upload your spreadsheet with plot details. The batch will automatically create all plots listed in your file.
-                        </p>
-                    </div>
-                    <a href="{{ route('acquisition-batches.download-template') }}" class="btn-secondary-custom" style="padding: 6px 14px; min-height: 32px; font-size: 12.5px; color: #34D399 !important; border-color: rgba(16, 185, 129, 0.40) !important;">
-                        <i class="fa-solid fa-download"></i> Download Sample Excel Template
-                    </a>
-                </div>
-
-                <div class="m-form-group" style="margin-bottom: 12px;">
-                    <label class="m-form-label">Choose Excel / CSV File (.xlsx, .xls, .csv) <span>*</span></label>
-                    <input type="file" name="excel_file" id="batch_excel_file" accept=".xlsx,.xls,.csv" class="m-form-control">
-                </div>
-
-                <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #CBD5E1;">
-                    <strong style="color: #60A5FA;"><i class="fa-solid fa-circle-info"></i> Expected Columns in Excel:</strong>
-                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
-                        <span style="background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 4px;"><code>Plot Name / No</code></span>
-                        <span style="background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 4px;"><code>Plot Code</code></span>
-                        <span style="background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 4px;"><code>Size / Area</code></span>
-                        <span style="background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 4px;"><code>Size Unit</code></span>
-                        <span style="background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 4px;"><code>Facing</code></span>
-                        <span style="background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 4px;"><code>Purchase Rate</code></span>
-                        <span style="background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 4px;"><code>Selling Price</code></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- OPTION 3: BATCH ONLY (NO PLOTS NOW) -->
-            <div id="batch_none_section" class="generator-box" style="display: none; margin-top: 0; background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.30);">
-                <div style="display: flex; align-items: center; gap: 12px; color: #FBBF24;">
-                    <i class="fa-solid fa-circle-info" style="font-size: 22px;"></i>
-                    <div style="font-size: 13px; line-height: 1.5;">
-                        <strong>Create Batch Entry Only:</strong> No individual plots will be auto-generated right now. You can add plots later anytime directly or by uploading an Excel file.
-                    </div>
-                </div>
-            </div>
-
-            <div class="m-form-group">
-                <label class="m-form-label">Description / Purchase Notes</label>
-                <textarea name="description" rows="2" class="m-form-control" placeholder="e.g. Purchased from landowner Survey No. 12/A"></textarea>
-            </div>
-
-            <div class="m-form-group">
-                <label class="m-form-label">Upload Purchase Deed / Document</label>
-                <input type="file" name="document_file" class="m-form-control">
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.10);">
-                <button type="button" class="btn-secondary-custom" onclick="closeAddBatchModal()">Cancel</button>
-                <button type="submit" class="btn-gold">
-                    <i class="fa-solid fa-check"></i> Save Acquisition Batch &amp; Plots
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- ================================================================
-     MODAL 2: ADD PLOTS TO EXISTING BATCH (DIRECT OR EXCEL)
-================================================================ -->
-<div class="modal-backdrop-custom" id="addPlotsModal">
-    <div class="modal-box-custom" style="max-width: 700px;">
-        <div class="modal-header-custom">
-            <h3><i class="fa-solid fa-plus-circle" style="color: #34D399; margin-right: 8px;"></i>Add Plots to Batch</h3>
-            <button type="button" class="modal-close-btn" onclick="closeAddPlotsModal()">&times;</button>
-        </div>
-
-        <form id="addPlotsForm" method="POST" enctype="multipart/form-data" onsubmit="return handleBatchSubmit(event, this)">
-            @csrf
-            <input type="hidden" name="plot_source" id="modal_ap_plot_source" value="direct_generator">
-
-            <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px 16px; margin-bottom: 18px;">
-                <div style="font-size: 12px; color: #94A3B8; text-transform: uppercase; font-weight: 700;">Target Batch</div>
-                <div id="targetBatchName" style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin-top: 2px;"></div>
-            </div>
-
-            <!-- Plot Creation Method Selection (Direct / Excel) -->
-            <div style="margin-bottom: 14px;">
-                <label class="m-form-label" style="font-size: 13.5px; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-sliders" style="color: #34D399;"></i> Select how to add plots:
-                </label>
-                <div class="plot-source-nav">
-                    <button type="button" class="plot-source-nav-btn active" id="tab_btn_ap_direct" onclick="switchAddPlotsSource('direct_generator')">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Direct Auto Generator
-                    </button>
-                    <button type="button" class="plot-source-nav-btn" id="tab_btn_ap_excel" onclick="switchAddPlotsSource('excel_import')">
-                        <i class="fa-solid fa-file-excel"></i> Upload Excel / CSV
-                    </button>
-                </div>
-            </div>
-
-            <!-- OPTION 1: DIRECT AUTO GENERATOR -->
-            <div id="ap_direct_section">
-                <!-- Live Range for Add Plots -->
-                <div id="add_plots_live_summary" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.30); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div style="font-size: 13px; color: #34D399; font-weight: 700; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-tag"></i>
-                        <span id="ap_live_plot_range_text">Adding Plots: Plot {{ $propertyMaster->getNextPlotSequenceNumber() }} to Plot {{ (int)$propertyMaster->getNextPlotSequenceNumber() + 4 }} (5 Units)</span>
-                    </div>
-                    <div style="font-size: 13px; color: #60A5FA; font-weight: 800; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-ruler-combined"></i>
-                        <span id="ap_live_total_sqft_text">Total Area: 0 sq.ft</span>
-                    </div>
-                </div>
 
                 <div class="m-form-row">
                     <div class="m-form-group">
-                        <label class="m-form-label">Number of Plots to Add <span>*</span></label>
-                        <input type="number" min="1" max="500" name="plot_count" id="ap_plot_count" class="m-form-control" value="5" oninput="updateAddPlotsRangeAndCalc()">
-                    </div>
-                    <div class="m-form-group">
-                        <label class="m-form-label">Plot Name Prefix</label>
-                        <input type="text" name="plot_prefix" id="ap_plot_prefix" class="m-form-control" value="Plot " oninput="updateAddPlotsRangeAndCalc()">
-                    </div>
-                </div>
-
-                <div class="m-form-row">
-                    <div class="m-form-group">
-                        <label class="m-form-label">Starting Number (Continuous)</label>
-                        <input type="number" min="1" name="start_number" id="ap_start_number" class="m-form-control" value="{{ $propertyMaster->getNextPlotSequenceNumber() }}" placeholder="e.g. {{ $propertyMaster->getNextPlotSequenceNumber() }}" oninput="updateAddPlotsRangeAndCalc()">
-                    </div>
-                    <div class="m-form-group">
-                        <label class="m-form-label">Ending Plot Number (Auto Preview)</label>
-                        <input type="text" id="ap_end_number" class="m-form-control" style="background: rgba(255,255,255,0.05); color: #34D399; font-weight: 700;" readonly value="Plot {{ (int)$propertyMaster->getNextPlotSequenceNumber() + 4 }}">
-                    </div>
-                </div>
-
-                <div class="m-form-row">
-                    <div class="m-form-group">
-                        <label class="m-form-label">Plot Size (Each Area)</label>
-                        <input type="number" step="0.01" name="plot_size" id="ap_plot_size" class="m-form-control" placeholder="e.g. 1200" oninput="updateAddPlotsRangeAndCalc()">
+                        <label class="m-form-label">Plot Size</label>
+                        <input type="number" step="0.01" name="size" class="m-form-control" placeholder="e.g. 1200">
                     </div>
                     <div class="m-form-group">
                         <label class="m-form-label">Size Unit</label>
-                        <select name="plot_size_unit" id="ap_plot_size_unit" class="m-form-control" onchange="updateAddPlotsRangeAndCalc()">
-                            <option value="sq.ft" selected>sq.ft (Square Feet)</option>
-                            <option value="sq.yard">sq.yard (Square Yard / વાર)</option>
+                        <select name="size_unit" class="m-form-control">
+                            <option value="sq.ft" selected>sq.ft</option>
+                            <option value="sq.yard">sq.yard</option>
                             <option value="sq.meter">sq.meter</option>
                             <option value="acre">acre</option>
-                            <option value="bigha">bigha</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="m-form-row">
                     <div class="m-form-group">
-                        <label class="m-form-label" style="display: flex; justify-content: space-between;">
-                            <span>Total Area (Sq. Ft)</span>
-                            <small style="color: #60A5FA; font-weight: normal;">Sq. Ft</small>
-                        </label>
-                        <input type="number" step="0.01" name="total_sqft" id="ap_total_sqft" class="m-form-control" style="background: rgba(59, 130, 246, 0.10); color: #60A5FA; font-weight: 800; border-color: rgba(59, 130, 246, 0.30);" placeholder="Auto calculated or custom" oninput="calculateFromApTotalSqft()">
+                        <label class="m-form-label">Purchase Rate (₹)</label>
+                        <input type="number" step="0.01" name="purchase_rate" value="{{ $propertyMaster->purchase_rate }}" class="m-form-control" placeholder="e.g. 1500">
                     </div>
                     <div class="m-form-group">
-                        <label class="m-form-label" style="display: flex; justify-content: space-between;">
-                            <span>Total Area (Sq. Yard / વાર)</span>
-                            <small style="color: #FBBF24; font-weight: normal;">Sq. Yd</small>
-                        </label>
-                        <input type="number" step="0.01" id="ap_total_sqyd" class="m-form-control" style="background: rgba(245, 158, 11, 0.10); color: #FBBF24; font-weight: 800; border-color: rgba(245, 158, 11, 0.30);" placeholder="Sq. Ft ÷ 9" oninput="calculateFromApTotalSqyd()">
+                        <label class="m-form-label">Selling / Expected Price (₹)</label>
+                        <input type="number" step="0.01" name="price" value="{{ $propertyMaster->purchase_rate }}" class="m-form-control" placeholder="e.g. 2000">
                     </div>
                 </div>
 
                 <div class="m-form-row">
                     <div class="m-form-group">
-                        <label class="m-form-label">Purchase Rate (INR)</label>
-                        <input type="number" step="0.01" name="purchase_rate" id="ap_purchase_rate" class="m-form-control" placeholder="Inherit from batch">
+                        <label class="m-form-label">Initial Status <span>*</span></label>
+                        <select name="status" class="m-form-control" required>
+                            <option value="available" selected>Available (Free)</option>
+                            <option value="booked">Booked</option>
+                            <option value="sold">Sold</option>
+                            <option value="reserved">Reserved</option>
+                        </select>
                     </div>
+                    <div class="m-form-group">
+                        <label class="m-form-label">Assign to Project (Optional)</label>
+                        <select name="project_id" class="m-form-control">
+                            <option value="">-- No Project (Keep in Master Inventory) --</option>
+                            @foreach($projects as $p)
+                                <option value="{{ $p->id }}">{{ $p->project_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="m-form-group">
+                    <label class="m-form-label">Description / Remarks</label>
+                    <textarea name="description" class="m-form-control" rows="2" placeholder="Optional notes..."></textarea>
                 </div>
             </div>
-
-            <!-- OPTION 2: EXCEL / CSV IMPORT -->
-            <div id="ap_excel_section" class="generator-box" style="display: none; margin-top: 0; background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.30);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-                    <div>
-                        <strong style="color: #FFFFFF; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-                            <i class="fa-solid fa-file-excel" style="color: #10B981;"></i>
-                            Import Plots from Excel / CSV File
-                        </strong>
-                        <p style="font-size: 12.5px; color: #94A3B8; margin: 3px 0 0 0;">
-                            Upload your spreadsheet with plots to instantly add them into this batch.
-                        </p>
-                    </div>
-                    <a href="{{ route('acquisition-batches.download-template') }}" class="btn-secondary-custom" style="padding: 6px 14px; min-height: 32px; font-size: 12.5px; color: #34D399 !important; border-color: rgba(16, 185, 129, 0.40) !important;">
-                        <i class="fa-solid fa-download"></i> Sample Template
-                    </a>
-                </div>
-
-                <div class="m-form-group" style="margin-bottom: 12px;">
-                    <label class="m-form-label">Choose Excel / CSV File (.xlsx, .xls, .csv) <span>*</span></label>
-                    <input type="file" name="excel_file" id="ap_excel_file" accept=".xlsx,.xls,.csv" class="m-form-control">
-                </div>
-
-                <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #CBD5E1;">
-                    <strong style="color: #60A5FA;"><i class="fa-solid fa-circle-info"></i> Expected Columns:</strong>
-                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
-                        <span style="background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 4px;"><code>Plot Name / No</code></span>
-                        <span style="background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 4px;"><code>Plot Code</code></span>
-                        <span style="background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 4px;"><code>Size / Area</code></span>
-                        <span style="background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 4px;"><code>Facing</code></span>
-                        <span style="background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 4px;"><code>Purchase Rate</code></span>
-                    </div>
-                </div>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.10);">
-                <button type="button" class="btn-secondary-custom" onclick="closeAddPlotsModal()">Cancel</button>
-                <button type="submit" class="btn-gold">
-                    <i class="fa-solid fa-plus"></i> Add Plots to Batch
-                </button>
+            <div style="padding: 16px 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); display: flex; justify-content: flex-end; gap: 10px; background: rgba(30, 41, 59, 0.50);">
+                <button type="button" class="btn-secondary-custom" onclick="closeModal('addPlotModal')">Cancel</button>
+                <button type="submit" class="btn-gold"><i class="fa-solid fa-check"></i> Save Plot</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- ================================================================
-     MODAL 3: QUICK EDIT PLOT
+     MODAL 2: BULK PLOTS GENERATOR
 ================================================================ -->
-<div class="modal-backdrop-custom" id="quickEditPlotModal">
+<div class="modal-backdrop-custom" id="bulkPlotsModal">
     <div class="modal-box-custom">
         <div class="modal-header-custom">
-            <h3><i class="fa-regular fa-pen-to-square" style="color: #60A5FA; margin-right: 8px;"></i>Edit Plot Details</h3>
-            <button type="button" class="modal-close-btn" onclick="closeQuickEditPlotModal()">&times;</button>
+            <h3><i class="fa-solid fa-bolt" style="color: #A855F7;"></i> Bulk Generate Plots</h3>
+            <button type="button" class="modal-close-btn" onclick="closeModal('bulkPlotsModal')">&times;</button>
         </div>
-
-        <form id="quickEditPlotForm" method="POST" onsubmit="return handlePlotSubmit(event, this)">
+        <form action="{{ route('property-masters.bulk-generate-plots', $propertyMaster->id) }}" method="POST">
             @csrf
-            <div class="m-form-row">
-                <div class="m-form-group">
-                    <label class="m-form-label">Plot Name <span>*</span></label>
-                    <input type="text" name="property_name" id="qe_property_name" class="m-form-control" required>
+            <div class="modal-body-custom">
+                <div class="m-form-row">
+                    <div class="m-form-group">
+                        <label class="m-form-label">Total Plots to Generate <span>*</span></label>
+                        <input type="number" min="1" max="1000" name="total_plots" class="m-form-control" value="10" required>
+                    </div>
+                    <div class="m-form-group">
+                        <label class="m-form-label">Plot Name Prefix</label>
+                        <input type="text" name="plot_prefix" class="m-form-control" value="Plot " placeholder="e.g. Plot ">
+                    </div>
                 </div>
-                <div class="m-form-group">
-                    <label class="m-form-label">Plot Code <span>*</span></label>
-                    <input type="text" name="property_code" id="qe_property_code" class="m-form-control" required>
+
+                <div class="m-form-row">
+                    <div class="m-form-group">
+                        <label class="m-form-label">Starting Unit Number</label>
+                        <input type="number" min="1" name="start_number" class="m-form-control" value="{{ $propertyMaster->getNextPlotSequenceNumber() }}" placeholder="e.g. 1">
+                    </div>
+                    <div class="m-form-group">
+                        <label class="m-form-label">Property Type</label>
+                        <select name="property_type_id" class="m-form-control">
+                            @foreach($propertyTypes as $type)
+                                <option value="{{ $type->id }}">{{ $type->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="m-form-row">
+                    <div class="m-form-group">
+                        <label class="m-form-label">Default Size per Plot</label>
+                        <input type="number" step="0.01" name="size" class="m-form-control" placeholder="e.g. 1200">
+                    </div>
+                    <div class="m-form-group">
+                        <label class="m-form-label">Size Unit</label>
+                        <select name="size_unit" class="m-form-control">
+                            <option value="sq.ft" selected>sq.ft</option>
+                            <option value="sq.yard">sq.yard</option>
+                            <option value="sq.meter">sq.meter</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="m-form-row">
+                    <div class="m-form-group">
+                        <label class="m-form-label">Purchase Rate (₹)</label>
+                        <input type="number" step="0.01" name="purchase_rate" value="{{ $propertyMaster->purchase_rate }}" class="m-form-control" placeholder="e.g. 1500">
+                    </div>
+                    <div class="m-form-group">
+                        <label class="m-form-label">Selling Price (₹)</label>
+                        <input type="number" step="0.01" name="price" value="{{ $propertyMaster->purchase_rate }}" class="m-form-control" placeholder="e.g. 2200">
+                    </div>
+                </div>
+
+                <div class="m-form-row">
+                    <div class="m-form-group">
+                        <label class="m-form-label">Facing Direction</label>
+                        <select name="facing" class="m-form-control">
+                            <option value="">Not Specified</option>
+                            <option value="East">East</option>
+                            <option value="West">West</option>
+                            <option value="North">North</option>
+                            <option value="South">South</option>
+                        </select>
+                    </div>
+                    <div class="m-form-group">
+                        <label class="m-form-label">Assign Directly to Project (Optional)</label>
+                        <select name="project_id" class="m-form-control">
+                            <option value="">-- Keep in Available Master Inventory --</option>
+                            @foreach($projects as $p)
+                                <option value="{{ $p->id }}">{{ $p->project_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
             </div>
+            <div style="padding: 16px 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); display: flex; justify-content: flex-end; gap: 10px; background: rgba(30, 41, 59, 0.50);">
+                <button type="button" class="btn-secondary-custom" onclick="closeModal('bulkPlotsModal')">Cancel</button>
+                <button type="submit" class="btn-purple-custom"><i class="fa-solid fa-bolt"></i> Generate Plots Now</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-            <div class="m-form-row">
-                <div class="m-form-group">
-                    <label class="m-form-label">Size (Area)</label>
-                    <input type="text" name="size" id="qe_size" class="m-form-control" placeholder="e.g. 1200">
+<!-- ================================================================
+     MODAL 3: IMPORT EXCEL
+================================================================ -->
+<div class="modal-backdrop-custom" id="importExcelModal">
+    <div class="modal-box-custom">
+        <div class="modal-header-custom">
+            <h3><i class="fa-solid fa-file-excel" style="color: #10B981;"></i> Import Plots from Excel / CSV</h3>
+            <button type="button" class="modal-close-btn" onclick="closeModal('importExcelModal')">&times;</button>
+        </div>
+        <form action="{{ route('property-masters.import-plots', $propertyMaster->id) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="modal-body-custom">
+                <div style="background: rgba(59, 130, 246, 0.10); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 10px; padding: 14px; margin-bottom: 18px; font-size: 13px; color: #CBD5E1;">
+                    <strong style="color: #60A5FA; display: block; margin-bottom: 4px;"><i class="fa-solid fa-circle-info"></i> Instructions:</strong>
+                    Upload an Excel (.xlsx, .xls) or CSV file with plot columns (Plot No, Plot Name, Size, Facing, Purchase Rate, Price).
+                    <div style="margin-top: 8px;">
+                        <a href="{{ route('property-masters.plots.template') }}" style="color: #34D399; font-weight: 700; text-decoration: underline;">
+                            <i class="fa-solid fa-download"></i> Download sample template file
+                        </a>
+                    </div>
                 </div>
+
+                <div class="m-form-group" style="margin-bottom: 16px;">
+                    <label class="m-form-label">Select Excel / CSV File <span>*</span></label>
+                    <input type="file" name="excel_file" class="m-form-control" accept=".xlsx,.xls,.csv" required>
+                </div>
+
                 <div class="m-form-group">
-                    <label class="m-form-label">Size Unit</label>
-                    <select name="size_unit" id="qe_size_unit" class="m-form-control">
-                        <option value="sq.ft">sq.ft</option>
-                        <option value="sq.yard">sq.yard</option>
-                        <option value="sq.meter">sq.meter</option>
-                        <option value="acre">acre</option>
-                        <option value="bigha">bigha</option>
+                    <label class="m-form-label">Assign Imported Plots to Project (Optional)</label>
+                    <select name="project_id" class="m-form-control">
+                        <option value="">-- Keep in Available Master Inventory --</option>
+                        @foreach($projects as $p)
+                            <option value="{{ $p->id }}">{{ $p->project_name }}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>
-
-            <div class="m-form-row">
-                <div class="m-form-group">
-                    <label class="m-form-label">Facing Direction</label>
-                    <select name="facing" id="qe_facing" class="m-form-control">
-                        <option value="">Select Direction</option>
-                        <option value="East">East</option>
-                        <option value="West">West</option>
-                        <option value="North">North</option>
-                        <option value="South">South</option>
-                        <option value="North-East">North-East</option>
-                        <option value="North-West">North-West</option>
-                        <option value="South-East">South-East</option>
-                        <option value="South-West">South-West</option>
-                    </select>
-                </div>
-                <div class="m-form-group">
-                    <label class="m-form-label">Status <span>*</span></label>
-                    <select name="status" id="qe_status" class="m-form-control" required>
-                        <option value="available">Available</option>
-                        <option value="booked">Booked</option>
-                        <option value="sold">Sold</option>
-                        <option value="blocked">Blocked</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="m-form-row">
-                <div class="m-form-group">
-                    <label class="m-form-label">Purchase Rate (INR)</label>
-                    <input type="number" step="0.01" name="purchase_rate" id="qe_purchase_rate" class="m-form-control">
-                </div>
-                <div class="m-form-group">
-                    <label class="m-form-label">Selling / Asking Price (INR)</label>
-                    <input type="number" step="0.01" name="price" id="qe_price" class="m-form-control">
-                </div>
-            </div>
-
-            <div class="m-form-group">
-                <label class="m-form-label">Notes / Description</label>
-                <textarea name="description" id="qe_description" rows="2" class="m-form-control" placeholder="Optional notes..."></textarea>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.10);">
-                <button type="button" class="btn-secondary-custom" onclick="closeQuickEditPlotModal()">Cancel</button>
-                <button type="submit" class="btn-gold">
-                    <i class="fa-solid fa-check"></i> Update Plot
-                </button>
+            <div style="padding: 16px 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); display: flex; justify-content: flex-end; gap: 10px; background: rgba(30, 41, 59, 0.50);">
+                <button type="button" class="btn-secondary-custom" onclick="closeModal('importExcelModal')">Cancel</button>
+                <button type="submit" class="btn-success-custom"><i class="fa-solid fa-upload"></i> Upload &amp; Import</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-function switchBatchPlotSource(source) {
-    document.getElementById('modal_batch_plot_source').value = source;
-    
-    // Update tab active classes
-    document.getElementById('tab_btn_batch_direct').classList.toggle('active', source === 'direct_generator');
-    document.getElementById('tab_btn_batch_excel').classList.toggle('active', source === 'excel_import');
-    document.getElementById('tab_btn_batch_none').classList.toggle('active', source === 'none');
-
-    // Toggle sections
-    document.getElementById('batch_direct_section').style.display = (source === 'direct_generator') ? 'block' : 'none';
-    document.getElementById('batch_excel_section').style.display = (source === 'excel_import') ? 'block' : 'none';
-    document.getElementById('batch_none_section').style.display = (source === 'none') ? 'block' : 'none';
-
-    const excelInput = document.getElementById('batch_excel_file');
-    if (excelInput) {
-        excelInput.required = (source === 'excel_import');
-    }
-
-    const genCountInput = document.getElementById('modal_plot_count');
-    if (source === 'none') {
-        if (genCountInput) genCountInput.value = '0';
-        const topInput = document.getElementById('modal_top_plot_count');
-        if (topInput && parseInt(topInput.value) === 14) {
-            topInput.value = '0';
-        }
-    } else if (source === 'direct_generator') {
-        const topInput = document.getElementById('modal_top_plot_count');
-        if (topInput && (parseInt(topInput.value) === 0 || !topInput.value)) {
-            topInput.value = '14';
-        }
-        if (genCountInput && (parseInt(genCountInput.value) === 0 || !genCountInput.value)) {
-            genCountInput.value = '14';
-        }
-    }
-    updatePlotRangeAndCalc();
+function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('active');
 }
 
-function switchAddPlotsSource(source) {
-    document.getElementById('modal_ap_plot_source').value = source;
-    
-    // Update tab active classes
-    document.getElementById('tab_btn_ap_direct').classList.toggle('active', source === 'direct_generator');
-    document.getElementById('tab_btn_ap_excel').classList.toggle('active', source === 'excel_import');
-
-    // Toggle sections
-    document.getElementById('ap_direct_section').style.display = (source === 'direct_generator') ? 'block' : 'none';
-    document.getElementById('ap_excel_section').style.display = (source === 'excel_import') ? 'block' : 'none';
-
-    const excelInput = document.getElementById('ap_excel_file');
-    const directCountInput = document.getElementById('ap_plot_count');
-    if (excelInput) {
-        excelInput.required = (source === 'excel_import');
-    }
-    if (directCountInput) {
-        directCountInput.required = (source === 'direct_generator');
-    }
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('active');
 }
 
-function openAddBatchModal() {
-    isSubmittingBatch = false;
-    const form = document.getElementById('addBatchForm');
-    if (form) {
-        const submitBtn = form.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Acquisition Batch &amp; Plots';
-        }
-        const nameInput = form.querySelector('input[name="batch_name"]');
-        if (nameInput && !nameInput.value) {
-            nameInput.value = 'Batch ' + ({{ $propertyMaster->acquisitionBatches->count() + 1 }});
-        }
-    }
-    switchBatchPlotSource('direct_generator');
-    document.getElementById('addBatchModal').classList.add('active');
-    updatePlotRangeAndCalc();
-}
-function closeAddBatchModal() {
-    document.getElementById('addBatchModal').classList.remove('active');
-}
-
-function openAddPlotsModal(batchId, batchName, purchaseRate) {
-    document.getElementById('addPlotsForm').action = "/acquisition-batches/" + batchId + "/add-plots";
-    document.getElementById('targetBatchName').textContent = batchName;
-    document.getElementById('ap_purchase_rate').value = purchaseRate;
-    switchAddPlotsSource('direct_generator');
-    document.getElementById('addPlotsModal').classList.add('active');
-    updateAddPlotsRangeAndCalc();
-}
-function closeAddPlotsModal() {
-    document.getElementById('addPlotsModal').classList.remove('active');
-}
-
-function openQuickEditPlotModal(id, name, code, size, sizeUnit, facing, purchaseRate, price, status, desc) {
-    document.getElementById('quickEditPlotForm').action = "/properties/" + id + "/quick-update";
-    document.getElementById('qe_property_name').value = name;
-    document.getElementById('qe_property_code').value = code;
-    document.getElementById('qe_size').value = size || '';
-    document.getElementById('qe_size_unit').value = sizeUnit || 'sq.ft';
-    document.getElementById('qe_facing').value = facing || '';
-    document.getElementById('qe_purchase_rate').value = purchaseRate || '';
-    document.getElementById('qe_price').value = price || '';
-    document.getElementById('qe_status').value = (status || 'available').toLowerCase();
-    document.getElementById('qe_description').value = desc || '';
-    document.getElementById('quickEditPlotModal').classList.add('active');
-}
-
-function closeQuickEditPlotModal() {
-    document.getElementById('quickEditPlotModal').classList.remove('active');
-}
-
-function syncPlotCount(val, source) {
-    const parsed = parseInt(val);
-    const countVal = (!isNaN(parsed) && parsed >= 0) ? parsed : '';
-    
-    const topInput = document.getElementById('modal_top_plot_count');
-    const genInput = document.getElementById('modal_plot_count');
-    
-    if (source === 'top' && genInput) {
-        genInput.value = countVal;
-    } else if (source === 'gen' && topInput) {
-        topInput.value = countVal;
-    }
-    
-    updatePlotRangeAndCalc();
-}
-
-function toggleGeneratorFields(checked) {
-    const hidden = document.getElementById('generate_plots_hidden');
-    if (hidden) hidden.value = checked ? '1' : '0';
-
-    const fields = document.getElementById('generator_fields');
-    const summary = document.getElementById('batch_live_summary');
-    if (fields) fields.style.display = checked ? 'block' : 'none';
-    if (summary) summary.style.display = checked ? 'flex' : 'none';
-    
-    const topInput = document.getElementById('modal_top_plot_count');
-    const genInput = document.getElementById('modal_plot_count');
-    
-    if (!checked) {
-        if (genInput) genInput.value = '0';
-    } else {
-        const currentCount = parseInt(topInput?.value) || 14;
-        if (genInput) genInput.value = currentCount > 0 ? currentCount : 14;
-        if (topInput && (!topInput.value || parseInt(topInput.value) <= 0)) {
-            topInput.value = 14;
-        }
-    }
-    updatePlotRangeAndCalc();
-}
-
-function updatePlotRangeAndCalc() {
-    const topInput = document.getElementById('modal_top_plot_count');
-    const genInput = document.getElementById('modal_plot_count');
-    const isGeneratorActive = document.getElementById('generate_plots_toggle')?.checked !== false;
-
-    let count = 0;
-    if (topInput && topInput.value !== '') {
-        count = parseInt(topInput.value) || 0;
-    } else if (genInput && genInput.value !== '') {
-        count = parseInt(genInput.value) || 0;
-    }
-
-    const start = parseInt(document.getElementById('modal_start_number')?.value) || 1;
-    const prefix = document.getElementById('modal_plot_prefix') ? document.getElementById('modal_plot_prefix').value : 'Plot ';
-    const plotSize = parseFloat(document.getElementById('modal_plot_size')?.value) || 0;
-    const sizeUnit = document.getElementById('modal_size_unit') ? document.getElementById('modal_size_unit').value : 'sq.ft';
-
-    // Ending number preview
-    const end = count > 0 ? (start + count - 1) : start;
-    const endInput = document.getElementById('modal_end_number');
-    if (endInput) {
-        endInput.value = count > 0 ? (prefix + end) : '-';
-    }
-
-    // Live plot numbers text
-    const rangeText = document.getElementById('live_plot_range_text');
-    if (rangeText) {
-        if (count > 0 && isGeneratorActive) {
-            rangeText.textContent = `Acquiring: ${prefix}${start} to ${prefix}${end} (${count} Plots)`;
-        } else if (!isGeneratorActive) {
-            rangeText.textContent = `Batch will be created without auto-generating plots (${count} Plots counted)`;
-        } else {
-            rangeText.textContent = 'Enter number of plots to acquire';
-        }
-    }
-
-    // Total sqft & sqyd calculation
-    let totalSqft = 0;
-    if (count > 0 && plotSize > 0) {
-        if (sizeUnit === 'sq.yard') {
-            totalSqft = count * plotSize * 9;
-        } else {
-            totalSqft = count * plotSize;
-        }
-    }
-    const totalSqyd = totalSqft > 0 ? (totalSqft / 9) : 0;
-
-    const totalSqftInput = document.getElementById('modal_total_sqft');
-    if (totalSqftInput && document.activeElement !== totalSqftInput) {
-        totalSqftInput.value = totalSqft > 0 ? totalSqft.toFixed(2) : '';
-    }
-
-    const totalSqydInput = document.getElementById('modal_total_sqyd');
-    if (totalSqydInput && document.activeElement !== totalSqydInput) {
-        totalSqydInput.value = totalSqyd > 0 ? totalSqyd.toFixed(2) : '';
-    }
-
-    const liveSqftText = document.getElementById('live_total_sqft_text');
-    if (liveSqftText) {
-        if (totalSqft > 0) {
-            liveSqftText.innerHTML = `Total: <strong>${totalSqft.toLocaleString()} sq.ft</strong> <span style="font-size: 11.5px; opacity: 0.85;">(${totalSqyd.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} sq.yd / વાર)</span>`;
-        } else {
-            liveSqftText.textContent = `Total Area: 0 sq.ft (0 sq.yd)`;
-        }
-    }
-
-    calculateTotalAmount();
-}
-
-function calculateFromTotalSqft() {
-    const totalSqft = parseFloat(document.getElementById('modal_total_sqft')?.value) || 0;
-    const topCount = parseInt(document.getElementById('modal_top_plot_count')?.value);
-    const genCount = parseInt(document.getElementById('modal_plot_count')?.value);
-    const count = (!isNaN(topCount) && topCount > 0) ? topCount : ((!isNaN(genCount) && genCount > 0) ? genCount : 0);
-    const sizeUnit = document.getElementById('modal_size_unit') ? document.getElementById('modal_size_unit').value : 'sq.ft';
-    
-    const totalSqyd = totalSqft > 0 ? (totalSqft / 9) : 0;
-    const totalSqydInput = document.getElementById('modal_total_sqyd');
-    if (totalSqydInput) {
-        totalSqydInput.value = totalSqyd > 0 ? totalSqyd.toFixed(2) : '';
-    }
-
-    if (totalSqft > 0 && count > 0) {
-        const eachSize = sizeUnit === 'sq.yard' ? (totalSqyd / count) : (totalSqft / count);
-        document.getElementById('modal_plot_size').value = eachSize.toFixed(2);
-    }
-    const liveSqftText = document.getElementById('live_total_sqft_text');
-    if (liveSqftText) {
-        if (totalSqft > 0) {
-            liveSqftText.innerHTML = `Total: <strong>${totalSqft.toLocaleString()} sq.ft</strong> <span style="font-size: 11.5px; opacity: 0.85;">(${totalSqyd.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} sq.yd / વાર)</span>`;
-        } else {
-            liveSqftText.textContent = `Total Area: 0 sq.ft (0 sq.yd)`;
-        }
-    }
-    calculateTotalAmount();
-}
-
-function calculateFromTotalSqyd() {
-    const totalSqyd = parseFloat(document.getElementById('modal_total_sqyd')?.value) || 0;
-    const topCount = parseInt(document.getElementById('modal_top_plot_count')?.value);
-    const genCount = parseInt(document.getElementById('modal_plot_count')?.value);
-    const count = (!isNaN(topCount) && topCount > 0) ? topCount : ((!isNaN(genCount) && genCount > 0) ? genCount : 0);
-    const sizeUnit = document.getElementById('modal_size_unit') ? document.getElementById('modal_size_unit').value : 'sq.ft';
-    
-    const totalSqft = totalSqyd * 9;
-    const totalSqftInput = document.getElementById('modal_total_sqft');
-    if (totalSqftInput) {
-        totalSqftInput.value = totalSqft > 0 ? totalSqft.toFixed(2) : '';
-    }
-
-    if (totalSqyd > 0 && count > 0) {
-        const eachSize = sizeUnit === 'sq.yard' ? (totalSqyd / count) : (totalSqft / count);
-        document.getElementById('modal_plot_size').value = eachSize.toFixed(2);
-    }
-    const liveSqftText = document.getElementById('live_total_sqft_text');
-    if (liveSqftText) {
-        if (totalSqft > 0) {
-            liveSqftText.innerHTML = `Total: <strong>${totalSqft.toLocaleString()} sq.ft</strong> <span style="font-size: 11.5px; opacity: 0.85;">(${totalSqyd.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} sq.yd / વાર)</span>`;
-        } else {
-            liveSqftText.textContent = `Total Area: 0 sq.ft (0 sq.yd)`;
-        }
-    }
-    calculateTotalAmount();
-}
-
-function updateRateUnitVisibility() {
-    const rateUnit = document.getElementById('modal_rate_unit')?.value || 'per_plot';
-    const areaRow = document.getElementById('modal_area_row');
-    const sqftGroup = document.getElementById('modal_sqft_group');
-    const sqydGroup = document.getElementById('modal_sqyd_group');
-
-    if (rateUnit === 'per_sqft') {
-        if (areaRow) areaRow.style.display = 'grid';
-        if (sqftGroup) sqftGroup.style.display = 'block';
-        if (sqydGroup) sqydGroup.style.display = 'none';
-    } else if (rateUnit === 'per_sqyd') {
-        if (areaRow) areaRow.style.display = 'grid';
-        if (sqftGroup) sqftGroup.style.display = 'none';
-        if (sqydGroup) sqydGroup.style.display = 'block';
-    } else {
-        // per_plot
-        if (areaRow) areaRow.style.display = 'none';
-        if (sqftGroup) sqftGroup.style.display = 'none';
-        if (sqydGroup) sqydGroup.style.display = 'none';
-    }
-}
-
-function calculateTotalAmount() {
-    updateRateUnitVisibility();
-    const rate = parseFloat(document.getElementById('modal_purchase_rate')?.value) || 0;
-    const topCount = parseInt(document.getElementById('modal_top_plot_count')?.value);
-    const genCount = parseInt(document.getElementById('modal_plot_count')?.value);
-    const count = (!isNaN(topCount) && topCount >= 0) ? topCount : ((!isNaN(genCount) && genCount >= 0) ? genCount : 0);
-
-    const rateUnit = document.getElementById('modal_rate_unit') ? document.getElementById('modal_rate_unit').value : 'per_plot';
-    const totalSqft = parseFloat(document.getElementById('modal_total_sqft') ? document.getElementById('modal_total_sqft').value : 0) || 0;
-    const totalSqyd = totalSqft > 0 ? (totalSqft / 9) : (parseFloat(document.getElementById('modal_total_sqyd')?.value) || 0);
-
-    const amountInput = document.getElementById('modal_total_amount');
-    const formulaText = document.getElementById('calc_formula_text');
-    const basisBadge  = document.getElementById('calc_basis_badge');
-
-    let total = 0;
-    let rateBadgeStr = '';
-
-    if (rateUnit === 'per_sqft') {
-        const effectiveSqft = totalSqft > 0 ? totalSqft : (count * (parseFloat(document.getElementById('modal_plot_size')?.value) || 0));
-        total = rate * effectiveSqft;
-        rateBadgeStr = `Rate: ₹${rate.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / sq.ft (${effectiveSqft.toLocaleString()} sq.ft)`;
-    } else if (rateUnit === 'per_sqyd') {
-        const effectiveSqyd = totalSqyd > 0 ? totalSqyd : (totalSqft > 0 ? (totalSqft / 9) : (count * (parseFloat(document.getElementById('modal_plot_size')?.value) || 0) / 9));
-        total = rate * effectiveSqyd;
-        rateBadgeStr = `Rate: ₹${rate.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / sq.yd (${effectiveSqyd.toFixed(2)} sq.yd / વાર)`;
-    } else {
-        total = rate * count;
-        rateBadgeStr = `Rate: ₹${rate.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / Plot (${count} Plots)`;
-    }
-
-    if (amountInput) {
-        amountInput.value = total > 0 ? total.toFixed(2) : '';
-    }
-    if (formulaText) {
-        if (total > 0) {
-            formulaText.innerHTML = `<strong>Total Price: ₹${total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>`;
-        } else {
-            formulaText.textContent = 'Enter rate & plots/area to calculate total price';
-        }
-    }
-    if (basisBadge) {
-        basisBadge.textContent = rate > 0 ? rateBadgeStr : (count > 0 ? `${count} Plots` : 'Auto Calculated');
-    }
-}
-
-function updateAddPlotsRangeAndCalc() {
-    const start = parseInt(document.getElementById('ap_start_number').value) || 1;
-    const count = parseInt(document.getElementById('ap_plot_count').value) || 0;
-    const prefix = document.getElementById('ap_plot_prefix') ? document.getElementById('ap_plot_prefix').value : 'Plot ';
-    const plotSize = parseFloat(document.getElementById('ap_plot_size').value) || 0;
-    const sizeUnit = document.getElementById('ap_plot_size_unit') ? document.getElementById('ap_plot_size_unit').value : 'sq.ft';
-
-    const end = count > 0 ? (start + count - 1) : start;
-    const endInput = document.getElementById('ap_end_number');
-    if (endInput) {
-        endInput.value = count > 0 ? (prefix + end) : '-';
-    }
-
-    const rangeText = document.getElementById('ap_live_plot_range_text');
-    if (rangeText) {
-        if (count > 0) {
-            rangeText.textContent = `Adding Plots: ${prefix}${start} to ${prefix}${end} (${count} Units)`;
-        } else {
-            rangeText.textContent = 'No plots specified';
-        }
-    }
-
-    let totalSqft = 0;
-    if (count > 0 && plotSize > 0) {
-        if (sizeUnit === 'sq.yard') {
-            totalSqft = count * plotSize * 9;
-        } else {
-            totalSqft = count * plotSize;
-        }
-    }
-    const totalSqyd = totalSqft > 0 ? (totalSqft / 9) : 0;
-
-    const totalSqftInput = document.getElementById('ap_total_sqft');
-    if (totalSqftInput && document.activeElement !== totalSqftInput) {
-        totalSqftInput.value = totalSqft > 0 ? totalSqft.toFixed(2) : '';
-    }
-
-    const totalSqydInput = document.getElementById('ap_total_sqyd');
-    if (totalSqydInput && document.activeElement !== totalSqydInput) {
-        totalSqydInput.value = totalSqyd > 0 ? totalSqyd.toFixed(2) : '';
-    }
-
-    const liveSqftText = document.getElementById('ap_live_total_sqft_text');
-    if (liveSqftText) {
-        if (totalSqft > 0) {
-            liveSqftText.innerHTML = `Total: <strong>${totalSqft.toLocaleString()} sq.ft</strong> <span style="font-size: 11.5px; opacity: 0.85;">(${totalSqyd.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} sq.yd / વાર)</span>`;
-        } else {
-            liveSqftText.textContent = `Total Area: 0 sq.ft (0 sq.yd)`;
-        }
-    }
-}
-
-function calculateFromApTotalSqft() {
-    const totalSqft = parseFloat(document.getElementById('ap_total_sqft').value) || 0;
-    const count = parseInt(document.getElementById('ap_plot_count').value) || 0;
-    const sizeUnit = document.getElementById('ap_plot_size_unit') ? document.getElementById('ap_plot_size_unit').value : 'sq.ft';
-    const totalSqyd = totalSqft > 0 ? (totalSqft / 9) : 0;
-
-    const totalSqydInput = document.getElementById('ap_total_sqyd');
-    if (totalSqydInput) {
-        totalSqydInput.value = totalSqyd > 0 ? totalSqyd.toFixed(2) : '';
-    }
-
-    if (totalSqft > 0 && count > 0) {
-        const eachSize = sizeUnit === 'sq.yard' ? (totalSqyd / count) : (totalSqft / count);
-        document.getElementById('ap_plot_size').value = eachSize.toFixed(2);
-    }
-    const liveSqftText = document.getElementById('ap_live_total_sqft_text');
-    if (liveSqftText) {
-        if (totalSqft > 0) {
-            liveSqftText.innerHTML = `Total: <strong>${totalSqft.toLocaleString()} sq.ft</strong> <span style="font-size: 11.5px; opacity: 0.85;">(${totalSqyd.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} sq.yd / વાર)</span>`;
-        } else {
-            liveSqftText.textContent = `Total Area: 0 sq.ft (0 sq.yd)`;
-        }
-    }
-}
-
-function calculateFromApTotalSqyd() {
-    const totalSqyd = parseFloat(document.getElementById('ap_total_sqyd').value) || 0;
-    const count = parseInt(document.getElementById('ap_plot_count').value) || 0;
-    const sizeUnit = document.getElementById('ap_plot_size_unit') ? document.getElementById('ap_plot_size_unit').value : 'sq.ft';
-    const totalSqft = totalSqyd * 9;
-
-    const totalSqftInput = document.getElementById('ap_total_sqft');
-    if (totalSqftInput) {
-        totalSqftInput.value = totalSqft > 0 ? totalSqft.toFixed(2) : '';
-    }
-
-    if (totalSqyd > 0 && count > 0) {
-        const eachSize = sizeUnit === 'sq.yard' ? (totalSqyd / count) : (totalSqft / count);
-        document.getElementById('ap_plot_size').value = eachSize.toFixed(2);
-    }
-    const liveSqftText = document.getElementById('ap_live_total_sqft_text');
-    if (liveSqftText) {
-        if (totalSqft > 0) {
-            liveSqftText.innerHTML = `Total: <strong>${totalSqft.toLocaleString()} sq.ft</strong> <span style="font-size: 11.5px; opacity: 0.85;">(${totalSqyd.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} sq.yd / વાર)</span>`;
-        } else {
-            liveSqftText.textContent = `Total Area: 0 sq.ft (0 sq.yd)`;
-        }
-    }
-}
-
-function toggleBatchPlots(batchId) {
-    const wrap = document.getElementById('batch-plots-wrap-' + batchId);
-    const btnText = document.getElementById('toggle-text-' + batchId);
-    if (wrap.style.display === 'none' || wrap.style.display === '') {
-        wrap.style.display = 'block';
-        if (btnText) btnText.textContent = 'Hide Plots';
-    } else {
-        wrap.style.display = 'none';
-        if (btnText) btnText.textContent = 'View Plots';
-    }
-}
-
-let isSubmittingBatch = false;
-function handleBatchSubmit(event, form) {
-    if (form.checkValidity && !form.checkValidity()) {
-        return true;
-    }
-    if (isSubmittingBatch) {
-        event.preventDefault();
-        return false;
-    }
-    isSubmittingBatch = true;
-    const submitBtn = form.querySelector('button[type="submit"]');
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
-    }
-    return true;
-}
-
-let isSubmittingPlot = false;
-function handlePlotSubmit(event, form) {
-    if (form.checkValidity && !form.checkValidity()) {
-        return true;
-    }
-    if (isSubmittingPlot) {
-        event.preventDefault();
-        return false;
-    }
-    isSubmittingPlot = true;
-    const submitBtn = form.querySelector('button[type="submit"]');
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating...';
-    }
-    return true;
-}
-
-// Close modals on escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeAddBatchModal();
-        closeAddPlotsModal();
-        closeQuickEditPlotModal();
+window.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal-backdrop-custom')) {
+        e.target.classList.remove('active');
     }
 });
+
+let currentCategory = 'all';
+let currentSearch = '';
+
+function filterPlots(category, btn) {
+    currentCategory = category;
+    document.querySelectorAll('.filter-tab-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    applyPlotFilters();
+}
+
+function searchPlots(query) {
+    currentSearch = (query || '').toLowerCase().trim();
+    applyPlotFilters();
+}
+
+function applyPlotFilters() {
+    const rows = document.querySelectorAll('.plot-row');
+    rows.forEach(row => {
+        const cat = row.getAttribute('data-category');
+        const searchTxt = row.getAttribute('data-search') || '';
+
+        const matchesCat = (currentCategory === 'all') || (cat === currentCategory);
+        const matchesSearch = !currentSearch || searchTxt.includes(currentSearch);
+
+        if (matchesCat && matchesSearch) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
 </script>
 @endsection

@@ -103,6 +103,21 @@ class PurchaseController extends Controller
 
         $propertyName = $request->property_name ?: $request->item_name;
 
+        $purchaseAmount = (float)($request->purchase_amount ?? 0);
+        $paidAmount     = (float)($request->paid_amount ?? 0);
+        $dueAmount      = max(0, $purchaseAmount - $paidAmount);
+
+        $paymentStatus = $request->payment_status;
+        if ($purchaseAmount > 0) {
+            if ($paidAmount >= $purchaseAmount) {
+                $paymentStatus = 'paid';
+            } elseif ($paidAmount > 0) {
+                $paymentStatus = 'partial';
+            } else {
+                $paymentStatus = 'unpaid';
+            }
+        }
+
         $purchase = Purchase::create([
             'firm_id'         => $primaryFirmId,
             'vendor_id'       => $request->vendor_id ?: null,
@@ -118,10 +133,12 @@ class PurchaseController extends Controller
             'area_unit'       => $request->area_unit ?: 'Sq.Ft',
             'item_name'       => $propertyName,
             'purchase_date'   => $request->purchase_date ?: date('Y-m-d'),
-            'purchase_amount' => $request->purchase_amount ?: 0,
+            'purchase_amount' => $purchaseAmount,
+            'paid_amount'     => $paidAmount,
+            'due_amount'      => $dueAmount,
             'quantity'        => 1,
             'payment_mode'    => $request->payment_mode,
-            'payment_status'  => $request->payment_status ?: 'unpaid',
+            'payment_status'  => $paymentStatus ?: 'unpaid',
             'reference_no'    => $request->reference_no,
             'remarks'         => $request->remarks,
             'status'          => $request->status ?: 'active',
@@ -197,6 +214,21 @@ class PurchaseController extends Controller
 
         $propertyName = $request->property_name ?: ($request->item_name ?: $purchase->property_name);
 
+        $purchaseAmount = (float)($request->purchase_amount !== null ? $request->purchase_amount : ($purchase->purchase_amount ?? 0));
+        $paidAmount     = (float)($request->paid_amount !== null ? $request->paid_amount : ($purchase->paid_amount ?? 0));
+        $dueAmount      = max(0, $purchaseAmount - $paidAmount);
+
+        $paymentStatus = $request->payment_status ?: ($purchase->payment_status ?? 'unpaid');
+        if ($purchaseAmount > 0) {
+            if ($paidAmount >= $purchaseAmount) {
+                $paymentStatus = 'paid';
+            } elseif ($paidAmount > 0) {
+                $paymentStatus = 'partial';
+            } else {
+                $paymentStatus = 'unpaid';
+            }
+        }
+
         $purchase->update([
             'firm_id'         => $primaryFirmId,
             'vendor_id'       => $request->vendor_id ?: $purchase->vendor_id,
@@ -212,10 +244,12 @@ class PurchaseController extends Controller
             'area_unit'       => $request->area_unit ?: ($purchase->area_unit ?? 'Sq.Ft'),
             'item_name'       => $propertyName,
             'purchase_date'   => $request->purchase_date ?: $purchase->purchase_date,
-            'purchase_amount' => $request->purchase_amount !== null ? $request->purchase_amount : $purchase->purchase_amount,
+            'purchase_amount' => $purchaseAmount,
+            'paid_amount'     => $paidAmount,
+            'due_amount'      => $dueAmount,
             'quantity'        => 1,
             'payment_mode'    => $request->payment_mode ?: $purchase->payment_mode,
-            'payment_status'  => $request->payment_status ?: ($purchase->payment_status ?? 'unpaid'),
+            'payment_status'  => $paymentStatus,
             'reference_no'    => $request->reference_no ?: $purchase->reference_no,
             'remarks'         => $request->remarks,
             'status'          => $request->status ?: ($purchase->status ?? 'active'),

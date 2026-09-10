@@ -24,6 +24,40 @@ class BookingRequest extends FormRequest
                 $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
             }
         }
+
+        // property-select component submits property_ids[] — extract first as property_id
+        if (empty($inputs['property_id'])) {
+            if (!empty($inputs['property_ids']) && is_array($inputs['property_ids'])) {
+                $inputs['property_id'] = $inputs['property_ids'][0];
+            }
+        }
+
+        // Handle Entire Property sale / booking scope
+        if ((($inputs['sale_scope'] ?? $inputs['booking_scope'] ?? null) === 'entire') && !empty($inputs['property_master_id'])) {
+            $pm = \App\Models\PropertyMaster::find($inputs['property_master_id']);
+            if ($pm) {
+                $entireProp = \App\Models\Property::firstOrCreate(
+                    ['property_master_id' => $pm->id, 'unit_no' => null],
+                    [
+                        'firm_id'          => $pm->firm_id,
+                        'property_name'    => $pm->property_name . ' (Entire Property)',
+                        'property_code'    => $pm->property_code ? $pm->property_code . '-ENTIRE' : 'PROP-' . $pm->id . '-ENTIRE',
+                        'location'         => $pm->location,
+                        'city'             => $pm->city,
+                        'address'          => $pm->address,
+                        'size'             => $pm->total_area,
+                        'size_unit'        => $pm->area_unit ?: 'sq.ft',
+                        'price'            => $pm->purchase_price,
+                        'purchase_rate'    => $pm->purchase_rate,
+                        'purchase_date'    => $pm->purchase_date,
+                        'status'           => 'available',
+                        'description'      => 'Entire Property Master: ' . $pm->property_name,
+                    ]
+                );
+                $inputs['property_id'] = $entireProp->id;
+            }
+        }
+
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
                 $inputs[$key] = trim($value);

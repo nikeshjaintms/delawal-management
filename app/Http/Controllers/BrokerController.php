@@ -186,4 +186,56 @@ class BrokerController extends Controller
 
         return redirect()->route('brokers.index')->with('success', 'Broker deleted successfully.');
     }
+
+    public function exportPdf(Request $request)
+    {
+        $query = Broker::with(['firm', 'project.propertyMaster']);
+
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            $query->where('firm_id', $firmId);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
+
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
+        }
+
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                    ->orWhere('mobile', 'like', '%' . $request->search . '%')
+                    ->orWhere('email', 'like', '%' . $request->search . '%')
+                    ->orWhere('city', 'like', '%' . $request->search . '%')
+                    ->orWhereHas('project', function($pq) use ($request) {
+                        $pq->where('project_name', 'like', '%' . $request->search . '%');
+                    });
+            });
+        }
+
+        $brokers = $query->latest()->get();
+        $totalBrokers = $brokers->count();
+        $activeBrokers = $brokers->where('status', 'active')->count();
+
+        return view('admin.brokers.pdf', compact('brokers', 'totalBrokers', 'activeBrokers'));
+    }
+
+    public function downloadPdf(Broker $broker)
+    {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $broker->firm_id != $firmId) {
+            abort(403);
+        }
+
+        $broker->load(['firm', 'firms', 'project.propertyMaster', 'commissions.property', 'commissions.customer']);
+
+        return view('admin.brokers.show-pdf', compact('broker'));
+    }
 }

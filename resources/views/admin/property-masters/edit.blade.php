@@ -170,28 +170,74 @@
             </div>
 
             <div class="form-group full-width" style="margin-top: 10px; margin-bottom: 5px;">
-                <div style="font-size: 13px; font-weight: 800; color: #34D399; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid rgba(255, 255, 255, 0.10); padding-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-indian-rupee-sign"></i> Purchase Price &amp; Financial Details
+                <div style="font-size: 13px; font-weight: 800; color: #34D399; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid rgba(255, 255, 255, 0.10); padding-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <span><i class="fa-solid fa-indian-rupee-sign"></i> Purchase Price &amp; Payment Breakdown</span>
+                    <div style="display: flex; gap: 6px; font-size: 11.5px; text-transform: none;">
+                        <button type="button" class="btn-outline" onclick="setQuickPayment('full')" style="padding: 3px 8px; font-size: 11.5px; border-radius: 6px; color: #34D399; border-color: rgba(16, 185, 129, 0.4);">
+                            <i class="fa-solid fa-check-double"></i> Full Paid (100%)
+                        </button>
+                        <button type="button" class="btn-outline" onclick="setQuickPayment('half')" style="padding: 3px 8px; font-size: 11.5px; border-radius: 6px; color: #FBBF24; border-color: rgba(245, 158, 11, 0.4);">
+                            <i class="fa-solid fa-percent"></i> 50% Advance
+                        </button>
+                        <button type="button" class="btn-outline" onclick="setQuickPayment('unpaid')" style="padding: 3px 8px; font-size: 11.5px; border-radius: 6px; color: #F87171; border-color: rgba(239, 68, 68, 0.4);">
+                            <i class="fa-solid fa-clock"></i> Unpaid (0%)
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div class="form-group full-width" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.10) 0%, rgba(5, 150, 105, 0.05) 100%); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 18px; margin-bottom: 10px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                    <!-- 1. Total Purchase Price -->
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label" style="color: #34D399; font-weight: 700;">
-                            <i class="fa-solid fa-money-bill-wave"></i> Purchase Price / Buy Amount (₹)
+                            <i class="fa-solid fa-money-bill-wave"></i> Total Purchase Price (₹)
                         </label>
                         <div style="position: relative;">
                             <span style="position: absolute; left: 12px; top: 10px; color: #34D399; font-weight: 700; font-size: 15px;">₹</span>
                             <input type="number" step="0.01" name="purchase_price" id="purchase_price"
                                    value="{{ old('purchase_price', $propertyMaster->purchase_price) }}"
                                    class="form-control" placeholder="e.g. 5000000.00"
-                                   style="padding-left: 30px; font-weight: 700; font-size: 15px; color: #34D399; border-color: rgba(16, 185, 129, 0.4);">
+                                   style="padding-left: 30px; font-weight: 700; font-size: 15px; color: #34D399; border-color: rgba(16, 185, 129, 0.4);" oninput="recalculatePayment()">
                         </div>
-                        <small style="color: #A7F3D0; font-size: 11.5px; margin-top: 4px; display: block;">Total price at which this entire property was purchased.</small>
+                        <small style="color: #A7F3D0; font-size: 11.5px; margin-top: 4px; display: block;">Total purchase amount</small>
                         @error('purchase_price') <span class="invalid-feedback">{{ $message }}</span> @enderror
                     </div>
 
+                    <!-- 2. Paid Amount -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="color: #60A5FA; font-weight: 700;">
+                            <i class="fa-solid fa-circle-check"></i> Paid Amount (₹)
+                        </label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 12px; top: 10px; color: #60A5FA; font-weight: 700; font-size: 15px;">₹</span>
+                            <input type="number" step="0.01" name="paid_amount" id="paid_amount"
+                                   value="{{ old('paid_amount', $propertyMaster->paid_amount) }}"
+                                   class="form-control" placeholder="e.g. 2000000.00"
+                                   style="padding-left: 30px; font-weight: 700; font-size: 15px; color: #60A5FA; border-color: rgba(59, 130, 246, 0.4);" oninput="recalculatePayment()">
+                        </div>
+                        <small style="color: #BFDBFE; font-size: 11.5px; margin-top: 4px; display: block;">Amount paid to vendor/seller so far</small>
+                        @error('paid_amount') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- 3. Due Balance -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="color: #FBBF24; font-weight: 700;">
+                            <i class="fa-solid fa-hand-holding-dollar"></i> Due Balance (₹)
+                        </label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 12px; top: 10px; color: #FBBF24; font-weight: 700; font-size: 15px;">₹</span>
+                            <input type="number" step="0.01" name="due_amount" id="due_amount"
+                                   value="{{ old('due_amount', $propertyMaster->due_amount) }}"
+                                   class="form-control" placeholder="0.00"
+                                   style="padding-left: 30px; font-weight: 800; font-size: 15px; color: #FBBF24; background: rgba(0,0,0,0.15); border-color: rgba(245, 158, 11, 0.4);" readonly>
+                        </div>
+                        <small style="color: #FDE68A; font-size: 11.5px; margin-top: 4px; display: block;">Auto-calculated (Total - Paid)</small>
+                        @error('due_amount') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(16, 185, 129, 0.25);">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label"><i class="fa-solid fa-calendar-day"></i> Purchase Date</label>
                         <input type="date" name="purchase_date"
@@ -199,12 +245,22 @@
                                class="form-control">
                         @error('purchase_date') <span class="invalid-feedback">{{ $message }}</span> @enderror
                     </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label"><i class="fa-solid fa-wallet"></i> Payment Status</label>
+                        <select name="payment_status" id="payment_status" class="form-control" style="font-weight: 700;">
+                            <option value="paid" {{ old('payment_status', $propertyMaster->payment_status) === 'paid' ? 'selected' : '' }}>Paid (100% Full)</option>
+                            <option value="partial" {{ old('payment_status', $propertyMaster->payment_status) === 'partial' ? 'selected' : '' }}>Partial</option>
+                            <option value="unpaid" {{ old('payment_status', $propertyMaster->payment_status) === 'unpaid' ? 'selected' : '' }}>Unpaid (0%)</option>
+                        </select>
+                        @error('payment_status') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                    </div>
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Seller / Vendor / Owner</label>
-                <select name="vendor_id" class="form-control">
+                <select name="vendor_id" id="vendor_id" class="form-control">
                     <option value="">— Select Seller / Vendor —</option>
                     @if(isset($vendors))
                         @foreach($vendors as $v)
@@ -231,8 +287,8 @@
             <div class="form-group">
                 <label class="form-label">Total Land Area <span style="color:#94A3B8; font-weight: normal;">(optional)</span></label>
                 <div style="display: flex; gap: 8px;">
-                    <input type="number" step="0.01" name="total_area" value="{{ old('total_area', $propertyMaster->total_area) }}" class="form-control" placeholder="e.g. 15000">
-                    <select name="area_unit" class="form-control" style="width: 120px; flex-shrink: 0;">
+                    <input type="number" step="0.01" name="total_area" id="total_area" value="{{ old('total_area', $propertyMaster->total_area) }}" class="form-control" placeholder="e.g. 150000" oninput="calculateLandTotalPrice()">
+                    <select name="area_unit" id="area_unit" class="form-control" style="width: 120px; flex-shrink: 0;" onchange="calculateLandTotalPrice()">
                         @foreach(['Sq.Ft', 'Sq.Yd', 'Sq.Mtr', 'Acre', 'Vigha', 'Guntha'] as $u)
                             <option value="{{ $u }}" {{ old('area_unit', $propertyMaster->area_unit ?? 'Sq.Ft') == $u ? 'selected' : '' }}>{{ $u }}</option>
                         @endforeach
@@ -243,8 +299,29 @@
 
             <div class="form-group">
                 <label class="form-label">Purchase Rate per Unit <span style="color:#94A3B8; font-weight: normal;">(optional)</span></label>
-                <input type="number" step="0.01" name="purchase_rate" value="{{ old('purchase_rate', $propertyMaster->purchase_rate) }}" class="form-control" placeholder="e.g. 1200.00">
+                <input type="number" step="0.01" name="purchase_rate" id="purchase_rate" value="{{ old('purchase_rate', $propertyMaster->purchase_rate) }}" class="form-control" placeholder="e.g. 1500.00" oninput="calculateLandTotalPrice()">
                 @error('purchase_rate') <span class="invalid-feedback">{{ $message }}</span> @enderror
+            </div>
+
+            <!-- Total Land Price Live Calculation Box -->
+            <div class="form-group full-width" id="calculatedPriceCard" style="display: none; background: rgba(59, 130, 246, 0.10); border: 1.5px solid rgba(59, 130, 246, 0.35); border-radius: 12px; padding: 14px 18px; margin-top: -5px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(59, 130, 246, 0.20); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                            <i class="fa-solid fa-calculator"></i>
+                        </div>
+                        <div>
+                            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #93C5FD; font-weight: 700; display: block;">Total Calculated Land Price</span>
+                            <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                                <span id="calculatedPriceText" style="font-size: 20px; font-weight: 800; color: #FFFFFF;">₹ 0.00</span>
+                                <span id="calculatedPriceFormula" style="font-size: 12.5px; color: #94A3B8; font-weight: 600;"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-outline" onclick="applyCalculatedToPurchasePrice()" style="padding: 7px 16px; font-size: 13px; border-radius: 8px; color: #93C5FD; border-color: rgba(59, 130, 246, 0.50); background: rgba(59, 130, 246, 0.20); font-weight: 700; cursor: pointer;">
+                        <i class="fa-solid fa-arrow-up"></i> Set as Total Purchase Price
+                    </button>
+                </div>
             </div>
 
             <div class="form-group full-width" style="margin-top: 10px; margin-bottom: 5px;">
@@ -320,4 +397,96 @@
         </div>
     </form>
 </div>
+
+<script>
+function calculateLandTotalPrice(autoFillIfEmpty = true) {
+    const areaInput = document.getElementById('total_area');
+    const rateInput = document.getElementById('purchase_rate');
+    const unitSelect = document.getElementById('area_unit');
+    const card = document.getElementById('calculatedPriceCard');
+    const textSpan = document.getElementById('calculatedPriceText');
+    const formulaSpan = document.getElementById('calculatedPriceFormula');
+    const priceInput = document.getElementById('purchase_price');
+
+    if (!areaInput || !rateInput) return;
+
+    const area = parseFloat(areaInput.value) || 0;
+    const rate = parseFloat(rateInput.value) || 0;
+    const unit = unitSelect ? unitSelect.value : 'Sq.Ft';
+
+    if (area > 0 && rate > 0) {
+        const total = area * rate;
+        if (card) card.style.display = 'block';
+        if (textSpan) textSpan.textContent = '₹ ' + total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (formulaSpan) formulaSpan.textContent = `(${area.toLocaleString('en-IN')} ${unit} × ₹${rate.toLocaleString('en-IN')})`;
+
+        if (autoFillIfEmpty && priceInput && (!priceInput.value || parseFloat(priceInput.value) === 0)) {
+            priceInput.value = total.toFixed(2);
+            recalculatePayment();
+        }
+    } else {
+        if (card) card.style.display = 'none';
+    }
+}
+
+function applyCalculatedToPurchasePrice() {
+    const areaInput = document.getElementById('total_area');
+    const rateInput = document.getElementById('purchase_rate');
+    const priceInput = document.getElementById('purchase_price');
+
+    const area = parseFloat(areaInput.value) || 0;
+    const rate = parseFloat(rateInput.value) || 0;
+
+    if (area > 0 && rate > 0 && priceInput) {
+        const total = area * rate;
+        priceInput.value = total.toFixed(2);
+        recalculatePayment();
+    }
+}
+
+function recalculatePayment() {
+    const priceInput = document.getElementById('purchase_price');
+    const paidInput  = document.getElementById('paid_amount');
+    const dueInput   = document.getElementById('due_amount');
+    const statusSelect = document.getElementById('payment_status');
+
+    const price = parseFloat(priceInput.value) || 0;
+    const paid  = parseFloat(paidInput.value) || 0;
+    const due   = Math.max(0, price - paid);
+
+    dueInput.value = due.toFixed(2);
+
+    if (statusSelect) {
+        if (price > 0) {
+            if (paid >= price) {
+                statusSelect.value = 'paid';
+            } else if (paid > 0) {
+                statusSelect.value = 'partial';
+            } else {
+                statusSelect.value = 'unpaid';
+            }
+        }
+    }
+}
+
+function setQuickPayment(type) {
+    const priceInput = document.getElementById('purchase_price');
+    const paidInput  = document.getElementById('paid_amount');
+    const price = parseFloat(priceInput.value) || 0;
+
+    if (type === 'full') {
+        paidInput.value = price > 0 ? price.toFixed(2) : '';
+    } else if (type === 'half') {
+        paidInput.value = price > 0 ? (price / 2).toFixed(2) : '';
+    } else if (type === 'unpaid') {
+        paidInput.value = (0).toFixed(2);
+    }
+    recalculatePayment();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    recalculatePayment();
+    calculateLandTotalPrice(false);
+});
+</script>
 @endsection

@@ -93,13 +93,18 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Property Sales</h2>
+        <h2>Property Sell</h2>
         <p>Manage property bookings and sales firm-wise.</p>
     </div>
-    <a href="{{ route('property-sales.create') }}" class="btn-gold">
-        <i class="fa-solid fa-plus"></i>
-        <span>Add Property Sale</span>
-    </a>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('property-sales.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.4) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </a>
+        <a href="{{ route('property-sales.create') }}" class="btn-gold">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Property Sell</span>
+        </a>
+    </div>
 </div>
 
 @if(session('success'))
@@ -142,11 +147,10 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                     <th>Broker</th>
                     <th>Sale Date</th>
                     <th>Sale Amount</th>
-                    <th>Booking Amt</th>
-                    <th>Remaining Amt</th>
+                    <th>Paid / Due</th>
                     <th>Payment</th>
                     <th>Status</th>
-                    <th style="width:200px;">Action</th>
+                    <th style="width:200px;text-align:right;">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -167,26 +171,39 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                         <td>{{ $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date)->format('d M Y') : '-' }}</td>
                         <td>
                             @if($sale->sale_amount !== null)
-                                <span class="amount-cell">₹{{ number_format($sale->sale_amount, 0) }}</span>
-                            @else -
+                                <strong style="color: #60A5FA; font-size: 14px;">₹{{ number_format($sale->sale_amount, 2) }}</strong>
+                            @else
+                                <span style="color: #94A3B8;">—</span>
                             @endif
                         </td>
                         <td>
-                            @if($sale->booking_amount !== null)
-                                ₹{{ number_format($sale->booking_amount, 0) }}
-                            @else -
+                            @if($sale->sale_amount > 0)
+                                <div style="font-size: 12px; color: #34D399; font-weight: 700;">
+                                    <i class="fa-solid fa-check"></i> ₹{{ number_format($sale->booking_amount ?? 0, 2) }}
+                                </div>
+                                <div style="font-size: 12px; color: {{ ($sale->remaining_amount ?? 0) > 0 ? '#F87171' : '#94A3B8' }}; font-weight: 700;">
+                                    <i class="fa-solid fa-clock"></i> ₹{{ number_format($sale->remaining_amount ?? 0, 2) }}
+                                </div>
+                            @else
+                                <span style="color: #94A3B8;">—</span>
                             @endif
                         </td>
                         <td>
-                            @if($sale->remaining_amount !== null)
-                                ₹{{ number_format($sale->remaining_amount, 0) }}
-                            @else -
+                            @php $salePayStatus = strtolower($sale->payment_status ?? 'pending'); @endphp
+                            @if($salePayStatus === 'paid')
+                                <span class="badge badge-paid">Paid</span>
+                            @elseif($salePayStatus === 'partial')
+                                <span class="badge badge-partial">Partial</span>
+                            @else
+                                <span class="badge badge-pending">Pending</span>
                             @endif
                         </td>
-                        <td><span class="badge badge-{{ $sale->payment_status }}">{{ ucfirst($sale->payment_status) }}</span></td>
                         <td><span class="badge badge-{{ $sale->sale_status }}">{{ ucfirst($sale->sale_status) }}</span></td>
-                        <td>
-                            <div class="action-buttons-wrap">
+                        <td style="text-align:right;">
+                            <div class="action-buttons-wrap" style="justify-content:flex-end;">
+                                <a href="{{ route('property-sales.receipt-pdf', $sale->id) }}" target="_blank" class="btn-view" style="background: rgba(252,105,0,0.15) !important; color: #FF8A3D !important; border: 1px solid rgba(252,105,0,0.30) !important;" title="Print / PDF Agreement">
+                                    <i class="fa fa-file-pdf"></i> PDF
+                                </a>
                                 <a href="{{ route('property-sales.show', $sale->id) }}" class="btn-view">
                                     <i class="fa fa-eye"></i> View
                                 </a>

@@ -195,37 +195,88 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 <i class="fa-solid fa-indian-rupee-sign"></i> 2. Purchase Price & Financial Details
             </div>
 
-            <div class="price-highlight-box">
-                <div class="form-row">
+            <div style="background: rgba(15, 23, 42, 0.65); border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px; margin-bottom: 22px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                    <!-- 1. Total Purchase Price -->
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="purchase_amount" style="color: #34D399 !important; font-size: 14px;">
-                            <i class="fa-solid fa-money-bill-wave"></i> Purchase Price / Buy Amount (₹) <span>*</span>
+                        <label class="form-label" for="purchase_amount" style="color: #60A5FA !important; font-size: 13.5px;">
+                            <i class="fa-solid fa-money-bill-wave"></i> Total Purchase Price (₹) <span>*</span>
                         </label>
                         <div style="position: relative;">
-                            <span style="position: absolute; left: 14px; top: 11px; color: #34D399; font-weight: 700; font-size: 15px;">₹</span>
+                            <span style="position: absolute; left: 14px; top: 11px; color: #60A5FA; font-weight: 700; font-size: 15px;">₹</span>
                             <input type="number" step="0.01" name="purchase_amount" id="purchase_amount"
                                    value="{{ old('purchase_amount') }}"
                                    class="form-control @error('purchase_amount') is-invalid @enderror"
-                                   placeholder="e.g. 2500000.00" min="0" required
-                                   style="padding-left: 32px; font-weight: 700; font-size: 16px; color: #34D399 !important; border-color: rgba(16, 185, 129, 0.4) !important;">
+                                   placeholder="0.00" min="0" required
+                                   oninput="recalculatePurchasePayment()"
+                                   style="padding-left: 32px; font-weight: 800; font-size: 16px; color: #60A5FA !important; border-color: rgba(96, 165, 250, 0.4) !important;">
                         </div>
-                        <div class="form-hint" style="color: #A7F3D0;">Enter total price at which this property was purchased.</div>
+                        <div class="form-hint" style="color: #93C5FD;">Total agreed purchase deal amount.</div>
                         @error('purchase_amount')<div class="text-error">{{ $message }}</div>@enderror
                     </div>
 
+                    <!-- 2. Paid Amount -->
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="purchase_date">
-                            <i class="fa-solid fa-calendar-day"></i> Purchase Date <span>*</span>
+                        <label class="form-label" for="paid_amount" style="color: #34D399 !important; font-size: 13.5px;">
+                            <i class="fa-solid fa-circle-check"></i> Paid Amount (₹)
                         </label>
-                        <input type="date" name="purchase_date" id="purchase_date"
-                               value="{{ old('purchase_date', date('Y-m-d')) }}"
-                               class="form-control @error('purchase_date') is-invalid @enderror" required>
-                        @error('purchase_date')<div class="text-error">{{ $message }}</div>@enderror
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 14px; top: 11px; color: #34D399; font-weight: 700; font-size: 15px;">₹</span>
+                            <input type="number" step="0.01" name="paid_amount" id="paid_amount"
+                                   value="{{ old('paid_amount', '0.00') }}"
+                                   class="form-control @error('paid_amount') is-invalid @enderror"
+                                   placeholder="0.00" min="0"
+                                   oninput="recalculatePurchasePayment()"
+                                   style="padding-left: 32px; font-weight: 800; font-size: 16px; color: #34D399 !important; border-color: rgba(52, 211, 153, 0.4) !important;">
+                        </div>
+                        <div class="form-hint" style="color: #A7F3D0;">Actual money paid so far.</div>
+                        @error('paid_amount')<div class="text-error">{{ $message }}</div>@enderror
                     </div>
+
+                    <!-- 3. Due Balance -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="due_amount" style="color: #F87171 !important; font-size: 13.5px;">
+                            <i class="fa-solid fa-clock-rotate-left"></i> Due Balance (₹)
+                        </label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 14px; top: 11px; color: #F87171; font-weight: 700; font-size: 15px;">₹</span>
+                            <input type="number" step="0.01" name="due_amount" id="due_amount"
+                                   value="{{ old('due_amount', '0.00') }}"
+                                   class="form-control @error('due_amount') is-invalid @enderror"
+                                   placeholder="0.00" readonly
+                                   style="padding-left: 32px; font-weight: 800; font-size: 16px; color: #F87171 !important; background: rgba(239, 68, 68, 0.08) !important; border-color: rgba(248, 113, 113, 0.4) !important; cursor: not-allowed;">
+                        </div>
+                        <div class="form-hint" style="color: #FCA5A5;">Auto = Purchase Price − Paid Amount</div>
+                        @error('due_amount')<div class="text-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+
+                <!-- Quick Buttons -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding-top: 10px; border-top: 1px dashed rgba(255, 255, 255, 0.1);">
+                    <span style="font-size: 12px; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Quick Set:</span>
+                    <button type="button" onclick="setPurchaseQuickPayment('full')" style="background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 8px; cursor: pointer;">
+                        <i class="fa-solid fa-check-double"></i> Full Paid (100%)
+                    </button>
+                    <button type="button" onclick="setPurchaseQuickPayment('half')" style="background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.4); color: #FBBF24; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 8px; cursor: pointer;">
+                        <i class="fa-solid fa-percent"></i> 50% Advance
+                    </button>
+                    <button type="button" onclick="setPurchaseQuickPayment('unpaid')" style="background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.4); color: #F87171; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 8px; cursor: pointer;">
+                        <i class="fa-solid fa-xmark"></i> Unpaid (0%)
+                    </button>
                 </div>
             </div>
 
             <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="purchase_date">
+                        <i class="fa-solid fa-calendar-day"></i> Purchase Date <span>*</span>
+                    </label>
+                    <input type="date" name="purchase_date" id="purchase_date"
+                           value="{{ old('purchase_date', date('Y-m-d')) }}"
+                           class="form-control @error('purchase_date') is-invalid @enderror" required>
+                    @error('purchase_date')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
+
                 <div class="form-group">
                     <label class="form-label" for="vendor_id">
                         <i class="fa-solid fa-user-tie"></i> Seller / Vendor / Owner <span class="opt">(optional)</span>
@@ -242,6 +293,18 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                     </select>
                     @error('vendor_id')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="payment_status">Payment Status</label>
+                    <select name="payment_status" id="payment_status" class="form-control @error('payment_status') is-invalid @enderror">
+                        @foreach(['paid' => 'Paid (Full)', 'partial' => 'Partial Payment', 'unpaid' => 'Unpaid / Due'] as $val => $lbl)
+                            <option value="{{ $val }}" {{ old('payment_status', 'unpaid') == $val ? 'selected' : '' }}>{{ $lbl }}</option>
+                        @endforeach
+                    </select>
+                    @error('payment_status')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
 
                 <div class="form-group">
                     <label class="form-label" for="payment_mode">Payment Mode</label>
@@ -257,16 +320,6 @@ textarea.form-control { resize: vertical; min-height: 85px; }
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label" for="payment_status">Payment Status</label>
-                    <select name="payment_status" id="payment_status" class="form-control @error('payment_status') is-invalid @enderror">
-                        @foreach(['paid' => 'Paid (Full)', 'partial' => 'Partial Payment', 'unpaid' => 'Unpaid / Due'] as $val => $lbl)
-                            <option value="{{ $val }}" {{ old('payment_status', 'paid') == $val ? 'selected' : '' }}>{{ $lbl }}</option>
-                        @endforeach
-                    </select>
-                    @error('payment_status')<div class="text-error">{{ $message }}</div>@enderror
-                </div>
-
-                <div class="form-group">
                     <label class="form-label" for="reference_no">Cheque / Transaction Ref No. <span class="opt">(optional)</span></label>
                     <input type="text" name="reference_no" id="reference_no"
                            value="{{ old('reference_no') }}"
@@ -274,14 +327,61 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                            placeholder="e.g. CHQ-481920 / UTR-8291038">
                     @error('reference_no')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label class="form-label" for="remarks">Purchase Remarks / Notes <span class="opt">(optional)</span></label>
-                <textarea name="remarks" id="remarks" class="form-control @error('remarks') is-invalid @enderror"
-                          placeholder="Special terms, payment schedule, registry notes, or deed details...">{{ old('remarks') }}</textarea>
-                @error('remarks')<div class="text-error">{{ $message }}</div>@enderror
+                <div class="form-group">
+                    <label class="form-label" for="remarks">Purchase Remarks / Notes <span class="opt">(optional)</span></label>
+                    <input type="text" name="remarks" id="remarks"
+                           value="{{ old('remarks') }}"
+                           class="form-control @error('remarks') is-invalid @enderror"
+                           placeholder="Special terms, payment schedule, registry notes, or deed details...">
+                    @error('remarks')<div class="text-error">{{ $message }}</div>@enderror
+                </div>
             </div>
+        </div>
+
+        <script>
+        function recalculatePurchasePayment() {
+            const purchaseAmount = parseFloat(document.getElementById('purchase_amount').value) || 0;
+            const paidAmountInput = document.getElementById('paid_amount');
+            let paidAmount = parseFloat(paidAmountInput.value) || 0;
+
+            if (paidAmount < 0) {
+                paidAmount = 0;
+                paidAmountInput.value = '0.00';
+            }
+
+            const dueAmount = Math.max(0, purchaseAmount - paidAmount);
+            document.getElementById('due_amount').value = dueAmount.toFixed(2);
+
+            const paymentStatusSelect = document.getElementById('payment_status');
+            if (purchaseAmount > 0) {
+                if (paidAmount >= purchaseAmount) {
+                    paymentStatusSelect.value = 'paid';
+                } else if (paidAmount > 0) {
+                    paymentStatusSelect.value = 'partial';
+                } else {
+                    paymentStatusSelect.value = 'unpaid';
+                }
+            }
+        }
+
+        function setPurchaseQuickPayment(type) {
+            const purchaseAmount = parseFloat(document.getElementById('purchase_amount').value) || 0;
+            const paidInput = document.getElementById('paid_amount');
+            if (type === 'full') {
+                paidInput.value = purchaseAmount.toFixed(2);
+            } else if (type === 'half') {
+                paidInput.value = (purchaseAmount / 2).toFixed(2);
+            } else if (type === 'unpaid') {
+                paidInput.value = '0.00';
+            }
+            recalculatePurchasePayment();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            recalculatePurchasePayment();
+        });
+        </script>
         </div>
 
         <div class="form-actions">

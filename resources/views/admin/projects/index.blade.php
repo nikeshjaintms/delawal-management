@@ -146,11 +146,16 @@
         </h2>
         <p>Manage projects associated with Property Masters.</p>
     </div>
-    @if($authUser && $authUser->hasPermission('project_add'))
-        <a href="{{ route('projects.create', isset($propertyMaster) && $propertyMaster ? ['property_id' => $propertyMaster->id] : []) }}" class="btn-gold">
-            <i class="fa-solid fa-plus"></i> Add Project
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('projects.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.4) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
         </a>
-    @endif
+        @if($authUser && $authUser->hasPermission('project_add'))
+            <a href="{{ route('projects.create', isset($propertyMaster) && $propertyMaster ? ['property_id' => $propertyMaster->id] : []) }}" class="btn-gold">
+                <i class="fa-solid fa-plus"></i> Add Project
+            </a>
+        @endif
+    </div>
 </div>
 
 <div class="card-box">
@@ -246,6 +251,9 @@
                         <td style="text-align: right;">
                             <div class="table-action-buttons">
                                 @if($authUser && $authUser->hasPermission('project_view'))
+                                    <a href="{{ route('projects.detail-pdf', $project->id) }}" target="_blank" class="action-link-view" style="background: rgba(252,105,0,0.15) !important; color: #FF8A3D !important; border-color: rgba(252,105,0,0.30) !important;" title="Print / PDF Dossier">
+                                        <i class="fa-solid fa-file-pdf"></i> PDF
+                                    </a>
                                     <a href="{{ route('projects.show', $project->id) }}" class="action-link-view">
                                         <i class="fa-regular fa-eye"></i> View
                                     </a>

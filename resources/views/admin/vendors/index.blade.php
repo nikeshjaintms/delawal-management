@@ -286,10 +286,15 @@ select.search-input option {
         <h2>Vendor Master</h2>
         <p>Add and manage vendor and supplier details.</p>
     </div>
-    <a href="{{ route('vendors.create') }}" class="btn-gold">
-        <i class="fa-solid fa-plus"></i>
-        <span>Add Vendor</span>
-    </a>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('vendors.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.4) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </a>
+        <a href="{{ route('vendors.create') }}" class="btn-gold">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Vendor</span>
+        </a>
+    </div>
 </div>
 
 @if(session('success'))
@@ -373,6 +378,9 @@ select.search-input option {
                         </td>
                         <td>
                             <div class="table-action-buttons">
+                                <a href="{{ route('vendors.detail-pdf', $vendor->id) }}" target="_blank" class="btn-view" style="background: rgba(252,105,0,0.15) !important; color: #FF8A3D !important; border: 1px solid rgba(252,105,0,0.30) !important;" title="Print / PDF Dossier">
+                                    <i class="fa fa-file-pdf"></i> PDF
+                                </a>
                                 <a href="{{ route('vendors.show', $vendor->id) }}" class="btn-view">
                                     <i class="fa fa-eye"></i> View
                                 </a>

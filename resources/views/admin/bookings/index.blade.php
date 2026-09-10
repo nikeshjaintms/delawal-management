@@ -97,9 +97,14 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
         <h2>Booking Management</h2>
         <p>Manage property bookings, agreements and payment tracking.</p>
     </div>
-    <a href="{{ route('bookings.create') }}" class="btn-gold">
-        <i class="fa-solid fa-plus"></i> Add Booking
-    </a>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('bookings.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.4) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </a>
+        <a href="{{ route('bookings.create') }}" class="btn-gold">
+            <i class="fa-solid fa-plus"></i> Add Booking
+        </a>
+    </div>
 </div>
 
 @if(session('success'))
@@ -189,6 +194,9 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     <td><span class="badge badge-{{ $booking->payment_status }}">{{ ucfirst($booking->payment_status) }}</span></td>
                     <td>
                         <div class="action-buttons-wrap">
+                            <a href="{{ route('bookings.receipt-pdf', $booking->id) }}" target="_blank" class="btn-view" style="background: rgba(252,105,0,0.15) !important; color: #FF8A3D !important; border: 1px solid rgba(252,105,0,0.30) !important;" title="Print / PDF Slip">
+                                <i class="fa fa-file-pdf"></i> PDF
+                            </a>
                             <a href="{{ route('bookings.show', $booking->id) }}" class="btn-view"><i class="fa fa-eye"></i> View</a>
                             <a href="{{ route('bookings.edit', $booking->id) }}" class="btn-edit"><i class="fa fa-edit"></i> Edit</a>
                             <form action="{{ route('bookings.destroy', $booking->id) }}" method="POST" style="display:inline;" id="del-bk-{{ $booking->id }}">

@@ -180,33 +180,43 @@
     </div>
 
     {{-- Amounts --}}
-    <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Amount Details</div>
-    <div class="detail-grid-3">
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Sale Amount</div>
-            @if($propertySale->sale_amount !== null)
-                <div class="detail-value amount-highlight">₹{{ number_format($propertySale->sale_amount, 2) }}</div>
-            @else
-                <div class="detail-value empty">Not set</div>
-            @endif
-        </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-money-bill-wave"></i> Booking Amount</div>
-            @if($propertySale->booking_amount !== null)
-                <div class="detail-value">₹{{ number_format($propertySale->booking_amount, 2) }}</div>
-            @else
-                <div class="detail-value empty">Not set</div>
-            @endif
-        </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-hourglass-half"></i> Remaining Amount</div>
-            @if($propertySale->remaining_amount !== null)
-                <div class="detail-value" style="color:{{ $propertySale->remaining_amount > 0 ? '#F87171' : '#34D399' }};">
-                    ₹{{ number_format($propertySale->remaining_amount, 2) }}
+    <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Sale Amount & Financial Breakdown</div>
+    <div style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 18px; padding: 22px; margin-bottom: 24px;">
+        <div class="detail-grid-3">
+            <!-- 1. Total Sale Amount -->
+            <div class="detail-item" style="background: rgba(16, 22, 34, 0.85) !important; border-color: rgba(96, 165, 250, 0.4) !important;">
+                <div class="detail-label" style="color: #60A5FA !important;"><i class="fa-solid fa-money-bill-wave" style="color:#60A5FA !important;"></i> Total Sale Amount</div>
+                <div class="detail-value" style="font-size: 20px; font-weight: 800; color: #60A5FA !important;">
+                    ₹{{ number_format($propertySale->sale_amount ?? 0, 2) }}
                 </div>
-            @else
-                <div class="detail-value empty">Not set</div>
-            @endif
+            </div>
+
+            <!-- 2. Paid / Received Amount -->
+            <div class="detail-item" style="background: rgba(16, 22, 34, 0.85) !important; border-color: rgba(52, 211, 153, 0.4) !important;">
+                <div class="detail-label" style="color: #34D399 !important;"><i class="fa-solid fa-circle-check" style="color:#34D399 !important;"></i> Paid / Received</div>
+                <div class="detail-value" style="font-size: 20px; font-weight: 800; color: #34D399 !important;">
+                    ₹{{ number_format($propertySale->booking_amount ?? 0, 2) }}
+                </div>
+            </div>
+
+            <!-- 3. Remaining Due Balance -->
+            <div class="detail-item" style="background: rgba(16, 22, 34, 0.85) !important; border-color: rgba(248, 113, 113, 0.4) !important;">
+                <div class="detail-label" style="color: #F87171 !important;"><i class="fa-solid fa-clock-rotate-left" style="color:#F87171 !important;"></i> Due Balance</div>
+                <div class="detail-value" style="font-size: 20px; font-weight: 800; color: #F87171 !important;">
+                    ₹{{ number_format($propertySale->remaining_amount ?? 0, 2) }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div style="margin-top: 6px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 12px; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Payment Progress ({{ $propertySale->paid_percentage }}% Paid)</span>
+                <span style="font-size: 12px; color: #CBD5E1; font-weight: 700;">₹{{ number_format($propertySale->booking_amount ?? 0, 2) }} of ₹{{ number_format($propertySale->sale_amount ?? 0, 2) }}</span>
+            </div>
+            <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="width: {{ $propertySale->paid_percentage }}%; height: 100%; background: linear-gradient(90deg, #10B981, #34D399); border-radius: 999px; transition: width 0.3s ease;"></div>
+            </div>
         </div>
     </div>
 
@@ -250,6 +260,9 @@
 
     {{-- Actions --}}
     <div class="form-actions">
+        <a href="{{ route('property-sales.receipt-pdf', $propertySale->id) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.45) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Print / PDF Agreement
+        </a>
         <a href="{{ route('property-sales.edit', $propertySale->id) }}" class="btn-gold">
             <i class="fa-regular fa-pen-to-square"></i> Edit Sale
         </a>

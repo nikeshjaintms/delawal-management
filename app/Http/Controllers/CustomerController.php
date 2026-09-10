@@ -150,4 +150,50 @@ class CustomerController extends Controller
 
         return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
     }
+
+    public function exportPdf(Request $request)
+    {
+        $query = Customer::with('firm');
+
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $query->where('firm_id', $firmId);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
+
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                    ->orWhere('mobile', 'like', '%' . $request->search . '%')
+                    ->orWhere('email', 'like', '%' . $request->search . '%')
+                    ->orWhere('city', 'like', '%' . $request->search . '%')
+                    ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', '%' . $request->search . '%'));
+            });
+        }
+
+        $customers = $query->latest()->get();
+        $totalCustomers = $customers->count();
+        $activeCustomers = $customers->where('status', 'active')->count();
+
+        return view('admin.customers.pdf', compact('customers', 'totalCustomers', 'activeCustomers'));
+    }
+
+    public function downloadPdf(Customer $customer)
+    {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $customer->firm_id != $firmId) {
+            abort(403);
+        }
+
+        $customer->load(['firm', 'propertySales.property', 'bookings.property']);
+
+        return view('admin.customers.show-pdf', compact('customer'));
+    }
 }

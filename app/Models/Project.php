@@ -31,6 +31,26 @@ class Project extends Model
         return $this->belongsTo(Firm::class);
     }
 
+    public function propertyMasters()
+    {
+        return $this->belongsToMany(PropertyMaster::class, 'project_property_master', 'project_id', 'property_master_id')
+            ->withTimestamps();
+    }
+
+    public function syncPropertyMasters($propertyMasterIds): void
+    {
+        $propertyMasterIds = array_values(array_filter((array) $propertyMasterIds));
+        $this->propertyMasters()->sync($propertyMasterIds);
+
+        $primaryId = !empty($propertyMasterIds) ? $propertyMasterIds[0] : null;
+        if ($this->property_id != $primaryId) {
+            $this->property_id = $primaryId;
+            if ($this->exists) {
+                $this->saveQuietly();
+            }
+        }
+    }
+
     public function property()
     {
         return $this->belongsTo(PropertyMaster::class, 'property_id');
@@ -39,6 +59,14 @@ class Project extends Model
     public function propertyMaster()
     {
         return $this->belongsTo(PropertyMaster::class, 'property_id');
+    }
+
+    public function getPropertyNamesAttribute(): string
+    {
+        if ($this->relationLoaded('propertyMasters') && $this->propertyMasters->isNotEmpty()) {
+            return $this->propertyMasters->pluck('property_name')->implode(', ');
+        }
+        return $this->propertyMaster->property_name ?? '—';
     }
 
     public function properties()

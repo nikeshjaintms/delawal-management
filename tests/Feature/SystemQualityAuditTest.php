@@ -80,8 +80,8 @@ class SystemQualityAuditTest extends TestCase
             'rentals.create',
             'bookings.index',
             'bookings.create',
-            'purchases.index',
-            'purchases.create',
+            'contractors.index',
+            'contractors.create',
             'purchase-orders.index',
             'purchase-orders.create',
             'expenses.index',
@@ -380,6 +380,17 @@ class SystemQualityAuditTest extends TestCase
             'reports.gst-purchase.pdf',
             'reports.credit-note.pdf',
             'reports.debit-note.pdf',
+            'customers.pdf',
+            'brokers.pdf',
+            'vendors.pdf',
+            'tenants.pdf',
+            'property-masters.pdf',
+            'projects.pdf',
+            'contractors.pdf',
+            'property-sales.pdf',
+            'rentals.pdf',
+            'bookings.pdf',
+            'expenses.pdf',
         ];
 
         foreach ($pdfRoutes as $route) {

@@ -188,4 +188,51 @@ class TenantController extends Controller
 
         return redirect()->route('tenants.index')->with('success', 'Tenant deleted successfully.');
     }
+
+    public function exportPdf(Request $request)
+    {
+        $query = Tenant::with('firm');
+
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+
+        if (!$isAdmin) {
+            $query->where('firm_id', $user ? $user->firm_id : session('firm_id'));
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
+
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%")
+                    ->orWhere('identity_number', 'like', "%{$search}%")
+                    ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $tenants = $query->latest()->get();
+        $totalTenants = $tenants->count();
+        $activeTenants = $tenants->where('status', 'active')->count();
+
+        return view('admin.tenants.pdf', compact('tenants', 'totalTenants', 'activeTenants'));
+    }
+
+    public function downloadPdf(Tenant $tenant)
+    {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $tenant->firm_id != $firmId) {
+            abort(403);
+        }
+
+        $tenant->load(['firm', 'rentals.property']);
+
+        return view('admin.tenants.show-pdf', compact('tenant'));
+    }
 }

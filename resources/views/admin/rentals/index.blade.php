@@ -123,12 +123,17 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
             <p>Manage all property rentals and tenant agreements firm-wise.</p>
         @endif
     </div>
-    @if(!request()->has('collect'))
-    <a href="{{ route('rentals.create') }}" class="btn-gold">
-        <i class="fa-solid fa-plus"></i>
-        <span>Add Rental</span>
-    </a>
-    @endif
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('rentals.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.4) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </a>
+        @if(!request()->has('collect'))
+        <a href="{{ route('rentals.create') }}" class="btn-gold">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Rental</span>
+        </a>
+        @endif
+    </div>
 </div>
 
 @if(session('success'))
@@ -243,6 +248,9 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                                     <a href="{{ route('rental-payments.index', $rental->id) }}" class="btn-history-link"
                                        title="Payment History">
                                         <i class="fa-solid fa-money-bill-wave"></i> Payments
+                                    </a>
+                                    <a href="{{ route('rentals.detail-pdf', $rental->id) }}" target="_blank" class="btn-view" style="background: rgba(252,105,0,0.15) !important; color: #FF8A3D !important; border: 1px solid rgba(252,105,0,0.30) !important;" title="Print / PDF Agreement">
+                                        <i class="fa fa-file-pdf"></i> PDF
                                     </a>
                                     <a href="{{ route('rentals.show', $rental->id) }}" class="btn-view"
                                        title="View Rental">

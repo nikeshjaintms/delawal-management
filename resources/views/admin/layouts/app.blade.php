@@ -650,6 +650,48 @@
         color: #FFFFFF !important;
         box-shadow: 0 6px 22px rgba(13, 148, 136, 0.5) !important;
     }
+    .dqa-emerald:hover, a.dqa-emerald:hover {
+        background: #059669 !important;
+        border-color: #10B981 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 6px 22px rgba(5, 150, 105, 0.5) !important;
+    }
+    .dqa-orange:hover, a.dqa-orange:hover {
+        background: #EA580C !important;
+        border-color: #FB923C !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 6px 22px rgba(234, 88, 12, 0.5) !important;
+    }
+    .dqa-cyan:hover, a.dqa-cyan:hover {
+        background: #0891B2 !important;
+        border-color: #06B6D4 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 6px 22px rgba(8, 145, 178, 0.5) !important;
+    }
+    .dqa-violet:hover, a.dqa-violet:hover {
+        background: #7C3AED !important;
+        border-color: #8B5CF6 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 6px 22px rgba(124, 58, 237, 0.5) !important;
+    }
+    .dqa-rose:hover, a.dqa-rose:hover {
+        background: #E11D48 !important;
+        border-color: #F43F5E !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 6px 22px rgba(225, 29, 72, 0.5) !important;
+    }
+    .dqa-bronze:hover, a.dqa-bronze:hover {
+        background: #854D0E !important;
+        border-color: #A16207 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 6px 22px rgba(133, 77, 14, 0.5) !important;
+    }
+    .dqa-fuchsia:hover, a.dqa-fuchsia:hover {
+        background: #C026D3 !important;
+        border-color: #D946EF !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 6px 22px rgba(192, 38, 211, 0.5) !important;
+    }
 
     /* Global Export & Action Buttons - Direct Solid Vibrant Colors */
     .btn-export-csv, .btn-export-excel, a.btn-export-csv, a.btn-export-excel {
@@ -2225,7 +2267,7 @@
 
         {{-- 1. Property Management --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'property-masters.') || str_starts_with($currentRoute ?? '', 'purchases.') || str_starts_with($currentRoute ?? '', 'property-availability.') || str_starts_with($currentRoute ?? '', 'property-documents.')) ? 'parent-active' : '' }}" data-label="1. Property Management">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'property-masters.') || str_starts_with($currentRoute ?? '', 'purchases.') || str_starts_with($currentRoute ?? '', 'property-sales.') || str_starts_with($currentRoute ?? '', 'property-availability.') || str_starts_with($currentRoute ?? '', 'property-documents.')) ? 'parent-active' : '' }}" data-label="1. Property Management">
                 <i class="fa-solid fa-building"></i><span>1. Property Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
@@ -2238,10 +2280,10 @@
                 </li>
                 @endif
 
-                @if($authUser->hasPermission('purchase_view') || $authUser->hasPermission('property_view'))
+                @if($authUser->hasPermission('property_sales_view') || $authUser->hasPermission('property_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('purchases.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'purchases.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-cart-shopping"></i><span>Property Buy</span>
+                    <a href="{{ route('property-sales.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'property-sales.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-handshake"></i><span>Property Sell</span>
                     </a>
                 </li>
                 @endif

@@ -55,27 +55,51 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // ── Masters ──────────────────────────────────────────────────────
+    Route::get('customers/export-pdf', [CustomerController::class, 'exportPdf'])->name('customers.pdf')->middleware(['permission:customer_view']);
+    Route::get('customers/{customer}/pdf', [CustomerController::class, 'downloadPdf'])->name('customers.detail-pdf')->middleware(['permission:customer_view']);
     Route::resource('customers', CustomerController::class)->middleware(['permission:customer_view']);
+
+    Route::get('brokers/export-pdf', [BrokerController::class, 'exportPdf'])->name('brokers.pdf')->middleware(['permission:broker_view']);
+    Route::get('brokers/{broker}/pdf', [BrokerController::class, 'downloadPdf'])->name('brokers.detail-pdf')->middleware(['permission:broker_view']);
     Route::resource('brokers', BrokerController::class)->middleware(['permission:broker_view']);
+
     Route::get('broker-commissions/export-excel', [\App\Http\Controllers\BrokerCommissionController::class, 'exportExcel'])->name('broker-commissions.excel')->middleware(['permission:broker_commission_export']);
     Route::get('broker-commissions/export-pdf', [\App\Http\Controllers\BrokerCommissionController::class, 'exportPdf'])->name('broker-commissions.pdf')->middleware(['permission:broker_commission_print']);
     Route::resource('broker-commissions', \App\Http\Controllers\BrokerCommissionController::class)->middleware(['permission:broker_commission_view']);
     Route::patch('broker-commissions/{brokerCommission}/toggle-status', [\App\Http\Controllers\BrokerCommissionController::class, 'toggleStatus'])->name('broker-commissions.toggle-status')->middleware(['permission:broker_commission_edit']);
+
+    Route::post('vendors/quick-store', [VendorController::class, 'quickStore'])->name('vendors.quick-store')->middleware(['auth']);
+    Route::get('vendors/export-pdf', [VendorController::class, 'exportPdf'])->name('vendors.pdf')->middleware(['permission:vendor_view']);
+    Route::get('vendors/{vendor}/pdf', [VendorController::class, 'downloadPdf'])->name('vendors.detail-pdf')->middleware(['permission:vendor_view']);
     Route::resource('vendors', VendorController::class)->middleware(['permission:vendor_view']);
+
+    Route::get('tenants/export-pdf', [TenantController::class, 'exportPdf'])->name('tenants.pdf')->middleware(['permission:tenant_view']);
+    Route::get('tenants/{tenant}/pdf', [TenantController::class, 'downloadPdf'])->name('tenants.detail-pdf')->middleware(['permission:tenant_view']);
     Route::resource('tenants', TenantController::class)->middleware(['permission:tenant_view']);
+
     Route::resource('property-types', PropertyTypeController::class)->middleware(['permission:property_type_view']);
     Route::resource('payment-modes', PaymentModeController::class)->middleware(['permission:payment_mode_view']);
     Route::resource('expense-categories', ExpenseCategoryController::class)->middleware(['permission:expense_category_view']);
 
     // ── Property Management ──────────────────────────────────────────
-    Route::get('acquisition-batches/template', [\App\Http\Controllers\AcquisitionBatchController::class, 'downloadTemplate'])->name('acquisition-batches.download-template')->middleware(['permission:property_view']);
+    Route::get('property-masters/plots/template', [PropertyMasterController::class, 'downloadPlotTemplate'])->name('property-masters.plots.template')->middleware(['permission:property_view']);
+    Route::get('property-masters/export-pdf', [PropertyMasterController::class, 'exportPdf'])->name('property-masters.pdf')->middleware(['permission:property_view']);
+    Route::get('property-masters/{propertyMaster}/pdf', [PropertyMasterController::class, 'downloadPdf'])->name('property-masters.detail-pdf')->middleware(['permission:property_view']);
+    Route::post('property-masters/{propertyMaster}/add-plot', [PropertyMasterController::class, 'addSinglePlot'])->name('property-masters.add-plot')->middleware(['permission:property_edit']);
+    Route::post('property-masters/{propertyMaster}/bulk-generate-plots', [PropertyMasterController::class, 'bulkGeneratePlots'])->name('property-masters.bulk-generate-plots')->middleware(['permission:property_edit']);
+    Route::post('property-masters/{propertyMaster}/import-plots', [PropertyMasterController::class, 'importPlots'])->name('property-masters.import-plots')->middleware(['permission:property_edit']);
     Route::resource('property-masters', PropertyMasterController::class)->middleware(['permission:property_view']);
-    Route::resource('acquisition-batches', \App\Http\Controllers\AcquisitionBatchController::class)->middleware(['permission:property_view']);
-    Route::post('acquisition-batches/{acquisition_batch}/add-plots', [\App\Http\Controllers\AcquisitionBatchController::class, 'addPlots'])->name('acquisition-batches.add-plots')->middleware(['permission:property_view']);
-    Route::get('projects/batches-and-plots/{propertyMaster}', [\App\Http\Controllers\ProjectController::class, 'getBatchesAndPlots'])->name('projects.batches-and-plots')->middleware(['permission:project_view']);
+
+    Route::get('projects/properties-and-plots', [\App\Http\Controllers\ProjectController::class, 'getPropertiesAndPlots'])->name('projects.properties-and-plots')->middleware(['permission:project_view']);
+    Route::get('projects/export-pdf', [\App\Http\Controllers\ProjectController::class, 'exportPdf'])->name('projects.pdf')->middleware(['permission:project_view']);
+    Route::get('projects/{project}/pdf', [\App\Http\Controllers\ProjectController::class, 'downloadPdf'])->name('projects.detail-pdf')->middleware(['permission:project_view']);
     Route::resource('projects', ProjectController::class)->middleware(['permission:project_view']);
+
+    Route::get('contractors/export-pdf', [\App\Http\Controllers\ContractorController::class, 'exportPdf'])->name('contractors.pdf')->middleware(['permission:project_view']);
+    Route::get('contractors/{contractor}/pdf', [\App\Http\Controllers\ContractorController::class, 'downloadPdf'])->name('contractors.detail-pdf')->middleware(['permission:project_view']);
     Route::get('projects/{project}/contractors', [\App\Http\Controllers\ContractorController::class, 'getByProject'])->name('projects.contractors')->middleware(['auth']);
     Route::resource('contractors', \App\Http\Controllers\ContractorController::class)->middleware(['permission:project_view']);
+
     Route::get('properties/import/template', [PropertyController::class, 'downloadTemplate'])->name('properties.import.template')->middleware(['permission:property_view']);
     Route::get('properties/master-info', [PropertyController::class, 'getMasterInfo'])->name('properties.master-info')->middleware(['permission:property_view']);
     Route::post('properties/import/validate', [PropertyController::class, 'validateImport'])->name('properties.import.validate')->middleware(['permission:property_view']);
@@ -83,12 +107,20 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::post('properties/bulk-delete', [PropertyController::class, 'bulkDelete'])->name('properties.bulk-delete')->middleware(['permission:property_view']);
     Route::post('properties/{property}/quick-update', [PropertyController::class, 'quickUpdate'])->name('properties.quick-update')->middleware(['permission:property_view']);
     Route::resource('properties', PropertyController::class)->middleware(['permission:property_view']);
+
+    Route::get('property-sales/export-pdf', [PropertySaleController::class, 'exportPdf'])->name('property-sales.pdf')->middleware(['permission:property_sales_view']);
+    Route::get('property-sales/{propertySale}/pdf', [PropertySaleController::class, 'downloadPdf'])->name('property-sales.receipt-pdf')->middleware(['permission:property_sales_view']);
     Route::resource('property-sales', PropertySaleController::class)->middleware(['permission:property_sales_view']);
+
     Route::resource('property-documents', PropertyDocumentController::class)->middleware(['permission:property_documents_view']);
     Route::resource('property-availability', PropertyStatusController::class)->middleware(['permission:property_view']);
     Route::resource('payments', PaymentController::class)->middleware(['permission:payment_view']);
     Route::get('payments/booking-info/{id}', [PaymentController::class, 'getBookingInfo'])->name('payments.booking-info')->middleware(['permission:payment_view']);
+
+    Route::get('rentals/export-pdf', [RentalController::class, 'exportPdf'])->name('rentals.pdf')->middleware(['permission:rental_view']);
+    Route::get('rentals/{rental}/pdf', [RentalController::class, 'downloadPdf'])->name('rentals.detail-pdf')->middleware(['permission:rental_view']);
     Route::resource('rentals', RentalController::class)->middleware(['permission:rental_view']);
+
     Route::get('rentals/{rental}/payments', [RentalPaymentController::class, 'index'])->name('rental-payments.index')->middleware(['permission:rental_view']);
     Route::get('rentals/{rental}/payments/create', [RentalPaymentController::class, 'create'])->name('rental-payments.create')->middleware(['permission:rental_view']);
     Route::post('rentals/{rental}/payments', [RentalPaymentController::class, 'store'])->name('rental-payments.store')->middleware(['permission:rental_view']);
@@ -97,8 +129,10 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::delete('rentals/{rental}/payments/{rentalPayment}', [RentalPaymentController::class, 'destroy'])->name('rental-payments.destroy')->middleware(['permission:rental_view']);
 
     // ── Booking & Purchase ───────────────────────────────────────────
+    Route::get('bookings/export-pdf', [\App\Http\Controllers\BookingController::class, 'exportPdf'])->name('bookings.pdf')->middleware(['permission:booking_view']);
+    Route::get('bookings/{booking}/pdf', [\App\Http\Controllers\BookingController::class, 'downloadPdf'])->name('bookings.receipt-pdf')->middleware(['permission:booking_view']);
     Route::resource('bookings', \App\Http\Controllers\BookingController::class)->middleware(['permission:booking_view']);
-    Route::resource('purchases', \App\Http\Controllers\PurchaseController::class)->middleware(['permission:purchase_view']);
+
     Route::get('purchase-orders/export-excel', [\App\Http\Controllers\PurchaseOrderController::class, 'exportExcel'])->name('purchase-orders.excel')->middleware(['permission:purchase_order_export']);
     Route::get('purchase-orders/export-pdf', [\App\Http\Controllers\PurchaseOrderController::class, 'exportPdf'])->name('purchase-orders.pdf')->middleware(['permission:purchase_order_print']);
     Route::get('purchase-orders/{purchase_order}/print', [\App\Http\Controllers\PurchaseOrderController::class, 'print'])->name('purchase-orders.print')->middleware(['permission:purchase_order_print']);
@@ -111,7 +145,9 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('stock-inwards/{stock_inward}/print', [\App\Http\Controllers\StockInwardController::class, 'print'])->name('stock-inwards.print')->middleware(['permission:inventory_view']);
     Route::get('stock-outwards/{stock_outward}/print', [\App\Http\Controllers\StockOutwardController::class, 'print'])->name('stock-outwards.print')->middleware(['permission:inventory_view']);
 
-    // ── Inventory ────────────────────────────────────────────────────
+    // ── Inventory & Expenses ──────────────────────────────────────────
+    Route::get('expenses/export-pdf', [ExpenseController::class, 'exportPdf'])->name('expenses.pdf')->middleware(['permission:expense_view']);
+    Route::get('expenses/{expense}/pdf', [ExpenseController::class, 'downloadPdf'])->name('expenses.detail-pdf')->middleware(['permission:expense_view']);
     Route::resource('expenses', ExpenseController::class)->middleware(['permission:expense_view']);
     Route::any('material-categories/{any?}', function () {
         return redirect()->route('materials.index');

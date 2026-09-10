@@ -128,9 +128,14 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
         <h2>Expense Management</h2>
         <p>Track and manage all firm-wise property expenses.</p>
     </div>
-    <a href="{{ route('expenses.create') }}" class="btn-gold">
-        <i class="fa-solid fa-plus"></i> Add Expense
-    </a>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('expenses.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.4) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </a>
+        <a href="{{ route('expenses.create') }}" class="btn-gold">
+            <i class="fa-solid fa-plus"></i> Add Expense
+        </a>
+    </div>
 </div>
 
 @if(session('success'))
@@ -316,6 +321,9 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     </td>
                     <td>
                         <div class="action-buttons-wrap">
+                            <a href="{{ route('expenses.detail-pdf', $expense->id) }}" target="_blank" class="btn-view" style="background: rgba(252,105,0,0.15) !important; color: #FF8A3D !important; border: 1px solid rgba(252,105,0,0.30) !important;" title="Print / PDF Voucher">
+                                <i class="fa fa-file-pdf"></i> PDF
+                            </a>
                             <a href="{{ route('expenses.show', $expense->id) }}" class="btn-view">
                                 <i class="fa fa-eye"></i> View
                             </a>

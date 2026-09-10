@@ -79,6 +79,9 @@
 .badge { display: inline-block; padding: 5px 14px; font-size: 11.5px; font-weight: 700; border-radius: 20px; text-transform: uppercase; white-space: nowrap !important; }
 .badge-active { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
 .badge-inactive { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+.badge-paid { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-partial { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.badge-unpaid { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
 
 .table-action-cell { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: nowrap !important; white-space: nowrap !important; }
 .action-link-view {
@@ -113,11 +116,16 @@
         <h2>Property Master</h2>
         <p>Manage first-level Property entries and their associated Projects.</p>
     </div>
-    @if(Auth::user() && Auth::user()->hasPermission('property_add'))
-        <a href="{{ route('property-masters.create') }}" class="btn-gold">
-            <i class="fa-solid fa-plus"></i> Add Property
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('property-masters.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.4) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
         </a>
-    @endif
+        @if(Auth::user() && Auth::user()->hasPermission('property_add'))
+            <a href="{{ route('property-masters.create') }}" class="btn-gold">
+                <i class="fa-solid fa-plus"></i> Add Property
+            </a>
+        @endif
+    </div>
 </div>
 
 @if(session('success'))
@@ -150,7 +158,9 @@
                     <th>Property Name</th>
                     <th>Code</th>
                     <th>Firm</th>
-                    <th>Buy Price</th>
+                    <th>Purchase Price</th>
+                    <th>Paid / Due</th>
+                    <th>Payment</th>
                     <th>City / Location</th>
                     <th>Projects</th>
                     <th>Status</th>
@@ -169,7 +179,7 @@
                         <td>{{ $property->firm->firm_name ?? '-' }}</td>
                         <td>
                             @if($property->purchase_price > 0)
-                                <strong style="color: #34D399; font-size: 14px;">₹{{ number_format($property->purchase_price, 2) }}</strong>
+                                <strong style="color: #60A5FA; font-size: 14px;">₹{{ number_format($property->purchase_price, 2) }}</strong>
                                 @if($property->purchase_date)
                                     <div style="font-size: 11px; color: #94A3B8;">{{ date('d M Y', strtotime($property->purchase_date)) }}</div>
                                 @endif
@@ -177,11 +187,51 @@
                                 <span style="color: #94A3B8;">—</span>
                             @endif
                         </td>
+                        <td>
+                            @if($property->purchase_price > 0)
+                                <div style="font-size: 12px; color: #34D399; font-weight: 700;">
+                                    <i class="fa-solid fa-check"></i> ₹{{ number_format($property->paid_amount ?? 0, 2) }}
+                                </div>
+                                <div style="font-size: 12px; color: {{ ($property->due_amount ?? 0) > 0 ? '#F87171' : '#94A3B8' }}; font-weight: 700;">
+                                    <i class="fa-solid fa-clock"></i> ₹{{ number_format($property->due_amount ?? 0, 2) }}
+                                </div>
+                            @else
+                                <span style="color: #94A3B8;">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            @php $pStatus = $property->payment_status ?? 'unpaid'; @endphp
+                            @if($pStatus === 'paid')
+                                <span class="badge badge-paid">Paid</span>
+                            @elseif($pStatus === 'partial')
+                                <span class="badge badge-partial">Partial</span>
+                            @else
+                                <span class="badge badge-unpaid">Unpaid</span>
+                            @endif
+                        </td>
                         <td>{{ $property->city ?? $property->location ?? '-' }}</td>
                         <td>
-                            <a href="{{ route('projects.index', ['property_id' => $property->id]) }}" style="color: #60A5FA !important; font-weight: 700; text-decoration: none;">
-                                <i class="fa-solid fa-city"></i> {{ $property->projects_count }} Projects
-                            </a>
+                            @php
+                                $associatedProjects = $property->all_projects;
+                            @endphp
+                            @if($associatedProjects && $associatedProjects->isNotEmpty())
+                                <div style="display: flex; flex-direction: column; gap: 5px;">
+                                    @foreach($associatedProjects as $proj)
+                                        <a href="{{ route('projects.show', $proj->id) }}"
+                                           style="display: inline-flex; align-items: center; gap: 6px; color: #60A5FA !important; font-weight: 700; text-decoration: none; font-size: 12.5px; background: rgba(37, 99, 235, 0.14); border: 1px solid rgba(59, 130, 246, 0.35); padding: 4px 10px; border-radius: 6px; width: fit-content; transition: all .2s ease;"
+                                           onmouseover="this.style.background='rgba(37, 99, 235, 0.28)'; this.style.borderColor='rgba(96, 165, 250, 0.6)'"
+                                           onmouseout="this.style.background='rgba(37, 99, 235, 0.14)'; this.style.borderColor='rgba(59, 130, 246, 0.35)'"
+                                           title="View Project: {{ $proj->project_name }}">
+                                            <i class="fa-solid fa-city" style="font-size: 11px; color: #93C5FD;"></i>
+                                            <span>{{ $proj->project_name }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @else
+                                <span style="color: #64748B; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="fa-solid fa-minus"></i> No Project
+                                </span>
+                            @endif
                         </td>
                         <td>
                             <span class="badge {{ $property->status === 'active' ? 'badge-active' : 'badge-inactive' }}">
@@ -190,6 +240,9 @@
                         </td>
                         <td style="text-align: right;">
                             <div class="table-action-cell">
+                                <a href="{{ route('property-masters.detail-pdf', $property->id) }}" target="_blank" class="action-link-view" style="background: rgba(252,105,0,0.15) !important; color: #FF8A3D !important; border-color: rgba(252,105,0,0.30) !important;" title="Print / PDF Dossier">
+                                    <i class="fa-solid fa-file-pdf"></i> PDF
+                                </a>
                                 <a href="{{ route('property-masters.show', $property->id) }}" class="action-link-view" title="View Property & Projects">
                                     <i class="fa-regular fa-eye"></i> View
                                 </a>
@@ -212,7 +265,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+                        <td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 30px;">
                             No Property records found.
                         </td>
                     </tr>

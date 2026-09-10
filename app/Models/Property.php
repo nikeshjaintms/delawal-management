@@ -11,7 +11,6 @@ class Property extends Model
     protected $fillable = [
         'firm_id',
         'property_master_id',
-        'acquisition_batch_id',
         'project_id',
         'property_type_id',
         'property_code',
@@ -47,11 +46,6 @@ class Property extends Model
     public function propertyMaster()
     {
         return $this->belongsTo(PropertyMaster::class, 'property_master_id');
-    }
-
-    public function acquisitionBatch()
-    {
-        return $this->belongsTo(AcquisitionBatch::class, 'acquisition_batch_id');
     }
 
     public function project()

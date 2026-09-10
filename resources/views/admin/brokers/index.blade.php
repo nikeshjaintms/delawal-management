@@ -270,10 +270,15 @@ select.search-input option {
         <h2>Broker Master</h2>
         <p>Add and manage broker details and commission information.</p>
     </div>
-    <a href="{{ route('brokers.create') }}" class="btn-gold">
-        <i class="fa-solid fa-plus"></i>
-        <span>Add Broker</span>
-    </a>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('brokers.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.4) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </a>
+        <a href="{{ route('brokers.create') }}" class="btn-gold">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Broker</span>
+        </a>
+    </div>
 </div>
 
 @if(session('success'))
@@ -368,6 +373,9 @@ select.search-input option {
                         </td>
                         <td align="right">
                             <div style="display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end;">
+                                <a href="{{ route('brokers.detail-pdf', $broker->id) }}" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; background: rgba(252,105,0,0.18); color: #FF8A3D; font-size: 12.5px; font-weight: 700; border: 1px solid rgba(252,105,0,0.35); border-radius: 8px; text-decoration: none;" title="Print / PDF Dossier">
+                                    <i class="fa fa-file-pdf"></i> PDF
+                                </a>
                                 <a href="{{ route('brokers.show', $broker->id) }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 14px; background: #059669; color: #FFFFFF; font-size: 12.5px; font-weight: 700; border: 1px solid #10B981; border-radius: 8px; text-decoration: none;">
                                     <i class="fa fa-eye"></i> View
                                 </a>

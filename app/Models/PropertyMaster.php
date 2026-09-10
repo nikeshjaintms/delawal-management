@@ -15,6 +15,8 @@ class PropertyMaster extends Model
         'property_name',
         'property_code',
         'purchase_price',
+        'paid_amount',
+        'due_amount',
         'purchase_date',
         'purchase_rate',
         'total_area',
@@ -37,6 +39,28 @@ class PropertyMaster extends Model
         'updated_by',
     ];
 
+    protected $casts = [
+        'purchase_price' => 'decimal:2',
+        'paid_amount'    => 'decimal:2',
+        'due_amount'     => 'decimal:2',
+        'purchase_rate'  => 'decimal:2',
+        'total_area'     => 'decimal:2',
+        'purchase_date'  => 'date',
+    ];
+
+    /**
+     * Get payment percentage completed
+     */
+    public function getPaidPercentageAttribute(): float
+    {
+        $price = floatval($this->purchase_price ?? 0);
+        $paid  = floatval($this->paid_amount ?? 0);
+        if ($price <= 0) {
+            return $paid > 0 ? 100.0 : 0.0;
+        }
+        return round(min(100, max(0, ($paid / $price) * 100)), 1);
+    }
+
     public function vendor()
     {
         return $this->belongsTo(Vendor::class);
@@ -45,11 +69,6 @@ class PropertyMaster extends Model
     public function firm()
     {
         return $this->belongsTo(Firm::class);
-    }
-
-    public function acquisitionBatches()
-    {
-        return $this->hasMany(AcquisitionBatch::class, 'property_master_id');
     }
 
     public function plots()
@@ -65,7 +84,29 @@ class PropertyMaster extends Model
 
     public function projects()
     {
-        return $this->hasMany(Project::class, 'property_id');
+        return $this->belongsToMany(Project::class, 'project_property_master', 'property_master_id', 'project_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all projects linked via pivot table, direct property_id, or assigned plots
+     */
+    public function getAllProjectsAttribute()
+    {
+        $pivot = $this->relationLoaded('projects') ? $this->projects : $this->projects()->get();
+        if ($pivot->isNotEmpty()) {
+            return $pivot;
+        }
+
+        $directProjects = Project::where('property_id', $this->id)->get();
+        $plotProjectIds = Property::where('property_master_id', $this->id)
+            ->whereNotNull('project_id')
+            ->pluck('project_id')
+            ->unique()
+            ->toArray();
+        $plotProjects = !empty($plotProjectIds) ? Project::whereIn('id', $plotProjectIds)->get() : collect();
+
+        return $directProjects->concat($plotProjects)->unique('id')->values();
     }
 
     public function creator()

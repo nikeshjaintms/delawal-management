@@ -81,6 +81,9 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
 .premium-table tbody tr:hover { background: rgba(255, 255, 255, 0.05) !important; }
 
 .type-chip { background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 700; border: 1px solid rgba(59, 130, 246, 0.30); display: inline-block; }
+.badge-paid { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
+.badge-partial { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
+.badge-unpaid { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
 
 .btn-view {
     display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; background: rgba(59, 130, 246, 0.15) !important;
@@ -171,7 +174,9 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     <th>Property / Plot Name</th>
                     <th>Type</th>
                     <th>Property Code</th>
-                    <th>Buy Price</th>
+                    <th>Purchase Price</th>
+                    <th>Paid / Due</th>
+                    <th>Payment</th>
                     <th>Location</th>
                     <th>Area</th>
                     <th>Survey / TP / FP</th>
@@ -207,12 +212,34 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     </td>
                     <td>
                         @if($purchase->purchase_amount > 0)
-                            <strong style="color:#34D399;font-size:14px;display:block;">₹{{ number_format($purchase->purchase_amount, 2) }}</strong>
+                            <strong style="color:#60A5FA;font-size:14px;display:block;">₹{{ number_format($purchase->purchase_amount, 2) }}</strong>
                             @if($purchase->purchase_date)
                                 <small style="color:#94A3B8;font-size:11px;">{{ date('d M Y', strtotime($purchase->purchase_date)) }}</small>
                             @endif
                         @else
                             <span style="color:#94A3B8;">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($purchase->purchase_amount > 0)
+                            <div style="font-size: 12px; color: #34D399; font-weight: 700;">
+                                <i class="fa-solid fa-check"></i> ₹{{ number_format($purchase->paid_amount ?? 0, 2) }}
+                            </div>
+                            <div style="font-size: 12px; color: {{ ($purchase->due_amount ?? 0) > 0 ? '#F87171' : '#94A3B8' }}; font-weight: 700;">
+                                <i class="fa-solid fa-clock"></i> ₹{{ number_format($purchase->due_amount ?? 0, 2) }}
+                            </div>
+                        @else
+                            <span style="color: #94A3B8;">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        @php $buyStatus = strtolower($purchase->payment_status ?? 'unpaid'); @endphp
+                        @if($buyStatus === 'paid')
+                            <span class="badge-paid">Paid</span>
+                        @elseif($buyStatus === 'partial')
+                            <span class="badge-partial">Partial</span>
+                        @else
+                            <span class="badge-unpaid">Unpaid</span>
                         @endif
                     </td>
                     <td>
@@ -274,7 +301,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="10" align="center" style="padding:40px;color:#CBD5E1;">
+                    <td colspan="12" align="center" style="padding:40px;color:#CBD5E1;">
                         <i class="fa-solid fa-building" style="font-size:28px;opacity:0.3;margin-bottom:8px;display:block;"></i>
                         No Property Buy records found.
                     </td>

@@ -457,15 +457,22 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
 <div class="crud-header">
     <div class="crud-title">
         <h2>{{ $project->project_name }}</h2>
-        <p>Project details, Acquisition Batch breakdown &amp; Plot Inventory</p>
+        <p>Project details, associated Property Masters &amp; Plot Inventory</p>
     </div>
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="{{ route('projects.detail-pdf', $project->id) }}" target="_blank" class="btn-secondary-custom" style="background: rgba(252, 105, 0, 0.18) !important; border-color: rgba(252, 105, 0, 0.45) !important; color: #FF8A3D !important;">
+            <i class="fa-solid fa-file-pdf"></i> Print / PDF Dossier
+        </a>
         @if($authUser && $authUser->hasPermission('project_edit'))
             <a href="{{ route('projects.edit', $project->id) }}" class="btn-primary-custom">
                 <i class="fa-regular fa-pen-to-square"></i> Edit Project
             </a>
         @endif
-        @if($project->propertyMaster)
+        @if($project->propertyMasters && $project->propertyMasters->isNotEmpty())
+            <a href="{{ route('property-masters.show', $project->propertyMasters->first()->id) }}" class="btn-secondary-custom">
+                <i class="fa-solid fa-arrow-left"></i> Back to {{ $project->propertyMasters->first()->property_name }}
+            </a>
+        @elseif($project->propertyMaster)
             <a href="{{ route('property-masters.show', $project->propertyMaster->id) }}" class="btn-secondary-custom">
                 <i class="fa-solid fa-arrow-left"></i> Back to {{ $project->propertyMaster->property_name }}
             </a>
@@ -481,7 +488,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
     $totalPlots = $project->properties->count();
     $availPlots = $project->properties->where('status', 'available')->count();
     $bookedPlots = $project->properties->whereIn('status', ['booked', 'sold'])->count();
-    $batchGroups = $project->properties->groupBy('acquisition_batch_id');
+    $linkedMasters = $project->propertyMasters->isNotEmpty() ? $project->propertyMasters : ($project->propertyMaster ? collect([$project->propertyMaster]) : collect([]));
 @endphp
 
 <!-- ================================================================
@@ -500,13 +507,17 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
 
         <!-- Meta Grid -->
         <div class="project-meta-grid">
-            <div class="pm-item">
-                <span class="pm-label">Property Master</span>
+            <div class="pm-item" style="grid-column: span 2;">
+                <span class="pm-label">Property Master(s)</span>
                 <span class="pm-value">
-                    @if($project->propertyMaster)
-                        <a href="{{ route('property-masters.show', $project->propertyMaster->id) }}" style="color: #60A5FA; text-decoration: none; font-weight: 800;">
-                            {{ $project->propertyMaster->property_name }}
-                        </a>
+                    @if($linkedMasters->isNotEmpty())
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+                            @foreach($linkedMasters as $pm)
+                                <a href="{{ route('property-masters.show', $pm->id) }}" style="background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.30); padding: 3px 10px; border-radius: 6px; font-size: 13px; text-decoration: none; font-weight: 800; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fa-solid fa-city" style="font-size: 11px;"></i> {{ $pm->property_name }} ({{ $pm->property_code }})
+                                </a>
+                            @endforeach
+                        </div>
                     @else
                         -
                     @endif
@@ -533,7 +544,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                 </span>
             </div>
             <div class="pm-item" style="grid-column: span 2;">
-                <span class="pm-label">Location / Address (Property Master)</span>
+                <span class="pm-label">Location / Address</span>
                 <span class="pm-value" style="font-size: 13.5px; font-weight: 600; color: #CBD5E1;">
                     <i class="fa-solid fa-location-dot" style="color: #60A5FA; margin-right: 5px;"></i>
                     {{ $project->display_address }}
@@ -544,10 +555,10 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
         <!-- Right Quick Actions -->
         <div style="display: flex; flex-direction: column; gap: 8px;">
             <a href="{{ route('projects.edit', $project->id) }}" class="btn-primary-custom" style="padding: 8px 16px; min-height: 38px; font-size: 13px;">
-                <i class="fa-solid fa-layer-group"></i> Manage Plots / Batches
+                <i class="fa-solid fa-shapes"></i> Manage Plot Allocations
             </a>
             <a href="{{ route('properties.index', ['project_id' => $project->id]) }}" class="btn-excel-custom" style="padding: 8px 16px; min-height: 38px; font-size: 13px;">
-                <i class="fa-solid fa-file-excel"></i> Manage Bulk Excel
+                <i class="fa-solid fa-file-excel"></i> Bulk Plots Table
             </a>
         </div>
     </div>
@@ -562,10 +573,10 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             </div>
         </div>
         <div class="pk-card">
-            <div class="pk-icon pk-purple"><i class="fa-solid fa-layer-group"></i></div>
+            <div class="pk-icon pk-purple"><i class="fa-solid fa-city"></i></div>
             <div class="pk-info">
-                <span class="pk-label">Batches Used</span>
-                <span class="pk-val">{{ $batchGroups->count() }} Batches</span>
+                <span class="pk-label">Properties Combined</span>
+                <span class="pk-val">{{ $linkedMasters->count() }} Properties</span>
             </div>
         </div>
         <div class="pk-card">
@@ -599,17 +610,6 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
     <div class="section-title">
         <div>
             <span><i class="fa-solid fa-list-check" style="color: #60A5FA; margin-right: 8px;"></i>Project Plots &amp; Units Inventory ({{ $totalPlots }} Plots)</span>
-            @if($batchGroups->count() > 0)
-                <div style="font-size: 12.5px; color: #94A3B8; margin-top: 6px; font-weight: 500; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                    <span>Source Batches:</span>
-                    @foreach($batchGroups as $bId => $pGroup)
-                        @php $bName = $pGroup->first()->acquisitionBatch?->batch_name ?? 'Direct Plots'; @endphp
-                        <span style="background: rgba(167, 139, 250, 0.18); color: #C4B5FD; border: 1px solid rgba(167, 139, 250, 0.35); padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700;">
-                            <i class="fa-solid fa-layer-group" style="font-size: 10px; margin-right: 4px;"></i> {{ $pGroup->count() }} from {{ $bName }}
-                        </span>
-                    @endforeach
-                </div>
-            @endif
         </div>
         <div style="font-size: 12.5px; color: #94A3B8;">
             <span style="color: #34D399; font-weight: 700;">● Continuous Line-wise Sequence</span>
@@ -623,8 +623,8 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                     <th style="width: 60px;">#</th>
                     <th>Plot Name</th>
                     <th>Code</th>
-                    <th>Acquisition Batch</th>
-                    <th>Original Purchase Rate</th>
+                    <th>Source Property Master</th>
+                    <th>Purchase Rate</th>
                     <th>Size (Area)</th>
                     <th>Facing</th>
                     <th>Status</th>
@@ -642,16 +642,16 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                         </td>
                         <td><code class="code-chip">{{ $property->property_code }}</code></td>
                         <td>
-                            @if($property->acquisitionBatch)
-                                <span style="background: rgba(167, 139, 250, 0.15); color: #C4B5FD; border: 1px solid rgba(167, 139, 250, 0.30); padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700;">
-                                    <i class="fa-solid fa-layer-group" style="margin-right: 3px;"></i> {{ $property->acquisitionBatch->batch_name }}
-                                </span>
+                            @if($property->propertyMaster)
+                                <a href="{{ route('property-masters.show', $property->propertyMaster->id) }}" style="background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.30); padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; text-decoration: none;">
+                                    <i class="fa-solid fa-city" style="margin-right: 3px; font-size: 10px;"></i> {{ $property->propertyMaster->property_name }}
+                                </a>
                             @else
                                 <span style="color: #94A3B8; font-size: 12px;">Direct Plot</span>
                             @endif
                         </td>
                         <td>
-                            <strong style="color: #FBBF24; font-size: 14px;">₹{{ number_format($property->purchase_rate ?: ($property->acquisitionBatch?->purchase_rate ?? 0), 2) }}</strong>
+                            <strong style="color: #FBBF24; font-size: 14px;">₹{{ number_format($property->purchase_rate ?: ($property->propertyMaster?->purchase_rate ?? 0), 2) }}</strong>
                             @if($property->purchase_date)
                                 <small style="color: #94A3B8; display: block; font-size: 11px;">{{ \Carbon\Carbon::parse($property->purchase_date)->format('d M Y') }}</small>
                             @endif

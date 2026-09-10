@@ -23,7 +23,8 @@ class BookingController extends Controller
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
         $projQuery = Project::with('propertyMaster')->orderBy('project_name');
-        $propQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
+        $propQuery = Property::with(['project.propertyMaster', 'propertyMaster'])->orderBy('property_name');
+        $pmQueryM  = \App\Models\PropertyMaster::with(['plots', 'projects'])->orderBy('property_name');
         $custQuery = Customer::where('status', 'active')->orderBy('name');
         $brokQuery = Broker::where('status', 'active')->orderBy('name');
         $pmQuery   = PaymentMode::where('status', 'active')->orderBy('name');
@@ -31,6 +32,7 @@ class BookingController extends Controller
         if ($firmId && (!$user || !$user->isAdmin())) {
             $projQuery->where('firm_id', $firmId);
             $propQuery->where('firm_id', $firmId);
+            $pmQueryM->where('firm_id', $firmId);
             $custQuery->where('firm_id', $firmId);
             $brokQuery->where('firm_id', $firmId);
             $pmQuery->whereHas('firms', function($q) use ($firmId) {
@@ -44,23 +46,44 @@ class BookingController extends Controller
         }
 
         return [
-            'firms'        => $firms,
-            'projects'     => $projQuery->get(),
-            'properties'   => $propQuery->get(),
-            'customers'    => $custQuery->get(),
-            'brokers'      => $brokQuery->get(),
-            'paymentModes' => $paymentModes,
+            'firms'           => $firms,
+            'projects'        => $projQuery->get(),
+            'properties'      => $propQuery->get(),
+            'propertyMasters' => $pmQueryM->get(),
+            'customers'       => $custQuery->get(),
+            'brokers'         => $brokQuery->get(),
+            'paymentModes'    => $paymentModes,
         ];
     }
 
-    private function updatePropertyStatus(Booking $booking): void
+    private function updatePropertyStatus(Booking $booking, array $allPropertyIds = []): void
     {
-        $property = Property::find($booking->property_id);
-        if (!$property) return;
+        $propertyIds = !empty($allPropertyIds) ? $allPropertyIds : [$booking->property_id];
+        $properties = Property::whereIn('id', $propertyIds)->get();
+        if ($properties->isEmpty()) return;
+
         if ($booking->status === 'confirmed') {
-            $property->update(['status' => 'booked']);
+            Property::whereIn('id', $propertyIds)->update(['status' => 'booked']);
+            foreach ($properties as $property) {
+                if ($property->property_master_id && $property->unit_no === null) {
+                    $pm = \App\Models\PropertyMaster::find($property->property_master_id);
+                    if ($pm) {
+                        $pm->update(['status' => 'booked']);
+                        $pm->plots()->update(['status' => 'booked']);
+                    }
+                }
+            }
         } elseif ($booking->status === 'cancelled') {
-            $property->update(['status' => 'available']);
+            Property::whereIn('id', $propertyIds)->update(['status' => 'available']);
+            foreach ($properties as $property) {
+                if ($property->property_master_id && $property->unit_no === null) {
+                    $pm = \App\Models\PropertyMaster::find($property->property_master_id);
+                    if ($pm) {
+                        $pm->update(['status' => 'active']);
+                        $pm->plots()->update(['status' => 'available']);
+                    }
+                }
+            }
         }
     }
 
@@ -119,6 +142,9 @@ class BookingController extends Controller
             }
         }
 
+        $submittedPropIds = (array) ($request->property_ids ?: ($request->property_id ? [$request->property_id] : []));
+        $submittedPropIds = array_values(array_filter($submittedPropIds));
+
         $booking = Booking::create([
             'firm_id'          => $firmId,
             'property_id'      => $request->property_id,
@@ -141,7 +167,7 @@ class BookingController extends Controller
             'remarks'          => $request->remarks,
         ]);
 
-        $this->updatePropertyStatus($booking);
+        $this->updatePropertyStatus($booking, $submittedPropIds);
 
         // Save broker commission if broker selected and value entered
         if ($booking->broker_id && $request->filled('commission_value')) {
@@ -203,6 +229,9 @@ class BookingController extends Controller
             }
         }
 
+        $submittedPropIds = (array) ($request->property_ids ?: ($request->property_id ? [$request->property_id] : []));
+        $submittedPropIds = array_values(array_filter($submittedPropIds));
+
         $booking->update([
             'firm_id'          => $firmId,
             'property_id'      => $request->property_id,
@@ -225,7 +254,7 @@ class BookingController extends Controller
             'remarks'          => $request->remarks,
         ]);
 
-        $this->updatePropertyStatus($booking);
+        $this->updatePropertyStatus($booking, $submittedPropIds);
 
         // Save or update broker commission
         if ($booking->broker_id && $request->filled('commission_value')) {
@@ -256,8 +285,84 @@ class BookingController extends Controller
         $firmId = $user ? $user->firm_id : session('firm_id');
         if (!$isAdmin && $booking->firm_id != $firmId) abort(403);
 
+        $property = Property::find($booking->property_id);
+        if ($property) {
+            $property->update(['status' => 'available']);
+            if ($property->property_master_id && $property->unit_no === null) {
+                $pm = \App\Models\PropertyMaster::find($property->property_master_id);
+                if ($pm) {
+                    $pm->update(['status' => 'active']);
+                    $pm->plots()->update(['status' => 'available']);
+                }
+            }
+        }
+
         $booking->delete();
 
         return redirect()->route('bookings.index')->with('success', 'Booking deleted successfully.');
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $query = Booking::with(['firm', 'property.project', 'property.propertyMaster', 'customer', 'broker', 'paymentMode']);
+
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $query->where('firm_id', $firmId);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('status', 'like', "%{$s}%")
+                  ->orWhere('payment_status', 'like', "%{$s}%")
+                  ->orWhere('payment_mode', 'like', "%{$s}%")
+                  ->orWhere('transaction_ref', 'like', "%{$s}%")
+                  ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
+                  ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%{$s}%"))
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
+            });
+        }
+
+        if ($request->filled('filter_status')) {
+            $query->where('status', $request->filter_status);
+        }
+
+        $bookings = $query->latest()->get();
+        $totalCount = $bookings->count();
+        $totalFinalAmount = $bookings->sum('final_amount');
+        $totalBookingAmount = $bookings->sum('booking_amount');
+        $totalRemainingAmount = $bookings->sum('remaining_amount');
+
+        return view('admin.bookings.pdf', compact(
+            'bookings', 'totalCount', 'totalFinalAmount', 'totalBookingAmount', 'totalRemainingAmount'
+        ));
+    }
+
+    public function downloadPdf(Booking $booking)
+    {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        if (!$isAdmin && $booking->firm_id != $firmId) abort(403);
+
+        $booking->load([
+            'firm',
+            'property.propertyType',
+            'property.project',
+            'property.propertyMaster',
+            'customer',
+            'broker',
+            'paymentMode'
+        ]);
+
+        $commission = \App\Models\BrokerCommission::where('booking_id', $booking->id)->first();
+
+        return view('admin.bookings.show-pdf', compact('booking', 'commission'));
     }
 }

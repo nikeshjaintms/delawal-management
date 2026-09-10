@@ -180,6 +180,9 @@
     @endif
 
     <div class="form-actions">
+        <a href="{{ route('contractors.detail-pdf', $contractor->id) }}" target="_blank" class="btn-pc" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.45) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Print / PDF Dossier
+        </a>
         <a href="{{ route('contractors.edit', $contractor) }}" class="btn-pc">
             <i class="fa-solid fa-pen-to-square"></i> Edit Contractor
         </a>

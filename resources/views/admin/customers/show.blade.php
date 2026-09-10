@@ -383,6 +383,9 @@
 
     <!-- Action Buttons -->
     <div class="form-actions">
+        <a href="{{ route('customers.detail-pdf', $customer->id) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border: 1px solid rgba(252,105,0,0.45) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Print / PDF Dossier
+        </a>
         <a href="{{ route('customers.edit', $customer->id) }}" class="btn-gold">
             <i class="fa-regular fa-pen-to-square"></i> Edit Customer
         </a>

@@ -265,4 +265,71 @@ class ExpenseController extends Controller
         return redirect()->route('expenses.index')
             ->with('success', 'Expense deleted successfully.');
     }
+
+    public function exportPdf(Request $request)
+    {
+        $query = Expense::with(['firms', 'firm', 'project', 'property.propertyType', 'property.project', 'expenseCategory']);
+
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin) {
+            $query->forFirms([$firmId]);
+        } elseif ($request->filled('firm_ids') || $request->filled('firm_id')) {
+            $firmIds = $request->input('firm_ids', (array)$request->firm_id);
+            $query->forFirms($firmIds);
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('expense_title', 'like', "%{$s}%")
+                  ->orWhere('expense_category', 'like', "%{$s}%")
+                  ->orWhere('paid_to', 'like', "%{$s}%")
+                  ->orWhere('bill_no', 'like', "%{$s}%")
+                  ->orWhereHas('project', fn($pr) => $pr->where('project_name', 'like', "%{$s}%"))
+                  ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
+                  ->orWhereHas('firms', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
+            });
+        }
+
+        if ($request->filled('filter_project')) {
+            $query->where('project_id', $request->filter_project);
+        }
+        if ($request->filled('filter_property')) {
+            $query->where('property_id', $request->filter_property);
+        }
+        if ($request->filled('filter_category')) {
+            $query->where('expense_category_id', $request->filter_category);
+        }
+        if ($request->filled('filter_mode')) {
+            $query->where('payment_mode', $request->filter_mode);
+        }
+        if ($request->filled('filter_status')) {
+            $query->where('approval_status', $request->filter_status);
+        }
+        if ($request->filled('filter_date')) {
+            $query->where('expense_date', $request->filter_date);
+        }
+
+        $expenses = $query->orderBy('expense_date', 'desc')->get();
+        $totalExpensesCount = $expenses->count();
+        $totalExpenseAmount = $expenses->sum('amount');
+        $approvedExpenseAmount = $expenses->where('approval_status', 'Approved')->sum('amount');
+        $pendingExpenseAmount = $expenses->where('approval_status', 'Pending')->sum('amount');
+
+        return view('admin.expenses.pdf', compact(
+            'expenses', 'totalExpensesCount', 'totalExpenseAmount', 'approvedExpenseAmount', 'pendingExpenseAmount'
+        ));
+    }
+
+    public function downloadPdf(Expense $expense)
+    {
+        $this->authorise($expense);
+        $expense->load(['firms', 'firm', 'project.propertyMaster', 'property.propertyType', 'property.project.propertyMaster', 'expenseCategory', 'vendor']);
+
+        return view('admin.expenses.show-pdf', compact('expense'));
+    }
 }

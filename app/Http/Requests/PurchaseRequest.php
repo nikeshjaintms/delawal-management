@@ -30,6 +30,9 @@ class PurchaseRequest extends FormRequest
         if (!isset($inputs['purchase_amount']) || $inputs['purchase_amount'] === '') {
             $inputs['purchase_amount'] = 0;
         }
+        if (!isset($inputs['paid_amount']) || $inputs['paid_amount'] === '') {
+            $inputs['paid_amount'] = 0;
+        }
         if (empty($inputs['payment_status'])) {
             $inputs['payment_status'] = 'unpaid';
         }
@@ -59,6 +62,8 @@ class PurchaseRequest extends FormRequest
             'item_name'        => 'nullable|string|max:255',
             'purchase_date'    => 'nullable|date',
             'purchase_amount'  => 'nullable|numeric|min:0',
+            'paid_amount'      => 'nullable|numeric|min:0',
+            'due_amount'       => 'nullable|numeric|min:0',
             'quantity'         => 'nullable|numeric|min:0',
             'payment_mode'     => 'nullable|string|max:255',
             'payment_status'   => 'nullable|string|max:50',

@@ -125,9 +125,14 @@ select.filter-select option { background: #111827 !important; color: #FFFFFF !im
         <h2>Contractor Master</h2>
         <p>Manage project contractors, identity numbers, and bank account details.</p>
     </div>
-    <a href="{{ route('contractors.create') }}" class="btn-pc">
-        <i class="fa-solid fa-plus"></i> Add Contractor
-    </a>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('contractors.pdf', request()->query()) }}" target="_blank" class="btn-pc" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.4) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </a>
+        <a href="{{ route('contractors.create') }}" class="btn-pc">
+            <i class="fa-solid fa-plus"></i> Add Contractor
+        </a>
+    </div>
 </div>
 
 @if(session('success'))
@@ -250,6 +255,9 @@ select.filter-select option { background: #111827 !important; color: #FFFFFF !im
                     </td>
                     <td>
                         <div class="table-action-buttons">
+                            <a href="{{ route('contractors.detail-pdf', $con) }}" target="_blank" class="btn-view" style="color: #FF8A3D !important; border-color: rgba(252,105,0,0.3) !important;" title="Print Dossier">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </a>
                             <a href="{{ route('contractors.show', $con) }}" class="btn-view" title="View Details">
                                 <i class="fa-solid fa-eye"></i> View
                             </a>

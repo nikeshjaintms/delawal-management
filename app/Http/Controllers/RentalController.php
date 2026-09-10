@@ -275,4 +275,62 @@ class RentalController extends Controller
 
         return redirect()->route('rentals.index')->with('success', 'Rental record deleted successfully.');
     }
+
+    public function exportPdf(Request $request)
+    {
+        $query = Rental::with(['firm', 'property.project', 'tenant']);
+
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+
+        if (!$isAdmin) {
+            $query->where('firm_id', $user ? $user->firm_id : session('firm_id'));
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
+
+        if ($request->has('collect')) {
+            $query->where('rental_status', 'active');
+        }
+
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('tenant_name', 'like', "%{$search}%")
+                  ->orWhere('tenant_mobile', 'like', "%{$search}%")
+                  ->orWhere('payment_status', 'like', "%{$search}%")
+                  ->orWhere('rental_status', 'like', "%{$search}%")
+                  ->orWhereHas('property', fn($p) =>
+                      $p->where('property_name', 'like', "%{$search}%")
+                        ->orWhere('property_code', 'like', "%{$search}%")
+                  )
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $rentals = $query->latest()->get();
+        $totalRentalsCount = $rentals->count();
+        $totalMonthlyRent = $rentals->sum('rent_amount');
+        $totalDeposit = $rentals->sum('security_deposit');
+        $activeRentalsCount = $rentals->where('rental_status', 'active')->count();
+
+        return view('admin.rentals.pdf', compact(
+            'rentals', 'totalRentalsCount', 'totalMonthlyRent', 'totalDeposit', 'activeRentalsCount'
+        ));
+    }
+
+    public function downloadPdf(Rental $rental)
+    {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $rental->firm_id != $firmId) {
+            abort(403);
+        }
+
+        $rental->load(['firm', 'property.propertyType', 'property.project.propertyMaster', 'tenant']);
+
+        return view('admin.rentals.show-pdf', compact('rental'));
+    }
 }

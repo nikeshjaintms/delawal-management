@@ -226,4 +226,56 @@ class ContractorController extends Controller
         $contractors = $query->orderBy('contractor_name')->get(['id', 'contractor_name', 'mobile', 'project_id']);
         return response()->json($contractors);
     }
+
+    public function exportPdf(Request $request)
+    {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        $query = Contractor::with(['project.propertyMaster', 'firm']);
+
+        if (!$isAdmin) {
+            $query->where('firm_id', $firmId);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
+
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('contractor_name', 'like', "%{$s}%")
+                  ->orWhere('mobile', 'like', "%{$s}%")
+                  ->orWhere('aadhar_no', 'like', "%{$s}%")
+                  ->orWhere('pan_no', 'like', "%{$s}%")
+                  ->orWhere('bank_name', 'like', "%{$s}%")
+                  ->orWhere('account_number', 'like', "%{$s}%")
+                  ->orWhereHas('project', function ($pq) use ($s) {
+                      $pq->where('project_name', 'like', "%{$s}%");
+                  });
+            });
+        }
+
+        $contractors = $query->latest()->get();
+        $totalContractors = $contractors->count();
+        $activeContractors = $contractors->where('status', 'active')->count();
+
+        return view('admin.contractors.pdf', compact('contractors', 'totalContractors', 'activeContractors'));
+    }
+
+    public function downloadPdf(Contractor $contractor)
+    {
+        $this->authorise($contractor);
+        $contractor->load(['project.propertyMaster', 'firm', 'firms', 'creator', 'updater']);
+
+        return view('admin.contractors.show-pdf', compact('contractor'));
+    }
 }

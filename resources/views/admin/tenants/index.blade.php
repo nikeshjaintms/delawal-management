@@ -89,10 +89,15 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
         <h2>Tenant Master</h2>
         <p>Add and manage tenant identity and rental contact details.</p>
     </div>
-    <a href="{{ route('tenants.create') }}" class="btn-gold">
-        <i class="fa-solid fa-plus"></i>
-        <span>Add Tenant</span>
-    </a>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('tenants.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.4) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </a>
+        <a href="{{ route('tenants.create') }}" class="btn-gold">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Tenant</span>
+        </a>
+    </div>
 </div>
 
 @if(session('success'))
@@ -170,6 +175,9 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                         </td>
                         <td>
                             <div class="action-buttons-wrap">
+                                <a href="{{ route('tenants.detail-pdf', $tenant->id) }}" target="_blank" class="btn-view" style="background: rgba(252,105,0,0.15) !important; color: #FF8A3D !important; border: 1px solid rgba(252,105,0,0.30) !important;" title="Print / PDF Dossier">
+                                    <i class="fa fa-file-pdf"></i> PDF
+                                </a>
                                 <a href="{{ route('tenants.show', $tenant->id) }}" class="btn-view">
                                     <i class="fa fa-eye"></i> View
                                 </a>

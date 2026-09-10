@@ -70,6 +70,8 @@
     .dqa-green:hover   { background: #16A34A !important; border-color: #22C55E !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(22, 163, 74, 0.5) !important; }
     .dqa-bronze:hover  { background: #854D0E !important; border-color: #A16207 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(133, 77, 14, 0.5) !important; }
     .dqa-fuchsia:hover { background: #C026D3 !important; border-color: #D946EF !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(192, 38, 211, 0.5) !important; }
+    .dqa-orange:hover  { background: #EA580C !important; border-color: #FB923C !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(234, 88, 12, 0.5) !important; }
+    .dqa-cyan:hover    { background: #0891B2 !important; border-color: #06B6D4 !important; color: #FFFFFF !important; box-shadow: 0 6px 22px rgba(8, 145, 178, 0.5) !important; }
 
     /* --- KPI Section Header --- */
     .kpi-section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
@@ -226,9 +228,12 @@
             </div>
             <div class="dash-quick-actions">
                 <a href="{{ route('property-masters.create') }}" class="dqa-btn dqa-purple"><i class="fa-solid fa-building"></i> Add Property</a>
+                <a href="{{ route('property-sales.create') }}" class="dqa-btn dqa-green"><i class="fa-solid fa-handshake"></i> Add Property Sell</a>
                 <a href="{{ route('projects.create') }}" class="dqa-btn dqa-teal"><i class="fa-solid fa-city"></i> Add Project</a>
                 <a href="{{ route('contractors.create') }}" class="dqa-btn dqa-amber"><i class="fa-solid fa-helmet-safety"></i> Add Contractor</a>
+                <a href="{{ route('vendors.create') }}" class="dqa-btn dqa-orange"><i class="fa-solid fa-truck-field"></i> Add Vendor</a>
                 <a href="{{ route('customers.create') }}" class="dqa-btn dqa-blue"><i class="fa-solid fa-users"></i> Add Customer</a>
+                <a href="{{ route('tenants.create') }}" class="dqa-btn dqa-cyan"><i class="fa-solid fa-house-user"></i> Add Tenant</a>
                 <a href="{{ route('brokers.create') }}" class="dqa-btn dqa-violet"><i class="fa-solid fa-user-tie"></i> Add Broker</a>
                 <a href="{{ route('bookings.create') }}" class="dqa-btn dqa-emerald"><i class="fa-solid fa-calendar-check"></i> Add Booking</a>
                 <a href="{{ route('payments.create') }}" class="dqa-btn dqa-rose"><i class="fa-solid fa-money-bill-wave"></i> Add Payment</a>

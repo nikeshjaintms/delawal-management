@@ -34,6 +34,14 @@ class PropertySale extends Model
         'note',
     ];
 
+    protected $casts = [
+        'sale_date'        => 'date',
+        'sale_amount'      => 'decimal:2',
+        'booking_amount'   => 'decimal:2',
+        'remaining_amount' => 'decimal:2',
+        'grand_total'      => 'decimal:2',
+    ];
+
     public function firm()
     {
         return $this->belongsTo(Firm::class);
@@ -57,5 +65,18 @@ class PropertySale extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class, 'property_sale_id');
+    }
+
+    /**
+     * Get percentage of sale amount paid
+     */
+    public function getPaidPercentageAttribute(): float
+    {
+        $price = (float)($this->sale_amount ?? $this->grand_total ?? 0);
+        $paid  = (float)($this->booking_amount ?? 0);
+        if ($price <= 0) {
+            return $paid > 0 ? 100.0 : 0.0;
+        }
+        return min(100.0, round(($paid / $price) * 100, 1));
     }
 }

@@ -25,6 +25,15 @@ class ProjectRequest extends FormRequest
         if (isset($inputs['firm_ids']) && is_array($inputs['firm_ids']) && !empty($inputs['firm_ids'])) {
             $inputs['firm_id'] = $inputs['firm_ids'][0];
         }
+
+        if (isset($inputs['property_ids']) && is_array($inputs['property_ids']) && !empty($inputs['property_ids'])) {
+            $inputs['property_ids'] = array_values(array_filter($inputs['property_ids']));
+            if (!empty($inputs['property_ids'])) {
+                $inputs['property_id'] = $inputs['property_ids'][0];
+            }
+        } elseif (!empty($inputs['property_id'])) {
+            $inputs['property_ids'] = [$inputs['property_id']];
+        }
         
         $this->replace($inputs);
     }
@@ -47,7 +56,9 @@ class ProjectRequest extends FormRequest
 
         $rules = [
             'firm_id' => (auth()->user() && auth()->user()->isAdmin()) ? 'required|exists:firms,id' : 'nullable|exists:firms,id',
-            'property_id' => 'required|exists:property_masters,id',
+            'property_ids' => 'nullable|array',
+            'property_ids.*' => 'exists:property_masters,id',
+            'property_id' => 'nullable|exists:property_masters,id',
             'project_name' => 'required|string|max:255',
             'project_code' => 'nullable|string|max:100|unique:projects,project_code,{ID},id,firm_id,{FIRM_ID}',
             'project_type' => 'required|string|max:255',
