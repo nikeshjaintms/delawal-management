@@ -527,7 +527,7 @@ class PropertyMasterController extends Controller
                     'firm_id'            => $propertyMaster->firm_id,
                     'property_master_id' => $propertyMaster->id,
                     'project_id'         => $request->project_id ?: null,
-                    'property_type_id'   => reset($propertyTypes) ?: null,
+                    'property_type_id'   => reset($propertyTypes) ?: PropertyType::withoutGlobalScopes()->firstOrCreate(['name' => 'Plot'], ['status' => 'active'])->id,
                     'property_name'      => $plotName,
                     'property_code'      => $plotCode,
                     'unit_no'            => $unitNo,

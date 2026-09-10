@@ -785,7 +785,14 @@ class PropertyController extends Controller
             }
         }
 
-        $propertyTypes = PropertyType::with('firms')->get();
+        $propertyTypes = PropertyType::withoutGlobalScopes()->with('firms')->get();
+        if ($propertyTypes->isEmpty()) {
+            $defaultTypes = ['Plot', 'House', 'Flat', 'Villa', 'Shop', 'Office', 'Commercial', 'Residential'];
+            foreach ($defaultTypes as $dt) {
+                PropertyType::withoutGlobalScopes()->firstOrCreate(['name' => $dt], ['status' => 'active']);
+            }
+            $propertyTypes = PropertyType::withoutGlobalScopes()->with('firms')->get();
+        }
         $typesByName = [];
         $typesByFirm = [];
         foreach ($propertyTypes as $pt) {
@@ -1015,7 +1022,7 @@ class PropertyController extends Controller
                 if (empty($address) && $currMaster) $address = $currMaster->address;
             }
 
-            // Property Type Validation (With 4-Step Smart Resilient Fallback)
+            // Property Type Validation & Intelligent Multi-Tier Inference
             $propertyTypeId = null;
             $typeName = '';
 
@@ -1036,58 +1043,85 @@ class PropertyController extends Controller
                 }
             }
 
-            // Step B: If typeInput is STILL empty, infer from Property Name or Code (e.g. "Plot 1" => "Plot")
+            // Step B: If typeInput is empty, check matched Project or PropertyMaster type
+            if (empty($typeInput) && $projectId) {
+                $matchedProjectObj = $projects->firstWhere('id', $projectId);
+                if (!empty($matchedProjectObj?->project_type)) {
+                    $typeInput = $matchedProjectObj->project_type;
+                }
+            }
+
+            // Step C: If typeInput is STILL empty, infer from Property Name or Code
             if (empty($typeInput)) {
                 $combinedText = strtolower($name . ' ' . $code);
-                foreach ($propertyTypes as $pt) {
-                    $ptLower = strtolower(trim($pt->name));
-                    if (str_contains($combinedText, $ptLower) || ($ptLower === 'plot' && (str_contains($combinedText, 'plot') || str_starts_with(strtolower($code), 'p')))) {
-                        $typeInput = $pt->name;
-                        break;
-                    }
+                if (str_contains($combinedText, 'house') || str_contains($combinedText, 'bungalow') || str_contains($combinedText, 'row house') || str_contains($combinedText, 'tenement')) {
+                    $typeInput = 'House';
+                } elseif (str_contains($combinedText, 'flat') || str_contains($combinedText, 'apartment') || str_contains($combinedText, 'apt')) {
+                    $typeInput = 'Flat';
+                } elseif (str_contains($combinedText, 'villa')) {
+                    $typeInput = 'Villa';
+                } elseif (str_contains($combinedText, 'shop') || str_contains($combinedText, 'showroom') || str_contains($combinedText, 'store')) {
+                    $typeInput = 'Shop';
+                } elseif (str_contains($combinedText, 'office')) {
+                    $typeInput = 'Office';
+                } elseif (str_contains($combinedText, 'plot') || str_starts_with(strtolower($code), 'p') || str_starts_with(strtolower($code), 'pl')) {
+                    $typeInput = 'Plot';
                 }
             }
 
-            // Step C: If typeInput is STILL empty, default to "Plot" or first active PropertyType
+            // Step D: Default to "Plot", "Residential", "House" or first available PropertyType
             if (empty($typeInput)) {
-                $defaultPt = $propertyTypes->first(fn($pt) => strtolower(trim($pt->name)) === 'plot') ?: $propertyTypes->first();
-                if ($defaultPt) {
-                    $typeInput = $defaultPt->name;
+                $defaultPt = $propertyTypes->first(fn($pt) => strtolower(trim($pt->name)) === 'plot')
+                    ?: ($propertyTypes->first(fn($pt) => strtolower(trim($pt->name)) === 'residential') 
+                    ?: ($propertyTypes->first(fn($pt) => strtolower(trim($pt->name)) === 'house') 
+                    ?: $propertyTypes->first()));
+                $typeInput = $defaultPt ? $defaultPt->name : 'Plot';
+            }
+
+            // Step E: Resolve PropertyType ID (Lookup or Auto-Create on the fly)
+            $typeKey = strtolower(trim($typeInput));
+            if ($targetFirmId && isset($typesByFirm[$targetFirmId][$typeKey])) {
+                $propertyTypeId = $typesByFirm[$targetFirmId][$typeKey];
+                $typeName = $typeInput;
+            } elseif (isset($typesByName[$typeKey])) {
+                $propertyTypeId = $typesByName[$typeKey];
+                $typeName = $typeInput;
+            } else {
+                $matchedPt = $propertyTypes->first(function ($pt) use ($typeKey) {
+                    $ptNameLower = strtolower(trim($pt->name));
+                    $singularType = rtrim($typeKey, 's');
+                    $singularPt = rtrim($ptNameLower, 's');
+                    return $ptNameLower === $typeKey || $singularPt === $singularType || str_contains($ptNameLower, $typeKey) || str_contains($typeKey, $ptNameLower);
+                });
+
+                if ($matchedPt) {
+                    $propertyTypeId = $matchedPt->id;
+                    $typeName = $matchedPt->name;
+                } else {
+                    $cleanTypeName = ucwords(trim($typeInput ?: 'Plot'));
+                    $newPt = PropertyType::withoutGlobalScopes()->firstOrCreate(
+                        ['name' => $cleanTypeName],
+                        ['status' => 'active']
+                    );
+                    if ($targetFirmId && method_exists($newPt, 'firms')) {
+                        $newPt->firms()->syncWithoutDetaching([$targetFirmId]);
+                    }
+                    $propertyTypeId = $newPt->id;
+                    $typeName = $newPt->name;
+
+                    // Cache in local arrays
+                    $typesByName[strtolower($cleanTypeName)] = $newPt->id;
+                    if ($targetFirmId) {
+                        $typesByFirm[$targetFirmId][strtolower($cleanTypeName)] = $newPt->id;
+                    }
                 }
             }
 
-            // Step D: Perform exact/soft/firm lookup using $typeInput
-            if (!empty($typeInput)) {
-                $typeKey = strtolower(trim($typeInput));
-                if ($targetFirmId && isset($typesByFirm[$targetFirmId][$typeKey])) {
-                    $propertyTypeId = $typesByFirm[$targetFirmId][$typeKey];
-                    $typeName = $typeInput;
-                } elseif (isset($typesByName[$typeKey])) {
-                    $propertyTypeId = $typesByName[$typeKey];
-                    $typeName = $typeInput;
-                } else {
-                    $matchedPt = $propertyTypes->first(function ($pt) use ($typeKey) {
-                        $ptNameLower = strtolower(trim($pt->name));
-                        $singularType = rtrim($typeKey, 's');
-                        $singularPt = rtrim($ptNameLower, 's');
-                        return $ptNameLower === $typeKey || $singularPt === $singularType || str_contains($ptNameLower, $typeKey) || str_contains($typeKey, $ptNameLower);
-                    });
-
-                    if ($matchedPt) {
-                        $propertyTypeId = $matchedPt->id;
-                        $typeName = $matchedPt->name;
-                    } else {
-                        $plotPt = $propertyTypes->first(fn($pt) => strtolower(trim($pt->name)) === 'plot') ?: $propertyTypes->first();
-                        if ($plotPt) {
-                            $propertyTypeId = $plotPt->id;
-                            $typeName = $plotPt->name;
-                        } else {
-                            $errors[] = "Row {$r}: Invalid Property Type '{$typeInput}'. Type does not exist in master.";
-                        }
-                    }
-                }
-            } else {
-                $errors[] = "Row {$r}: Property Type is required.";
+            // Safety Guarantee: If somehow not resolved, fallback to default Plot
+            if (!$propertyTypeId) {
+                $fallbackPt = PropertyType::withoutGlobalScopes()->firstOrCreate(['name' => 'Plot'], ['status' => 'active']);
+                $propertyTypeId = $fallbackPt->id;
+                $typeName = $fallbackPt->name;
             }
 
             // Property Code Validation & Action Determination (NEW vs UPDATE)
@@ -1309,11 +1343,24 @@ class PropertyController extends Controller
                     }
                 }
 
+                $targetPropertyTypeId = $row['property_type_id'] ?? null;
+                if (!$targetPropertyTypeId || !PropertyType::withoutGlobalScopes()->where('id', $targetPropertyTypeId)->exists()) {
+                    $fallbackName = !empty($row['property_type_name']) ? $row['property_type_name'] : 'Plot';
+                    $fallbackPt = PropertyType::withoutGlobalScopes()->firstOrCreate(
+                        ['name' => ucwords($fallbackName)],
+                        ['status' => 'active']
+                    );
+                    if (!empty($row['firm_id']) && method_exists($fallbackPt, 'firms')) {
+                        $fallbackPt->firms()->syncWithoutDetaching([$row['firm_id']]);
+                    }
+                    $targetPropertyTypeId = $fallbackPt->id;
+                }
+
                 $propertyData = [
                     'firm_id' => $row['firm_id'],
                     'property_master_id' => $row['property_master_id'] ?? null,
                     'project_id' => $row['project_id'],
-                    'property_type_id' => $row['property_type_id'],
+                    'property_type_id' => $targetPropertyTypeId,
                     'property_code' => $row['property_code'],
                     'property_name' => $row['property_name'],
                     'status' => $row['status'],
@@ -1336,7 +1383,7 @@ class PropertyController extends Controller
                             'firm_id' => $row['firm_id'],
                             'property_master_id' => $row['property_master_id'] ?? $existingProperty->property_master_id,
                             'project_id' => $row['project_id'],
-                            'property_type_id' => $row['property_type_id'],
+                            'property_type_id' => $targetPropertyTypeId,
                             'property_code' => $row['property_code'],
                             'property_name' => $row['property_name'],
                             'status' => $row['status'],
