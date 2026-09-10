@@ -276,9 +276,9 @@
             <i class="fa-solid fa-trash"></i>
             <span>Bulk Delete (<span id="bulk-delete-count">0</span>)</span>
         </button>
-        <button type="button" class="btn-gold" id="btn-open-import-modal" onclick="openImportModal()" style="background-color: #1E293B; box-shadow: 0 4px 10px rgba(30,41,59,0.2);">
-            <i class="fa-solid fa-file-import"></i>
-            <span>📥 Import Excel</span>
+        <button type="button" class="btn-gold" id="btn-open-import-modal" onclick="openImportModal()" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important; border: 1px solid #34D399 !important; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.40);">
+            <i class="fa-solid fa-file-excel"></i>
+            <span>Import from Excel</span>
         </button>
         <a href="{{ route('properties.create', request('project_id') ? ['project_id' => request('project_id')] : []) }}" class="btn-gold">
             <i class="fa-solid fa-plus"></i>

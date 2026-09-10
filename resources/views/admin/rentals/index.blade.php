@@ -124,7 +124,7 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
         @endif
     </div>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <a href="{{ route('rentals.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.4) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+        <a href="{{ route('rentals.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important; border: 1px solid #F87171 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.40);">
             <i class="fa-solid fa-file-pdf"></i> Export PDF
         </a>
         @if(!request()->has('collect'))
