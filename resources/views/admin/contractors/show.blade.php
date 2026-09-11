@@ -98,6 +98,11 @@
 </div>
 
 <div class="card-box">
+    @php
+        $assignedProjs = $contractor->relationLoaded('projects') && $contractor->projects->isNotEmpty()
+            ? $contractor->projects
+            : ($contractor->project ? collect([$contractor->project]) : collect());
+    @endphp
     <div class="hero-box">
         <div class="hero-left">
             <div class="hero-icon"><i class="fa-solid fa-helmet-safety"></i></div>
@@ -105,7 +110,7 @@
                 <h3>{{ $contractor->contractor_name }}</h3>
                 <p>
                     <i class="fa-solid fa-city" style="color: #60A5FA;"></i>
-                    {{ $contractor->project->project_name ?? 'No Project' }}
+                    {{ $assignedProjs->pluck('project_name')->implode(', ') ?: 'No Project Assigned' }}
                 </p>
             </div>
         </div>
@@ -117,21 +122,49 @@
     </div>
 
     {{-- Project Section --}}
-    <div class="section-title"><i class="fa-solid fa-city"></i> Assigned Project</div>
-    <div class="detail-grid">
-        <div class="detail-card">
-            <div class="detail-label"><i class="fa-solid fa-building"></i> Project Name</div>
-            <div class="detail-value">
-                <a href="{{ route('projects.show', $contractor->project_id) }}" style="color: #60A5FA; text-decoration: none; font-weight: 800;">
-                    {{ $contractor->project->project_name ?? '—' }} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px;"></i>
-                </a>
+    <div class="section-title"><i class="fa-solid fa-city"></i> Assigned Project(s) ({{ $assignedProjs->count() }})</div>
+    <div class="detail-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
+        @forelse($assignedProjs as $proj)
+            <div class="detail-card">
+                <div class="detail-label"><i class="fa-solid fa-building"></i> Project Name</div>
+                <div class="detail-value">
+                    <a href="{{ route('projects.show', $proj->id) }}" style="color: #60A5FA; text-decoration: none; font-weight: 800;">
+                        {{ $proj->project_name }} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px;"></i>
+                    </a>
+                </div>
+                @if($proj->propertyMaster)
+                    <div style="font-size: 12px; color: #94A3B8; margin-top: 6px;">
+                        <i class="fa-solid fa-landmark"></i> Property: <strong style="color: #E2E8F0;">{{ $proj->propertyMaster->property_name }}</strong>
+                    </div>
+                @endif
             </div>
-        </div>
-        <div class="detail-card">
-            <div class="detail-label"><i class="fa-solid fa-landmark"></i> Property Master</div>
-            <div class="detail-value">{{ $contractor->project->propertyMaster->property_name ?? '—' }}</div>
-        </div>
+        @empty
+            <div class="detail-card" style="grid-column: 1 / -1;">
+                <div class="detail-value" style="color: #94A3B8;">No projects currently assigned.</div>
+            </div>
+        @endforelse
     </div>
+
+    {{-- Specific Assigned Plots / Units Section --}}
+    @if($contractor->properties && $contractor->properties->isNotEmpty())
+        <div class="section-title" style="color: #34D399;"><i class="fa-solid fa-shapes"></i> Specific Assigned Plot(s) / Unit(s) ({{ $contractor->properties->count() }})</div>
+        <div class="detail-grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px;">
+            @foreach($contractor->properties as $prop)
+                <div class="detail-card" style="border-color: rgba(16, 185, 129, 0.25); background: rgba(16, 185, 129, 0.04);">
+                    <div class="detail-label" style="color: #34D399;"><i class="fa-solid fa-cube"></i> Unit / Plot</div>
+                    <div class="detail-value" style="color: #FFFFFF; font-size: 14px;">
+                        {{ $prop->property_name }}
+                        @if($prop->property_code)
+                            <span style="font-size: 11px; color: #94A3B8;">[{{ $prop->property_code }}]</span>
+                        @endif
+                    </div>
+                    <div style="font-size: 11.5px; color: #94A3B8; margin-top: 4px;">
+                        <i class="fa-solid fa-city" style="color: #60A5FA;"></i> {{ $prop->project->project_name ?? '—' }}
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
 
     {{-- Identity & Contact Information --}}
     <div class="section-title"><i class="fa-solid fa-id-card"></i> Identity & Contact Details</div>

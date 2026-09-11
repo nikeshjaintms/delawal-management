@@ -89,7 +89,12 @@
         <tr>
             <td style="color:#9CA3AF;">{{ $i+1 }}</td>
             <td><strong>{{ $item->name }}</strong></td>
-            <td>{{ $item->mobile ?: '-' }}</td>
+            <td>
+                {{ $item->mobile ?: '-' }}
+                @if($item->alternate_mobile)
+                    <br><span style="font-size:9.5px;color:#64748B;">Alt: {{ $item->alternate_mobile }}</span>
+                @endif
+            </td>
             <td>{{ $item->email ?: '-' }}</td>
             <td>{{ $item->firm->firm_name ?? '-' }}</td>
             <td>{{ ucfirst($item->customer_type ?: 'Individual') }}</td>

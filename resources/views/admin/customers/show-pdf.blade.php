@@ -81,8 +81,12 @@
             <span class="info-value">{{ $customer->name }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Mobile Number:</span>
+            <span class="info-label">Primary Mobile:</span>
             <span class="info-value">{{ $customer->mobile ?: '-' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Alternate Mobile:</span>
+            <span class="info-value">{{ $customer->alternate_mobile ?: '-' }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Email Address:</span>

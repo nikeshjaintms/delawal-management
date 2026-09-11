@@ -73,6 +73,11 @@ class Property extends Model
         return $this->hasMany(Income::class);
     }
 
+    public function contractors()
+    {
+        return $this->belongsToMany(Contractor::class, 'contractor_property', 'property_id', 'contractor_id')->withTimestamps();
+    }
+
     public function getFormattedSizeAttribute(): string
     {
         if (empty($this->size)) {

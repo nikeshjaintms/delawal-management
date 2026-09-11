@@ -28,16 +28,22 @@ class ContractorController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
-        $query = Contractor::with(['project', 'firm']);
+        $query = Contractor::with(['project', 'projects', 'properties', 'firm', 'firms']);
 
         if (!$isAdmin) {
-            $query->where('firm_id', $firmId);
+            $query->forFirms([$firmId]);
         } elseif ($request->filled('firm_id')) {
-            $query->where('firm_id', $request->firm_id);
+            $query->forFirms([$request->firm_id]);
         }
 
         if ($request->filled('project_id')) {
-            $query->where('project_id', $request->project_id);
+            $pId = $request->project_id;
+            $query->where(function ($q) use ($pId) {
+                $q->where('project_id', $pId)
+                  ->orWhereHas('projects', function ($pq) use ($pId) {
+                      $pq->where('projects.id', $pId);
+                  });
+            });
         }
 
         if ($request->filled('status')) {
@@ -53,8 +59,16 @@ class ContractorController extends Controller
                   ->orWhere('pan_no', 'like', "%{$s}%")
                   ->orWhere('bank_name', 'like', "%{$s}%")
                   ->orWhere('account_number', 'like', "%{$s}%")
+                  ->orWhereHas('projects', function ($pq) use ($s) {
+                      $pq->where('project_name', 'like', "%{$s}%");
+                  })
                   ->orWhereHas('project', function ($pq) use ($s) {
                       $pq->where('project_name', 'like', "%{$s}%");
+                  })
+                  ->orWhereHas('properties', function ($pq) use ($s) {
+                      $pq->where('property_name', 'like', "%{$s}%")
+                         ->orWhere('property_code', 'like', "%{$s}%")
+                         ->orWhere('unit_no', 'like', "%{$s}%");
                   });
             });
         }
@@ -81,10 +95,10 @@ class ContractorController extends Controller
         $firmId = $user ? $user->firm_id : session('firm_id');
 
         if ($isAdmin) {
-            $projects = Project::with(['propertyMaster', 'firm', 'firms'])->orderBy('project_name')->get();
+            $projects = Project::with(['properties', 'propertyMaster', 'firm', 'firms'])->orderBy('project_name')->get();
             $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
         } else {
-            $projects = Project::forFirms([$firmId])->with(['propertyMaster', 'firm', 'firms'])->orderBy('project_name')->get();
+            $projects = Project::forFirms([$firmId])->with(['properties', 'propertyMaster', 'firm', 'firms'])->orderBy('project_name')->get();
             $firms = collect();
         }
 
@@ -102,9 +116,15 @@ class ContractorController extends Controller
         }
         $primaryFirmId = reset($firmIds);
 
+        $projectIds = (array) $request->project_ids;
+        if (empty($projectIds) && $request->filled('project_id')) {
+            $projectIds = [(int)$request->project_id];
+        }
+        $primaryProjectId = reset($projectIds) ?: null;
+
         $contractor = Contractor::create([
             'firm_id'         => $primaryFirmId,
-            'project_id'      => $request->project_id,
+            'project_id'      => $primaryProjectId,
             'contractor_name' => $request->contractor_name,
             'mobile'          => $request->mobile,
             'aadhar_no'       => $request->aadhar_no,
@@ -120,11 +140,15 @@ class ContractorController extends Controller
         ]);
 
         $contractor->syncFirms($firmIds);
+        $contractor->syncProjects($projectIds);
+
+        $propertyIds = (array) $request->property_ids;
+        $contractor->syncProperties($propertyIds);
 
         \App\Models\AuditLog::log(
             'Contractor Management',
             'Create',
-            "Created new contractor '{$contractor->contractor_name}' for Project ID {$contractor->project_id}"
+            "Created new contractor '{$contractor->contractor_name}' with " . count($projectIds) . " assigned project(s) and " . count($propertyIds) . " assigned plot(s)/unit(s)"
         );
 
         return redirect()->route('contractors.index')
@@ -134,7 +158,7 @@ class ContractorController extends Controller
     public function show(Contractor $contractor)
     {
         $this->authorise($contractor);
-        $contractor->load(['project.propertyMaster', 'firm', 'creator', 'updater']);
+        $contractor->load(['project.propertyMaster', 'projects.propertyMaster', 'properties.project', 'firm', 'firms', 'creator', 'updater']);
 
         return view('admin.contractors.show', compact('contractor'));
     }
@@ -146,11 +170,13 @@ class ContractorController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
+        $contractor->load(['projects', 'properties', 'firms']);
+
         if ($isAdmin) {
-            $projects = Project::with(['propertyMaster', 'firm', 'firms'])->orderBy('project_name')->get();
+            $projects = Project::with(['properties', 'propertyMaster', 'firm', 'firms'])->orderBy('project_name')->get();
             $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
         } else {
-            $projects = Project::forFirms([$contractor->firm_id])->with(['propertyMaster', 'firm', 'firms'])->orderBy('project_name')->get();
+            $projects = Project::forFirms([$contractor->firm_id])->with(['properties', 'propertyMaster', 'firm', 'firms'])->orderBy('project_name')->get();
             $firms = collect();
         }
 
@@ -168,9 +194,15 @@ class ContractorController extends Controller
         }
         $primaryFirmId = reset($firmIds);
 
+        $projectIds = (array) $request->project_ids;
+        if (empty($projectIds) && $request->filled('project_id')) {
+            $projectIds = [(int)$request->project_id];
+        }
+        $primaryProjectId = reset($projectIds) ?: null;
+
         $contractor->update([
             'firm_id'         => $primaryFirmId,
-            'project_id'      => $request->project_id,
+            'project_id'      => $primaryProjectId,
             'contractor_name' => $request->contractor_name,
             'mobile'          => $request->mobile,
             'aadhar_no'       => $request->aadhar_no,
@@ -185,11 +217,15 @@ class ContractorController extends Controller
         ]);
 
         $contractor->syncFirms($firmIds);
+        $contractor->syncProjects($projectIds);
+
+        $propertyIds = (array) $request->property_ids;
+        $contractor->syncProperties($propertyIds);
 
         \App\Models\AuditLog::log(
             'Contractor Management',
             'Update',
-            "Updated contractor '{$contractor->contractor_name}' (ID: {$contractor->id})"
+            "Updated contractor '{$contractor->contractor_name}' (ID: {$contractor->id}) with " . count($projectIds) . " assigned project(s) and " . count($propertyIds) . " assigned plot(s)/unit(s)"
         );
 
         return redirect()->route('contractors.index')
@@ -218,9 +254,16 @@ class ContractorController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
-        $query = Contractor::where('project_id', $projectId)->where('status', 'active');
+        $query = Contractor::where('status', 'active')
+            ->where(function ($q) use ($projectId) {
+                $q->where('project_id', $projectId)
+                  ->orWhereHas('projects', function ($pq) use ($projectId) {
+                      $pq->where('projects.id', $projectId);
+                  });
+            });
+
         if (!$isAdmin && $firmId) {
-            $query->where('firm_id', $firmId);
+            $query->forFirms([$firmId]);
         }
 
         $contractors = $query->orderBy('contractor_name')->get(['id', 'contractor_name', 'mobile', 'project_id']);
@@ -233,16 +276,22 @@ class ContractorController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
-        $query = Contractor::with(['project.propertyMaster', 'firm']);
+        $query = Contractor::with(['project.propertyMaster', 'projects.propertyMaster', 'properties', 'firm', 'firms']);
 
         if (!$isAdmin) {
-            $query->where('firm_id', $firmId);
+            $query->forFirms([$firmId]);
         } elseif ($request->filled('firm_id')) {
-            $query->where('firm_id', $request->firm_id);
+            $query->forFirms([$request->firm_id]);
         }
 
         if ($request->filled('project_id')) {
-            $query->where('project_id', $request->project_id);
+            $pId = $request->project_id;
+            $query->where(function ($q) use ($pId) {
+                $q->where('project_id', $pId)
+                  ->orWhereHas('projects', function ($pq) use ($pId) {
+                      $pq->where('projects.id', $pId);
+                  });
+            });
         }
 
         if ($request->filled('status')) {
@@ -258,8 +307,16 @@ class ContractorController extends Controller
                   ->orWhere('pan_no', 'like', "%{$s}%")
                   ->orWhere('bank_name', 'like', "%{$s}%")
                   ->orWhere('account_number', 'like', "%{$s}%")
+                  ->orWhereHas('projects', function ($pq) use ($s) {
+                      $pq->where('project_name', 'like', "%{$s}%");
+                  })
                   ->orWhereHas('project', function ($pq) use ($s) {
                       $pq->where('project_name', 'like', "%{$s}%");
+                  })
+                  ->orWhereHas('properties', function ($pq) use ($s) {
+                      $pq->where('property_name', 'like', "%{$s}%")
+                         ->orWhere('property_code', 'like', "%{$s}%")
+                         ->orWhere('unit_no', 'like', "%{$s}%");
                   });
             });
         }
@@ -274,7 +331,7 @@ class ContractorController extends Controller
     public function downloadPdf(Contractor $contractor)
     {
         $this->authorise($contractor);
-        $contractor->load(['project.propertyMaster', 'firm', 'firms', 'creator', 'updater']);
+        $contractor->load(['project.propertyMaster', 'projects.propertyMaster', 'properties.project', 'firm', 'firms', 'creator', 'updater']);
 
         return view('admin.contractors.show-pdf', compact('contractor'));
     }

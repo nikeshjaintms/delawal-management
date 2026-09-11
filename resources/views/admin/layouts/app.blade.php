@@ -2267,7 +2267,7 @@
 
         {{-- 1. Property Management --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'property-masters.') || str_starts_with($currentRoute ?? '', 'purchases.') || str_starts_with($currentRoute ?? '', 'property-sales.') || str_starts_with($currentRoute ?? '', 'property-availability.') || str_starts_with($currentRoute ?? '', 'property-documents.')) ? 'parent-active' : '' }}" data-label="1. Property Management">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'property-masters.') || str_starts_with($currentRoute ?? '', 'property-sales.') || str_starts_with($currentRoute ?? '', 'property-availability.') || str_starts_with($currentRoute ?? '', 'property-documents.')) ? 'parent-active' : '' }}" data-label="1. Property Management">
                 <i class="fa-solid fa-building"></i><span>1. Property Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>

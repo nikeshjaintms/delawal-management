@@ -10,10 +10,23 @@ class PropertyMaster extends Model
 
     protected $table = 'property_masters';
 
+    const PROPERTY_TYPES = [
+        'Land'        => 'Land',
+        'Plot'        => 'Plot',
+        'House'       => 'House',
+        'Flat'        => 'Flat',
+        'Commercial'  => 'Commercial',
+        'Villa'       => 'Villa',
+        'Farmhouse'   => 'Farmhouse',
+        'Industrial'  => 'Industrial',
+        'Other'       => 'Other',
+    ];
+
     protected $fillable = [
         'firm_id',
         'property_name',
         'property_code',
+        'property_type',
         'purchase_price',
         'paid_amount',
         'due_amount',
@@ -21,8 +34,21 @@ class PropertyMaster extends Model
         'purchase_rate',
         'total_area',
         'area_unit',
+        'total_units_count',
+        'unit_numbers_list',
+        'unit_prefix',
         'seller_name',
         'vendor_id',
+        'broker_id',
+        'broker_name',
+        'broker_commission_type',
+        'broker_commission_rate',
+        'broker_commission_amount',
+        'broker_commission_paid',
+        'broker_commission_due',
+        'broker_commission_payment_mode',
+        'broker_commission_status',
+        'broker_notes',
         'payment_mode',
         'payment_status',
         'location',
@@ -40,13 +66,68 @@ class PropertyMaster extends Model
     ];
 
     protected $casts = [
-        'purchase_price' => 'decimal:2',
-        'paid_amount'    => 'decimal:2',
-        'due_amount'     => 'decimal:2',
-        'purchase_rate'  => 'decimal:2',
-        'total_area'     => 'decimal:2',
-        'purchase_date'  => 'date',
+        'purchase_price'           => 'decimal:2',
+        'paid_amount'              => 'decimal:2',
+        'due_amount'               => 'decimal:2',
+        'purchase_rate'            => 'decimal:2',
+        'total_area'               => 'decimal:2',
+        'total_units_count'        => 'integer',
+        'broker_commission_rate'   => 'decimal:2',
+        'broker_commission_amount' => 'decimal:2',
+        'broker_commission_paid'   => 'decimal:2',
+        'broker_commission_due'    => 'decimal:2',
+        'purchase_date'            => 'date',
     ];
+
+    /**
+     * Parse a human string like "1-10, 30, 35" or "1 to 10, 30, 35" into an array of individual unit numbers.
+     */
+    public static function parseUnitNumbersString(?string $input): array
+    {
+        if (empty($input)) {
+            return [];
+        }
+
+        // Normalize separators: replace " to ", " TO ", " - ", "..", etc.
+        $rawSegments = preg_split('/[,;\n\r]+/', $input);
+        $units = [];
+
+        foreach ($rawSegments as $segment) {
+            $segment = trim($segment);
+            if ($segment === '') continue;
+
+            // Match patterns like "1 to 10", "1-10", "1..10" or "A-1 to A-10" or "Plot 1 to Plot 10"
+            if (preg_match('/^(.*?)\s*(\d+)\s*(?:-|to|\.\.)\s*(?:.*?)(\d+)$/i', $segment, $m)) {
+                $prefix = trim($m[1]);
+                $start = (int)$m[2];
+                $end = (int)$m[3];
+
+                if ($start <= $end && ($end - $start) <= 500) {
+                    for ($i = $start; $i <= $end; $i++) {
+                        $units[] = ($prefix ? $prefix . ' ' : '') . $i;
+                    }
+                } elseif ($start > $end && ($start - $end) <= 500) {
+                    for ($i = $start; $i >= $end; $i--) {
+                        $units[] = ($prefix ? $prefix . ' ' : '') . $i;
+                    }
+                } else {
+                    $units[] = $segment;
+                }
+            } else {
+                $units[] = $segment;
+            }
+        }
+
+        return array_values(array_unique(array_filter(array_map('trim', $units))));
+    }
+
+    /**
+     * Get array of parsed unit numbers
+     */
+    public function getParsedUnitNumbersAttribute(): array
+    {
+        return self::parseUnitNumbersString($this->unit_numbers_list);
+    }
 
     /**
      * Get payment percentage completed
@@ -61,9 +142,52 @@ class PropertyMaster extends Model
         return round(min(100, max(0, ($paid / $price) * 100)), 1);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(PropertyMasterPayment::class, 'property_master_id')
+            ->orderBy('payment_date', 'asc')
+            ->orderBy('id', 'asc');
+    }
+
+    /**
+     * Recalculate and update paid_amount, due_amount, payment_status based on payments table
+     */
+    public function recalculatePaymentStatus(): void
+    {
+        $totalPaid = (float)$this->payments()->sum('amount');
+        $totalPrice = (float)($this->purchase_price ?? 0);
+        $due = max(0, $totalPrice - $totalPaid);
+
+        if ($totalPrice > 0) {
+            if ($totalPaid >= $totalPrice) {
+                $status = 'paid';
+            } elseif ($totalPaid > 0) {
+                $status = 'partial';
+            } else {
+                $status = 'unpaid';
+            }
+        } else {
+            $status = $totalPaid > 0 ? 'paid' : 'unpaid';
+        }
+
+        $latestPayment = $this->payments()->latest('payment_date')->first();
+
+        $this->updateQuietly([
+            'paid_amount'    => $totalPaid,
+            'due_amount'     => $due,
+            'payment_status' => $status,
+            'payment_mode'   => $latestPayment ? $latestPayment->payment_mode : $this->payment_mode,
+        ]);
+    }
+
     public function vendor()
     {
         return $this->belongsTo(Vendor::class);
+    }
+
+    public function broker()
+    {
+        return $this->belongsTo(Broker::class);
     }
 
     public function firm()

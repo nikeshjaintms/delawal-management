@@ -279,10 +279,10 @@ textarea.form-control { resize: vertical; min-height: 85px; }
 
                 <div class="form-group">
                     <label class="form-label" for="vendor_id">
-                        <i class="fa-solid fa-user-tie"></i> Seller / Vendor / Owner <span class="opt">(optional)</span>
+                        <i class="fa-solid fa-user-tie"></i> Vendor <span class="opt">(optional)</span>
                     </label>
                     <select name="vendor_id" id="vendor_id" class="form-control @error('vendor_id') is-invalid @enderror">
-                        <option value="">— Select Seller / Vendor —</option>
+                        <option value="">— Select Vendor —</option>
                         @if(isset($vendors))
                             @foreach($vendors as $v)
                                 <option value="{{ $v->id }}" {{ old('vendor_id') == $v->id ? 'selected' : '' }}>
@@ -310,8 +310,8 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                     <label class="form-label" for="payment_mode">Payment Mode</label>
                     <select name="payment_mode" id="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror">
                         <option value="">— Select Payment Mode —</option>
-                        @foreach(['Bank Transfer / RTGS / NEFT', 'Cheque', 'Cash', 'UPI', 'Other'] as $mode)
-                            <option value="{{ $mode }}" {{ old('payment_mode') == $mode ? 'selected' : '' }}>{{ $mode }}</option>
+                        @foreach(['Cash' => '💵 Cash', 'Cheque' => '📝 Cheque / Check', 'Bank Transfer / RTGS / NEFT' => '🏦 Bank Transfer / RTGS / NEFT', 'UPI' => '📱 UPI (GPay/PhonePe)', 'Demand Draft' => '📜 Demand Draft (DD)', 'Other' => '✨ Other'] as $val => $lbl)
+                            <option value="{{ $val }}" {{ old('payment_mode', 'Cash') == $val ? 'selected' : '' }}>{{ $lbl }}</option>
                         @endforeach
                     </select>
                     @error('payment_mode')<div class="text-error">{{ $message }}</div>@enderror
@@ -320,22 +320,30 @@ textarea.form-control { resize: vertical; min-height: 85px; }
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label" for="reference_no">Cheque / Transaction Ref No. <span class="opt">(optional)</span></label>
+                    <label class="form-label" for="reference_no">Cheque No. / Transaction Ref <span class="opt">(optional)</span></label>
                     <input type="text" name="reference_no" id="reference_no"
                            value="{{ old('reference_no') }}"
                            class="form-control @error('reference_no') is-invalid @enderror"
-                           placeholder="e.g. CHQ-481920 / UTR-8291038">
+                           placeholder="e.g. CHQ-481920 / UTR-8291038 / UPI Ref">
                     @error('reference_no')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="remarks">Purchase Remarks / Notes <span class="opt">(optional)</span></label>
-                    <input type="text" name="remarks" id="remarks"
-                           value="{{ old('remarks') }}"
-                           class="form-control @error('remarks') is-invalid @enderror"
-                           placeholder="Special terms, payment schedule, registry notes, or deed details...">
-                    @error('remarks')<div class="text-error">{{ $message }}</div>@enderror
+                    <label class="form-label" for="bank_name">Bank Name / Branch <span class="opt">(optional)</span></label>
+                    <input type="text" name="bank_name" id="bank_name"
+                           value="{{ old('bank_name') }}"
+                           class="form-control @error('bank_name') is-invalid @enderror"
+                           placeholder="e.g. HDFC Bank, Surat">
+                    @error('bank_name')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="remarks">Purchase Remarks / Notes <span class="opt">(optional)</span></label>
+                <textarea name="remarks" id="remarks" rows="2"
+                       class="form-control @error('remarks') is-invalid @enderror"
+                       placeholder="Special terms, payment schedule, registry notes, or deed details...">{{ old('remarks') }}</textarea>
+                @error('remarks')<div class="text-error">{{ $message }}</div>@enderror
             </div>
         </div>
 

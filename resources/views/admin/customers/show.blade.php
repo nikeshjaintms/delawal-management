@@ -302,9 +302,22 @@
         <div class="detail-item">
             <div class="detail-label">
                 <i class="fa-solid fa-phone"></i>
-                Mobile
+                Primary Mobile
             </div>
             <div class="detail-value">{{ $customer->mobile }}</div>
+        </div>
+
+        <!-- Alternate Mobile -->
+        <div class="detail-item">
+            <div class="detail-label">
+                <i class="fa-solid fa-phone-volume"></i>
+                Alternate Mobile (2nd Number)
+            </div>
+            @if($customer->alternate_mobile)
+                <div class="detail-value">{{ $customer->alternate_mobile }}</div>
+            @else
+                <div class="detail-value empty">Not provided</div>
+            @endif
         </div>
 
         <!-- Email -->

@@ -182,24 +182,163 @@
 
 /* ── Custom Action Buttons ── */
 .btn-gold {
-    background: linear-gradient(135deg, #D4AF37 0%, #AA820A 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
     color: #FFFFFF !important;
-    padding: 8px 18px;
+    padding: 9px 18px;
     border-radius: 10px;
     font-size: 13.5px;
     font-weight: 700;
-    border: none;
+    border: 1px solid #60A5FA !important;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 8px;
     transition: all 0.2s;
-    box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
     text-decoration: none;
 }
 .btn-gold:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50);
+    color: #FFFFFF !important;
+}
+
+.btn-solid-emerald {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #34D399 !important;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    text-decoration: none !important;
+    transition: all 0.2s;
+}
+.btn-solid-emerald:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.50);
+}
+
+.btn-solid-orange {
+    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #FB923C !important;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+    text-decoration: none !important;
+    transition: all 0.2s;
+}
+.btn-solid-orange:hover {
+    background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.50);
+}
+
+.btn-solid-amber {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #FCD34D !important;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+    text-decoration: none !important;
+    transition: all 0.2s;
+}
+.btn-solid-amber:hover {
+    background: linear-gradient(135deg, #D97706 0%, #B45309 100%) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.50);
+}
+
+.btn-solid-blue {
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #60A5FA !important;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    text-decoration: none !important;
+    transition: all 0.2s;
+}
+.btn-solid-blue:hover {
+    background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50);
+}
+
+.btn-solid-slate {
+    background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #64748B !important;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    text-decoration: none !important;
+    transition: all 0.2s;
+}
+.btn-solid-slate:hover {
+    background: linear-gradient(135deg, #334155 0%, #1E293B 100%) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.50);
+}
+
+.btn-solid-purple {
+    background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #A78BFA !important;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+    text-decoration: none !important;
+    transition: all 0.2s;
+}
+.btn-solid-purple:hover {
+    background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.50);
 }
 
 .btn-secondary-custom {
@@ -479,20 +618,30 @@
 <!-- Header -->
 <div class="crud-header">
     <div class="crud-title">
-        <h2>{{ $propertyMaster->property_name }}</h2>
-        <p>Comprehensive property details, plot management, and project associations.</p>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <h2 style="margin: 0;">{{ $propertyMaster->property_name }}</h2>
+            @if($propertyMaster->property_type)
+                <span style="background: rgba(168, 85, 247, 0.20); color: #D8B4FE; border: 1px solid rgba(168, 85, 247, 0.40); padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-layer-group"></i> {{ $propertyMaster->property_type }}
+                </span>
+            @endif
+        </div>
+        <p style="margin-top: 4px;">Comprehensive property details, plot management, and project associations.</p>
     </div>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <a href="{{ route('property-masters.detail-pdf', $propertyMaster->id) }}" target="_blank" class="btn-secondary-custom" style="background: rgba(252, 105, 0, 0.18) !important; border-color: rgba(252, 105, 0, 0.45) !important; color: #FF8A3D !important;">
+        <button type="button" class="btn-solid-emerald" onclick="openModal('recordPaymentModal')">
+            <i class="fa-solid fa-hand-holding-dollar"></i> + Record Payment
+        </button>
+        <a href="{{ route('property-masters.detail-pdf', $propertyMaster->id) }}" target="_blank" class="btn-solid-orange">
             <i class="fa-solid fa-file-pdf"></i> Print / PDF Dossier
         </a>
-        <a href="{{ route('property-masters.edit', $propertyMaster->id) }}" class="btn-secondary-custom">
+        <a href="{{ route('property-masters.edit', $propertyMaster->id) }}" class="btn-solid-amber">
             <i class="fa-solid fa-pen-to-square"></i> Edit Property
         </a>
-        <a href="{{ route('projects.create', ['property_id' => $propertyMaster->id]) }}" class="btn-gold">
+        <a href="{{ route('projects.create', ['property_id' => $propertyMaster->id]) }}" class="btn-solid-blue">
             <i class="fa-solid fa-diagram-project"></i> Create Project
         </a>
-        <a href="{{ route('property-masters.index') }}" class="btn-secondary-custom">
+        <a href="{{ route('property-masters.index') }}" class="btn-solid-slate">
             <i class="fa-solid fa-arrow-left"></i> Back to List
         </a>
     </div>
@@ -554,6 +703,37 @@
                 <span class="pm-value"><code style="background: rgba(59, 130, 246, 0.15); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.30); padding: 3px 8px; border-radius: 6px; font-size: 12.5px; font-weight: 800;">{{ $propertyMaster->property_code }}</code></span>
             </div>
             <div class="pm-item">
+                <span class="pm-label"><i class="fa-solid fa-layer-group"></i> Property Type</span>
+                <span class="pm-value">
+                    @if($propertyMaster->property_type)
+                        <span style="background: rgba(168, 85, 247, 0.18); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.35); padding: 3px 8px; border-radius: 6px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                            @php
+                                $pt = strtolower($propertyMaster->property_type);
+                                $ptIcon = 'fa-solid fa-building';
+                                if (str_contains($pt, 'house') || str_contains($pt, 'bungalow') || str_contains($pt, 'tenement')) {
+                                    $ptIcon = 'fa-solid fa-house-chimney';
+                                } elseif (str_contains($pt, 'plot')) {
+                                    $ptIcon = 'fa-solid fa-map';
+                                } elseif (str_contains($pt, 'land') || str_contains($pt, 'agri')) {
+                                    $ptIcon = 'fa-solid fa-mountain-sun';
+                                } elseif (str_contains($pt, 'flat') || str_contains($pt, 'apartment')) {
+                                    $ptIcon = 'fa-solid fa-building';
+                                } elseif (str_contains($pt, 'comm') || str_contains($pt, 'shop') || str_contains($pt, 'office')) {
+                                    $ptIcon = 'fa-solid fa-store';
+                                } elseif (str_contains($pt, 'farm')) {
+                                    $ptIcon = 'fa-solid fa-wheat-awn';
+                                } elseif (str_contains($pt, 'villa')) {
+                                    $ptIcon = 'fa-solid fa-landmark-dome';
+                                }
+                            @endphp
+                            <i class="{{ $ptIcon }}"></i> {{ $propertyMaster->property_type }}
+                        </span>
+                    @else
+                        <span style="color: #94A3B8;">—</span>
+                    @endif
+                </span>
+            </div>
+            <div class="pm-item">
                 <span class="pm-label">Firm</span>
                 <span class="pm-value" style="color: #93C5FD;">{{ $propertyMaster->firm->firm_name ?? '-' }}</span>
             </div>
@@ -597,7 +777,7 @@
                 <span class="pm-value">{{ $propertyMaster->purchase_date ? date('d M, Y', strtotime($propertyMaster->purchase_date)) : '—' }}</span>
             </div>
             <div class="pm-item">
-                <span class="pm-label"><i class="fa-solid fa-user-tie"></i> Seller / Vendor</span>
+                <span class="pm-label"><i class="fa-solid fa-user-tie"></i> Vendor</span>
                 <span class="pm-value">
                     @if($propertyMaster->vendor)
                         {{ $propertyMaster->vendor->name }}
@@ -623,6 +803,36 @@
                 <span class="pm-value">{{ $propertyMaster->city ?: '-' }} @if($propertyMaster->location) <small style="color:#94A3B8;">({{ $propertyMaster->location }})</small> @endif</span>
             </div>
             <div class="pm-item">
+                <span class="pm-label"><i class="fa-solid fa-user-tie"></i> Broker / Agent</span>
+                <span class="pm-value">
+                    @if($propertyMaster->broker)
+                        <span style="color: #C4B5FD; font-weight: 700;">{{ $propertyMaster->broker->name }}</span>
+                        @if($propertyMaster->broker->phone || $propertyMaster->broker->mobile)
+                            <small style="color: #94A3B8; display: block; font-size: 11.5px;">{{ $propertyMaster->broker->phone ?: $propertyMaster->broker->mobile }}</small>
+                        @endif
+                    @elseif($propertyMaster->broker_name)
+                        <span style="color: #C4B5FD; font-weight: 700;">{{ $propertyMaster->broker_name }}</span>
+                    @else
+                        <span style="color: #94A3B8;">— Direct (No Broker) —</span>
+                    @endif
+                </span>
+            </div>
+            @if($propertyMaster->broker_commission_amount > 0 || $propertyMaster->broker_id || $propertyMaster->broker_name)
+            <div class="pm-item">
+                <span class="pm-label" style="color: #A78BFA;"><i class="fa-solid fa-hand-holding-dollar"></i> Broker Commission</span>
+                <span class="pm-value" style="color: #A78BFA; font-weight: 800;">
+                    ₹{{ number_format($propertyMaster->broker_commission_amount ?? 0, 2) }}
+                    @if($propertyMaster->broker_commission_type === 'percentage' && $propertyMaster->broker_commission_rate > 0)
+                        <small style="color: #C4B5FD; font-size: 11.5px; font-weight: 600;">({{ $propertyMaster->broker_commission_rate }}%)</small>
+                    @endif
+                    <div style="font-size: 11.5px; font-weight: 600; margin-top: 2px;">
+                        <span style="color: #34D399;">Paid: ₹{{ number_format($propertyMaster->broker_commission_paid ?? 0, 2) }}</span> | 
+                        <span style="color: #FBBF24;">Due: ₹{{ number_format($propertyMaster->broker_commission_due ?? 0, 2) }}</span>
+                    </div>
+                </span>
+            </div>
+            @endif
+            <div class="pm-item">
                 <span class="pm-label">Status</span>
                 <span class="pm-value">
                     <span class="badge {{ $propertyMaster->status === 'active' ? 'badge-active' : 'badge-inactive' }}">
@@ -630,6 +840,34 @@
                     </span>
                 </span>
             </div>
+            <div class="pm-item">
+                <span class="pm-label"><i class="fa-solid fa-cubes"></i> Total Units / Plots</span>
+                <span class="pm-value" style="color: #F59E0B; font-size: 16px; font-weight: 800;">
+                    {{ $propertyMaster->total_units_count ?: $totalPlots }} Units
+                </span>
+            </div>
+            @if($propertyMaster->unit_numbers_list)
+            <div class="pm-item" style="grid-column: 1 / -1; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px 14px;">
+                <span class="pm-label" style="color: #F59E0B; margin-bottom: 6px;"><i class="fa-solid fa-list-ol"></i> Purchased Unit Numbers Range:</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                    <span style="font-weight: 800; color: #FFFFFF; font-size: 13.5px; margin-right: 8px;">{{ $propertyMaster->unit_numbers_list }}</span>
+                    @php
+                        $parsedList = $propertyMaster->parsed_unit_numbers;
+                    @endphp
+                    @if(count($parsedList) > 0)
+                        <span style="color: #94A3B8; font-size: 12px; margin-right: 4px;">({{ count($parsedList) }} Units):</span>
+                        @foreach(array_slice($parsedList, 0, 15) as $un)
+                            <span style="background: rgba(245, 158, 11, 0.20); color: #FDE68A; border: 1px solid rgba(245, 158, 11, 0.40); padding: 2px 7px; border-radius: 6px; font-size: 11.5px; font-weight: 700;">
+                                {{ $propertyMaster->unit_prefix ? trim($propertyMaster->unit_prefix) . ' ' : 'Plot ' }}{{ $un }}
+                            </span>
+                        @endforeach
+                        @if(count($parsedList) > 15)
+                            <span style="color: #CBD5E1; font-size: 11px; font-weight: 600;">+{{ count($parsedList) - 15 }} more</span>
+                        @endif
+                    @endif
+                </div>
+            </div>
+            @endif
             <div class="pm-item" style="grid-column: 1 / -1;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                     <span class="pm-label" style="margin-bottom: 0;">Payment Progress ({{ $propertyMaster->paid_percentage }}% Paid)</span>
@@ -639,13 +877,14 @@
                     <div style="width: {{ $propertyMaster->paid_percentage }}%; height: 100%; background: linear-gradient(90deg, #10B981, #34D399); border-radius: 999px; transition: width 0.3s ease;"></div>
                 </div>
             </div>
-            @if($propertyMaster->address || $propertyMaster->notes)
+            @if($propertyMaster->address || $propertyMaster->broker_notes || $propertyMaster->notes)
             <div class="pm-item" style="grid-column: 1 / -1;">
                 <span class="pm-label">Address &amp; Notes</span>
                 <span class="pm-value" style="font-size: 13.5px; font-weight: 600; color: #CBD5E1;">
                     @if($propertyMaster->address) {{ $propertyMaster->address }}, @endif
                     @if($propertyMaster->state) {{ $propertyMaster->state }} @endif
                     @if($propertyMaster->pincode) - {{ $propertyMaster->pincode }} @endif
+                    @if($propertyMaster->broker_notes) <div style="margin-top: 4px; font-size: 12.5px; color: #C4B5FD;"><i class="fa-solid fa-user-tie"></i> Broker Notes: {{ $propertyMaster->broker_notes }}</div> @endif
                     @if($propertyMaster->notes) <div style="margin-top: 4px; font-size: 12.5px; color: #94A3B8;"><i class="fa-solid fa-note-sticky"></i> {{ $propertyMaster->notes }}</div> @endif
                 </span>
             </div>
@@ -720,6 +959,136 @@
 </div>
 
 <!-- ================================================================
+     PAYMENT INSTALLMENTS & FINANCIAL BREAKDOWN SECTION
+================================================================ -->
+<div class="card-box" style="border: 1px solid rgba(16, 185, 129, 0.25) !important;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 14px;">
+        <div>
+            <h3 style="font-size: 19px; font-weight: 800; color: #FFFFFF; margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-receipt" style="color: #34D399;"></i>
+                Payment Installments &amp; Financial History ({{ $propertyMaster->payments ? $propertyMaster->payments->count() : 0 }})
+            </h3>
+            <p style="font-size: 13px; color: #94A3B8; margin: 3px 0 0 0;">
+                Track multi-stage purchase installments, advances, cheques, and bank transfer records.
+            </p>
+        </div>
+        <div>
+            <button type="button" class="btn-gold" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important; border: 1px solid #34D399 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);" onclick="openModal('recordPaymentModal')">
+                <i class="fa-solid fa-plus"></i> + Record Next Payment / Installment
+            </button>
+        </div>
+    </div>
+
+    <!-- Financial Breakdown Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+        <div style="background: rgba(16, 22, 34, 0.75); border: 1px solid rgba(96, 165, 250, 0.3); border-radius: 14px; padding: 16px;">
+            <span style="font-size: 11px; font-weight: 700; color: #60A5FA; text-transform: uppercase;"><i class="fa-solid fa-money-bill-wave"></i> Total Agreed Deal Price</span>
+            <div style="font-size: 20px; font-weight: 800; color: #60A5FA; margin-top: 4px;">
+                ₹{{ number_format($propertyMaster->purchase_price ?? 0, 2) }}
+            </div>
+        </div>
+        <div style="background: rgba(16, 22, 34, 0.75); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 14px; padding: 16px;">
+            <span style="font-size: 11px; font-weight: 700; color: #34D399; text-transform: uppercase;"><i class="fa-solid fa-circle-check"></i> Total Amount Paid So Far</span>
+            <div style="font-size: 20px; font-weight: 800; color: #34D399; margin-top: 4px;">
+                ₹{{ number_format($propertyMaster->paid_amount ?? 0, 2) }}
+            </div>
+        </div>
+        <div style="background: rgba(16, 22, 34, 0.75); border: 1px solid rgba(248, 113, 113, 0.3); border-radius: 14px; padding: 16px;">
+            <span style="font-size: 11px; font-weight: 700; color: #F87171; text-transform: uppercase;"><i class="fa-solid fa-clock-rotate-left"></i> Remaining Due Balance</span>
+            <div style="font-size: 20px; font-weight: 800; color: #F87171; margin-top: 4px;">
+                ₹{{ number_format($propertyMaster->due_amount ?? 0, 2) }}
+            </div>
+        </div>
+    </div>
+
+    @if($propertyMaster->payments && $propertyMaster->payments->count() > 0)
+        <div style="overflow-x: auto; border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 14px; overflow: hidden;">
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                <thead>
+                    <tr style="background: rgba(15, 23, 42, 0.85);">
+                        <th style="padding: 12px 16px; color: #94A3B8; font-size: 12px; font-weight: 700; text-transform: uppercase; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);">#</th>
+                        <th style="padding: 12px 16px; color: #94A3B8; font-size: 12px; font-weight: 700; text-transform: uppercase; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);">Payment Date</th>
+                        <th style="padding: 12px 16px; color: #94A3B8; font-size: 12px; font-weight: 700; text-transform: uppercase; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);">Amount (₹)</th>
+                        <th style="padding: 12px 16px; color: #94A3B8; font-size: 12px; font-weight: 700; text-transform: uppercase; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);">Payment Mode</th>
+                        <th style="padding: 12px 16px; color: #94A3B8; font-size: 12px; font-weight: 700; text-transform: uppercase; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);">Cheque / Ref No.</th>
+                        <th style="padding: 12px 16px; color: #94A3B8; font-size: 12px; font-weight: 700; text-transform: uppercase; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);">Bank / Branch</th>
+                        <th style="padding: 12px 16px; color: #94A3B8; font-size: 12px; font-weight: 700; text-transform: uppercase; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);">Remarks</th>
+                        <th style="padding: 12px 16px; color: #94A3B8; font-size: 12px; font-weight: 700; text-transform: uppercase; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.1);">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($propertyMaster->payments as $idx => $pmt)
+                        @php
+                            $m = strtolower($pmt->payment_mode);
+                            $badgeStyle = 'background: rgba(148, 163, 184, 0.15); color: #CBD5E1; border: 1px solid rgba(148, 163, 184, 0.35);';
+                            $icon = 'fa-solid fa-money-bill';
+                            if (str_contains($m, 'cash')) {
+                                $badgeStyle = 'background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35);';
+                                $icon = 'fa-solid fa-money-bill-wave';
+                            } elseif (str_contains($m, 'cheque') || str_contains($m, 'check')) {
+                                $badgeStyle = 'background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.35);';
+                                $icon = 'fa-solid fa-money-check-dollar';
+                            } elseif (str_contains($m, 'bank') || str_contains($m, 'rtgs') || str_contains($m, 'neft') || str_contains($m, 'transfer')) {
+                                $badgeStyle = 'background: rgba(59, 130, 246, 0.15); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.35);';
+                                $icon = 'fa-solid fa-building-columns';
+                            } elseif (str_contains($m, 'upi') || str_contains($m, 'gpay') || str_contains($m, 'phonepe')) {
+                                $badgeStyle = 'background: rgba(168, 85, 247, 0.15); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.35);';
+                                $icon = 'fa-solid fa-mobile-screen-button';
+                            }
+                        @endphp
+                        <tr style="background: rgba(16, 22, 34, 0.50); transition: background .2s;">
+                            <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); font-weight: 800; color: #94A3B8;">
+                                {{ $idx === 0 ? '1st (Advance)' : ($idx + 1) . 'th Installment' }}
+                            </td>
+                            <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #FFFFFF; font-weight: 700;">
+                                {{ $pmt->payment_date ? date('d/m/Y', strtotime($pmt->payment_date)) : '—' }}
+                            </td>
+                            <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                                <span style="font-size: 15px; font-weight: 800; color: #34D399;">
+                                    ₹{{ number_format($pmt->amount, 2) }}
+                                </span>
+                            </td>
+                            <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; {{ $badgeStyle }}">
+                                    <i class="{{ $icon }}"></i> {{ $pmt->payment_mode ?: 'Cash' }}
+                                </span>
+                            </td>
+                            <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: monospace; color: #E2E8F0;">
+                                {{ $pmt->reference_no ?: '—' }}
+                            </td>
+                            <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #CBD5E1;">
+                                {{ $pmt->bank_name ?: '—' }}
+                            </td>
+                            <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #94A3B8; font-size: 13px;">
+                                {{ $pmt->remarks ?: '—' }}
+                            </td>
+                            <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: right;">
+                                <form action="{{ route('property-masters.payments.destroy', [$propertyMaster->id, $pmt->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this payment record of ₹{{ number_format($pmt->amount, 2) }}?');" style="display: inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s;" title="Delete Payment Record">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @else
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 14px; padding: 24px; text-align: center;">
+            <i class="fa-solid fa-receipt" style="font-size: 28px; color: #64748B; margin-bottom: 8px;"></i>
+            <h4 style="margin: 0 0 6px 0; color: #FFFFFF; font-size: 14px;">No installment payments recorded yet</h4>
+            <p style="margin: 0 0 14px 0; color: #94A3B8; font-size: 12.5px;">Click below to record your initial or subsequent payment for this property.</p>
+            <button type="button" class="btn-gold" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important; border: 1px solid #34D399 !important; color: #FFFFFF !important; font-size: 13px; padding: 8px 18px;" onclick="openModal('recordPaymentModal')">
+                <i class="fa-solid fa-plus"></i> + Record 1st Payment / Advance
+            </button>
+        </div>
+    @endif
+</div>
+
+<!-- ================================================================
      DIRECT PLOTS MANAGEMENT SECTION
 ================================================================ -->
 <div class="card-box">
@@ -734,16 +1103,16 @@
             </p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <a href="{{ route('property-masters.plots.template') }}" class="btn-secondary-custom" title="Download Excel format template">
-                <i class="fa-solid fa-file-excel" style="color: #10B981;"></i> Template
+            <a href="{{ route('property-masters.plots.template') }}" class="btn-solid-slate" style="padding: 8px 14px; font-size: 13px;" title="Download Excel format template">
+                <i class="fa-solid fa-file-excel" style="color: #34D399;"></i> Template
             </a>
-            <button type="button" class="btn-secondary-custom" onclick="openModal('importExcelModal')">
-                <i class="fa-solid fa-file-import" style="color: #60A5FA;"></i> Import Excel
+            <button type="button" class="btn-solid-blue" style="padding: 8px 14px; font-size: 13px;" onclick="openModal('importExcelModal')">
+                <i class="fa-solid fa-file-import"></i> Import Excel
             </button>
-            <button type="button" class="btn-purple-custom" onclick="openModal('bulkPlotsModal')">
+            <button type="button" class="btn-solid-purple" style="padding: 8px 14px; font-size: 13px;" onclick="openModal('bulkPlotsModal')">
                 <i class="fa-solid fa-bolt"></i> Bulk Generate
             </button>
-            <button type="button" class="btn-gold" onclick="openModal('addPlotModal')">
+            <button type="button" class="btn-solid-emerald" style="padding: 8px 14px; font-size: 13px;" onclick="openModal('addPlotModal')">
                 <i class="fa-solid fa-plus"></i> Add Plot
             </button>
         </div>
@@ -1058,14 +1427,25 @@
         <form action="{{ route('property-masters.bulk-generate-plots', $propertyMaster->id) }}" method="POST">
             @csrf
             <div class="modal-body-custom">
+                <!-- Specific Unit Numbers Range Option -->
+                <div class="m-form-group" style="margin-bottom: 16px; background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.35); padding: 12px 14px; border-radius: 10px;">
+                    <label class="m-form-label" style="color: #FDE68A; margin-bottom: 4px;">
+                        <i class="fa-solid fa-list-ol"></i> Specific Unit / Plot Numbers Range (Optional)
+                    </label>
+                    <input type="text" name="unit_numbers_list" class="m-form-control" value="{{ $propertyMaster->unit_numbers_list }}" placeholder="e.g. 1-10, 30, 35 or 1 to 10, 30, 35" style="border-color: rgba(245, 158, 11, 0.4);">
+                    <small style="color: #CBD5E1; font-size: 11.5px; margin-top: 4px; display: block;">
+                        Leave blank to generate sequentially, or enter ranges like <code>1-10, 30, 35</code> to generate specific plots.
+                    </small>
+                </div>
+
                 <div class="m-form-row">
                     <div class="m-form-group">
-                        <label class="m-form-label">Total Plots to Generate <span>*</span></label>
-                        <input type="number" min="1" max="1000" name="total_plots" class="m-form-control" value="10" required>
+                        <label class="m-form-label">Total Plots to Generate <span style="font-size: 11px; color:#94A3B8;">(if not using range)</span></label>
+                        <input type="number" min="1" max="1000" name="total_plots" class="m-form-control" value="{{ $propertyMaster->total_units_count ?: 10 }}">
                     </div>
                     <div class="m-form-group">
                         <label class="m-form-label">Plot Name Prefix</label>
-                        <input type="text" name="plot_prefix" class="m-form-control" value="Plot " placeholder="e.g. Plot ">
+                        <input type="text" name="plot_prefix" class="m-form-control" value="{{ $propertyMaster->unit_prefix ?? 'Plot ' }}" placeholder="e.g. Plot ">
                     </div>
                 </div>
 
@@ -1185,6 +1565,99 @@
     </div>
 </div>
 
+<!-- ================================================================
+     MODAL 4: RECORD PAYMENT INSTALLMENT
+================================================================ -->
+<div class="modal-backdrop-custom" id="recordPaymentModal">
+    <div class="modal-box-custom">
+        <div class="modal-header-custom">
+            <h3><i class="fa-solid fa-hand-holding-dollar" style="color: #34D399;"></i> Record Payment Installment</h3>
+            <button type="button" class="modal-close-btn" onclick="closeModal('recordPaymentModal')">&times;</button>
+        </div>
+        <form action="{{ route('property-masters.payments.store', $propertyMaster->id) }}" method="POST">
+            @csrf
+            <div class="modal-body-custom">
+                <!-- Info Summary -->
+                <div style="background: rgba(30, 41, 59, 0.60); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <div style="font-size: 11px; text-transform: uppercase; color: #94A3B8; font-weight: 700;">Property</div>
+                        <div style="font-size: 14px; font-weight: 800; color: #FFFFFF;">{{ $propertyMaster->property_name }}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 11px; text-transform: uppercase; color: #F87171; font-weight: 700;">Remaining Due</div>
+                        <div style="font-size: 16px; font-weight: 800; color: #F87171;">₹{{ number_format($propertyMaster->due_amount ?? 0, 2) }}</div>
+                    </div>
+                </div>
+
+                <div class="m-form-row">
+                    <div class="m-form-group">
+                        <label class="m-form-label">Payment Date <span style="color: #F87171;">*</span></label>
+                        <input type="date" name="payment_date" value="{{ date('Y-m-d') }}" class="m-form-control" required>
+                    </div>
+                    <div class="m-form-group">
+                        <label class="m-form-label">Payment Amount (₹) <span style="color: #F87171;">*</span></label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 12px; top: 9px; color: #34D399; font-weight: 800;">₹</span>
+                            <input type="number" step="0.01" min="0.01" name="amount" id="pmModalAmount"
+                                   value="{{ ($propertyMaster->due_amount ?? 0) > 0 ? $propertyMaster->due_amount : '' }}"
+                                   class="m-form-control" style="padding-left: 28px; font-weight: 800; color: #34D399;" required placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+
+                @if((float)($propertyMaster->due_amount ?? 0) > 0)
+                    <div style="margin-top: -8px; margin-bottom: 16px;">
+                        <button type="button" onclick="fillExactPmDue({{ (float)$propertyMaster->due_amount }})" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34D399; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                            <i class="fa-solid fa-circle-check"></i> Fill Remaining Due (₹{{ number_format($propertyMaster->due_amount, 2) }})
+                        </button>
+                    </div>
+                @endif
+
+                <div class="m-form-group" style="margin-bottom: 16px;">
+                    <label class="m-form-label">Payment Mode <span style="color: #F87171;">*</span></label>
+                    <select name="payment_mode" id="pmModalPaymentMode" class="m-form-control" onchange="togglePmPaymentModeFields(this.value)" required>
+                        <option value="Cash">💵 Cash</option>
+                        <option value="Cheque">📝 Cheque / Check</option>
+                        <option value="Bank Transfer / RTGS / NEFT">🏦 Bank Transfer / RTGS / NEFT</option>
+                        <option value="UPI">📱 UPI (GPay / PhonePe / Paytm)</option>
+                        <option value="Demand Draft">📜 Demand Draft (DD)</option>
+                        <option value="Other">✨ Other</option>
+                        @if(isset($paymentModes))
+                            @foreach($paymentModes as $pm)
+                                @if(!in_array($pm->name, ['Cash', 'Cheque', 'Bank Transfer / RTGS / NEFT', 'UPI', 'Demand Draft', 'Other']))
+                                    <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                @endif
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+
+                <div class="m-form-row">
+                    <div class="m-form-group">
+                        <label class="m-form-label" id="pmModalRefLabel">Cheque / Ref / UTR No.</label>
+                        <input type="text" name="reference_no" id="pmModalRefNo" class="m-form-control" placeholder="e.g. CHQ-481920">
+                    </div>
+                    <div class="m-form-group">
+                        <label class="m-form-label">Bank Name / Branch</label>
+                        <input type="text" name="bank_name" class="m-form-control" placeholder="e.g. HDFC Bank, Surat">
+                    </div>
+                </div>
+
+                <div class="m-form-group">
+                    <label class="m-form-label">Remarks / Note <span style="font-size: 11px; opacity: 0.7;">(optional)</span></label>
+                    <textarea name="remarks" rows="2" class="m-form-control" placeholder="e.g. 2nd installment paid via Cheque"></textarea>
+                </div>
+            </div>
+            <div style="padding: 16px 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); display: flex; justify-content: flex-end; gap: 10px; background: rgba(30, 41, 59, 0.50);">
+                <button type="button" class="btn-secondary-custom" onclick="closeModal('recordPaymentModal')">Cancel</button>
+                <button type="submit" class="btn-success-custom" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important; border-color: #34D399 !important;">
+                    <i class="fa-solid fa-check"></i> Save Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openModal(id) {
     const modal = document.getElementById(id);
@@ -1194,6 +1667,31 @@ function openModal(id) {
 function closeModal(id) {
     const modal = document.getElementById(id);
     if (modal) modal.classList.remove('active');
+}
+
+function fillExactPmDue(amount) {
+    const inp = document.getElementById('pmModalAmount');
+    if (inp) inp.value = amount.toFixed(2);
+}
+
+function togglePmPaymentModeFields(mode) {
+    const refLabel = document.getElementById('pmModalRefLabel');
+    const refNo = document.getElementById('pmModalRefNo');
+    if (!refLabel || !refNo) return;
+
+    if (mode === 'Cheque') {
+        refLabel.innerText = 'Cheque Number *';
+        refNo.placeholder = 'e.g. 6 Digit Cheque #';
+    } else if (mode.includes('UPI')) {
+        refLabel.innerText = 'UPI Transaction / Ref ID';
+        refNo.placeholder = 'e.g. UPI Ref # 3291823901';
+    } else if (mode.includes('Bank') || mode.includes('RTGS') || mode.includes('NEFT')) {
+        refLabel.innerText = 'UTR / Transfer Ref No.';
+        refNo.placeholder = 'e.g. UTR / Ref No.';
+    } else {
+        refLabel.innerText = 'Reference / Receipt No.';
+        refNo.placeholder = 'Optional Reference';
+    }
 }
 
 window.addEventListener('click', function(e) {

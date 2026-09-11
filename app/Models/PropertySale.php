@@ -13,6 +13,14 @@ class PropertySale extends Model
         'property_id',
         'customer_id',
         'broker_id',
+        'broker_commission_type',
+        'broker_commission_rate',
+        'broker_commission_amount',
+        'broker_commission_paid',
+        'broker_commission_due',
+        'broker_commission_payment_mode',
+        'broker_commission_status',
+        'broker_notes',
         'sale_date',
         'invoice_no',
         'sale_amount',
@@ -35,11 +43,15 @@ class PropertySale extends Model
     ];
 
     protected $casts = [
-        'sale_date'        => 'date',
-        'sale_amount'      => 'decimal:2',
-        'booking_amount'   => 'decimal:2',
-        'remaining_amount' => 'decimal:2',
-        'grand_total'      => 'decimal:2',
+        'sale_date'                => 'date',
+        'sale_amount'              => 'decimal:2',
+        'booking_amount'           => 'decimal:2',
+        'remaining_amount'         => 'decimal:2',
+        'grand_total'              => 'decimal:2',
+        'broker_commission_rate'   => 'decimal:2',
+        'broker_commission_amount' => 'decimal:2',
+        'broker_commission_paid'   => 'decimal:2',
+        'broker_commission_due'    => 'decimal:2',
     ];
 
     public function firm()

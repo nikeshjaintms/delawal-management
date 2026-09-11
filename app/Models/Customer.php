@@ -12,6 +12,7 @@ class Customer extends Model
         'firm_id',
         'name',
         'mobile',
+        'alternate_mobile',
         'email',
         'address',
         'city',
@@ -22,5 +23,25 @@ class Customer extends Model
     public function firm()
     {
         return $this->belongsTo(Firm::class);
+    }
+
+    public function propertySales()
+    {
+        return $this->hasMany(PropertySale::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function loans()
+    {
+        return $this->hasMany(Loan::class);
+    }
+
+    public function ledgers()
+    {
+        return $this->hasMany(Ledger::class);
     }
 }

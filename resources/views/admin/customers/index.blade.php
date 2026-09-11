@@ -154,7 +154,14 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                             <td><strong style="color: #FFFFFF !important;">{{ $customer->firm->firm_name ?? '-' }}</strong></td>
                         @endif
                         <td><strong>{{ $customer->name }}</strong></td>
-                        <td>{{ $customer->mobile }}</td>
+                        <td>
+                            <div style="font-weight: 600; color: #FFFFFF;">{{ $customer->mobile }}</div>
+                            @if($customer->alternate_mobile)
+                                <div style="font-size: 11.5px; color: #94A3B8; margin-top: 2px; font-weight: 500;">
+                                    <i class="fa-solid fa-phone" style="font-size: 10px; color: #38BDF8; margin-right: 3px;"></i>{{ $customer->alternate_mobile }}
+                                </div>
+                            @endif
+                        </td>
                         <td>{{ $customer->email ?? '-' }}</td>
                         <td>{{ $customer->city ?? '-' }}</td>
                         <td>

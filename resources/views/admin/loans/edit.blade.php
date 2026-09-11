@@ -71,7 +71,7 @@
                     <select name="customer_id" class="form-control @error('customer_id') is-invalid @enderror">
                         <option value="">— Select Customer —</option>
                         @foreach($customers as $c)
-                            <option value="{{ $c->id }}" {{ old('customer_id', $loan->customer_id)==$c->id?'selected':'' }}>{{ $c->name }} — {{ $c->mobile }}</option>
+                            <option value="{{ $c->id }}" {{ old('customer_id', $loan->customer_id)==$c->id?'selected':'' }}>{{ $c->name }} — {{ $c->mobile }}{{ $c->alternate_mobile ? ' / ' . $c->alternate_mobile : '' }}</option>
                         @endforeach
                     </select>
                     @error('customer_id')<div class="text-error">{{ $message }}</div>@enderror

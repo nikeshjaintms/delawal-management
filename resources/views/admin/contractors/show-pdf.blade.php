@@ -86,13 +86,26 @@
             <span class="info-label">PAN Card No:</span>
             <span class="info-value">{{ $contractor->pan_no ?: '—' }}</span>
         </div>
+        @php
+            $assignedProjs = $contractor->relationLoaded('projects') && $contractor->projects->isNotEmpty()
+                ? $contractor->projects
+                : ($contractor->project ? collect([$contractor->project]) : collect());
+        @endphp
         <div class="info-row">
-            <span class="info-label">Assigned Project:</span>
-            <span class="info-value">{{ $contractor->project->project_name ?? '—' }}</span>
+            <span class="info-label">Assigned Project(s):</span>
+            <span class="info-value">{{ $assignedProjs->pluck('project_name')->implode(', ') ?: '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Property Master:</span>
-            <span class="info-value">{{ $contractor->project->propertyMaster->property_name ?? '—' }}</span>
+            <span class="info-label">Specific Plot(s)/Unit(s):</span>
+            <span class="info-value">
+                {{ $contractor->properties && $contractor->properties->isNotEmpty() ? $contractor->properties->pluck('property_name')->implode(', ') : 'All Units (Full Project)' }}
+            </span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Property Master(s):</span>
+            <span class="info-value">
+                {{ $assignedProjs->pluck('propertyMaster.property_name')->filter()->unique()->implode(', ') ?: '—' }}
+            </span>
         </div>
     </div>
 

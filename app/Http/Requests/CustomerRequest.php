@@ -54,13 +54,14 @@ class CustomerRequest extends FormRequest
             'firm_id'       => 'required|exists:firms,id',
             'firm_ids'      => 'nullable|array',
             'firm_ids.*'    => 'exists:firms,id',
-            'name'          => 'required|string|max:255',
-            'mobile'        => 'required|digits:10|regex:/^[0-9]{10}$/|unique:customers,mobile,{ID},id,firm_id,{FIRM_ID}',
-            'email'         => 'nullable|email|max:255',
-            'customer_type' => 'required|in:buyer,seller,rental',
-            'status'        => 'required|in:active,inactive',
-            'address'       => 'nullable|string|max:1000',
-            'city'          => 'nullable|string|max:255',
+            'name'             => 'required|string|max:255',
+            'mobile'           => 'required|digits:10|regex:/^[0-9]{10}$/|unique:customers,mobile,{ID},id,firm_id,{FIRM_ID}',
+            'alternate_mobile' => 'nullable|digits:10|regex:/^[0-9]{10}$/',
+            'email'            => 'nullable|email|max:255',
+            'customer_type'    => 'required|in:buyer,seller,rental',
+            'status'           => 'required|in:active,inactive',
+            'address'          => 'nullable|string|max:1000',
+            'city'             => 'nullable|string|max:255',
         ];
 
         // Replace placeholders in unique rules dynamically
@@ -98,6 +99,8 @@ class CustomerRequest extends FormRequest
             'mobile.required' => 'Mobile number is required.',
             'mobile.digits' => 'Mobile number must be exactly 10 digits.',
             'mobile.regex' => 'Only numeric digits are allowed.',
+            'alternate_mobile.digits' => 'Alternate mobile number must be exactly 10 digits.',
+            'alternate_mobile.regex' => 'Only numeric digits are allowed.',
         ];
     }
 
@@ -106,6 +109,7 @@ class CustomerRequest extends FormRequest
         return [
             'name' => 'Customer Name',
             'mobile' => 'Mobile Number',
+            'alternate_mobile' => 'Alternate Mobile Number',
             'email' => 'Email Address',
             'customer_type' => 'Customer Type',
             'status' => 'Status',

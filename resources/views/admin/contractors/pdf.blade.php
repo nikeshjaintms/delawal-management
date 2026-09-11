@@ -89,7 +89,19 @@
         <tr>
             <td style="color:#9CA3AF;">{{ $i+1 }}</td>
             <td><strong>{{ $item->contractor_name }}</strong></td>
-            <td>{{ $item->project->project_name ?? '—' }}</td>
+            <td>
+                @php
+                    $assignedProjs = $item->relationLoaded('projects') && $item->projects->isNotEmpty()
+                        ? $item->projects
+                        : ($item->project ? collect([$item->project]) : collect());
+                @endphp
+                <strong>{{ $assignedProjs->pluck('project_name')->implode(', ') ?: '—' }}</strong>
+                @if($item->properties && $item->properties->isNotEmpty())
+                    <div style="font-size:9.5px; color:#059669; margin-top:2px;">
+                        Units: {{ $item->properties->pluck('property_name')->implode(', ') }}
+                    </div>
+                @endif
+            </td>
             <td>{{ $item->firm->firm_name ?? '—' }}</td>
             <td>{{ $item->mobile ?: '—' }}</td>
             <td>{{ $item->aadhar_no ?: '—' }}</td>

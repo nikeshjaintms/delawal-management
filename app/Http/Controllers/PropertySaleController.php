@@ -169,6 +169,14 @@ class PropertySaleController extends Controller
             'property_id'      => 'required|exists:properties,id',
             'customer_id'      => 'required|exists:customers,id',
             'broker_id'        => 'nullable|exists:brokers,id',
+            'broker_commission_type' => 'nullable|in:percentage,fixed',
+            'broker_commission_rate' => 'nullable|numeric|min:0',
+            'broker_commission_amount' => 'nullable|numeric|min:0',
+            'broker_commission_paid' => 'nullable|numeric|min:0',
+            'broker_commission_due'  => 'nullable|numeric|min:0',
+            'broker_commission_payment_mode' => 'nullable|string|max:100',
+            'broker_commission_status' => 'nullable|string|max:50',
+            'broker_notes'     => 'nullable|string|max:2000',
             'sale_date'        => 'nullable|date',
             'sale_amount'      => 'nullable|numeric',
             'booking_amount'   => 'nullable|numeric',
@@ -199,19 +207,52 @@ class PropertySaleController extends Controller
             }
         }
 
+        // Broker commission calculation
+        $brokerId = $request->broker_id ?: null;
+        $brokerCommType = $request->broker_commission_type ?: 'percentage';
+        $brokerCommRate = $request->filled('broker_commission_rate') ? floatval($request->broker_commission_rate) : null;
+        $brokerCommAmount = $request->filled('broker_commission_amount') ? floatval($request->broker_commission_amount) : 0.00;
+        if ($brokerId && $brokerCommType === 'percentage' && $brokerCommRate && $brokerCommAmount == 0 && $saleAmount > 0) {
+            $brokerCommAmount = round(($saleAmount * $brokerCommRate) / 100, 2);
+        }
+        $brokerCommPaid = $request->filled('broker_commission_paid') ? floatval($request->broker_commission_paid) : 0.00;
+        $brokerCommDue = max(0.00, $brokerCommAmount - $brokerCommPaid);
+        $brokerCommStatus = $request->broker_commission_status;
+        if (empty($brokerCommStatus)) {
+            if ($brokerCommAmount > 0) {
+                if ($brokerCommPaid >= $brokerCommAmount) {
+                    $brokerCommStatus = 'paid';
+                } elseif ($brokerCommPaid > 0) {
+                    $brokerCommStatus = 'partial';
+                } else {
+                    $brokerCommStatus = 'unpaid';
+                }
+            } else {
+                $brokerCommStatus = 'unpaid';
+            }
+        }
+
         $sale = PropertySale::create([
-            'firm_id'          => $request->firm_id,
-            'property_id'      => $request->property_id,
-            'customer_id'      => $request->customer_id,
-            'broker_id'        => $request->broker_id ?: null,
-            'sale_date'        => $request->sale_date,
-            'sale_amount'      => $saleAmount,
-            'booking_amount'   => $bookingAmount,
-            'remaining_amount' => $remainingAmount,
-            'payment_status'   => $paymentStatus,
-            'sale_status'      => $request->sale_status,
-            'agreement_file'   => $agreementPath,
-            'note'             => $request->note,
+            'firm_id'                        => $request->firm_id,
+            'property_id'                    => $request->property_id,
+            'customer_id'                    => $request->customer_id,
+            'broker_id'                      => $brokerId,
+            'broker_commission_type'         => $brokerCommType,
+            'broker_commission_rate'         => $brokerCommRate,
+            'broker_commission_amount'       => $brokerCommAmount,
+            'broker_commission_paid'         => $brokerCommPaid,
+            'broker_commission_due'          => $brokerCommDue,
+            'broker_commission_payment_mode' => $request->broker_commission_payment_mode,
+            'broker_commission_status'       => $brokerCommStatus,
+            'broker_notes'                   => $request->broker_notes,
+            'sale_date'                      => $request->sale_date,
+            'sale_amount'                    => $saleAmount,
+            'booking_amount'                 => $bookingAmount,
+            'remaining_amount'               => $remainingAmount,
+            'payment_status'                 => $paymentStatus,
+            'sale_status'                    => $request->sale_status,
+            'agreement_file'                 => $agreementPath,
+            'note'                           => $request->note,
         ]);
 
         $this->updatePropertyStatus($sale, $submittedPropIds);
@@ -304,6 +345,14 @@ class PropertySaleController extends Controller
             'property_id'      => 'required|exists:properties,id',
             'customer_id'      => 'required|exists:customers,id',
             'broker_id'        => 'nullable|exists:brokers,id',
+            'broker_commission_type' => 'nullable|in:percentage,fixed',
+            'broker_commission_rate' => 'nullable|numeric|min:0',
+            'broker_commission_amount' => 'nullable|numeric|min:0',
+            'broker_commission_paid' => 'nullable|numeric|min:0',
+            'broker_commission_due'  => 'nullable|numeric|min:0',
+            'broker_commission_payment_mode' => 'nullable|string|max:100',
+            'broker_commission_status' => 'nullable|string|max:50',
+            'broker_notes'     => 'nullable|string|max:2000',
             'sale_date'        => 'nullable|date',
             'sale_amount'      => 'nullable|numeric',
             'booking_amount'   => 'nullable|numeric',
@@ -337,19 +386,52 @@ class PropertySaleController extends Controller
             }
         }
 
+        // Broker commission calculation
+        $brokerId = $request->filled('broker_id') ? $request->broker_id : ($request->has('broker_id') ? null : $propertySale->broker_id);
+        $brokerCommType = $request->filled('broker_commission_type') ? $request->broker_commission_type : ($propertySale->broker_commission_type ?? 'percentage');
+        $brokerCommRate = $request->filled('broker_commission_rate') ? floatval($request->broker_commission_rate) : ($request->has('broker_commission_rate') ? null : $propertySale->broker_commission_rate);
+        $brokerCommAmount = $request->filled('broker_commission_amount') ? floatval($request->broker_commission_amount) : ($propertySale->broker_commission_amount ?? 0.00);
+        if ($brokerId && $brokerCommType === 'percentage' && $brokerCommRate && ($brokerCommAmount == 0 || $request->filled('broker_commission_rate')) && $saleAmount > 0) {
+            $brokerCommAmount = round(($saleAmount * $brokerCommRate) / 100, 2);
+        }
+        $brokerCommPaid = $request->filled('broker_commission_paid') ? floatval($request->broker_commission_paid) : ($propertySale->broker_commission_paid ?? 0.00);
+        $brokerCommDue = max(0.00, $brokerCommAmount - $brokerCommPaid);
+        $brokerCommStatus = $request->broker_commission_status;
+        if (empty($brokerCommStatus)) {
+            if ($brokerCommAmount > 0) {
+                if ($brokerCommPaid >= $brokerCommAmount) {
+                    $brokerCommStatus = 'paid';
+                } elseif ($brokerCommPaid > 0) {
+                    $brokerCommStatus = 'partial';
+                } else {
+                    $brokerCommStatus = 'unpaid';
+                }
+            } else {
+                $brokerCommStatus = 'unpaid';
+            }
+        }
+
         $propertySale->update([
-            'firm_id'          => $request->firm_id,
-            'property_id'      => $request->property_id,
-            'customer_id'      => $request->customer_id,
-            'broker_id'        => $request->broker_id ?: null,
-            'sale_date'        => $request->sale_date,
-            'sale_amount'      => $saleAmount,
-            'booking_amount'   => $bookingAmount,
-            'remaining_amount' => $remainingAmount,
-            'payment_status'   => $paymentStatus,
-            'sale_status'      => $request->sale_status,
-            'agreement_file'   => $agreementPath,
-            'note'             => $request->note,
+            'firm_id'                        => $request->firm_id,
+            'property_id'                    => $request->property_id,
+            'customer_id'                    => $request->customer_id,
+            'broker_id'                      => $brokerId,
+            'broker_commission_type'         => $brokerCommType,
+            'broker_commission_rate'         => $brokerCommRate,
+            'broker_commission_amount'       => $brokerCommAmount,
+            'broker_commission_paid'         => $brokerCommPaid,
+            'broker_commission_due'          => $brokerCommDue,
+            'broker_commission_payment_mode' => $request->broker_commission_payment_mode ?: $propertySale->broker_commission_payment_mode,
+            'broker_commission_status'       => $brokerCommStatus,
+            'broker_notes'                   => $request->broker_notes ?: $propertySale->broker_notes,
+            'sale_date'                      => $request->sale_date,
+            'sale_amount'                    => $saleAmount,
+            'booking_amount'                 => $bookingAmount,
+            'remaining_amount'               => $remainingAmount,
+            'payment_status'                 => $paymentStatus,
+            'sale_status'                    => $request->sale_status,
+            'agreement_file'                 => $agreementPath,
+            'note'                           => $request->note,
         ]);
 
         $this->updatePropertyStatus($propertySale, $submittedPropIds);

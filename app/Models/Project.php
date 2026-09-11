@@ -37,6 +37,12 @@ class Project extends Model
             ->withTimestamps();
     }
 
+    public function contractors()
+    {
+        return $this->belongsToMany(Contractor::class, 'contractor_project', 'project_id', 'contractor_id')
+            ->withTimestamps();
+    }
+
     public function syncPropertyMasters($propertyMasterIds): void
     {
         $propertyMasterIds = array_values(array_filter((array) $propertyMasterIds));
@@ -81,7 +87,7 @@ class Project extends Model
             ->orderByRaw('CAST(COALESCE(NULLIF(unit_no, ""), id) AS UNSIGNED) ASC, id ASC');
     }
 
-    public function contractors()
+    public function legacyContractors()
     {
         return $this->hasMany(Contractor::class, 'project_id')->latest();
     }

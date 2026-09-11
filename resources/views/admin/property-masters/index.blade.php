@@ -142,10 +142,16 @@
 
 <div class="table-card">
     <div class="table-toolbar">
-        <form method="GET" action="{{ route('property-masters.index') }}" class="search-form">
+        <form method="GET" action="{{ route('property-masters.index') }}" class="search-form" style="max-width: 780px;">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search Property Name, Code, City..." class="search-input">
+            <select name="property_type" class="search-input" style="max-width: 180px;" onchange="this.form.submit()">
+                <option value="">All Property Types</option>
+                @foreach($propertyTypes as $k => $lbl)
+                    <option value="{{ $k }}" {{ request('property_type') === $k ? 'selected' : '' }}>{{ $k }}</option>
+                @endforeach
+            </select>
             <button type="submit" class="btn-search">Filter</button>
-            @if(request()->hasAny(['search', 'status', 'firm_id']))
+            @if(request()->hasAny(['search', 'status', 'firm_id', 'property_type']))
                 <a href="{{ route('property-masters.index') }}" class="btn-reset">Reset</a>
             @endif
         </form>
@@ -174,6 +180,13 @@
                             <a href="{{ route('property-masters.show', $property->id) }}" style="font-weight: 700; color: #FFFFFF !important; text-decoration: none;">
                                 {{ $property->property_name }}
                             </a>
+                            @if($property->property_type)
+                                <div style="margin-top: 3px;">
+                                    <span style="background: rgba(168, 85, 247, 0.15); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.30); padding: 2px 7px; border-radius: 5px; font-size: 11px; font-weight: 700;">
+                                        <i class="fa-solid fa-layer-group"></i> {{ $property->property_type }}
+                                    </span>
+                                </div>
+                            @endif
                         </td>
                         <td><code>{{ $property->property_code }}</code></td>
                         <td>{{ $property->firm->firm_name ?? '-' }}</td>

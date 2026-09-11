@@ -28,6 +28,7 @@ class CustomerController extends Controller
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
                     ->orWhere('mobile', 'like', '%' . $request->search . '%')
+                    ->orWhere('alternate_mobile', 'like', '%' . $request->search . '%')
                     ->orWhere('email', 'like', '%' . $request->search . '%')
                     ->orWhere('city', 'like', '%' . $request->search . '%')
                     ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', '%' . $request->search . '%'));
@@ -57,14 +58,15 @@ class CustomerController extends Controller
         }
 
         $customer = Customer::create([
-            'firm_id'       => $firmId,
-            'name'          => $request->name,
-            'mobile'        => $request->mobile,
-            'email'         => $request->email,
-            'address'       => $request->address,
-            'city'          => $request->city,
-            'customer_type' => $request->customer_type,
-            'status'        => $request->status,
+            'firm_id'          => $firmId,
+            'name'             => $request->name,
+            'mobile'           => $request->mobile,
+            'alternate_mobile' => $request->alternate_mobile,
+            'email'            => $request->email,
+            'address'          => $request->address,
+            'city'             => $request->city,
+            'customer_type'    => $request->customer_type,
+            'status'           => $request->status,
         ]);
 
         if ($request->has('firm_ids') && is_array($request->firm_ids) && method_exists($customer, 'firms')) {
@@ -119,14 +121,15 @@ class CustomerController extends Controller
         }
 
         $customer->update([
-            'firm_id'       => $updateFirmId,
-            'name'          => $request->name,
-            'mobile'        => $request->mobile,
-            'email'         => $request->email,
-            'address'       => $request->address,
-            'city'          => $request->city,
-            'customer_type' => $request->customer_type,
-            'status'        => $request->status,
+            'firm_id'          => $updateFirmId,
+            'name'             => $request->name,
+            'mobile'           => $request->mobile,
+            'alternate_mobile' => $request->alternate_mobile,
+            'email'            => $request->email,
+            'address'          => $request->address,
+            'city'             => $request->city,
+            'customer_type'    => $request->customer_type,
+            'status'           => $request->status,
         ]);
 
         if ($request->has('firm_ids') && is_array($request->firm_ids) && method_exists($customer, 'firms')) {
@@ -169,6 +172,7 @@ class CustomerController extends Controller
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
                     ->orWhere('mobile', 'like', '%' . $request->search . '%')
+                    ->orWhere('alternate_mobile', 'like', '%' . $request->search . '%')
                     ->orWhere('email', 'like', '%' . $request->search . '%')
                     ->orWhere('city', 'like', '%' . $request->search . '%')
                     ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', '%' . $request->search . '%'));

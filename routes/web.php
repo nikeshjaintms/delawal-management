@@ -89,6 +89,8 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::post('property-masters/{propertyMaster}/bulk-generate-plots', [PropertyMasterController::class, 'bulkGeneratePlots'])->name('property-masters.bulk-generate-plots')->middleware(['permission:property_edit']);
     Route::post('property-masters/{propertyMaster}/import-plots', [PropertyMasterController::class, 'importPlots'])->name('property-masters.import-plots')->middleware(['permission:property_edit']);
     Route::resource('property-masters', PropertyMasterController::class)->middleware(['permission:property_view']);
+    Route::post('property-masters/{propertyMaster}/payments', [PropertyMasterController::class, 'storePayment'])->name('property-masters.payments.store')->middleware(['permission:property_edit']);
+    Route::delete('property-masters/{propertyMaster}/payments/{payment}', [PropertyMasterController::class, 'destroyPayment'])->name('property-masters.payments.destroy')->middleware(['permission:property_edit']);
 
     Route::get('projects/properties-and-plots', [\App\Http\Controllers\ProjectController::class, 'getPropertiesAndPlots'])->name('projects.properties-and-plots')->middleware(['permission:project_view']);
     Route::get('projects/export-pdf', [\App\Http\Controllers\ProjectController::class, 'exportPdf'])->name('projects.pdf')->middleware(['permission:project_view']);

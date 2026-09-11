@@ -121,6 +121,21 @@
     <div class="grid-col">
         <div class="col-heading">&#9632; Property &amp; Land Details</div>
         <div class="info-row">
+            <span class="info-label">Property Type:</span>
+            <span class="info-value" style="color: #fc6900ff;">{{ $propertyMaster->property_type ?: 'General / Not Specified' }}</span>
+        </div>
+        @if($propertyMaster->unit_numbers_list || $propertyMaster->total_units_count)
+        <div class="info-row">
+            <span class="info-label">Units Purchased:</span>
+            <span class="info-value" style="color:#059669;">
+                {{ $propertyMaster->total_units_count ?: $propertyMaster->plots->count() }} Units
+                @if($propertyMaster->unit_numbers_list)
+                    <small style="color:#64748B; display:block; font-size:10px;">(Nos: {{ $propertyMaster->unit_numbers_list }})</small>
+                @endif
+            </span>
+        </div>
+        @endif
+        <div class="info-row">
             <span class="info-label">Purchase Date:</span>
             <span class="info-value">{{ $propertyMaster->purchase_date ? \Carbon\Carbon::parse($propertyMaster->purchase_date)->format('d M Y') : '-' }}</span>
         </div>
@@ -149,7 +164,7 @@
     <div class="grid-col">
         <div class="col-heading">&#9632; Seller &amp; Payment Details</div>
         <div class="info-row">
-            <span class="info-label">Seller / Landlord:</span>
+            <span class="info-label">Vendor:</span>
             <span class="info-value">{{ $propertyMaster->seller_name ?: ($propertyMaster->vendor->name ?? '-') }}</span>
         </div>
         @if($propertyMaster->vendor)
@@ -166,6 +181,30 @@
             <span class="info-label">Payment Status:</span>
             <span class="info-value">{{ ucfirst($propertyMaster->payment_status ?: 'Unpaid') }}</span>
         </div>
+        <div class="info-row">
+            <span class="info-label">Broker / Agent:</span>
+            <span class="info-value">
+                @if($propertyMaster->broker)
+                    {{ $propertyMaster->broker->name }} {{ ($propertyMaster->broker->phone || $propertyMaster->broker->mobile) ? '(' . ($propertyMaster->broker->phone ?: $propertyMaster->broker->mobile) . ')' : '' }}
+                @elseif($propertyMaster->broker_name)
+                    {{ $propertyMaster->broker_name }}
+                @else
+                    Direct (No Broker)
+                @endif
+            </span>
+        </div>
+        @if($propertyMaster->broker_commission_amount > 0)
+        <div class="info-row">
+            <span class="info-label">Broker Commission:</span>
+            <span class="info-value">
+                ₹{{ number_format($propertyMaster->broker_commission_amount, 2) }}
+                @if($propertyMaster->broker_commission_type === 'percentage' && $propertyMaster->broker_commission_rate > 0)
+                    ({{ $propertyMaster->broker_commission_rate }}%)
+                @endif
+                — Paid: ₹{{ number_format($propertyMaster->broker_commission_paid ?? 0, 2) }}, Due: ₹{{ number_format($propertyMaster->broker_commission_due ?? 0, 2) }}
+            </span>
+        </div>
+        @endif
         <div class="info-row">
             <span class="info-label">Linked Projects:</span>
             <span class="info-value">

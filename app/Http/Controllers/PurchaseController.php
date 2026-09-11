@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PurchaseRequest;
 use App\Models\Purchase;
+use App\Models\PurchasePayment;
 use App\Models\Vendor;
 use App\Models\Firm;
 use Illuminate\Http\Request;
@@ -147,6 +148,27 @@ class PurchaseController extends Controller
         $purchase->syncFirms($firmIds);
         $this->syncProperty($purchase);
 
+        if ($paidAmount > 0) {
+            $paymentModeId = null;
+            if ($request->payment_mode && class_exists(\App\Models\PaymentMode::class)) {
+                $pm = \App\Models\PaymentMode::where('name', $request->payment_mode)->first();
+                if ($pm) $paymentModeId = $pm->id;
+            }
+
+            PurchasePayment::create([
+                'purchase_id'     => $purchase->id,
+                'firm_id'         => $primaryFirmId,
+                'payment_mode_id' => $paymentModeId,
+                'amount'          => $paidAmount,
+                'payment_date'    => $purchase->purchase_date ?: date('Y-m-d'),
+                'payment_mode'    => $request->payment_mode ?: 'Cash',
+                'reference_no'    => $request->reference_no,
+                'bank_name'       => $request->bank_name ?? null,
+                'remarks'         => $request->remarks ?: 'Initial Payment / Advance',
+                'created_by'      => $user ? $user->id : null,
+            ]);
+        }
+
         return redirect()->route('purchases.index')->with('success', "Property Buy record '{$propertyName}' added successfully and available for direct sale.");
     }
 
@@ -190,14 +212,17 @@ class PurchaseController extends Controller
 
     public function show(Purchase $purchase)
     {
-        $purchase->load(['firms', 'firm', 'vendor', 'property']);
+        $purchase->load(['firms', 'firm', 'vendor', 'property', 'payments.creator', 'payments.paymentMode']);
         $this->authorise($purchase);
-        return view('admin.purchases.show', compact('purchase'));
+        $paymentModes = class_exists(\App\Models\PaymentMode::class)
+            ? \App\Models\PaymentMode::where('status', 'active')->orderBy('name')->get()
+            : collect();
+        return view('admin.purchases.show', compact('purchase', 'paymentModes'));
     }
 
     public function edit(Purchase $purchase)
     {
-        $purchase->load(['firms', 'firm', 'property']);
+        $purchase->load(['firms', 'firm', 'property', 'payments']);
         $this->authorise($purchase);
         return view('admin.purchases.edit', array_merge(['purchase' => $purchase], $this->dropdowns($purchase->firm_id)));
     }
@@ -258,7 +283,88 @@ class PurchaseController extends Controller
         $purchase->syncFirms($firmIds);
         $this->syncProperty($purchase);
 
+        // If no purchase payments exist but paid_amount > 0, create first record
+        if ($purchase->payments()->count() === 0 && $paidAmount > 0) {
+            $paymentModeId = null;
+            if ($request->payment_mode && class_exists(\App\Models\PaymentMode::class)) {
+                $pm = \App\Models\PaymentMode::where('name', $request->payment_mode)->first();
+                if ($pm) $paymentModeId = $pm->id;
+            }
+
+            PurchasePayment::create([
+                'purchase_id'     => $purchase->id,
+                'firm_id'         => $primaryFirmId,
+                'payment_mode_id' => $paymentModeId,
+                'amount'          => $paidAmount,
+                'payment_date'    => $purchase->purchase_date ?: date('Y-m-d'),
+                'payment_mode'    => $request->payment_mode ?: 'Cash',
+                'reference_no'    => $request->reference_no,
+                'bank_name'       => $request->bank_name ?? null,
+                'remarks'         => $request->remarks ?: 'Initial Payment / Advance',
+                'created_by'      => $user ? $user->id : null,
+            ]);
+        } elseif ($purchase->payments()->count() > 0) {
+            $purchase->recalculatePaymentStatus();
+        }
+
         return redirect()->route('purchases.index')->with('success', "Property Buy record '{$propertyName}' updated successfully.");
+    }
+
+    public function storePayment(Request $request, Purchase $purchase)
+    {
+        $this->authorise($purchase);
+
+        $validated = $request->validate([
+            'amount'       => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'payment_mode' => 'required|string|max:100',
+            'reference_no' => 'nullable|string|max:150',
+            'bank_name'    => 'nullable|string|max:150',
+            'remarks'      => 'nullable|string|max:1000',
+        ]);
+
+        $user = Auth::user();
+        $firmId = $purchase->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+
+        $paymentModeId = null;
+        if (class_exists(\App\Models\PaymentMode::class)) {
+            $pm = \App\Models\PaymentMode::where('name', $validated['payment_mode'])->first();
+            if ($pm) $paymentModeId = $pm->id;
+        }
+
+        PurchasePayment::create([
+            'purchase_id'     => $purchase->id,
+            'firm_id'         => $firmId,
+            'payment_mode_id' => $paymentModeId,
+            'amount'          => (float)$validated['amount'],
+            'payment_date'    => $validated['payment_date'],
+            'payment_mode'    => $validated['payment_mode'],
+            'reference_no'    => $validated['reference_no'] ?? null,
+            'bank_name'       => $validated['bank_name'] ?? null,
+            'remarks'         => $validated['remarks'] ?? null,
+            'created_by'      => $user ? $user->id : null,
+        ]);
+
+        $purchase->recalculatePaymentStatus();
+
+        return redirect()->route('purchases.show', $purchase->id)
+            ->with('success', 'Payment installment of ₹' . number_format($validated['amount'], 2) . ' recorded successfully.');
+    }
+
+    public function destroyPayment(Purchase $purchase, PurchasePayment $payment)
+    {
+        $this->authorise($purchase);
+
+        if ($payment->purchase_id != $purchase->id) {
+            abort(404);
+        }
+
+        $amount = $payment->amount;
+        $payment->delete();
+        $purchase->recalculatePaymentStatus();
+
+        return redirect()->route('purchases.show', $purchase->id)
+            ->with('success', 'Payment record of ₹' . number_format($amount, 2) . ' removed successfully.');
     }
 
     public function destroy(Purchase $purchase)

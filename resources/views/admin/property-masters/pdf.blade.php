@@ -128,6 +128,9 @@
             <td>
                 <strong>{{ $item->property_name }}</strong><br>
                 <span style="font-size:9.5px; color:#64748B;">{{ $item->property_code }}</span>
+                @if($item->property_type)
+                    <br><span style="font-size:9px; color:#7C3AED; font-weight:700;">[{{ $item->property_type }}]</span>
+                @endif
             </td>
             <td>
                 {{ $item->location ?: '-' }}

@@ -161,12 +161,24 @@
             @endif
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-user-tie"></i> Broker</div>
+            <div class="detail-label"><i class="fa-solid fa-user-tie"></i> Broker &amp; Commission</div>
             @if($propertySale->broker)
-                <div class="detail-value">{{ $propertySale->broker->name }}</div>
+                <div class="detail-value" style="color: #C4B5FD;">{{ $propertySale->broker->name }}</div>
                 <div style="font-size:12px; color:#CBD5E1; margin-top:4px;">{{ $propertySale->broker->mobile }}</div>
+                @if($propertySale->broker_commission_amount > 0)
+                    <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.15); font-size: 12px;">
+                        <span style="color: #A78BFA; font-weight: 700;">Comm: ₹{{ number_format($propertySale->broker_commission_amount, 2) }}</span>
+                        @if($propertySale->broker_commission_type === 'percentage' && $propertySale->broker_commission_rate > 0)
+                            <small>({{ $propertySale->broker_commission_rate }}%)</small>
+                        @endif
+                        <div style="font-size: 11px; margin-top: 2px;">
+                            <span style="color: #34D399;">Paid: ₹{{ number_format($propertySale->broker_commission_paid ?? 0, 2) }}</span> | 
+                            <span style="color: #FBBF24;">Due: ₹{{ number_format($propertySale->broker_commission_due ?? 0, 2) }}</span>
+                        </div>
+                    </div>
+                @endif
             @else
-                <div class="detail-value empty">No broker assigned</div>
+                <div class="detail-value empty">No broker assigned (Direct)</div>
             @endif
         </div>
         <div class="detail-item">

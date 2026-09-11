@@ -68,6 +68,7 @@ class PurchaseRequest extends FormRequest
             'payment_mode'     => 'nullable|string|max:255',
             'payment_status'   => 'nullable|string|max:50',
             'reference_no'     => 'nullable|string|max:255',
+            'bank_name'        => 'nullable|string|max:255',
             'status'           => 'nullable|string|max:50',
             'remarks'          => 'nullable|string|max:1000',
         ];

@@ -118,24 +118,145 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     {{-- Firm Selection --}}
     @include('admin.components.firm-select')
 
-    <div class="section-heading"><i class="fa-solid fa-city"></i> Project Assignment</div>
+    <div class="section-heading"><i class="fa-solid fa-city"></i> Project Assignment (Single or Multiple Projects)</div>
     <div class="form-grid">
         <div class="form-group" style="grid-column: 1 / -1;">
-            <label class="form-label" for="project_id">Assigned Project <span>*</span></label>
-            <select name="project_id" id="project_id" class="form-control @error('project_id') is-invalid @enderror" required>
-                <option value="">— Select Project —</option>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                <label class="form-label" for="project_ids" style="margin-bottom: 0;">
+                    Assigned Project(s) <span>*</span>
+                    <small style="color: #94A3B8; font-weight: normal; margin-left: 6px;">(Select 1, 2, or multiple projects)</small>
+                </label>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" id="btnSelectAllProjects" style="background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59, 130, 246, 0.4); color: #60A5FA; border-radius: 6px; padding: 4px 10px; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+                        <i class="fa-solid fa-check-double"></i> Select All
+                    </button>
+                    <button type="button" id="btnClearProjects" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; border-radius: 6px; padding: 4px 10px; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+                        <i class="fa-solid fa-xmark"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            @php
+                $oldProjectIds = (array) old('project_ids', old('project_id', $selectedProjectId ?? []));
+                if (!is_array($oldProjectIds)) {
+                    $oldProjectIds = $oldProjectIds ? [$oldProjectIds] : [];
+                }
+            @endphp
+            <select name="project_ids[]" id="project_ids" class="form-control select2-multi @error('project_ids') is-invalid @enderror" multiple required data-placeholder="Search and select project(s)...">
                 @foreach($projects as $proj)
                     @php
                         $pFirmIds = $proj->firms->pluck('id')->push($proj->firm_id)->filter()->unique()->values()->all();
+                        $isSelected = in_array($proj->id, $oldProjectIds);
                     @endphp
                     <option value="{{ $proj->id }}"
                         data-firm-ids="{{ implode(',', $pFirmIds) }}"
-                        {{ old('project_id', $selectedProjectId ?? '') == $proj->id ? 'selected' : '' }}>
+                        {{ $isSelected ? 'selected' : '' }}>
                         {{ $proj->project_name }} {{ $proj->propertyMaster ? '('.$proj->propertyMaster->property_name.')' : '' }}
                     </option>
                 @endforeach
             </select>
-            @error('project_id')<div class="text-error">{{ $message }}</div>@enderror
+            @error('project_ids')<div class="text-error">{{ $message }}</div>@enderror
+            @error('project_ids.*')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+
+        {{-- Specific Plots / Units Selection Grid --}}
+        <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px;" id="plotsSectionWrapper">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                <label class="form-label" style="margin-bottom: 0;">
+                    <i class="fa-solid fa-shapes" style="color: #60A5FA;"></i> Specific Plot(s) / Unit(s) Assigned
+                    <small style="color: #94A3B8; font-weight: normal; margin-left: 6px;">(Optional — select specific units or leave empty for full project)</small>
+                </label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button type="button" id="btnSelectAllPlots" style="background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59, 130, 246, 0.4); color: #60A5FA; border-radius: 6px; padding: 4px 10px; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+                        <i class="fa-solid fa-check-double"></i> Select All Visible
+                    </button>
+                    <button type="button" id="btnClearPlots" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; border-radius: 6px; padding: 4px 10px; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+                        <i class="fa-solid fa-xmark"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <input type="text" id="plotSearchInput" class="form-control" placeholder="🔍 Search plots / units by name, number, or code..." style="padding: 8px 14px; font-size: 13px;">
+            </div>
+
+            @php
+                $oldPropertyIds = (array) old('property_ids', []);
+            @endphp
+
+            <!-- Hidden multi-select for form submission -->
+            <select name="property_ids[]" id="property_ids" multiple style="display: none;">
+                @foreach($projects as $proj)
+                    @foreach($proj->properties as $property)
+                        <option value="{{ $property->id }}" {{ in_array($property->id, $oldPropertyIds) ? 'selected' : '' }}>
+                            {{ $property->property_name }}
+                        </option>
+                    @endforeach
+                @endforeach
+            </select>
+
+            <!-- Visual cards grid -->
+            <div id="plotsCardsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; max-height: 340px; overflow-y: auto; padding: 10px; background: rgba(10, 15, 26, 0.75); border: 1.5px solid rgba(255,255,255,0.12); border-radius: 14px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);">
+                @php $hasAnyPlots = false; @endphp
+                @foreach($projects as $proj)
+                    @foreach($proj->properties as $property)
+                        @php
+                            $hasAnyPlots = true;
+                            $isSelected = in_array($property->id, $oldPropertyIds);
+                            $statusColor = $property->status === 'available' ? '#34D399' : ($property->status === 'booked' ? '#FBBF24' : '#F87171');
+                            $statusBg = $property->status === 'available' ? 'rgba(16, 185, 129, 0.15)' : ($property->status === 'booked' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)');
+                            $isShortUnit = $property->unit_no && strlen(trim($property->unit_no)) <= 10 && !str_contains(strtolower($property->unit_no), 'properties');
+                        @endphp
+                        <div class="plot-card-item {{ $isSelected ? 'is-selected' : '' }}"
+                             data-property-id="{{ $property->id }}"
+                             data-project-id="{{ $proj->id }}"
+                             data-search="{{ strtolower($property->property_name . ' ' . $property->property_code . ' ' . $property->unit_no . ' ' . $proj->project_name) }}"
+                             onclick="togglePlotCardSelection(this)"
+                             style="cursor: pointer; user-select: none; padding: 12px 14px; border-radius: 12px; background: {{ $isSelected ? 'rgba(37, 99, 235, 0.22)' : 'rgba(20, 27, 41, 0.65)' }}; border: 1.5px solid {{ $isSelected ? '#3B82F6' : 'rgba(255, 255, 255, 0.10)' }}; transition: all .2s ease; display: flex; align-items: center; gap: 12px; box-shadow: {{ $isSelected ? '0 0 14px rgba(59, 130, 246, 0.35)' : 'none' }};">
+                            
+                            <!-- Checkbox -->
+                            <div class="plot-check-box" style="width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid {{ $isSelected ? '#3B82F6' : 'rgba(255, 255, 255, 0.25)' }}; background: {{ $isSelected ? '#2563EB' : 'transparent' }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #FFFFFF; font-size: 11px; transition: all .2s ease;">
+                                <i class="fa-solid fa-check" style="display: {{ $isSelected ? 'block' : 'none' }};"></i>
+                            </div>
+
+                            <!-- Content -->
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                    <div style="font-weight: 700; color: #FFFFFF; font-size: 14px; line-height: 1.3;">
+                                        {{ $property->property_name }}
+                                    </div>
+                                    @if($property->property_code || $isShortUnit)
+                                        <span style="font-size: 10.5px; font-weight: 700; background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59, 130, 246, 0.35); padding: 1px 7px; border-radius: 4px; color: #93C5FD; flex-shrink: 0; white-space: nowrap;">
+                                            {{ $property->property_code ?: '#'.$property->unit_no }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px; gap: 8px; flex-wrap: wrap;">
+                                    <div style="font-size: 11.5px; font-weight: 600; color: #60A5FA; display: flex; align-items: center; gap: 4px;">
+                                        <i class="fa-solid fa-city" style="font-size: 10px; color: #93C5FD;"></i>
+                                        <span>{{ $proj->project_name }}</span>
+                                    </div>
+                                    <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; background: {{ $statusBg }}; color: {{ $statusColor }}; flex-shrink: 0;">
+                                        {{ ucfirst($property->status ?? 'available') }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                @endforeach
+
+                @if(!$hasAnyPlots)
+                    <div style="grid-column: 1 / -1; padding: 20px; text-align: center; color: #94A3B8; font-size: 13px;">
+                        No specific plots/units found for available projects.
+                    </div>
+                @endif
+            </div>
+            <div id="noPlotsFoundMsg" style="display: none; padding: 16px; text-align: center; color: #94A3B8; font-size: 13px;">
+                No plots/units match the selected project(s) or search filter.
+            </div>
+            <div id="plotsSelectedSummary" style="font-size: 12px; color: #94A3B8; margin-top: 6px; font-weight: 600;">
+                Selected: <span id="plotsSelectedCount" style="color: #60A5FA;">{{ count($oldPropertyIds) }}</span> plot(s)/unit(s)
+            </div>
         </div>
     </div>
 
@@ -247,14 +368,11 @@ function getSelectedFirmIds() {
 }
 
 function filterProjectsByFirm() {
-    const projSelect = document.getElementById('project_id');
+    const projSelect = document.getElementById('project_ids');
     if (!projSelect) return;
 
     const selectedFirms = getSelectedFirmIds();
-    const currentVal = projSelect.value;
     const options = projSelect.querySelectorAll('option');
-
-    let currentStillVisible = false;
 
     options.forEach(opt => {
         if (!opt.value) return;
@@ -269,29 +387,207 @@ function filterProjectsByFirm() {
         }
 
         if (match) {
-            opt.style.display = '';
-            if (opt.value === currentVal) currentStillVisible = true;
+            opt.disabled = false;
+            opt.hidden = false;
         } else {
-            opt.style.display = 'none';
+            opt.disabled = true;
+            opt.hidden = true;
+            opt.selected = false;
         }
     });
 
-    if (!currentStillVisible && currentVal) {
-        projSelect.value = '';
+    if (window.jQuery && $(projSelect).data('select2')) {
+        $(projSelect).trigger('change');
+    }
+}
+
+function getSelectedProjectIds() {
+    const projSelect = document.getElementById('project_ids');
+    if (projSelect) {
+        if (projSelect.multiple) {
+            return Array.from(projSelect.selectedOptions).map(o => parseInt(o.value)).filter(Boolean);
+        } else if (projSelect.value) {
+            return [parseInt(projSelect.value)];
+        }
+    }
+    return [];
+}
+
+function togglePlotCardSelection(card) {
+    const propertyId = card.getAttribute('data-property-id');
+    const isSelected = card.classList.contains('is-selected');
+    const selectEl = document.getElementById('property_ids');
+    if (!selectEl) return;
+
+    let opt = selectEl.querySelector(`option[value="${propertyId}"]`);
+    if (!opt) {
+        opt = document.createElement('option');
+        opt.value = propertyId;
+        selectEl.appendChild(opt);
+    }
+
+    if (isSelected) {
+        card.classList.remove('is-selected');
+        card.style.background = 'rgba(20, 27, 41, 0.65)';
+        card.style.borderColor = 'rgba(255, 255, 255, 0.10)';
+        card.style.boxShadow = 'none';
+        const check = card.querySelector('.plot-check-box');
+        if (check) {
+            check.style.background = 'transparent';
+            check.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+            const icon = check.querySelector('i');
+            if (icon) icon.style.display = 'none';
+        }
+        opt.selected = false;
+    } else {
+        card.classList.add('is-selected');
+        card.style.background = 'rgba(37, 99, 235, 0.22)';
+        card.style.borderColor = '#3B82F6';
+        card.style.boxShadow = '0 0 14px rgba(59, 130, 246, 0.35)';
+        const check = card.querySelector('.plot-check-box');
+        if (check) {
+            check.style.background = '#2563EB';
+            check.style.borderColor = '#3B82F6';
+            const icon = check.querySelector('i');
+            if (icon) icon.style.display = 'block';
+        }
+        opt.selected = true;
+    }
+
+    updatePlotsSummary();
+}
+
+function updatePlotsSummary() {
+    const selectedCards = document.querySelectorAll('.plot-card-item.is-selected');
+    const countSpan = document.getElementById('plotsSelectedCount');
+    if (countSpan) {
+        countSpan.textContent = selectedCards.length;
+    }
+}
+
+function filterPlots() {
+    const selectedProjects = getSelectedProjectIds();
+    const searchTerm = (document.getElementById('plotSearchInput')?.value || '').toLowerCase().trim();
+    const cards = document.querySelectorAll('.plot-card-item');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+        const projId = parseInt(card.getAttribute('data-project-id'));
+        const searchData = (card.getAttribute('data-search') || '').toLowerCase();
+
+        let projectMatch = false;
+        if (selectedProjects.length === 0) {
+            projectMatch = true;
+        } else {
+            projectMatch = selectedProjects.includes(projId);
+        }
+
+        let searchMatch = true;
+        if (searchTerm) {
+            searchMatch = searchData.includes(searchTerm);
+        }
+
+        if (projectMatch && searchMatch) {
+            card.style.display = 'flex';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    const noPlotsMsg = document.getElementById('noPlotsFoundMsg');
+    const gridEl = document.getElementById('plotsCardsGrid');
+    if (noPlotsMsg && gridEl) {
+        if (visibleCount === 0 && cards.length > 0) {
+            noPlotsMsg.style.display = 'block';
+        } else {
+            noPlotsMsg.style.display = 'none';
+        }
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Select All Projects
+    const btnSelectAll = document.getElementById('btnSelectAllProjects');
+    if (btnSelectAll) {
+        btnSelectAll.addEventListener('click', () => {
+            const projSelect = document.getElementById('project_ids');
+            if (!projSelect) return;
+            Array.from(projSelect.options).forEach(opt => {
+                if (!opt.disabled && !opt.hidden && opt.value) {
+                    opt.selected = true;
+                }
+            });
+            if (window.jQuery && $(projSelect).data('select2')) {
+                $(projSelect).trigger('change');
+            }
+            filterPlots();
+        });
+    }
+
+    // Clear Projects
+    const btnClear = document.getElementById('btnClearProjects');
+    if (btnClear) {
+        btnClear.addEventListener('click', () => {
+            const projSelect = document.getElementById('project_ids');
+            if (!projSelect) return;
+            Array.from(projSelect.options).forEach(opt => opt.selected = false);
+            if (window.jQuery && $(projSelect).data('select2')) {
+                $(projSelect).trigger('change');
+            }
+            filterPlots();
+        });
+    }
+
+    // Plot Search input
+    const plotSearch = document.getElementById('plotSearchInput');
+    if (plotSearch) {
+        plotSearch.addEventListener('input', filterPlots);
+    }
+
+    // Select All Visible Plots
+    const btnSelectAllPlots = document.getElementById('btnSelectAllPlots');
+    if (btnSelectAllPlots) {
+        btnSelectAllPlots.addEventListener('click', () => {
+            document.querySelectorAll('.plot-card-item').forEach(card => {
+                if (card.style.display !== 'none' && !card.classList.contains('is-selected')) {
+                    togglePlotCardSelection(card);
+                }
+            });
+        });
+    }
+
+    // Clear All Plots
+    const btnClearPlots = document.getElementById('btnClearPlots');
+    if (btnClearPlots) {
+        btnClearPlots.addEventListener('click', () => {
+            document.querySelectorAll('.plot-card-item.is-selected').forEach(card => {
+                togglePlotCardSelection(card);
+            });
+        });
+    }
+
     filterProjectsByFirm();
+    filterPlots();
+
+    if (window.jQuery && $('#project_ids').length) {
+        $('#project_ids').on('change select2:select select2:unselect', function() {
+            filterPlots();
+        });
+    }
 
     if (window.jQuery && $('#firm_ids').length) {
         $('#firm_ids').on('change select2:select select2:unselect', function() {
             filterProjectsByFirm();
+            filterPlots();
         });
     }
     const firmEl = document.getElementById('firm_ids');
     if (firmEl) {
-        firmEl.addEventListener('change', filterProjectsByFirm);
+        firmEl.addEventListener('change', () => {
+            filterProjectsByFirm();
+            filterPlots();
+        });
     }
 });
 </script>

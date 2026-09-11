@@ -201,10 +201,38 @@ select.filter-select option { background: #111827 !important; color: #FFFFFF !im
                         <td><strong style="color: #FFFFFF;">{{ $con->firm->firm_name ?? '—' }}</strong></td>
                     @endif
                     <td>
-                        <span class="proj-pill">
-                            <i class="fa-solid fa-city"></i>
-                            {{ $con->project->project_name ?? 'No Project' }}
-                        </span>
+                        @php
+                            $assignedProjs = $con->relationLoaded('projects') && $con->projects->isNotEmpty()
+                                ? $con->projects
+                                : ($con->project ? collect([$con->project]) : collect());
+                        @endphp
+                        @if($assignedProjs->isNotEmpty())
+                            <div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 220px;">
+                                @foreach($assignedProjs as $p)
+                                    <span class="proj-pill">
+                                        <i class="fa-solid fa-city"></i>
+                                        {{ $p->project_name }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        @else
+                            <span style="color: #94A3B8;">—</span>
+                        @endif
+
+                        @if($con->properties && $con->properties->isNotEmpty())
+                            <div style="margin-top: 5px; display: flex; flex-wrap: wrap; gap: 3px; max-width: 220px;">
+                                @foreach($con->properties->take(3) as $pl)
+                                    <span style="font-size: 10px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 1px 6px; border-radius: 4px;" title="{{ $pl->property_name }}">
+                                        <i class="fa-solid fa-shapes" style="font-size: 9px;"></i> {{ $pl->property_name }}
+                                    </span>
+                                @endforeach
+                                @if($con->properties->count() > 3)
+                                    <span style="font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.08); color: #CBD5E1; padding: 1px 5px; border-radius: 4px;">
+                                        +{{ $con->properties->count() - 3 }} more
+                                    </span>
+                                @endif
+                            </div>
+                        @endif
                     </td>
                     <td>
                         <strong style="color: #FFFFFF; font-size: 14px;">{{ $con->contractor_name }}</strong>
