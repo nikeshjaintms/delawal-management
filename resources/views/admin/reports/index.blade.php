@@ -236,6 +236,39 @@
         <a href="{{ route('loan-report.index') }}" class="rpt-open-btn"><i class="fa-solid fa-arrow-right"></i> Open Report</a>
     </div>
 
+    <div class="rpt-card">
+        <div class="rpt-card-top">
+            <div class="rpt-icon amber"><i class="fa-solid fa-cubes"></i></div>
+            <div class="rpt-card-info">
+                <h3>Current Stock Report</h3>
+                <p>Material stock movements, project-wise usage, and low stock warnings.</p>
+            </div>
+        </div>
+        <a href="{{ route('stock-report.index') }}" class="rpt-open-btn"><i class="fa-solid fa-arrow-right"></i> Open Report</a>
+    </div>
+
+    <div class="rpt-card">
+        <div class="rpt-card-top">
+            <div class="rpt-icon green"><i class="fa-solid fa-bookmark"></i></div>
+            <div class="rpt-card-info">
+                <h3>Bookings Directory</h3>
+                <p>All property booking records, token advances, and status summary.</p>
+            </div>
+        </div>
+        <a href="{{ route('bookings.index') }}" class="rpt-open-btn"><i class="fa-solid fa-arrow-right"></i> Open Bookings</a>
+    </div>
+
+    <div class="rpt-card">
+        <div class="rpt-card-top">
+            <div class="rpt-icon blue"><i class="fa-solid fa-percent"></i></div>
+            <div class="rpt-card-info">
+                <h3>Broker Commission Report</h3>
+                <p>Brokerage calculations, commission payouts, and payment status.</p>
+            </div>
+        </div>
+        <a href="{{ route('broker-commissions.index') }}" class="rpt-open-btn"><i class="fa-solid fa-arrow-right"></i> Open Report</a>
+    </div>
+
 </div>
 @endsection
 
