@@ -9,7 +9,7 @@ class Booking extends Model
     use \App\Traits\HasFirms;
 
     protected $fillable = [
-        'firm_id', 'property_id', 'customer_id', 'broker_id',
+        'firm_id', 'property_id', 'customer_id', 'broker_id', 'booking_type',
         'booking_date', 'total_amount', 'discount_type', 'discount_value',
         'discount_amount', 'final_amount', 'booking_amount', 'remaining_amount',
         'payment_mode_id', 'payment_mode', 'transaction_ref', 'agreement_date',

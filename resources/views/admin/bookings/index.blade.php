@@ -84,6 +84,10 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
 .badge-partial { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
 .badge-paid { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
 
+.badge-type-booking { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
+.badge-type-selling { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-type-buying  { background: rgba(168, 85, 247, 0.18) !important; color: #C084FC !important; border: 1px solid rgba(168, 85, 247, 0.35) !important; }
+
 .action-buttons-wrap { display: flex !important; gap: 8px !important; align-items: center !important; white-space: nowrap !important; }
 .amount-chip { background: rgba(245, 158, 11, 0.15); color: #FBBF24; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.30); display: inline-block; }
 
@@ -95,7 +99,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
 <div class="crud-header">
     <div class="crud-title">
         <h2>Booking Management</h2>
-        <p>Manage property bookings, agreements and payment tracking.</p>
+        <p>Manage property bookings, sales, purchases and payment tracking.</p>
     </div>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <a href="{{ route('bookings.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important; border: 1px solid #F87171 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.40);">
@@ -132,6 +136,15 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
             <input type="text" name="search" value="{{ request('search') }}" class="search-input @error('search') is-invalid @enderror" placeholder="Property, customer, firm, status...">
         </div>
         <div class="filter-group">
+            <span class="filter-label">Type</span>
+            <select name="filter_booking_type" class="filter-control @error('filter_booking_type') is-invalid @enderror">
+                <option value="">All Types</option>
+                <option value="booking" {{ request('filter_booking_type')=='booking' ?'selected':'' }}>Booking</option>
+                <option value="selling" {{ request('filter_booking_type')=='selling' ?'selected':'' }}>Selling</option>
+                <option value="buying"  {{ request('filter_booking_type')=='buying'  ?'selected':'' }}>Buying</option>
+            </select>
+        </div>
+        <div class="filter-group">
             <span class="filter-label">Status</span>
             <select name="filter_status" class="filter-control @error('filter_status') is-invalid @enderror">
                 <option value="">All Status</option>
@@ -141,7 +154,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
             </select>
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','firm_id','filter_status']))
+        @if(request()->hasAny(['search','firm_id','filter_status','filter_booking_type']))
             <a href="{{ route('bookings.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
@@ -150,7 +163,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
         <table class="premium-table">
             <thead>
                 <tr>
-                    <th>#</th><th>Firm</th><th>Booking Date</th><th>Property</th><th>Customer</th>
+                    <th>#</th><th>Type</th><th>Firm</th><th>Booking Date</th><th>Property</th><th>Customer</th>
                     <th>Net Amount</th><th>Paid Amount</th><th>Payment Mode</th><th>Status</th><th>Payment</th><th style="width:200px;">Action</th>
                 </tr>
             </thead>
@@ -158,6 +171,16 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                 @forelse($bookings as $key => $booking)
                 <tr>
                     <td>{{ method_exists($bookings, 'firstItem') ? ($bookings->firstItem() + $key) : ($key + 1) }}</td>
+                    <td>
+                        @php $bType = $booking->booking_type ?? 'booking'; @endphp
+                        @if($bType === 'selling')
+                            <span class="badge badge-type-selling"><i class="fa-solid fa-arrow-trend-up"></i> Selling</span>
+                        @elseif($bType === 'buying')
+                            <span class="badge badge-type-buying"><i class="fa-solid fa-cart-shopping"></i> Buying</span>
+                        @else
+                            <span class="badge badge-type-booking"><i class="fa-solid fa-bookmark"></i> Booking</span>
+                        @endif
+                    </td>
                     <td><strong style="color: #FFFFFF !important;">{{ $booking->firm->firm_name ?? '-' }}</strong></td>
                     <td>{{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') : '-' }}</td>
                     <td>
@@ -209,7 +232,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="11" align="center" style="padding:30px;color:#CBD5E1;">No bookings found.</td></tr>
+                <tr><td colspan="12" align="center" style="padding:30px;color:#CBD5E1;">No bookings found.</td></tr>
                 @endforelse
             </tbody>
         </table>

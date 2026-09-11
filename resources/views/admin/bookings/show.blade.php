@@ -33,6 +33,10 @@
 .badge-partial { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
 .badge-paid { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
 
+.badge-type-booking { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
+.badge-type-selling { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-type-buying  { background: rgba(168, 85, 247, 0.18) !important; color: #C084FC !important; border: 1px solid rgba(168, 85, 247, 0.35) !important; }
+
 /* Financial Summary Dark Glass */
 .financial-summary {
     background: rgba(16, 22, 34, 0.55) !important;
@@ -116,6 +120,19 @@
     </div>
 
     <div class="detail-grid">
+        <div class="detail-item">
+            <div class="detail-label">Transaction Type</div>
+            <div class="detail-value">
+                @php $bType = $booking->booking_type ?? 'booking'; @endphp
+                @if($bType === 'selling')
+                    <span class="badge badge-type-selling"><i class="fa-solid fa-arrow-trend-up"></i> Selling</span>
+                @elseif($bType === 'buying')
+                    <span class="badge badge-type-buying"><i class="fa-solid fa-cart-shopping"></i> Buying</span>
+                @else
+                    <span class="badge badge-type-booking"><i class="fa-solid fa-bookmark"></i> Booking</span>
+                @endif
+            </div>
+        </div>
         <div class="detail-item">
             <div class="detail-label">Firm</div>
             <div class="detail-value">{{ $booking->firm->firm_name ?? '-' }}</div>

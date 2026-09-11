@@ -74,7 +74,7 @@
     <div>
         <h2>Booking Ref #BK-{{ str_pad($booking->id, 5, '0', STR_PAD_LEFT) }}</h2>
         <div style="font-size:11px; color:#94A3B8;">
-            Firm: {{ $booking->firm->firm_name ?? 'Delawala Management' }} &nbsp;|&nbsp; Status: {{ ucfirst($booking->status) }}
+            Firm: {{ $booking->firm->firm_name ?? 'Delawala Management' }} &nbsp;|&nbsp; Type: <strong style="color:#FBBF24; text-transform:uppercase;">{{ $booking->booking_type ?? 'booking' }}</strong> &nbsp;|&nbsp; Status: {{ ucfirst($booking->status) }}
         </div>
     </div>
     <div>
@@ -138,6 +138,10 @@
         <div class="info-row">
             <span class="info-label">Address:</span>
             <span class="info-value">{{ $booking->customer->address ?? ($booking->customer->city ?? '-') }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Transaction Type:</span>
+            <span class="info-value" style="text-transform:uppercase; color:#e05c00;">{{ $booking->booking_type ?? 'booking' }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Broker / Agent:</span>

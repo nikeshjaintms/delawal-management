@@ -105,6 +105,7 @@ class BookingController extends Controller
             $s = $request->search;
             $query->where(function ($q) use ($s) {
                 $q->where('status', 'like', "%{$s}%")
+                  ->orWhere('booking_type', 'like', "%{$s}%")
                   ->orWhere('payment_status', 'like', "%{$s}%")
                   ->orWhere('payment_mode', 'like', "%{$s}%")
                   ->orWhere('transaction_ref', 'like', "%{$s}%")
@@ -116,6 +117,10 @@ class BookingController extends Controller
 
         if ($request->filled('filter_status')) {
             $query->where('status', $request->filter_status);
+        }
+
+        if ($request->filled('filter_booking_type')) {
+            $query->where('booking_type', $request->filter_booking_type);
         }
 
         $bookings = $query->latest()->paginate(15)->withQueryString();
@@ -150,6 +155,7 @@ class BookingController extends Controller
             'property_id'      => $request->property_id,
             'customer_id'      => $request->customer_id,
             'broker_id'        => $request->broker_id ?: null,
+            'booking_type'     => $request->booking_type ?: 'booking',
             'booking_date'     => $request->booking_date,
             'total_amount'     => $request->total_amount,
             'discount_type'    => $request->discount_type ?: 'percentage',
@@ -237,6 +243,7 @@ class BookingController extends Controller
             'property_id'      => $request->property_id,
             'customer_id'      => $request->customer_id,
             'broker_id'        => $request->broker_id ?: null,
+            'booking_type'     => $request->booking_type ?: 'booking',
             'booking_date'     => $request->booking_date,
             'total_amount'     => $request->total_amount,
             'discount_type'    => $request->discount_type ?: 'percentage',

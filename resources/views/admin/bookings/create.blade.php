@@ -124,6 +124,35 @@ textarea.form-control { resize: vertical; min-height: 85px; }
         @csrf
         @include('admin.components.firm-select')
 
+        {{-- 0. Booking Type (Booking / Selling / Buying) --}}
+        <div class="form-group" style="margin-bottom: 22px;">
+            <label class="form-label">Transaction / Booking Type <span>*</span></label>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+                <label id="type_booking_card" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; border: 1.5px solid rgba(59, 130, 246, 0.5); background: rgba(37, 99, 235, 0.15); cursor: pointer; transition: all .2s ease;">
+                    <input type="radio" name="booking_type" id="booking_type_booking" value="booking" {{ old('booking_type', 'booking') == 'booking' ? 'checked' : '' }} onchange="onBookingTypeChange()" style="accent-color: #3B82F6; width: 17px; height: 17px;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 13.5px; color: #60A5FA;">🏷️ Booking</div>
+                        <div style="font-size: 11.5px; color: #CBD5E1; margin-top: 1px;">Standard Client Booking</div>
+                    </div>
+                </label>
+                <label id="type_selling_card" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; border: 1.5px solid rgba(255, 255, 255, 0.15); background: rgba(16, 22, 34, 0.6); cursor: pointer; transition: all .2s ease;">
+                    <input type="radio" name="booking_type" id="booking_type_selling" value="selling" {{ old('booking_type') == 'selling' ? 'checked' : '' }} onchange="onBookingTypeChange()" style="accent-color: #10B981; width: 17px; height: 17px;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 13.5px; color: #34D399;">💰 Selling</div>
+                        <div style="font-size: 11.5px; color: #CBD5E1; margin-top: 1px;">Direct Sale / Outright Sell</div>
+                    </div>
+                </label>
+                <label id="type_buying_card" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; border: 1.5px solid rgba(255, 255, 255, 0.15); background: rgba(16, 22, 34, 0.6); cursor: pointer; transition: all .2s ease;">
+                    <input type="radio" name="booking_type" id="booking_type_buying" value="buying" {{ old('booking_type') == 'buying' ? 'checked' : '' }} onchange="onBookingTypeChange()" style="accent-color: #A855F7; width: 17px; height: 17px;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 13.5px; color: #C084FC;">🛒 Buying</div>
+                        <div style="font-size: 11.5px; color: #CBD5E1; margin-top: 1px;">Acquisition / Purchase</div>
+                    </div>
+                </label>
+            </div>
+            @error('booking_type') <div class="text-error">{{ $message }}</div> @enderror
+        </div>
+
         {{-- 1. Property / Land Master Selection --}}
         <div class="form-row">
             <div class="form-group">
@@ -610,6 +639,30 @@ textarea.form-control { resize: vertical; min-height: 85px; }
             commissionValue.addEventListener('input', calculateCommission);
             toggleCommissionSection();
         }
+
+        // Booking Type Switcher Logic
+        window.onBookingTypeChange = function() {
+            const types = ['booking', 'selling', 'buying'];
+            const colors = {
+                booking: { border: 'rgba(59, 130, 246, 0.5)', bg: 'rgba(37, 99, 235, 0.15)' },
+                selling: { border: 'rgba(16, 185, 129, 0.5)', bg: 'rgba(16, 185, 129, 0.15)' },
+                buying:  { border: 'rgba(168, 85, 247, 0.5)', bg: 'rgba(168, 85, 247, 0.15)' }
+            };
+            types.forEach(t => {
+                const radio = document.getElementById('booking_type_' + t);
+                const card = document.getElementById('type_' + t + '_card');
+                if (radio && card) {
+                    if (radio.checked) {
+                        card.style.borderColor = colors[t].border;
+                        card.style.background = colors[t].bg;
+                    } else {
+                        card.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                        card.style.background = 'rgba(16, 22, 34, 0.6)';
+                    }
+                }
+            });
+        };
+        window.onBookingTypeChange();
 
         // Booking scope switcher logic
         window.onBookingScopeChange = function() {

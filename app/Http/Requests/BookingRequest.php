@@ -87,6 +87,7 @@ class BookingRequest extends FormRequest
             'property_id'       => 'required|exists:properties,id',
             'customer_id'       => 'required|exists:customers,id',
             'broker_id'         => 'nullable|exists:brokers,id',
+            'booking_type'      => 'required|in:booking,selling,buying',
             'booking_date'      => 'required|date',
             'total_amount'      => 'nullable|numeric|min:0',
             'discount_type'     => 'nullable|in:percentage,fixed',

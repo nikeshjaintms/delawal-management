@@ -93,6 +93,7 @@
     <thead>
         <tr>
             <th style="width:24px;">#</th>
+            <th>Type</th>
             <th>Property / Unit</th>
             <th>Customer Name</th>
             <th>Firm</th>
@@ -109,6 +110,16 @@
         @forelse($bookings as $i => $item)
         <tr>
             <td style="color:#9CA3AF;">{{ $i+1 }}</td>
+            <td>
+                @php $bType = $item->booking_type ?? 'booking'; @endphp
+                @if($bType === 'selling')
+                    <span class="badge badge-success">Selling</span>
+                @elseif($bType === 'buying')
+                    <span class="badge badge-warning" style="background:#FAF5FF;color:#9333EA;border-color:#E9D5FF;">Buying</span>
+                @else
+                    <span class="badge badge-info">Booking</span>
+                @endif
+            </td>
             <td>
                 <strong>{{ $item->property->property_name ?? '-' }}</strong><br>
                 <span style="font-size:9.5px; color:#64748B;">{{ $item->property->property_code ?? '-' }}</span>
@@ -143,13 +154,13 @@
             </td>
         </tr>
         @empty
-        <tr><td colspan="11" style="text-align:center;padding:20px;color:#64748B;">No booking records found.</td></tr>
+        <tr><td colspan="12" style="text-align:center;padding:20px;color:#64748B;">No booking records found.</td></tr>
         @endforelse
     </tbody>
     @if($bookings->count() > 0)
     <tfoot>
         <tr>
-            <td colspan="6" style="font-size:11px;">Total ({{ $bookings->count() }} bookings)</td>
+            <td colspan="7" style="font-size:11px;">Total ({{ $bookings->count() }} bookings)</td>
             <td class="r">₹{{ number_format($totalFinalAmount, 2) }}</td>
             <td class="r" style="color:#059669;">₹{{ number_format($totalBookingAmount, 2) }}</td>
             <td class="r" style="color:#e05c00;">₹{{ number_format($totalRemainingAmount, 2) }}</td>
