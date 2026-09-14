@@ -686,23 +686,24 @@ class PropertyController extends Controller
 
         // Exact match dictionary
         $exactDictionary = [
-            'type'        => ['propertytype', 'proptype', 'type', 'category', 'propertycategory', 'kind', 'projecttype'],
-            'project'     => ['projectname', 'projectcode', 'project', 'mastername', 'propertymaster'],
-            'code'        => ['propertycode', 'propcode', 'code', 'unitcode', 'plotcode'],
-            'name'        => ['propertyname', 'propname', 'name', 'title', 'plotname'],
-            'firm'        => ['firmname', 'firm', 'company', 'companyname'],
-            'status'      => ['propertystatus', 'status', 'state'],
-            'location'    => ['location', 'loc', 'landmark'],
-            'city'        => ['city', 'town'],
-            'address'     => ['address', 'addr'],
-            'size_unit'   => ['sizeunit', 'unit', 'measurementunit', 'areatype', 'areauom', 'uom', 'unittype'],
-            'size'        => ['size', 'area', 'plotsize', 'plotarea', 'sizearea', 'size/area', 'sqft', 'areainsqft', 'areainsqyd', 'carpetarea', 'builtuparea', 'superarea', 'dimensionsize', 'dimension', 'sqyards', 'sqmeter', 'acre', 'bigha', 'plotareainsqft'],
-            'price'       => ['price', 'cost', 'amount', 'rate', 'value', 'priceinr', 'price(inr)', 'askingprice', 'sellingprice'],
-            'unit_no'     => ['unitno', 'unitnumber', 'plotno', 'flatno', 'unit', 'plot', 'number', 'no', 'unit#', 'plot#'],
-            'floor_no'    => ['floorno', 'floor', 'level'],
-            'facing'      => ['facing', 'direction', 'orientation', 'plotfacing'],
-            'description' => ['description', 'desc', 'details', 'notes', 'remarks', 'propertydescription'],
-            'image'       => ['imagefilename', 'image', 'mainimage', 'propertyimage', 'photo', 'img'],
+            'type'          => ['propertytype', 'proptype', 'type', 'category', 'propertycategory', 'kind', 'projecttype'],
+            'project'       => ['projectname', 'projectcode', 'project', 'mastername', 'propertymaster'],
+            'code'          => ['propertycode', 'propcode', 'code', 'unitcode', 'plotcode'],
+            'name'          => ['propertyname', 'propname', 'name', 'title', 'plotname'],
+            'firm'          => ['firmname', 'firm', 'company', 'companyname'],
+            'status'        => ['propertystatus', 'status', 'state'],
+            'location'      => ['location', 'loc', 'landmark'],
+            'city'          => ['city', 'town'],
+            'address'       => ['address', 'addr'],
+            'size_unit'     => ['sizeunit', 'measurementunit', 'areatype', 'areauom', 'uom', 'unittype'],
+            'size'          => ['size', 'area', 'plotsize', 'plotarea', 'sizearea', 'size/area', 'sqft', 'areainsqft', 'areainsqyd', 'carpetarea', 'builtuparea', 'superarea', 'dimensionsize', 'dimension', 'sqyards', 'sqmeter', 'acre', 'bigha', 'plotareainsqft'],
+            'purchase_rate' => ['purchaserate', 'buyrate', 'originalpurchaserate', 'rate', 'costrate', 'batchrate', 'purchaserateperunit', 'purchaserateinr', 'purchaserate(inr)', 'purchaserate(₹)', 'purchaserate₹'],
+            'price'         => ['price', 'sellingprice', 'price(inr)', 'priceinr', 'askingprice', 'saleprice', 'amount', 'cost', 'value', 'expectedprice', 'sellingprice(₹)', 'sellingprice₹'],
+            'unit_no'       => ['unitno', 'unitnumber', 'plotno', 'flatno', 'unit#', 'plot#', 'plotunitno'],
+            'floor_no'      => ['floorno', 'floor', 'level'],
+            'facing'        => ['facing', 'direction', 'orientation', 'plotfacing'],
+            'description'   => ['description', 'desc', 'details', 'notes', 'remarks', 'propertydescription'],
+            'image'         => ['imagefilename', 'image', 'mainimage', 'propertyimage', 'photo', 'img'],
         ];
 
         // Pass 1: Exact normalized dictionary match
@@ -728,27 +729,31 @@ class PropertyController extends Controller
             }
         }
 
-        // Pass 2: Substring fallback match for unmapped headers
+        // Pass 2: Substring fallback match with strict negative exclusions
         foreach ($unmappedCols as $colLetter => $norm) {
             if (!isset($columnMap['type']) && (str_contains($norm, 'type') || str_contains($norm, 'category'))) {
                 $columnMap['type'] = $colLetter;
             } elseif (!isset($columnMap['project']) && str_contains($norm, 'project')) {
                 $columnMap['project'] = $colLetter;
-            } elseif (!isset($columnMap['code']) && str_contains($norm, 'code')) {
+            } elseif (!isset($columnMap['code']) && str_contains($norm, 'code') && !str_contains($norm, 'firm') && !str_contains($norm, 'company')) {
                 $columnMap['code'] = $colLetter;
             } elseif (!isset($columnMap['status']) && str_contains($norm, 'status')) {
                 $columnMap['status'] = $colLetter;
             } elseif (!isset($columnMap['firm']) && (str_contains($norm, 'firm') || str_contains($norm, 'company'))) {
                 $columnMap['firm'] = $colLetter;
-            } elseif (!isset($columnMap['name']) && str_contains($norm, 'name')) {
+            } elseif (!isset($columnMap['name']) && str_contains($norm, 'name') && !str_contains($norm, 'firm') && !str_contains($norm, 'company') && !str_contains($norm, 'project')) {
                 $columnMap['name'] = $colLetter;
-            } elseif (!isset($columnMap['size']) && (str_contains($norm, 'size') || str_contains($norm, 'area') || str_contains($norm, 'sqft'))) {
+            } elseif (!isset($columnMap['size']) && (str_contains($norm, 'size') || str_contains($norm, 'area') || str_contains($norm, 'sqft') || str_contains($norm, 'sqyd'))) {
                 $columnMap['size'] = $colLetter;
-            } elseif (!isset($columnMap['size_unit']) && str_contains($norm, 'unit') && !str_contains($norm, 'unitno') && !str_contains($norm, 'unitnumber')) {
+            } elseif (!isset($columnMap['size_unit']) && str_contains($norm, 'unit') && !str_contains($norm, 'unitno') && !str_contains($norm, 'unitnumber') && !str_contains($norm, 'plot')) {
                 $columnMap['size_unit'] = $colLetter;
+            } elseif (!isset($columnMap['unit_no']) && (str_contains($norm, 'unit') || str_contains($norm, 'plot')) && (str_contains($norm, 'no') || str_contains($norm, 'num') || str_contains($norm, '#'))) {
+                $columnMap['unit_no'] = $colLetter;
             } elseif (!isset($columnMap['facing']) && str_contains($norm, 'facing')) {
                 $columnMap['facing'] = $colLetter;
-            } elseif (!isset($columnMap['price']) && (str_contains($norm, 'price') || str_contains($norm, 'amount') || str_contains($norm, 'rate'))) {
+            } elseif (!isset($columnMap['purchase_rate']) && (str_contains($norm, 'purchaserate') || str_contains($norm, 'buyrate') || (str_contains($norm, 'rate') && !str_contains($norm, 'selling')))) {
+                $columnMap['purchase_rate'] = $colLetter;
+            } elseif (!isset($columnMap['price']) && (str_contains($norm, 'price') || str_contains($norm, 'selling') || str_contains($norm, 'asking') || str_contains($norm, 'amount')) && !str_contains($norm, 'rate')) {
                 $columnMap['price'] = $colLetter;
             } elseif (!isset($columnMap['image']) && (str_contains($norm, 'image') || str_contains($norm, 'photo'))) {
                 $columnMap['image'] = $colLetter;
@@ -911,6 +916,7 @@ class PropertyController extends Controller
                 $sizeUnit = 'sq.ft';
             }
 
+            $purchaseRateInput = isset($columnMap['purchase_rate']) ? trim((string) ($rowData[$columnMap['purchase_rate']] ?? '')) : null;
             $priceInput = isset($columnMap['price']) ? trim((string) ($rowData[$columnMap['price']] ?? '')) : null;
             $unitNo = isset($columnMap['unit_no']) ? trim((string) ($rowData[$columnMap['unit_no']] ?? '')) : null;
             $floorNo = isset($columnMap['floor_no']) ? trim((string) ($rowData[$columnMap['floor_no']] ?? '')) : null;
@@ -1161,6 +1167,21 @@ class PropertyController extends Controller
                 $errors[] = "Row {$r}: Invalid Status '{$statusInput}'. Must be available, booked, sold, or rented.";
             }
 
+            // Purchase Rate Validation & Defaulting
+            $purchaseRate = null;
+            if ($purchaseRateInput !== null && $purchaseRateInput !== '') {
+                $cleanRate = str_replace(',', '', $purchaseRateInput);
+                if (is_numeric($cleanRate) && (float) $cleanRate >= 0) {
+                    $purchaseRate = (float) $cleanRate;
+                }
+            }
+            if ($purchaseRate === null && $propertyMasterId) {
+                $pmObj = $propertyMasters->firstWhere('id', $propertyMasterId);
+                if ($pmObj && $pmObj->purchase_rate) {
+                    $purchaseRate = (float) $pmObj->purchase_rate;
+                }
+            }
+
             // Price Validation
             $price = null;
             if ($priceInput !== null && $priceInput !== '') {
@@ -1170,6 +1191,8 @@ class PropertyController extends Controller
                 } else {
                     $price = (float) $cleanPrice;
                 }
+            } elseif ($purchaseRate !== null) {
+                $price = $purchaseRate;
             }
 
             // Facing Validation
@@ -1244,6 +1267,7 @@ class PropertyController extends Controller
                 'address' => $address,
                 'size' => $size,
                 'size_unit' => $sizeUnit,
+                'purchase_rate' => $purchaseRate,
                 'price' => $price,
                 'unit_no' => $unitNo,
                 'floor_no' => $floorNo,
@@ -1369,6 +1393,8 @@ class PropertyController extends Controller
                     'address' => $row['address'] ?: null,
                     'size' => $row['size'] ?: null,
                     'size_unit' => $row['size_unit'] ?: null,
+                    'purchase_rate' => $row['purchase_rate'] ?? null,
+                    'purchase_date' => date('Y-m-d'),
                     'price' => $row['price'] ?: null,
                     'unit_no' => $row['unit_no'] ?: null,
                     'floor_no' => $row['floor_no'] ?: null,
@@ -1391,7 +1417,7 @@ class PropertyController extends Controller
 
                         $optionalFields = [
                             'location', 'city', 'address', 'size', 'size_unit',
-                            'price', 'unit_no', 'floor_no', 'facing', 'description'
+                            'purchase_rate', 'price', 'unit_no', 'floor_no', 'facing', 'description'
                         ];
 
                         foreach ($optionalFields as $field) {

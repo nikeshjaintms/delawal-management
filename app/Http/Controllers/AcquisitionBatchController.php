@@ -525,10 +525,37 @@ class AcquisitionBatchController extends Controller
 
             // 1. Code, Unit No & Plot Name
             $rawCode = isset($columnMap['plot_code']) && isset($row[$columnMap['plot_code']]) ? trim((string)$row[$columnMap['plot_code']]) : '';
-            $rawName = isset($columnMap['plot_name']) && isset($row[$columnMap['plot_name']]) ? trim((string)$row[$columnMap['plot_name']]) : (isset($row[1]) ? trim((string)$row[1]) : '');
-            $rawUnit = isset($columnMap['unit_no']) && isset($row[$columnMap['unit_no']]) ? trim((string)$row[$columnMap['unit_no']]) : (isset($row[0]) ? trim((string)$row[0]) : '');
+            $rawName = isset($columnMap['plot_name']) && isset($row[$columnMap['plot_name']]) ? trim((string)$row[$columnMap['plot_name']]) : '';
+            $rawUnit = isset($columnMap['unit_no']) && isset($row[$columnMap['unit_no']]) ? trim((string)$row[$columnMap['unit_no']]) : '';
 
-            $unitNo = $rawUnit !== '' ? $rawUnit : ($rawCode !== '' ? $rawCode : (string)($propertyMaster->getNextPlotSequenceNumber() + $createdPlots));
+            $invalidUnitWords = ['delawala', 'properties', 'builders', 'heights', 'residency', 'default', 'none', 'null'];
+            $firmNameStr = $propertyMaster->firm?->firm_name ?? '';
+            if (!empty($firmNameStr)) {
+                $invalidUnitWords[] = strtolower(trim($firmNameStr));
+            }
+
+            $cleanUnit = $rawUnit;
+            if (!empty($cleanUnit)) {
+                $lowerUnit = strtolower($cleanUnit);
+                foreach ($invalidUnitWords as $badWord) {
+                    if ($lowerUnit === $badWord || str_contains($lowerUnit, $badWord)) {
+                        $cleanUnit = '';
+                        break;
+                    }
+                }
+            }
+
+            if ($cleanUnit === '' && !empty($rawName)) {
+                if (preg_match('/(?:plot|unit|house|flat|shop|no\.?)\s*([A-Za-z0-9\-]+)/i', $rawName, $um)) {
+                    $cleanUnit = $um[1];
+                }
+            }
+
+            if ($cleanUnit === '') {
+                $cleanUnit = ($rawCode !== '' ? $rawCode : (string)($propertyMaster->getNextPlotSequenceNumber() + $createdPlots));
+            }
+
+            $unitNo = (string)$cleanUnit;
             $plotName = $rawName !== '' ? $rawName : ($rawCode !== '' ? 'Plot ' . $rawCode : 'Plot ' . $unitNo);
 
             // 2. Project Resolution
@@ -548,55 +575,58 @@ class AcquisitionBatchController extends Controller
                 $projectId = $propertyMaster->projects->first()?->id;
             }
 
-            // 3. Size & Size Unit Parsing (Preserve exact string e.g. "1255 sq.ft Built Up")
-            $rawSize = isset($columnMap['size']) && isset($row[$columnMap['size']]) ? trim((string)$row[$columnMap['size']]) : (isset($row[2]) ? trim((string)$row[2]) : '');
-            $rawUnitStr = isset($columnMap['size_unit']) && isset($row[$columnMap['size_unit']]) ? trim((string)$row[$columnMap['size_unit']]) : (isset($row[3]) ? trim((string)$row[3]) : '');
+            // 3. Size & Size Unit Parsing
+            $rawSize = isset($columnMap['size']) && isset($row[$columnMap['size']]) ? trim((string)$row[$columnMap['size']]) : '';
+            $rawUnitStr = isset($columnMap['size_unit']) && isset($row[$columnMap['size_unit']]) ? trim((string)$row[$columnMap['size_unit']]) : '';
 
             $rawSize = str_replace(["\xc2\xa0", '&nbsp;'], ' ', $rawSize);
             $rawUnitStr = str_replace(["\xc2\xa0", '&nbsp;'], ' ', $rawUnitStr);
 
-            // Anti-pollution validation: never let project name or firm name enter size or size_unit
-            if (!empty($projectInput)) {
-                if (strcasecmp($rawSize, $projectInput) === 0) {
-                    $rawSize = '';
+            $size = null;
+            $detectedUnit = null;
+
+            if ($rawSize !== '') {
+                $lowerSize = strtolower($rawSize);
+                if (preg_match('/(sq\.?\s*ft|sqft|square\s*feet|sq\s*feet|feet|ft)/i', $lowerSize)) {
+                    $detectedUnit = 'sq.ft';
+                } elseif (preg_match('/(sq\.?\s*yd|sqyd|sq\.?\s*yard|square\s*yard|gaj|var)/i', $lowerSize)) {
+                    $detectedUnit = 'sq.yard';
+                } elseif (preg_match('/(sq\.?\s*mt|sqm|sq\.?\s*meter|square\s*meter|meter|mtr)/i', $lowerSize)) {
+                    $detectedUnit = 'sq.meter';
+                } elseif (preg_match('/(acre|acres)/i', $lowerSize)) {
+                    $detectedUnit = 'acre';
+                } elseif (preg_match('/(bigha|vigha)/i', $lowerSize)) {
+                    $detectedUnit = 'bigha';
                 }
-                if (strcasecmp($rawUnitStr, $projectInput) === 0) {
-                    $rawUnitStr = '';
+
+                $cleanSize = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawSize));
+                if ($cleanSize !== '' && is_numeric($cleanSize)) {
+                    $size = (float)$cleanSize;
                 }
             }
 
-            $size = null;
-            $sizeUnit = null;
-
-            if ($rawSize !== '') {
-                // Exact string preservation
-                $size = $rawSize;
-
-                // If size already contains descriptive text/unit (e.g. "1255 sq.ft Built Up"), sizeUnit is kept null
-                if (preg_match('/[a-zA-Z]/', $rawSize)) {
-                    $sizeUnit = null;
-                } elseif ($rawUnitStr !== '') {
-                    $normUnit = strtolower(preg_replace('/[^a-zA-Z]/', '', $rawUnitStr));
-                    if (in_array($normUnit, ['sqft', 'sqfeet', 'squarefeet', 'feet', 'ft'])) {
-                        $sizeUnit = 'sq.ft';
-                    } elseif (in_array($normUnit, ['sqyd', 'sqyard', 'sqyards', 'squareyard', 'squareyards', 'gaj', 'var'])) {
-                        $sizeUnit = 'sq.yard';
-                    } elseif (in_array($normUnit, ['sqmt', 'sqmeter', 'sqmeters', 'squaremeter', 'sqm', 'meter', 'mtr'])) {
-                        $sizeUnit = 'sq.meter';
-                    } elseif (in_array($normUnit, ['acre', 'acres'])) {
-                        $sizeUnit = 'acre';
-                    } elseif (in_array($normUnit, ['bigha', 'vigha', 'bighas'])) {
-                        $sizeUnit = 'bigha';
-                    } else {
-                        $sizeUnit = trim($rawUnitStr);
-                    }
-                } else {
+            $sizeUnit = $propertyMaster->area_unit ?: 'sq.ft';
+            if (!empty($rawUnitStr)) {
+                $normUnit = strtolower(preg_replace('/[^a-zA-Z]/', '', $rawUnitStr));
+                if (in_array($normUnit, ['sqft', 'sqfeet', 'squarefeet', 'feet', 'ft'])) {
                     $sizeUnit = 'sq.ft';
+                } elseif (in_array($normUnit, ['sqyd', 'sqyard', 'sqyards', 'squareyard', 'squareyards', 'gaj', 'var'])) {
+                    $sizeUnit = 'sq.yard';
+                } elseif (in_array($normUnit, ['sqmt', 'sqmeter', 'sqmeters', 'squaremeter', 'sqm', 'meter', 'mtr'])) {
+                    $sizeUnit = 'sq.meter';
+                } elseif (in_array($normUnit, ['acre', 'acres'])) {
+                    $sizeUnit = 'acre';
+                } elseif (in_array($normUnit, ['bigha', 'vigha', 'bighas'])) {
+                    $sizeUnit = 'bigha';
+                } else {
+                    $sizeUnit = trim($rawUnitStr);
                 }
+            } elseif ($detectedUnit) {
+                $sizeUnit = $detectedUnit;
             }
 
             // 4. Facing Direction Validation
-            $rawFacing = isset($columnMap['facing']) && isset($row[$columnMap['facing']]) ? trim((string)$row[$columnMap['facing']]) : (isset($row[4]) ? trim((string)$row[4]) : '');
+            $rawFacing = isset($columnMap['facing']) && isset($row[$columnMap['facing']]) ? trim((string)$row[$columnMap['facing']]) : '';
             $facing = null;
             if ($rawFacing !== '') {
                 $facingLower = strtolower(preg_replace('/[^a-zA-Z\-]/', '', str_replace(' ', '-', $rawFacing)));
@@ -619,12 +649,12 @@ class AcquisitionBatchController extends Controller
                     'sw'         => 'South-West',
                 ];
                 if (isset($validFacings[$facingLower])) {
-                    $facing = $validFacings[$facingLower];
+                    $facing = $validFacingMap[$facingLower] ?? $validFacings[$facingLower];
                 }
             }
 
             // 5. Property Type
-            $typeName = isset($columnMap['type']) && isset($row[$columnMap['type']]) ? trim((string)$row[$columnMap['type']]) : (isset($row[5]) ? trim((string)$row[5]) : null);
+            $typeName = isset($columnMap['type']) && isset($row[$columnMap['type']]) ? trim((string)$row[$columnMap['type']]) : null;
             $typeId = null;
             if ($typeName) {
                 foreach ($propertyTypes as $name => $id) {
@@ -647,11 +677,11 @@ class AcquisitionBatchController extends Controller
             }
 
             // 6. Purchase Rate and Price
-            $rawRate = isset($columnMap['purchase_rate']) && isset($row[$columnMap['purchase_rate']]) ? trim((string)$row[$columnMap['purchase_rate']]) : (isset($row[6]) ? trim((string)$row[6]) : '');
+            $rawRate = isset($columnMap['purchase_rate']) && isset($row[$columnMap['purchase_rate']]) ? trim((string)$row[$columnMap['purchase_rate']]) : '';
             $cleanedRate = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawRate));
             $purchaseRate = ($cleanedRate !== '' && is_numeric($cleanedRate)) ? (float)$cleanedRate : $defaultPurchaseRate;
 
-            $rawPrice = isset($columnMap['price']) && isset($row[$columnMap['price']]) ? trim((string)$row[$columnMap['price']]) : (isset($row[7]) ? trim((string)$row[7]) : '');
+            $rawPrice = isset($columnMap['price']) && isset($row[$columnMap['price']]) ? trim((string)$row[$columnMap['price']]) : '';
             $cleanedPrice = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawPrice));
             $price = ($cleanedPrice !== '' && is_numeric($cleanedPrice)) ? (float)$cleanedPrice : $purchaseRate;
 
@@ -671,7 +701,7 @@ class AcquisitionBatchController extends Controller
 
             // 9. Image & Description
             $rawImage = isset($columnMap['image']) && isset($row[$columnMap['image']]) ? trim((string)$row[$columnMap['image']]) : '';
-            $rawDesc = isset($columnMap['description']) && isset($row[$columnMap['description']]) ? trim((string)$row[$columnMap['description']]) : (isset($row[8]) ? trim((string)$row[8]) : '');
+            $rawDesc = isset($columnMap['description']) && isset($row[$columnMap['description']]) ? trim((string)$row[$columnMap['description']]) : '';
             $description = $rawDesc !== '' ? $rawDesc : ('Imported via Excel for Batch #' . $batchId);
             $mainImage = !empty($rawImage) ? $rawImage : null;
 

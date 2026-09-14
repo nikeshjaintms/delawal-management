@@ -83,6 +83,8 @@ class PropertyMasterRequest extends FormRequest
             'country' => 'nullable|string|max:100',
             'pincode' => 'nullable|string|max:20',
             'description' => 'nullable|string|max:2000',
+            'plot_source'         => 'nullable|string|in:generator,excel,none,batch_only',
+            'excel_file'          => 'nullable|file|mimes:xlsx,xls,csv,txt|max:10240',
             'main_image' => 'nullable|image|max:2048',
             'document_file' => 'nullable|file|max:10240',
         ];

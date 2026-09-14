@@ -62,6 +62,19 @@ class PropertyDocument extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function isExpired(): bool
+    {
+        return $this->expiry_date ? $this->expiry_date->endOfDay()->isPast() : false;
+    }
+
+    public function isExpiringSoon(int $days = 30): bool
+    {
+        if (!$this->expiry_date) {
+            return false;
+        }
+        return !$this->isExpired() && $this->expiry_date->lte(now()->addDays($days)->endOfDay());
+    }
+
     /* ── Helpers ── */
     public static function documentTypes(): array
     {

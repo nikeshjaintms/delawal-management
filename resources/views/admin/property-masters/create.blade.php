@@ -360,51 +360,131 @@
                 </div>
             </div>
 
-            <!-- Unit / Plot Numbers and Quantity Box -->
-            <div class="form-group full-width" style="background: rgba(15, 23, 42, 0.65); border: 1.5px solid rgba(245, 158, 11, 0.30); border-radius: 14px; padding: 18px; margin-top: 4px; margin-bottom: 10px;">
-                <div style="font-size: 13px; font-weight: 800; color: #F59E0B; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                    <span id="unitSectionHeader"><i class="fa-solid fa-list-ol"></i> Units / Plots Purchased &amp; Numbering</span>
-                    <span id="unitSectionSub" style="font-size: 11px; color: #FDE68A; text-transform: none; font-weight: 500;">e.g. 1 to 10, 30, 35 or 1-10, 30, 35</span>
+            <!-- ================================================================
+                 SECTION 2: UNITS / PLOTS PURCHASED & NUMBERING / EXCEL IMPORT
+            ================================================================ -->
+            <div class="form-group full-width" style="background: rgba(15, 23, 42, 0.70); border: 1.5px solid rgba(245, 158, 11, 0.35); border-radius: 16px; padding: 20px; margin-top: 6px; margin-bottom: 12px;">
+                <div style="font-size: 13.5px; font-weight: 800; color: #F59E0B; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                    <span id="unitSectionHeader"><i class="fa-solid fa-list-ol"></i> Units / Plots Setup &amp; Numbering</span>
+                    <span id="unitSectionSub" style="font-size: 11.5px; color: #FDE68A; text-transform: none; font-weight: 500;">Choose how individual plots/units are added to this property</span>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px;">
-                    <!-- Purchased Unit Numbers -->
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" id="unitListLabel" style="color: #FDE68A; font-weight: 700;">
-                            <i class="fa-solid fa-hashtag"></i> Unit / Plot Numbers List
-                        </label>
-                        <input type="text" name="unit_numbers_list" id="unit_numbers_list" value="{{ old('unit_numbers_list') }}" class="form-control" placeholder="e.g. 1-10, 30, 35 or 1 to 10, 30, 35" style="border-color: rgba(245, 158, 11, 0.4);" oninput="handleUnitNumbersInput()">
-                        <small style="color: #CBD5E1; font-size: 11.5px; margin-top: 4px; display: block;">Supports ranges like <code>1-10, 30, 35</code> or <code>1 to 10, 30, 35</code></small>
-                        @error('unit_numbers_list') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                <!-- Plot Source Selector Tabs -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 18px;">
+                    <!-- Option 1: Number Generator -->
+                    <label class="plot-source-card" id="card_plot_source_generator" style="display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: 12px; border: 1.5px solid rgba(245, 158, 11, 0.50); background: rgba(245, 158, 11, 0.12); cursor: pointer; transition: all 0.2s ease;">
+                        <input type="radio" name="plot_source" value="generator" {{ old('plot_source', 'generator') === 'generator' ? 'checked' : '' }} onchange="switchPlotSource('generator')" style="margin-top: 3px; accent-color: #F59E0B; width: 17px; height: 17px; cursor: pointer;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 13.5px; color: #FDE68A; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Number Series / Range
+                            </div>
+                            <div style="font-size: 11.5px; color: #94A3B8; margin-top: 3px; line-height: 1.35;">
+                                Auto-generate from range e.g. <code>1-50, 55, 60</code>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Option 2: Excel / CSV Import -->
+                    <label class="plot-source-card" id="card_plot_source_excel" style="display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: 12px; border: 1.5px solid rgba(255, 255, 255, 0.12); background: rgba(15, 23, 42, 0.50); cursor: pointer; transition: all 0.2s ease;">
+                        <input type="radio" name="plot_source" value="excel" {{ old('plot_source') === 'excel' ? 'checked' : '' }} onchange="switchPlotSource('excel')" style="margin-top: 3px; accent-color: #10B981; width: 17px; height: 17px; cursor: pointer;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 13.5px; color: #34D399; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-file-excel"></i> Upload Excel / CSV File
+                            </div>
+                            <div style="font-size: 11.5px; color: #94A3B8; margin-top: 3px; line-height: 1.35;">
+                                Import full plots list with sizes, facing, prices
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Option 3: Single Property Only -->
+                    <label class="plot-source-card" id="card_plot_source_none" style="display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: 12px; border: 1.5px solid rgba(255, 255, 255, 0.12); background: rgba(15, 23, 42, 0.50); cursor: pointer; transition: all 0.2s ease;">
+                        <input type="radio" name="plot_source" value="none" {{ old('plot_source') === 'none' ? 'checked' : '' }} onchange="switchPlotSource('none')" style="margin-top: 3px; accent-color: #60A5FA; width: 17px; height: 17px; cursor: pointer;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 13.5px; color: #93C5FD; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-building"></i> Single Property Only
+                            </div>
+                            <div style="font-size: 11.5px; color: #94A3B8; margin-top: 3px; line-height: 1.35;">
+                                Don't generate sub-units now (add later)
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- PANEL 1: Number Series / Range Generator -->
+                <div id="plot_panel_generator" style="{{ old('plot_source', 'generator') === 'generator' ? 'display: block;' : 'display: none;' }}">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px;">
+                        <!-- Purchased Unit Numbers -->
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" id="unitListLabel" style="color: #FDE68A; font-weight: 700;">
+                                <i class="fa-solid fa-hashtag"></i> Unit / Plot Numbers List
+                            </label>
+                            <input type="text" name="unit_numbers_list" id="unit_numbers_list" value="{{ old('unit_numbers_list') }}" class="form-control" placeholder="e.g. 1-10, 30, 35 or 1 to 10, 30, 35" style="border-color: rgba(245, 158, 11, 0.4);" oninput="handleUnitNumbersInput()">
+                            <small style="color: #CBD5E1; font-size: 11.5px; margin-top: 4px; display: block;">Supports ranges like <code>1-10, 30, 35</code> or <code>1 to 10, 30, 35</code></small>
+                            @error('unit_numbers_list') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                        </div>
+
+                        <!-- Total Units Count -->
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" id="unitCountLabel" style="color: #FDE68A; font-weight: 700;">
+                                <i class="fa-solid fa-cubes"></i> Total Units Count
+                            </label>
+                            <input type="number" min="0" name="total_units_count" id="total_units_count" value="{{ old('total_units_count') }}" class="form-control" placeholder="e.g. 12" style="font-weight: 800; color: #F59E0B; border-color: rgba(245, 158, 11, 0.4);">
+                            <small style="color: #CBD5E1; font-size: 11.5px; margin-top: 4px; display: block;">Auto-calculated from list</small>
+                            @error('total_units_count') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                        </div>
+
+                        <!-- Unit Prefix -->
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" style="color: #CBD5E1;">Prefix / Label</label>
+                            <input type="text" name="unit_prefix" id="unit_prefix" value="{{ old('unit_prefix', 'Plot ') }}" class="form-control" placeholder="e.g. Plot, Flat, Shop">
+                            <small style="color: #94A3B8; font-size: 11.5px; margin-top: 4px; display: block;">e.g. Plot 1, Flat 101</small>
+                            @error('unit_prefix') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                        </div>
                     </div>
 
-                    <!-- Total Units Count -->
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" id="unitCountLabel" style="color: #FDE68A; font-weight: 700;">
-                            <i class="fa-solid fa-cubes"></i> Total Units Count
-                        </label>
-                        <input type="number" min="0" name="total_units_count" id="total_units_count" value="{{ old('total_units_count') }}" class="form-control" placeholder="e.g. 12" style="font-weight: 800; color: #F59E0B; border-color: rgba(245, 158, 11, 0.4);">
-                        <small style="color: #CBD5E1; font-size: 11.5px; margin-top: 4px; display: block;">Auto-calculated from list</small>
-                        @error('total_units_count') <span class="invalid-feedback">{{ $message }}</span> @enderror
-                    </div>
-
-                    <!-- Unit Prefix -->
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" style="color: #CBD5E1;">Prefix / Label</label>
-                        <input type="text" name="unit_prefix" id="unit_prefix" value="{{ old('unit_prefix', 'Plot ') }}" class="form-control" placeholder="e.g. Plot, Flat, Shop">
-                        <small style="color: #94A3B8; font-size: 11.5px; margin-top: 4px; display: block;">e.g. Plot 1, Flat 101</small>
-                        @error('unit_prefix') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                    <!-- Live Unit Number Preview Tag -->
+                    <div id="unit_preview_container" style="display: none; margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(245, 158, 11, 0.25);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                            <div id="unit_preview_badges" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;"></div>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #34D399; font-weight: 700; cursor: pointer; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 5px 12px; border-radius: 8px;">
+                                <input type="checkbox" name="auto_generate_units" id="auto_generate_units" value="1" checked style="accent-color: #10B981; width: 16px; height: 16px; cursor: pointer;">
+                                <span id="autoGenText"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-create individual plots/units on save</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Live Unit Number Preview Tag -->
-                <div id="unit_preview_container" style="display: none; margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(245, 158, 11, 0.25);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                        <div id="unit_preview_badges" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;"></div>
-                        <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #34D399; font-weight: 700; cursor: pointer; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 5px 12px; border-radius: 8px;">
-                            <input type="checkbox" name="auto_generate_units" id="auto_generate_units" value="1" checked style="accent-color: #10B981; width: 16px; height: 16px; cursor: pointer;">
-                            <span id="autoGenText"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-create individual plots/units on save</span>
-                        </label>
+                <!-- PANEL 2: Excel / CSV File Upload -->
+                <div id="plot_panel_excel" style="{{ old('plot_source') === 'excel' ? 'display: block;' : 'display: none;' }}; background: rgba(16, 185, 129, 0.06); border: 1.5px dashed rgba(16, 185, 129, 0.40); border-radius: 14px; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
+                        <div style="flex: 1; min-width: 280px;">
+                            <label class="form-label" style="color: #34D399; font-size: 14px; font-weight: 800; margin-bottom: 8px;">
+                                <i class="fa-solid fa-file-excel"></i> Select Excel / CSV Spreadsheet
+                            </label>
+                            <input type="file" name="excel_file" id="excel_file_input" accept=".xlsx,.xls,.csv" class="form-control" style="background: rgba(15, 23, 42, 0.85) !important; border-color: rgba(16, 185, 129, 0.40) !important; padding: 8px 12px;">
+                            <div style="font-size: 12px; color: #94A3B8; margin-top: 6px;">
+                                Supported formats: <strong>.xlsx, .xls, .csv</strong> (Columns: Plot No, Size, Facing, Unit, Property Type, Price, Purchase Rate, etc.)
+                            </div>
+                            @error('excel_file') <span class="invalid-feedback" style="display:block;">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; background: rgba(15, 23, 42, 0.60); border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 10px; padding: 12px 16px;">
+                            <span style="font-size: 12px; font-weight: 700; color: #CBD5E1;">
+                                <i class="fa-solid fa-circle-info" style="color: #60A5FA;"></i> Need standard format?
+                            </span>
+                            <a href="{{ route('property-masters.plots.template') }}" class="btn-solid-slate" style="background: rgba(16, 185, 129, 0.20); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.40); padding: 6px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-download"></i> Download Excel Template
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL 3: Single Property Mode Note -->
+                <div id="plot_panel_none" style="{{ old('plot_source') === 'none' ? 'display: block;' : 'display: none;' }}; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 12px; padding: 14px 18px;">
+                    <div style="display: flex; align-items: center; gap: 10px; color: #93C5FD; font-size: 13px;">
+                        <i class="fa-solid fa-circle-info" style="font-size: 18px; color: #60A5FA;"></i>
+                        <span>This Property Master will be saved as a single entity without generating sub-units/plots right now. You can generate or import plots at any time later from the Property Master details page.</span>
                     </div>
                 </div>
             </div>
@@ -1114,10 +1194,42 @@ function handleUnitNumbersInput() {
     }
 }
 
+function switchPlotSource(source) {
+    const pGenerator = document.getElementById('plot_panel_generator');
+    const pExcel     = document.getElementById('plot_panel_excel');
+    const pNone      = document.getElementById('plot_panel_none');
+
+    const cGenerator = document.getElementById('card_plot_source_generator');
+    const cExcel     = document.getElementById('card_plot_source_excel');
+    const cNone      = document.getElementById('card_plot_source_none');
+
+    if (pGenerator) pGenerator.style.display = (source === 'generator') ? 'block' : 'none';
+    if (pExcel)     pExcel.style.display     = (source === 'excel') ? 'block' : 'none';
+    if (pNone)      pNone.style.display      = (source === 'none') ? 'block' : 'none';
+
+    // Highlight active card
+    if (cGenerator) {
+        cGenerator.style.borderColor = (source === 'generator') ? 'rgba(245, 158, 11, 0.60)' : 'rgba(255, 255, 255, 0.12)';
+        cGenerator.style.background = (source === 'generator') ? 'rgba(245, 158, 11, 0.12)' : 'rgba(15, 23, 42, 0.50)';
+    }
+    if (cExcel) {
+        cExcel.style.borderColor = (source === 'excel') ? 'rgba(16, 185, 129, 0.60)' : 'rgba(255, 255, 255, 0.12)';
+        cExcel.style.background = (source === 'excel') ? 'rgba(16, 185, 129, 0.12)' : 'rgba(15, 23, 42, 0.50)';
+    }
+    if (cNone) {
+        cNone.style.borderColor = (source === 'none') ? 'rgba(96, 165, 250, 0.60)' : 'rgba(255, 255, 255, 0.12)';
+        cNone.style.background = (source === 'none') ? 'rgba(96, 165, 250, 0.12)' : 'rgba(15, 23, 42, 0.50)';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const sel = document.getElementById('property_type_select');
     if (sel && sel.value) {
         handlePropertyTypeChange(sel.value);
+    }
+    const currentPlotSource = document.querySelector('input[name="plot_source"]:checked');
+    if (currentPlotSource) {
+        switchPlotSource(currentPlotSource.value);
     }
     recalculatePayment();
     recalculateBrokerageDue();

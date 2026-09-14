@@ -200,12 +200,34 @@ class PropertyMasterController extends Controller
             'updated_by'                     => auth()->id(),
         ]);
 
-        // Auto-generate unit plots if requested or unit numbers provided
-        if (($request->boolean('auto_generate_units') || $request->filled('unit_numbers_list')) && !empty($parsedUnits)) {
+        $plotSource = $request->input('plot_source', $request->hasFile('excel_file') ? 'excel' : ($request->boolean('auto_generate_units') || $request->filled('unit_numbers_list') ? 'generator' : 'none'));
+        $importedPlotsCount = 0;
+
+        // 1. OPTION A: Import from Excel file directly on Property Master creation
+        if (($plotSource === 'excel' || $request->hasFile('excel_file')) && $request->file('excel_file')) {
+            $importRes = $this->importPlotsFromSpreadsheet($request->file('excel_file'), $propertyMaster, $request->project_id);
+            $importedPlotsCount = $importRes['count'] ?? 0;
+            if ($importedPlotsCount > 0) {
+                $propertyMaster->update(['total_units_count' => $importedPlotsCount]);
+            }
+        }
+        // 2. OPTION B: Auto-generate unit plots if requested or unit numbers provided
+        elseif (($request->boolean('auto_generate_units') || $request->filled('unit_numbers_list')) && !empty($parsedUnits)) {
             $propPrefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $propertyMaster->property_name), 0, 4)) ?: 'PROP';
             $unitCount = count($parsedUnits);
             $unitPrice = ($unitCount > 0 && $purchasePrice > 0) ? round($purchasePrice / $unitCount, 2) : ($propertyMaster->purchase_rate ?: 0);
             $unitArea = ($unitCount > 0 && $propertyMaster->total_area > 0) ? round($propertyMaster->total_area / $unitCount, 2) : null;
+
+            // Resolve PropertyType ID
+            $propTypeName = $propertyMaster->property_type ?: 'Plot';
+            $resolvedType = PropertyType::withoutGlobalScopes()->firstOrCreate(
+                ['name' => ucwords($propTypeName)],
+                ['status' => 'active']
+            );
+            if ($firmId && method_exists($resolvedType, 'firms')) {
+                $resolvedType->firms()->syncWithoutDetaching([$firmId]);
+            }
+            $resolvedTypeId = $resolvedType->id;
 
             foreach ($parsedUnits as $unitNo) {
                 $cleanUnit = trim((string)$unitNo);
@@ -217,6 +239,7 @@ class PropertyMasterController extends Controller
                 Property::create([
                     'firm_id'            => $firmId,
                     'property_master_id' => $propertyMaster->id,
+                    'property_type_id'   => $resolvedTypeId,
                     'property_name'      => trim($unitPrefix . ' ' . $cleanUnit),
                     'property_code'      => $plotCode,
                     'unit_no'            => $cleanUnit,
@@ -602,17 +625,38 @@ class PropertyMasterController extends Controller
         $purchaseRate = $request->filled('purchase_rate') ? $request->purchase_rate : ($propertyMaster->purchase_rate ?: 0);
         $price = $request->filled('price') ? $request->price : $purchaseRate;
 
+        // Resolve PropertyType ID
+        $targetTypeId = $request->property_type_id;
+        if (!$targetTypeId) {
+            $defaultTypeObj = PropertyType::withoutGlobalScopes()->firstOrCreate(
+                ['name' => ucwords($propertyMaster->property_type ?: 'Plot')],
+                ['status' => 'active']
+            );
+            if ($propertyMaster->firm_id && method_exists($defaultTypeObj, 'firms')) {
+                $defaultTypeObj->firms()->syncWithoutDetaching([$propertyMaster->firm_id]);
+            }
+            $targetTypeId = $defaultTypeObj->id;
+        }
+
+        // Validate Facing direction
+        $facing = null;
+        if ($request->filled('facing')) {
+            $validFacings = ['East', 'West', 'North', 'South', 'North-East', 'North-West', 'South-East', 'South-West'];
+            $matchFacing = collect($validFacings)->first(fn($f) => strcasecmp($f, trim($request->facing)) === 0);
+            if ($matchFacing) $facing = $matchFacing;
+        }
+
         $plot = Property::create([
             'firm_id'            => $propertyMaster->firm_id,
             'property_master_id' => $propertyMaster->id,
             'project_id'         => $request->project_id ?: null,
-            'property_type_id'   => $request->property_type_id ?: null,
+            'property_type_id'   => $targetTypeId,
             'property_name'      => $request->property_name,
             'property_code'      => $plotCode,
             'unit_no'            => $unitNo,
             'size'               => $request->size ?: null,
-            'size_unit'          => $request->size_unit ?: 'sq.ft',
-            'facing'             => $request->facing ?: null,
+            'size_unit'          => $request->size_unit ?: ($propertyMaster->area_unit ?: 'sq.ft'),
+            'facing'             => $facing,
             'location'           => $propertyMaster->location,
             'city'               => $propertyMaster->city,
             'address'            => $propertyMaster->address,
@@ -663,11 +707,32 @@ class PropertyMasterController extends Controller
 
         $purchaseRate = $request->filled('purchase_rate') ? $request->purchase_rate : ($propertyMaster->purchase_rate ?: 0);
         $price = $request->filled('price') ? $request->price : $purchaseRate;
-        $sizeUnit = $request->size_unit ?: 'sq.ft';
+        $sizeUnit = $request->size_unit ?: ($propertyMaster->area_unit ?: 'sq.ft');
+
+        // Resolve PropertyType ID
+        $targetTypeId = $request->property_type_id;
+        if (!$targetTypeId) {
+            $defaultTypeObj = PropertyType::withoutGlobalScopes()->firstOrCreate(
+                ['name' => ucwords($propertyMaster->property_type ?: 'Plot')],
+                ['status' => 'active']
+            );
+            if ($propertyMaster->firm_id && method_exists($defaultTypeObj, 'firms')) {
+                $defaultTypeObj->firms()->syncWithoutDetaching([$propertyMaster->firm_id]);
+            }
+            $targetTypeId = $defaultTypeObj->id;
+        }
+
+        // Validate Facing direction
+        $facing = null;
+        if ($request->filled('facing')) {
+            $validFacings = ['East', 'West', 'North', 'South', 'North-East', 'North-West', 'South-East', 'South-West'];
+            $matchFacing = collect($validFacings)->first(fn($f) => strcasecmp($f, trim($request->facing)) === 0);
+            if ($matchFacing) $facing = $matchFacing;
+        }
 
         $generatedUnits = [];
 
-        DB::transaction(function () use ($propertyMaster, $parsedUnits, $prefix, $propPrefix, $purchaseRate, $price, $sizeUnit, $request, &$generatedUnits) {
+        DB::transaction(function () use ($propertyMaster, $parsedUnits, $prefix, $propPrefix, $purchaseRate, $price, $sizeUnit, $targetTypeId, $facing, $request, &$generatedUnits) {
             if (!empty($parsedUnits)) {
                 // Generate by parsed list (e.g. 1-10, 30, 35)
                 foreach ($parsedUnits as $cleanUnit) {
@@ -680,13 +745,13 @@ class PropertyMasterController extends Controller
                         'firm_id'            => $propertyMaster->firm_id,
                         'property_master_id' => $propertyMaster->id,
                         'project_id'         => $request->project_id ?: null,
-                        'property_type_id'   => $request->property_type_id ?: null,
+                        'property_type_id'   => $targetTypeId,
                         'property_name'      => trim($prefix . ' ' . $cleanUnit),
                         'property_code'      => $plotCode,
                         'unit_no'            => (string) $cleanUnit,
                         'size'               => $request->size ?: null,
                         'size_unit'          => $sizeUnit,
-                        'facing'             => $request->facing ?: null,
+                        'facing'             => $facing,
                         'location'           => $propertyMaster->location,
                         'city'               => $propertyMaster->city,
                         'address'            => $propertyMaster->address,
@@ -715,13 +780,13 @@ class PropertyMasterController extends Controller
                         'firm_id'            => $propertyMaster->firm_id,
                         'property_master_id' => $propertyMaster->id,
                         'project_id'         => $request->project_id ?: null,
-                        'property_type_id'   => $request->property_type_id ?: null,
+                        'property_type_id'   => $targetTypeId,
                         'property_name'      => trim($prefix . ' ' . $num),
                         'property_code'      => $plotCode,
                         'unit_no'            => (string) $num,
                         'size'               => $request->size ?: null,
                         'size_unit'          => $sizeUnit,
-                        'facing'             => $request->facing ?: null,
+                        'facing'             => $facing,
                         'location'           => $propertyMaster->location,
                         'city'               => $propertyMaster->city,
                         'address'            => $propertyMaster->address,
@@ -749,111 +814,374 @@ class PropertyMasterController extends Controller
     }
 
     /**
-     * Import plots directly from Excel
+     * Import plots directly from Excel using the universal parser
      */
     public function importPlots(Request $request, PropertyMaster $propertyMaster)
     {
         $this->authorise($propertyMaster);
 
         $request->validate([
-            'excel_file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240',
             'project_id' => 'nullable|exists:projects,id',
         ]);
 
-        $file = $request->file('excel_file');
-        $spreadsheet = IOFactory::load($file->getRealPath());
-        $sheet = $spreadsheet->getActiveSheet();
-        $rows = $sheet->toArray(null, true, true, false);
+        $res = $this->importPlotsFromSpreadsheet($request->file('excel_file'), $propertyMaster, $request->project_id);
+        $count = $res['count'] ?? 0;
 
-        if (empty($rows) || count($rows) < 2) {
-            return redirect()->back()->with('error', 'The uploaded Excel file is empty or missing data rows.');
+        if ($count === 0) {
+            return redirect()->back()->with('error', 'No valid plots could be imported from the Excel file. Please ensure data rows are present.');
         }
 
-        // Detect header
+        return redirect()->route('property-masters.show', $propertyMaster->id)
+            ->with('success', "{$count} plots imported successfully from Excel without any column mismatch.");
+    }
+
+    /**
+     * Universal, resilient Plot Importer from Spreadsheet
+     */
+    public function importPlotsFromSpreadsheet($uploadedFile, PropertyMaster $propertyMaster, ?int $projectId = null): array
+    {
+        $path = is_string($uploadedFile) ? $uploadedFile : $uploadedFile->getRealPath();
+        $ext = is_string($uploadedFile) ? pathinfo($uploadedFile, PATHINFO_EXTENSION) : strtolower($uploadedFile->getClientOriginalExtension());
+        $rows = [];
+
+        if (in_array($ext, ['xlsx', 'xls']) && class_exists('\PhpOffice\PhpSpreadsheet\IOFactory')) {
+            try {
+                $spreadsheet = IOFactory::load($path);
+                $worksheet = $spreadsheet->getActiveSheet();
+                $rows = $worksheet->toArray(null, true, true, false);
+            } catch (\Throwable $e) {
+                $rows = [];
+            }
+        }
+
+        if (empty($rows)) {
+            if (($handle = fopen($path, 'r')) !== false) {
+                while (($data = fgetcsv($handle, 5000, ',')) !== false) {
+                    $rows[] = $data;
+                }
+                fclose($handle);
+            }
+        }
+
+        if (empty($rows) || count($rows) < 1) {
+            return ['count' => 0, 'plots' => []];
+        }
+
+        // 1. Locate header row dynamically within first 15 rows
+        $headerRow = [];
         $headerRowIndex = 0;
-        foreach ($rows as $idx => $r) {
-            $joined = strtolower(implode(' ', array_filter($r, fn($v) => $v !== null)));
-            if (str_contains($joined, 'plot') || str_contains($joined, 'unit') || str_contains($joined, 'size') || str_contains($joined, 'rate')) {
-                $headerRowIndex = $idx;
+        $dataStartRowIndex = 1;
+        $knownHeaderKeywords = [
+            'unit', 'plot', 'size', 'area', 'sqft', 'sqyd', 'facing', 'rate', 'price',
+            'type', 'code', 'name', 'status', 'city', 'location', 'address', 'floor', 'amount'
+        ];
+
+        foreach ($rows as $rowIndex => $rowCells) {
+            if ($rowIndex > 15) break;
+            if (!is_array($rowCells)) continue;
+
+            $matchedCount = 0;
+            foreach ($rowCells as $cell) {
+                if (is_null($cell)) continue;
+                $clean = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', (string)$cell));
+                foreach ($knownHeaderKeywords as $kw) {
+                    if (str_contains($clean, $kw)) {
+                        $matchedCount++;
+                        break;
+                    }
+                }
+            }
+
+            if ($matchedCount >= 2) {
+                $headerRow = $rowCells;
+                $headerRowIndex = $rowIndex;
+                $dataStartRowIndex = $rowIndex + 1;
                 break;
             }
         }
 
-        $headers = $rows[$headerRowIndex];
+        if (empty($headerRow) && !empty($rows)) {
+            $headerRow = $rows[0] ?? [];
+            $headerRowIndex = 0;
+            $dataStartRowIndex = 1;
+        }
+
+        // 2. Build column mapping dictionary with exact normalized aliases
+        $exactDict = [
+            'unit_no'       => ['unitno', 'unitnumber', 'plotno', 'unitnoplotno', 'unitnoplotno*', 'flatno', 'unit#', 'plot#', 'plotunitno', 'plotunitno*', 'plot/unitno*', 'plot/unitno'],
+            'plot_name'     => ['plotname', 'plotname*', 'propertyname', 'propertyname*', 'unitname', 'name', 'title'],
+            'plot_code'     => ['plotcode', 'plotcode*', 'propertycode', 'propertycode*', 'unitcode', 'code', 'propcode'],
+            'size'          => ['size', 'area', 'plotsize', 'plotarea', 'sizearea', 'size/area', 'sqft', 'areainsqft', 'areainsqyd', 'carpetarea', 'builtuparea', 'superarea', 'dimensionsize', 'dimension', 'sqyards', 'sqmeter', 'acre', 'bigha', 'plotareainsqft', 'sizenumeric', 'size(numeric)'],
+            'size_unit'     => ['sizeunit', 'measurementunit', 'areatype', 'areauom', 'uom', 'unittype', 'sizeunitsqftsqyard', 'sizeunit(sq.ft/sq.yard)'],
+            'facing'        => ['facing', 'direction', 'orientation', 'plotfacing', 'facingdirection', 'facingdirectioneastwestnorthsouth', 'facingdirection(east/west/north/south)'],
+            'purchase_rate' => ['purchaserate', 'buyrate', 'originalpurchaserate', 'rate', 'costrate', 'batchrate', 'purchaserateperunit', 'purchaserateinr', 'purchaserate(₹)', 'purchaserate₹'],
+            'price'         => ['price', 'sellingprice', 'price(inr)', 'priceinr', 'askingprice', 'priceaskingprice', 'saleprice', 'amount', 'cost', 'value', 'expectedprice', 'sellingprice(₹)', 'sellingprice₹'],
+            'status'        => ['status', 'propertystatus', 'propertystatus*', 'state', 'statusavailablebookedsold', 'status(available/booked/sold)'],
+            'property_type' => ['propertytype', 'propertytype*', 'proptype', 'type', 'category', 'kind', 'projecttype'],
+            'floor_no'      => ['floorno', 'floor', 'level'],
+            'description'   => ['description', 'descriptionnotes', 'notes', 'remarks', 'details', 'propertydescription'],
+            'location'      => ['location', 'loc', 'landmark'],
+            'city'          => ['city', 'town'],
+            'address'       => ['address', 'addr'],
+        ];
+
         $columnMap = [];
-        foreach ($headers as $colIdx => $h) {
-            $norm = strtolower(trim((string)$h));
-            if (!isset($columnMap['unit_no']) && (str_contains($norm, 'unit') || str_contains($norm, 'plot no') || str_contains($norm, 'plot_no'))) {
-                $columnMap['unit_no'] = $colIdx;
-            } elseif (!isset($columnMap['plot_name']) && (str_contains($norm, 'name') || str_contains($norm, 'plot name') || str_contains($norm, 'title'))) {
-                $columnMap['plot_name'] = $colIdx;
-            } elseif (!isset($columnMap['plot_code']) && (str_contains($norm, 'code') || str_contains($norm, 'plot code'))) {
-                $columnMap['plot_code'] = $colIdx;
-            } elseif (!isset($columnMap['size']) && (str_contains($norm, 'size') || str_contains($norm, 'area'))) {
-                $columnMap['size'] = $colIdx;
-            } elseif (!isset($columnMap['size_unit']) && (str_contains($norm, 'unit') && !str_contains($norm, 'no'))) {
+        $unmappedCols = [];
+
+        // Pass 1: Exact Match
+        foreach ($headerRow as $colIdx => $rawHeader) {
+            $cleanBom = preg_replace('/\x{EF}\x{BB}\x{BF}/', '', (string)$rawHeader);
+            $norm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $cleanBom));
+            if (empty($norm)) continue;
+
+            $matchedKey = null;
+            foreach ($exactDict as $fieldKey => $validNorms) {
+                if (in_array($norm, $validNorms, true)) {
+                    $matchedKey = $fieldKey;
+                    break;
+                }
+            }
+
+            if ($matchedKey && !isset($columnMap[$matchedKey])) {
+                $columnMap[$matchedKey] = $colIdx;
+            } else {
+                $unmappedCols[$colIdx] = $norm;
+            }
+        }
+
+        // Pass 2: Substring Match with Strict Negative Exclusions
+        foreach ($unmappedCols as $colIdx => $norm) {
+            if (!isset($columnMap['size_unit']) && str_contains($norm, 'unit') && !str_contains($norm, 'no') && !str_contains($norm, 'num') && !str_contains($norm, 'plot')) {
                 $columnMap['size_unit'] = $colIdx;
-            } elseif (!isset($columnMap['facing']) && str_contains($norm, 'facing')) {
-                $columnMap['facing'] = $colIdx;
-            } elseif (!isset($columnMap['purchase_rate']) && str_contains($norm, 'rate')) {
+            } elseif (!isset($columnMap['unit_no']) && (str_contains($norm, 'unit') || str_contains($norm, 'plot')) && (str_contains($norm, 'no') || str_contains($norm, 'num') || str_contains($norm, '#'))) {
+                $columnMap['unit_no'] = $colIdx;
+            } elseif (!isset($columnMap['purchase_rate']) && (str_contains($norm, 'purchaserate') || str_contains($norm, 'buyrate') || (str_contains($norm, 'rate') && !str_contains($norm, 'selling')))) {
                 $columnMap['purchase_rate'] = $colIdx;
-            } elseif (!isset($columnMap['price']) && (str_contains($norm, 'price') || str_contains($norm, 'amount'))) {
+            } elseif (!isset($columnMap['price']) && (str_contains($norm, 'price') || str_contains($norm, 'selling') || str_contains($norm, 'asking')) && !str_contains($norm, 'rate')) {
                 $columnMap['price'] = $colIdx;
+            } elseif (!isset($columnMap['size']) && (str_contains($norm, 'size') || str_contains($norm, 'area') || str_contains($norm, 'sqft') || str_contains($norm, 'sqyd'))) {
+                $columnMap['size'] = $colIdx;
+            } elseif (!isset($columnMap['facing']) && (str_contains($norm, 'facing') || str_contains($norm, 'direction') || str_contains($norm, 'orient'))) {
+                $columnMap['facing'] = $colIdx;
             } elseif (!isset($columnMap['status']) && str_contains($norm, 'status')) {
                 $columnMap['status'] = $colIdx;
+            } elseif (!isset($columnMap['property_type']) && (str_contains($norm, 'propertytype') || str_contains($norm, 'category'))) {
+                $columnMap['property_type'] = $colIdx;
+            } elseif (!isset($columnMap['plot_name']) && str_contains($norm, 'name') && !str_contains($norm, 'firm') && !str_contains($norm, 'company') && !str_contains($norm, 'project')) {
+                $columnMap['plot_name'] = $colIdx;
+            } elseif (!isset($columnMap['plot_code']) && str_contains($norm, 'code') && !str_contains($norm, 'firm') && !str_contains($norm, 'company') && !str_contains($norm, 'project')) {
+                $columnMap['plot_code'] = $colIdx;
+            } elseif (!isset($columnMap['description']) && (str_contains($norm, 'desc') || str_contains($norm, 'note') || str_contains($norm, 'remark'))) {
+                $columnMap['description'] = $colIdx;
             }
         }
 
         $propPrefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $propertyMaster->property_name), 0, 4)) ?: 'PROP';
-        $propertyTypes = PropertyType::pluck('id', 'name')->toArray();
+        $firmId = $propertyMaster->firm_id;
         $defaultRate = $propertyMaster->purchase_rate ?: 0;
-        $createdPlots = 0;
+        $createdCount = 0;
+        $createdPlots = [];
 
-        DB::transaction(function () use ($rows, $headerRowIndex, $columnMap, $propertyMaster, $propPrefix, $propertyTypes, $defaultRate, $request, &$createdPlots) {
+        // Pre-resolve PropertyType
+        $defaultTypeObj = PropertyType::withoutGlobalScopes()->firstOrCreate(
+            ['name' => ucwords($propertyMaster->property_type ?: 'Plot')],
+            ['status' => 'active']
+        );
+        if ($firmId && method_exists($defaultTypeObj, 'firms')) {
+            $defaultTypeObj->firms()->syncWithoutDetaching([$firmId]);
+        }
+        $defaultTypeId = $defaultTypeObj->id;
+
+        $validFacingMap = [
+            'east'       => 'East',
+            'west'       => 'West',
+            'north'      => 'North',
+            'south'      => 'South',
+            'north-east' => 'North-East',
+            'northeast'  => 'North-East',
+            'ne'         => 'North-East',
+            'north-west' => 'North-West',
+            'northwest'  => 'North-West',
+            'nw'         => 'North-West',
+            'south-east' => 'South-East',
+            'southeast'  => 'South-East',
+            'se'         => 'South-East',
+            'south-west' => 'South-West',
+            'southwest'  => 'South-West',
+            'sw'         => 'South-West',
+        ];
+        $validStatuses = ['available', 'booked', 'sold', 'reserved', 'rented', 'blocked'];
+        $validSizeUnits = ['sq.ft', 'sq.yard', 'sq.meter', 'acre', 'bigha'];
+
+        DB::transaction(function () use (
+            $rows, $dataStartRowIndex, $columnMap, $propertyMaster, $propPrefix, $firmId,
+            $defaultRate, $defaultTypeId, $validFacingMap, $validStatuses, $validSizeUnits,
+            $projectId, &$createdCount, &$createdPlots
+        ) {
             $totalRows = count($rows);
-            for ($r = $headerRowIndex + 1; $r < $totalRows; $r++) {
-                $row = $rows[$r];
-                if (!is_array($row) || empty(array_filter($row, fn($val) => $val !== null && trim((string)$val) !== ''))) {
-                    continue;
+            $firmName = $propertyMaster->firm?->firm_name ?? '';
+            $invalidUnitWords = ['delawala', 'properties', 'builders', 'heights', 'residency', 'default', 'none', 'null'];
+            if (!empty($firmName)) {
+                $invalidUnitWords[] = strtolower(trim($firmName));
+            }
+
+            for ($r = $dataStartRowIndex; $r < $totalRows; $r++) {
+                $row = $rows[$r] ?? null;
+                if (!is_array($row)) continue;
+
+                // Check if row has any non-empty data
+                $hasData = false;
+                foreach ($row as $val) {
+                    if (!is_null($val) && trim((string)$val) !== '') {
+                        $hasData = true;
+                        break;
+                    }
+                }
+                if (!$hasData) continue;
+
+                // 1. Raw field extraction
+                $rawUnit = isset($columnMap['unit_no']) && isset($row[$columnMap['unit_no']]) ? trim((string)$row[$columnMap['unit_no']]) : '';
+                $rawName = isset($columnMap['plot_name']) && isset($row[$columnMap['plot_name']]) ? trim((string)$row[$columnMap['plot_name']]) : '';
+                $rawCode = isset($columnMap['plot_code']) && isset($row[$columnMap['plot_code']]) ? trim((string)$row[$columnMap['plot_code']]) : '';
+                $rawSize = isset($columnMap['size']) && isset($row[$columnMap['size']]) ? trim((string)$row[$columnMap['size']]) : '';
+                $rawSizeUnit = isset($columnMap['size_unit']) && isset($row[$columnMap['size_unit']]) ? trim((string)$row[$columnMap['size_unit']]) : '';
+                $rawFacing = isset($columnMap['facing']) && isset($row[$columnMap['facing']]) ? trim((string)$row[$columnMap['facing']]) : '';
+                $rawRate = isset($columnMap['purchase_rate']) && isset($row[$columnMap['purchase_rate']]) ? trim((string)$row[$columnMap['purchase_rate']]) : '';
+                $rawPrice = isset($columnMap['price']) && isset($row[$columnMap['price']]) ? trim((string)$row[$columnMap['price']]) : '';
+                $rawStatus = isset($columnMap['status']) && isset($row[$columnMap['status']]) ? strtolower(trim((string)$row[$columnMap['status']])) : '';
+                $rawType = isset($columnMap['property_type']) && isset($row[$columnMap['property_type']]) ? trim((string)$row[$columnMap['property_type']]) : '';
+                $rawDesc = isset($columnMap['description']) && isset($row[$columnMap['description']]) ? trim((string)$row[$columnMap['description']]) : '';
+
+                // 2. Unit number & Plot Name cleanup (Prevent firm/company name in unit_no!)
+                $cleanUnit = $rawUnit;
+                if (!empty($cleanUnit)) {
+                    $lowerUnit = strtolower($cleanUnit);
+                    foreach ($invalidUnitWords as $badWord) {
+                        if ($lowerUnit === $badWord || str_contains($lowerUnit, $badWord)) {
+                            $cleanUnit = '';
+                            break;
+                        }
+                    }
                 }
 
-                $rawUnit = isset($columnMap['unit_no']) && isset($row[$columnMap['unit_no']]) ? trim((string)$row[$columnMap['unit_no']]) : (isset($row[0]) ? trim((string)$row[0]) : '');
-                $rawName = isset($columnMap['plot_name']) && isset($row[$columnMap['plot_name']]) ? trim((string)$row[$columnMap['plot_name']]) : (isset($row[1]) ? trim((string)$row[1]) : '');
-                $rawCode = isset($columnMap['plot_code']) && isset($row[$columnMap['plot_code']]) ? trim((string)$row[$columnMap['plot_code']]) : '';
+                if ($cleanUnit === '' && !empty($rawName)) {
+                    if (preg_match('/(?:plot|unit|house|flat|shop|no\.?)\s*([A-Za-z0-9\-]+)/i', $rawName, $um)) {
+                        $cleanUnit = $um[1];
+                    }
+                }
 
-                $unitNo = $rawUnit !== '' ? $rawUnit : (string)($propertyMaster->getNextPlotSequenceNumber() + $createdPlots);
-                $plotName = $rawName !== '' ? $rawName : ('Plot ' . $unitNo);
+                if ($cleanUnit === '') {
+                    $cleanUnit = (string)($propertyMaster->getNextPlotSequenceNumber() + $createdCount);
+                }
 
-                $rawSize = isset($columnMap['size']) && isset($row[$columnMap['size']]) ? trim((string)$row[$columnMap['size']]) : (isset($row[2]) ? trim((string)$row[2]) : '');
-                $rawUnitStr = isset($columnMap['size_unit']) && isset($row[$columnMap['size_unit']]) ? trim((string)$row[$columnMap['size_unit']]) : (isset($row[3]) ? trim((string)$row[3]) : 'sq.ft');
+                $plotName = $rawName !== '' ? $rawName : ('Plot ' . $cleanUnit);
 
-                $size = is_numeric(preg_replace('/[^\d.]/', '', $rawSize)) ? (float)preg_replace('/[^\d.]/', '', $rawSize) : null;
-                $sizeUnit = !empty($rawUnitStr) ? $rawUnitStr : 'sq.ft';
+                // 3. Size and Size Unit parsing
+                $size = null;
+                $detectedUnit = null;
+                if ($rawSize !== '') {
+                    $lowerSize = strtolower($rawSize);
+                    if (preg_match('/(sq\.?\s*ft|sqft|square\s*feet|sq\s*feet|feet|ft)/i', $lowerSize)) {
+                        $detectedUnit = 'sq.ft';
+                    } elseif (preg_match('/(sq\.?\s*yd|sqyd|sq\.?\s*yard|square\s*yard|gaj|var)/i', $lowerSize)) {
+                        $detectedUnit = 'sq.yard';
+                    } elseif (preg_match('/(sq\.?\s*mt|sqm|sq\.?\s*meter|square\s*meter|meter|mtr)/i', $lowerSize)) {
+                        $detectedUnit = 'sq.meter';
+                    } elseif (preg_match('/(acre|acres)/i', $lowerSize)) {
+                        $detectedUnit = 'acre';
+                    } elseif (preg_match('/(bigha|vigha)/i', $lowerSize)) {
+                        $detectedUnit = 'bigha';
+                    }
 
-                $facing = isset($columnMap['facing']) && isset($row[$columnMap['facing']]) ? trim((string)$row[$columnMap['facing']]) : (isset($row[4]) ? trim((string)$row[4]) : null);
+                    $cleanSize = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawSize));
+                    if ($cleanSize !== '' && is_numeric($cleanSize)) {
+                        $size = (float)$cleanSize;
+                    }
+                }
 
-                $rawRate = isset($columnMap['purchase_rate']) && isset($row[$columnMap['purchase_rate']]) ? trim((string)$row[$columnMap['purchase_rate']]) : (isset($row[5]) ? trim((string)$row[5]) : '');
-                $rateVal = is_numeric(preg_replace('/[^\d.]/', '', $rawRate)) ? (float)preg_replace('/[^\d.]/', '', $rawRate) : $defaultRate;
+                $sizeUnit = $propertyMaster->area_unit ?: 'sq.ft';
+                if (!empty($rawSizeUnit)) {
+                    $normUnit = strtolower(preg_replace('/[^a-zA-Z]/', '', $rawSizeUnit));
+                    if (in_array($normUnit, ['sqft', 'sqfeet', 'squarefeet', 'feet', 'ft'])) {
+                        $sizeUnit = 'sq.ft';
+                    } elseif (in_array($normUnit, ['sqyd', 'sqyard', 'sqyards', 'squareyard', 'squareyards', 'gaj', 'var'])) {
+                        $sizeUnit = 'sq.yard';
+                    } elseif (in_array($normUnit, ['sqmt', 'sqmeter', 'sqmeters', 'squaremeter', 'sqm', 'meter', 'mtr'])) {
+                        $sizeUnit = 'sq.meter';
+                    } elseif (in_array($normUnit, ['acre', 'acres'])) {
+                        $sizeUnit = 'acre';
+                    } elseif (in_array($normUnit, ['bigha', 'vigha', 'bighas'])) {
+                        $sizeUnit = 'bigha';
+                    } elseif (in_array(strtolower($rawSizeUnit), $validSizeUnits)) {
+                        $sizeUnit = strtolower($rawSizeUnit);
+                    }
+                } elseif ($detectedUnit) {
+                    $sizeUnit = $detectedUnit;
+                }
 
-                $rawPrice = isset($columnMap['price']) && isset($row[$columnMap['price']]) ? trim((string)$row[$columnMap['price']]) : (isset($row[6]) ? trim((string)$row[6]) : '');
-                $priceVal = is_numeric(preg_replace('/[^\d.]/', '', $rawPrice)) ? (float)preg_replace('/[^\d.]/', '', $rawPrice) : $rateVal;
+                // 4. Facing validation (Never allow cities like "VAGRA" or random strings in facing!)
+                $facing = null;
+                if (!empty($rawFacing)) {
+                    $facingNorm = strtolower(preg_replace('/[^a-zA-Z\-]/', '', str_replace(' ', '-', $rawFacing)));
+                    if (isset($validFacingMap[$facingNorm])) {
+                        $facing = $validFacingMap[$facingNorm];
+                    }
+                }
 
-                $rawStatus = isset($columnMap['status']) && isset($row[$columnMap['status']]) ? strtolower(trim((string)$row[$columnMap['status']])) : 'available';
-                $status = in_array($rawStatus, ['available', 'booked', 'sold', 'reserved']) ? $rawStatus : 'available';
+                // 5. Purchase Rate & Price
+                $rateVal = $defaultRate;
+                if ($rawRate !== '') {
+                    $cleanRate = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawRate));
+                    if ($cleanRate !== '' && is_numeric($cleanRate)) {
+                        $rateVal = (float)$cleanRate;
+                    }
+                }
 
-                $plotCode = !empty($rawCode) ? $rawCode : ('P-' . $propPrefix . '-' . preg_replace('/[^A-Za-z0-9]/', '', $unitNo));
-                if (Property::where('firm_id', $propertyMaster->firm_id)->where('property_code', $plotCode)->exists()) {
+                $priceVal = $rateVal;
+                if ($rawPrice !== '') {
+                    $cleanPrice = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawPrice));
+                    if ($cleanPrice !== '' && is_numeric($cleanPrice)) {
+                        $priceVal = (float)$cleanPrice;
+                    }
+                }
+
+                // 6. Status
+                $status = 'available';
+                if (!empty($rawStatus) && in_array($rawStatus, $validStatuses)) {
+                    $status = $rawStatus;
+                }
+
+                // 7. Property Type ID
+                $propertyTypeId = $defaultTypeId;
+                if (!empty($rawType)) {
+                    $ptObj = PropertyType::withoutGlobalScopes()->firstOrCreate(
+                        ['name' => ucwords(trim($rawType))],
+                        ['status' => 'active']
+                    );
+                    if ($firmId && method_exists($ptObj, 'firms')) {
+                        $ptObj->firms()->syncWithoutDetaching([$firmId]);
+                    }
+                    $propertyTypeId = $ptObj->id;
+                }
+
+                // 8. Plot Code
+                $plotCode = !empty($rawCode) ? $rawCode : ('P-' . $propPrefix . '-' . preg_replace('/[^A-Za-z0-9]/', '', $cleanUnit));
+                if (Property::where('firm_id', $firmId)->where('property_code', $plotCode)->exists()) {
                     $plotCode .= '-' . Str::random(3);
                 }
 
-                Property::create([
-                    'firm_id'            => $propertyMaster->firm_id,
+                // 9. Description
+                $description = $rawDesc !== '' ? $rawDesc : ('Imported via Excel under ' . $propertyMaster->property_name);
+
+                $plot = Property::create([
+                    'firm_id'            => $firmId,
                     'property_master_id' => $propertyMaster->id,
-                    'project_id'         => $request->project_id ?: null,
-                    'property_type_id'   => reset($propertyTypes) ?: PropertyType::withoutGlobalScopes()->firstOrCreate(['name' => 'Plot'], ['status' => 'active'])->id,
+                    'project_id'         => $projectId ?: null,
+                    'property_type_id'   => $propertyTypeId,
                     'property_name'      => $plotName,
                     'property_code'      => $plotCode,
-                    'unit_no'            => $unitNo,
+                    'unit_no'            => (string)$cleanUnit,
                     'size'               => $size,
                     'size_unit'          => $sizeUnit,
                     'facing'             => $facing,
@@ -864,22 +1192,22 @@ class PropertyMasterController extends Controller
                     'purchase_date'      => $propertyMaster->purchase_date ?: date('Y-m-d'),
                     'price'              => $priceVal,
                     'status'             => $status,
-                    'description'        => 'Imported via Excel under ' . $propertyMaster->property_name,
+                    'description'        => $description,
                 ]);
 
-                $createdPlots++;
+                $createdCount++;
+                $createdPlots[] = $plot;
             }
 
-            if ($request->project_id) {
-                $project = Project::find($request->project_id);
+            if ($projectId) {
+                $project = Project::find($projectId);
                 if ($project) {
                     $project->propertyMasters()->syncWithoutDetaching([$propertyMaster->id]);
                 }
             }
         });
 
-        return redirect()->route('property-masters.show', $propertyMaster->id)
-            ->with('success', "{$createdPlots} plots imported successfully from Excel.");
+        return ['count' => $createdCount, 'plots' => $createdPlots];
     }
 
     /**
