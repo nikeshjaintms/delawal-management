@@ -81,6 +81,10 @@ class BookingRequest extends FormRequest
             }
         }
 
+        if (empty($inputs['booking_type'])) {
+            $inputs['booking_type'] = 'booking';
+        }
+
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
                 $inputs[$key] = trim($value);
@@ -110,7 +114,7 @@ class BookingRequest extends FormRequest
             'property_id'       => 'required|exists:properties,id',
             'customer_id'       => 'required|exists:customers,id',
             'broker_id'         => 'nullable|exists:brokers,id',
-            'booking_type'      => 'required|in:booking,selling,buying',
+            'booking_type'      => 'nullable|in:booking,selling,buying',
             'booking_date'      => 'required|date',
             'total_amount'      => 'nullable|numeric|min:0',
             'discount_type'     => 'nullable|in:percentage,fixed',

@@ -43,8 +43,16 @@ class SystemQualityAuditTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->admin = User::first() ?? User::factory()->create(['is_admin' => 1]);
-        $this->firm = Firm::first() ?? Firm::create(['firm_name' => 'QA Firm', 'status' => 'active']);
+        $role = Role::firstOrCreate(['name' => 'Super Admin'], ['description' => 'Admin']);
+        $this->firm = Firm::first() ?? Firm::create(['firm_name' => 'QA Firm', 'email' => 'qa_firm@delawala.com', 'mobile' => '9876543210', 'status' => 'active']);
+        $this->admin = User::first() ?? User::create([
+            'name'     => 'QA Admin',
+            'email'    => 'qa_admin@delawala.com',
+            'password' => bcrypt('password'),
+            'role_id'  => $role->id,
+            'firm_id'  => $this->firm->id,
+            'status'   => 'active',
+        ]);
     }
 
     /** @test */
@@ -415,6 +423,31 @@ class SystemQualityAuditTest extends TestCase
             'year_name' => $uniqueName,
             'is_active' => 1,
             'status' => 'active',
+        ]);
+    }
+
+    /** @test */
+    public function test_10_expense_creation_with_direct_custom_category()
+    {
+        $customCategoryName = 'Custom Site Generator Fuel ' . uniqid();
+        $response = $this->actingAs($this->admin)->withSession(['firm_id' => $this->firm->id])->post(route('expenses.store'), [
+            'firm_ids'         => [$this->firm->id],
+            'expense_title'    => 'Diesel for Site Equipment',
+            'expense_date'     => date('Y-m-d'),
+            'expense_category' => $customCategoryName,
+            'amount'           => 4500,
+            'payment_mode'     => 'Cash',
+            'approval_status'  => 'Approved',
+        ]);
+
+        $response->assertRedirect(route('expenses.index'));
+        $this->assertDatabaseHas('expense_categories', [
+            'name' => $customCategoryName,
+        ]);
+        $this->assertDatabaseHas('expenses', [
+            'expense_title'    => 'Diesel for Site Equipment',
+            'expense_category' => $customCategoryName,
+            'amount'           => 4500,
         ]);
     }
 }

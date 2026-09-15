@@ -329,6 +329,59 @@ textarea.form-control { resize: vertical; min-height: 80px; }
         </div>
     </div>
 
+    <div class="section-heading"><i class="fa-solid fa-file-invoice-dollar"></i> Work / Contract & Financial Details</div>
+    <div class="form-grid">
+        <div class="form-group">
+            <label class="form-label" for="contract_amount">Total Contract / Work Amount (₹)</label>
+            <input type="number" step="0.01" min="0" name="contract_amount" id="contract_amount" value="{{ old('contract_amount', $contractor->contract_amount) }}"
+                   class="form-control @error('contract_amount') is-invalid @enderror" placeholder="e.g. 150000.00">
+            @error('contract_amount')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="work_type">Work Type / Category</label>
+            <input type="text" name="work_type" id="work_type" value="{{ old('work_type', $contractor->work_type) }}"
+                   class="form-control @error('work_type') is-invalid @enderror" placeholder="e.g. Civil Work, Plumbing, Electrical, Painting" list="workTypesList">
+            <datalist id="workTypesList">
+                <option value="Civil Construction Work">
+                <option value="Plumbing & Sanitary">
+                <option value="Electrical & Wiring">
+                <option value="Flooring & Tiling">
+                <option value="Painting & POP">
+                <option value="Carpentry & Woodwork">
+                <option value="Fabrication & Grill Work">
+                <option value="Waterproofing">
+                <option value="Labour Supply / Daily Wages">
+                <option value="Site Maintenance Work">
+            </datalist>
+            @error('work_type')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="contract_date">Contract / Agreement Date</label>
+            <input type="date" name="contract_date" id="contract_date" value="{{ old('contract_date', $contractor->contract_date ? \Carbon\Carbon::parse($contractor->contract_date)->format('Y-m-d') : '') }}"
+                   class="form-control @error('contract_date') is-invalid @enderror">
+            @error('contract_date')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Payment Summary</label>
+            <div style="background: rgba(16, 22, 34, 0.7); border: 1.5px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 8px 14px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; height: 44px;">
+                <span>Paid: <strong style="color: #34D399;">₹{{ number_format($contractor->paid_amount ?? 0, 2) }}</strong></span>
+                <span style="color: rgba(255,255,255,0.2);">|</span>
+                <span>Due: <strong style="color: #F87171;">₹{{ number_format($contractor->due_amount ?? 0, 2) }}</strong></span>
+            </div>
+            <small style="color: #94A3B8; font-size: 11px; margin-top: 3px; display: block;">Individual payment installments are managed directly on the Contractor View page.</small>
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="contract_notes">Work Scope & Contract Notes</label>
+            <textarea name="contract_notes" id="contract_notes" class="form-control @error('contract_notes') is-invalid @enderror"
+                      placeholder="Brief details about work scope, rates, milestones or terms...">{{ old('contract_notes', $contractor->contract_notes) }}</textarea>
+            @error('contract_notes')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+    </div>
+
     <div class="section-heading"><i class="fa-solid fa-location-dot"></i> Address & Status</div>
     <div class="form-grid">
         <div class="form-group" style="grid-column: 1 / -1;">

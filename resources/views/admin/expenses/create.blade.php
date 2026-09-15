@@ -106,7 +106,44 @@ textarea.form-control { resize: vertical; min-height: 90px; }
     color: #FFFFFF !important; font-size: 13.5px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15) !important;
     border-radius: 10px; text-decoration: none !important; transition: all .25s ease; cursor: pointer;
 }
-.btn-outline:hover { background: rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; transform: translateY(-2px); }
+.category-toggle-btn {
+    background: rgba(37, 99, 235, 0.20);
+    border: 1px solid rgba(59, 130, 246, 0.45);
+    color: #93C5FD;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all .2s ease;
+}
+.category-toggle-btn:hover {
+    background: rgba(37, 99, 235, 0.45);
+    color: #FFFFFF;
+    border-color: #60A5FA;
+}
+.btn-cancel-custom-cat {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    color: #E2E8F0;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all .2s ease;
+}
+.btn-cancel-custom-cat:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #FFFFFF;
+}
 </style>
 
 <div class="crud-header">
@@ -174,17 +211,51 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                 </div>
             </div>
             <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label" for="expense_category_id">Expense Category <span class="opt">(optional)</span></label>
-                    <select name="expense_category_id" id="expense_category_id" class="form-control @error('expense_category_id') is-invalid @enderror">
-                        <option value="">— Select Category —</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}" {{ old('expense_category_id') == $cat->id ? 'selected' : '' }}>
-                                {{ $cat->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                <div class="form-group" id="category-group-container">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                        <label class="form-label" style="margin-bottom: 0;" for="expense_category_id">Expense Category <span class="opt">(optional)</span></label>
+                        <button type="button" id="toggle-category-mode-btn" class="category-toggle-btn" onclick="toggleCategoryMode()">
+                            <i class="fa-solid fa-plus-circle"></i> Type / Add New Category
+                        </button>
+                    </div>
+
+                    <!-- Dropdown Mode -->
+                    <div id="category-select-wrapper">
+                        <select name="expense_category_id" id="expense_category_id" class="form-control @error('expense_category_id') is-invalid @enderror" onchange="handleCategorySelect(this)">
+                            <option value="">— Select Category —</option>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat->id }}" {{ old('expense_category_id') == $cat->id ? 'selected' : '' }}>
+                                    {{ $cat->name }}
+                                </option>
+                            @endforeach
+                            <option value="__new__" style="color: #60A5FA; font-weight: 700;">➕ Type New Category...</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom Category Input Mode -->
+                    <div id="category-input-wrapper" style="display: none; margin-top: 4px;">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" name="expense_category" id="expense_category_custom"
+                                   value="{{ old('expense_category') }}"
+                                   class="form-control @error('expense_category') is-invalid @enderror"
+                                   placeholder="Type new category name (e.g. Legal Fees, Site Maintenance, Refreshment)"
+                                   list="existing-categories-list">
+                            <datalist id="existing-categories-list">
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->name }}">
+                                @endforeach
+                            </datalist>
+                            <button type="button" class="btn-cancel-custom-cat" onclick="switchToSelectMode()" title="Choose from list">
+                                <i class="fa-solid fa-list"></i> Select List
+                            </button>
+                        </div>
+                        <small class="form-hint" style="color: #93C5FD; font-size: 11.5px; margin-top: 4px; display: block;">
+                            <i class="fa-solid fa-circle-info"></i> You can type any custom category name here. It will be created and saved automatically.
+                        </small>
+                    </div>
+
                     @error('expense_category_id')<div class="text-error">{{ $message }}</div>@enderror
+                    @error('expense_category')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
         </div>
@@ -303,6 +374,49 @@ function showFileName(input) {
     }
 }
 
+function toggleCategoryMode() {
+    const selectWrapper = document.getElementById('category-select-wrapper');
+    const inputWrapper = document.getElementById('category-input-wrapper');
+    const toggleBtn = document.getElementById('toggle-category-mode-btn');
+    const selectEl = document.getElementById('expense_category_id');
+    const inputEl = document.getElementById('expense_category_custom');
+
+    if (!inputWrapper || !selectWrapper) return;
+
+    if (inputWrapper.style.display === 'none' || inputWrapper.style.display === '') {
+        selectWrapper.style.display = 'none';
+        inputWrapper.style.display = 'block';
+        if (toggleBtn) {
+            toggleBtn.innerHTML = '<i class="fa-solid fa-list"></i> Select From List';
+        }
+        if (selectEl) selectEl.value = '';
+        if (inputEl) inputEl.focus();
+    } else {
+        switchToSelectMode();
+    }
+}
+
+function switchToSelectMode() {
+    const selectWrapper = document.getElementById('category-select-wrapper');
+    const inputWrapper = document.getElementById('category-input-wrapper');
+    const toggleBtn = document.getElementById('toggle-category-mode-btn');
+    const inputEl = document.getElementById('expense_category_custom');
+    if (selectWrapper && inputWrapper) {
+        inputWrapper.style.display = 'none';
+        selectWrapper.style.display = 'block';
+        if (toggleBtn) {
+            toggleBtn.innerHTML = '<i class="fa-solid fa-plus-circle"></i> Type / Add New Category';
+        }
+        if (inputEl) inputEl.value = '';
+    }
+}
+
+function handleCategorySelect(select) {
+    if (select.value === '__new__') {
+        toggleCategoryMode();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const projectSelect = document.getElementById('project_id');
     const propSelect = document.getElementById('property_id');
@@ -364,6 +478,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (projectSelect && projectSelect.value) {
         filterPropertiesByProject();
     }
+
+    @if(old('expense_category'))
+        toggleCategoryMode();
+    @endif
 });
 </script>
 @endsection

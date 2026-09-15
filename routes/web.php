@@ -100,6 +100,8 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('contractors/export-pdf', [\App\Http\Controllers\ContractorController::class, 'exportPdf'])->name('contractors.pdf')->middleware(['permission:project_view']);
     Route::get('contractors/{contractor}/pdf', [\App\Http\Controllers\ContractorController::class, 'downloadPdf'])->name('contractors.detail-pdf')->middleware(['permission:project_view']);
     Route::get('projects/{project}/contractors', [\App\Http\Controllers\ContractorController::class, 'getByProject'])->name('projects.contractors')->middleware(['auth']);
+    Route::post('contractors/{contractor}/payments', [\App\Http\Controllers\ContractorController::class, 'storePayment'])->name('contractors.payments.store')->middleware(['permission:project_edit']);
+    Route::delete('contractors/{contractor}/payments/{payment}', [\App\Http\Controllers\ContractorController::class, 'destroyPayment'])->name('contractors.payments.destroy')->middleware(['permission:project_edit']);
     Route::resource('contractors', \App\Http\Controllers\ContractorController::class)->middleware(['permission:project_view']);
 
     Route::get('properties/import/template', [PropertyController::class, 'downloadTemplate'])->name('properties.import.template')->middleware(['permission:property_view']);

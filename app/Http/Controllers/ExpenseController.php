@@ -135,10 +135,39 @@ class ExpenseController extends Controller
         $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $firmId));
         $primaryFirmId = reset($firmIds) ?: $firmId;
 
-        $categoryName = null;
-        if ($request->expense_category_id) {
-            $cat = ExpenseCategory::find($request->expense_category_id);
-            $categoryName = $cat?->name;
+        $categoryName = trim((string)$request->input('expense_category', ''));
+        $categoryId = $request->input('expense_category_id');
+
+        if (!empty($categoryName) && (empty($categoryId) || $categoryId === '__new__')) {
+            $cat = ExpenseCategory::where('name', $categoryName)->first();
+            if (!$cat) {
+                $cat = ExpenseCategory::create([
+                    'firm_id'     => $primaryFirmId ?: 1,
+                    'name'        => $categoryName,
+                    'status'      => 'active',
+                    'description' => 'Created via Expense Entry',
+                ]);
+            }
+            if (!empty($firmIds)) {
+                $cat->firms()->syncWithoutDetaching($firmIds);
+            } elseif ($primaryFirmId) {
+                $cat->firms()->syncWithoutDetaching([$primaryFirmId]);
+            }
+            $categoryId = $cat->id;
+            $categoryName = $cat->name;
+        } elseif (!empty($categoryId) && $categoryId !== '__new__') {
+            $cat = ExpenseCategory::find($categoryId);
+            if ($cat) {
+                $categoryName = $cat->name;
+                if (!empty($firmIds)) {
+                    $cat->firms()->syncWithoutDetaching($firmIds);
+                } elseif ($primaryFirmId) {
+                    $cat->firms()->syncWithoutDetaching([$primaryFirmId]);
+                }
+            }
+        } else {
+            $categoryId = null;
+            $categoryName = null;
         }
 
         $billFilePath = null;
@@ -158,7 +187,7 @@ class ExpenseController extends Controller
             'project_id'          => $projectId,
             'property_id'         => $request->property_id ?: null,
             'expense_date'        => $request->expense_date,
-            'expense_category_id' => $request->expense_category_id ?: null,
+            'expense_category_id' => $categoryId ?: null,
             'expense_category'    => $categoryName,
             'expense_title'       => $request->expense_title,
             'amount'              => $request->amount,
@@ -206,11 +235,38 @@ class ExpenseController extends Controller
         $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $expense->firm_id ?? $firmId));
         $primaryFirmId = reset($firmIds) ?: $expense->firm_id;
 
-        $categoryName = $expense->expense_category;
-        if ($request->expense_category_id) {
-            $cat = ExpenseCategory::find($request->expense_category_id);
-            $categoryName = $cat?->name;
-        } elseif (!$request->expense_category_id) {
+        $categoryName = trim((string)$request->input('expense_category', ''));
+        $categoryId = $request->input('expense_category_id');
+
+        if (!empty($categoryName) && (empty($categoryId) || $categoryId === '__new__')) {
+            $cat = ExpenseCategory::where('name', $categoryName)->first();
+            if (!$cat) {
+                $cat = ExpenseCategory::create([
+                    'firm_id'     => $primaryFirmId ?: 1,
+                    'name'        => $categoryName,
+                    'status'      => 'active',
+                    'description' => 'Created via Expense Entry',
+                ]);
+            }
+            if (!empty($firmIds)) {
+                $cat->firms()->syncWithoutDetaching($firmIds);
+            } elseif ($primaryFirmId) {
+                $cat->firms()->syncWithoutDetaching([$primaryFirmId]);
+            }
+            $categoryId = $cat->id;
+            $categoryName = $cat->name;
+        } elseif (!empty($categoryId) && $categoryId !== '__new__') {
+            $cat = ExpenseCategory::find($categoryId);
+            if ($cat) {
+                $categoryName = $cat->name;
+                if (!empty($firmIds)) {
+                    $cat->firms()->syncWithoutDetaching($firmIds);
+                } elseif ($primaryFirmId) {
+                    $cat->firms()->syncWithoutDetaching([$primaryFirmId]);
+                }
+            }
+        } else {
+            $categoryId = null;
             $categoryName = null;
         }
 
@@ -234,7 +290,7 @@ class ExpenseController extends Controller
             'project_id'          => $projectId,
             'property_id'         => $request->property_id ?: null,
             'expense_date'        => $request->expense_date,
-            'expense_category_id' => $request->expense_category_id ?: null,
+            'expense_category_id' => $categoryId ?: null,
             'expense_category'    => $categoryName,
             'expense_title'       => $request->expense_title,
             'amount'              => $request->amount,

@@ -21,8 +21,19 @@ class BookingDiscountTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->admin = User::first() ?? User::factory()->create(['is_admin' => 1]);
-        $this->firm = Firm::first() ?? Firm::create(['firm_name' => 'QA Firm', 'status' => 'active']);
+        $role = \App\Models\Role::firstOrCreate(['name' => 'Super Admin'], ['description' => 'Admin']);
+        $this->firm = Firm::firstOrCreate(
+            ['firm_name' => 'QA Firm'],
+            ['email' => 'qafirm@example.com', 'mobile' => '9876500001', 'status' => 'active']
+        );
+        $this->admin = User::first() ?? User::create([
+            'name' => 'QA Admin',
+            'email' => 'qaadmin@example.com',
+            'password' => bcrypt('password'),
+            'role_id' => $role->id,
+            'firm_id' => $this->firm->id,
+            'status' => 'active'
+        ]);
     }
 
     /** @test */

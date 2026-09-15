@@ -79,6 +79,17 @@ select.filter-select option { background: #111827 !important; color: #FFFFFF !im
 .badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 11px; font-weight: 800; border-radius: 20px; text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
 .badge-active   { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
 .badge-inactive { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+.badge-paid     { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+.badge-partial  { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.badge-unpaid   { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+
+.btn-pay {
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 6px 11px; min-height: 32px; background: rgba(16, 185, 129, 0.16) !important;
+    color: #34D399 !important; font-size: 12px; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    border-radius: 8px; text-decoration: none !important; transition: all .2s ease; cursor: pointer;
+}
+.btn-pay:hover { background: #059669 !important; color: #FFFFFF !important; transform: translateY(-2px); }
 
 .proj-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; font-size: 12px; font-weight: 700; border-radius: 8px; padding: 4px 10px; border: 1px solid rgba(59, 130, 246, 0.30); }
 .id-chip { display: inline-flex; align-items: center; gap: 5px; font-family: monospace; font-size: 12px; background: rgba(255, 255, 255, 0.06); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.12); color: #E2E8F0; }
@@ -189,6 +200,7 @@ select.filter-select option { background: #111827 !important; color: #FFFFFF !im
                     <th>Aadhar Card</th>
                     <th>PAN Card</th>
                     <th>Bank Details</th>
+                    <th>Contract & Payments</th>
                     <th>Status</th>
                     <th style="text-align: right;">Actions</th>
                 </tr>
@@ -275,6 +287,23 @@ select.filter-select option { background: #111827 !important; color: #FFFFFF !im
                         @else
                             <span style="color: #94A3B8;">—</span>
                         @endif
+                    <td>
+                        @if($con->contract_amount > 0 || $con->paid_amount > 0)
+                            <div style="font-size: 13.5px; font-weight: 700; color: #FFFFFF;">
+                                Contract: <span style="color: #60A5FA;">₹{{ number_format($con->contract_amount, 2) }}</span>
+                            </div>
+                            <div style="font-size: 12px; margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                <span style="color: #34D399; font-weight: 700;">Paid: ₹{{ number_format($con->paid_amount, 2) }}</span>
+                                <span style="color: #F87171; font-weight: 700;">Due: ₹{{ number_format($con->due_amount, 2) }}</span>
+                            </div>
+                            <div style="margin-top: 4px;">
+                                <span class="badge badge-{{ $con->payment_status ?? 'unpaid' }}">
+                                    {{ ucfirst($con->payment_status ?? 'unpaid') }}
+                                </span>
+                            </div>
+                        @else
+                            <span style="color: #64748B; font-size: 12px; font-style: italic;">No contract set</span>
+                        @endif
                     </td>
                     <td>
                         <span class="badge badge-{{ $con->status }}">
@@ -283,6 +312,9 @@ select.filter-select option { background: #111827 !important; color: #FFFFFF !im
                     </td>
                     <td>
                         <div class="table-action-buttons">
+                            <a href="{{ route('contractors.show', $con) }}" class="btn-pay" title="View / Add Payment">
+                                <i class="fa-solid fa-money-bill-wave"></i> Payment
+                            </a>
                             <a href="{{ route('contractors.detail-pdf', $con) }}" target="_blank" class="btn-view" style="color: #FF8A3D !important; border-color: rgba(252,105,0,0.3) !important;" title="Print Dossier">
                                 <i class="fa-solid fa-file-pdf"></i>
                             </a>
@@ -303,7 +335,7 @@ select.filter-select option { background: #111827 !important; color: #FFFFFF !im
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ (auth()->user() && auth()->user()->isAdmin()) ? 10 : 9 }}" style="text-align: center; padding: 48px 16px;">
+                    <td colspan="{{ (auth()->user() && auth()->user()->isAdmin()) ? 11 : 10 }}" style="text-align: center; padding: 48px 16px;">
                         <div style="font-size: 40px; color: #475569; margin-bottom: 12px;"><i class="fa-solid fa-helmet-safety"></i></div>
                         <div style="font-size: 16px; font-weight: 700; color: #CBD5E1; margin-bottom: 6px;">No Contractors Found</div>
                         <div style="font-size: 13px; color: #94A3B8; margin-bottom: 18px;">Start by adding contractors for each project.</div>

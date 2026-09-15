@@ -65,24 +65,31 @@ class BookingController extends Controller
         ];
     }
 
-    private function updatePropertyStatus(Booking $booking, array $allPropertyIds = []): void
+    private function updatePropertyStatus(Booking $booking, array $allPropertyIds = [], ?int $oldPropertyId = null): void
     {
-        $propertyIds = !empty($allPropertyIds) ? $allPropertyIds : [$booking->property_id];
-        $properties = Property::whereIn('id', $propertyIds)->get();
-        if ($properties->isEmpty()) return;
-
-        if ($booking->status === 'confirmed') {
-            Property::whereIn('id', $propertyIds)->update(['status' => 'booked']);
-            foreach ($properties as $property) {
-                if ($property->property_master_id && $property->unit_no === null) {
-                    $pm = \App\Models\PropertyMaster::find($property->property_master_id);
-                    if ($pm) {
-                        $pm->update(['status' => 'booked']);
-                        $pm->plots()->update(['status' => 'booked']);
+        // If property changed, revert the old property to available
+        if ($oldPropertyId && $oldPropertyId != $booking->property_id) {
+            $oldProp = Property::find($oldPropertyId);
+            if ($oldProp) {
+                $oldProp->update(['status' => 'available']);
+                if ($oldProp->property_master_id && $oldProp->unit_no === null) {
+                    $oldPm = \App\Models\PropertyMaster::find($oldProp->property_master_id);
+                    if ($oldPm) {
+                        $oldPm->update(['status' => 'active']);
+                        $oldPm->plots()->update(['status' => 'available']);
                     }
                 }
             }
-        } elseif ($booking->status === 'cancelled') {
+        }
+
+        $propertyIds = !empty($allPropertyIds) ? $allPropertyIds : [$booking->property_id];
+        $propertyIds = array_values(array_filter($propertyIds));
+        if (empty($propertyIds)) return;
+
+        $properties = Property::whereIn('id', $propertyIds)->get();
+        if ($properties->isEmpty()) return;
+
+        if ($booking->status === 'cancelled') {
             Property::whereIn('id', $propertyIds)->update(['status' => 'available']);
             foreach ($properties as $property) {
                 if ($property->property_master_id && $property->unit_no === null) {
@@ -90,6 +97,18 @@ class BookingController extends Controller
                     if ($pm) {
                         $pm->update(['status' => 'active']);
                         $pm->plots()->update(['status' => 'available']);
+                    }
+                }
+            }
+        } else {
+            // For any active booking (pending, confirmed, booked, etc.)
+            Property::whereIn('id', $propertyIds)->update(['status' => 'booked']);
+            foreach ($properties as $property) {
+                if ($property->property_master_id && $property->unit_no === null) {
+                    $pm = \App\Models\PropertyMaster::find($property->property_master_id);
+                    if ($pm) {
+                        $pm->update(['status' => 'booked']);
+                        $pm->plots()->update(['status' => 'booked']);
                     }
                 }
             }
@@ -247,6 +266,8 @@ class BookingController extends Controller
         $submittedPropIds = (array) ($request->property_ids ?: ($request->property_id ? [$request->property_id] : []));
         $submittedPropIds = array_values(array_filter($submittedPropIds));
 
+        $oldPropertyId = $booking->property_id;
+
         $booking->update([
             'firm_id'          => $firmId,
             'property_id'      => $request->property_id,
@@ -270,7 +291,7 @@ class BookingController extends Controller
             'remarks'          => $request->remarks,
         ]);
 
-        $this->updatePropertyStatus($booking, $submittedPropIds);
+        $this->updatePropertyStatus($booking, $submittedPropIds, $oldPropertyId);
 
         // Save or update broker commission
         if ($booking->broker_id && $request->filled('commission_value')) {

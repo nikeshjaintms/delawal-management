@@ -28,7 +28,7 @@ class PropertyMasterPurchasePriceTest extends TestCase
     public function it_creates_property_master_with_purchase_price_and_financial_details()
     {
         $role = Role::firstOrCreate(['name' => 'Super Admin'], ['description' => 'Admin']);
-        $firm = Firm::firstOrCreate(['firm_name' => 'Delawala Properties'], ['status' => 'active']);
+        $firm = Firm::firstOrCreate(['firm_name' => 'Delawala Properties'], ['email' => 'delawala@example.com', 'mobile' => '9876543210', 'status' => 'active']);
         $user = User::firstOrCreate(
             ['email' => 'admin_test_pm@delawala.com'],
             ['name' => 'Admin Tester', 'password' => bcrypt('password'), 'role_id' => $role->id, 'firm_id' => $firm->id, 'status' => 'active']
@@ -76,7 +76,7 @@ class PropertyMasterPurchasePriceTest extends TestCase
     public function it_calculates_partial_payment_and_due_amount_automatically()
     {
         $role = Role::firstOrCreate(['name' => 'Super Admin'], ['description' => 'Admin']);
-        $firm = Firm::firstOrCreate(['firm_name' => 'Delawala Properties'], ['status' => 'active']);
+        $firm = Firm::firstOrCreate(['firm_name' => 'Delawala Properties'], ['email' => 'delawala@example.com', 'mobile' => '9876543210', 'status' => 'active']);
         $user = User::firstOrCreate(
             ['email' => 'admin_test_pm@delawala.com'],
             ['name' => 'Admin Tester', 'password' => bcrypt('password'), 'role_id' => $role->id, 'firm_id' => $firm->id, 'status' => 'active']
@@ -124,7 +124,7 @@ class PropertyMasterPurchasePriceTest extends TestCase
     public function it_adds_single_plot_and_bulk_generates_plots_directly_under_property_master()
     {
         $role = Role::firstOrCreate(['name' => 'Super Admin'], ['description' => 'Admin']);
-        $firm = Firm::firstOrCreate(['firm_name' => 'Delawala Properties'], ['status' => 'active']);
+        $firm = Firm::firstOrCreate(['firm_name' => 'Delawala Properties'], ['email' => 'delawala@example.com', 'mobile' => '9876543210', 'status' => 'active']);
         $user = User::firstOrCreate(
             ['email' => 'admin_test_pm@delawala.com'],
             ['name' => 'Admin Tester', 'password' => bcrypt('password'), 'role_id' => $role->id, 'firm_id' => $firm->id, 'status' => 'active']
@@ -172,7 +172,7 @@ class PropertyMasterPurchasePriceTest extends TestCase
     public function it_creates_a_project_linking_multiple_property_masters_and_assigning_plots()
     {
         $role = Role::firstOrCreate(['name' => 'Super Admin'], ['description' => 'Admin']);
-        $firm = Firm::firstOrCreate(['firm_name' => 'Delawala Properties'], ['status' => 'active']);
+        $firm = Firm::firstOrCreate(['firm_name' => 'Delawala Properties'], ['email' => 'delawala@example.com', 'mobile' => '9876543210', 'status' => 'active']);
         $user = User::firstOrCreate(
             ['email' => 'admin_test_pm@delawala.com'],
             ['name' => 'Admin Tester', 'password' => bcrypt('password'), 'role_id' => $role->id, 'firm_id' => $firm->id, 'status' => 'active']

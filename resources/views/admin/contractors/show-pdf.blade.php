@@ -139,6 +139,86 @@
     </div>
 </div>
 
+<div class="grid-2">
+    <!-- Work & Contract Financials -->
+    <div class="grid-col" style="border-left: 3px solid #3B82F6;">
+        <div class="col-heading">&#9632; Work &amp; Financial Summary</div>
+        <div class="info-row">
+            <span class="info-label">Work Type / Trade:</span>
+            <span class="info-value">{{ $contractor->work_type ?: 'General Construction' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Contract Date:</span>
+            <span class="info-value">{{ $contractor->contract_date ? \Carbon\Carbon::parse($contractor->contract_date)->format('d M Y') : '—' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Total Contract Amount:</span>
+            <span class="info-value" style="color: #2563EB; font-size: 12px;">₹{{ number_format($contractor->contract_amount ?? 0, 2) }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Total Paid Amount:</span>
+            <span class="info-value" style="color: #059669; font-size: 12px;">₹{{ number_format($contractor->paid_amount ?? 0, 2) }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Balance Due:</span>
+            <span class="info-value" style="color: #DC2626; font-size: 12px;">₹{{ number_format($contractor->due_amount ?? 0, 2) }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Payment Status:</span>
+            <span class="info-value">{{ strtoupper($contractor->payment_status ?? 'UNPAID') }}</span>
+        </div>
+    </div>
+
+    <!-- Contract Scope / Notes -->
+    <div class="grid-col">
+        <div class="col-heading">&#9632; Scope of Work &amp; Agreement Terms</div>
+        <div style="font-size: 11px; color: #334155; line-height: 1.5; white-space: pre-line;">
+            {{ $contractor->contract_notes ?: 'No special notes or terms specified.' }}
+        </div>
+    </div>
+</div>
+
+@if($contractor->payments && $contractor->payments->isNotEmpty())
+<div style="margin-bottom: 20px;">
+    <div class="col-heading" style="margin-bottom: 8px;">&#9632; Payment Installments Statement ({{ $contractor->payments->count() }} Payments)</div>
+    <table style="width: 100%; border-collapse: collapse; font-size: 10.5px; border: 1px solid #E2E8F0;">
+        <thead>
+            <tr style="background: #F1F5F9;">
+                <th style="padding: 6px 8px; border: 1px solid #CBD5E1; text-align: left;">#</th>
+                <th style="padding: 6px 8px; border: 1px solid #CBD5E1; text-align: left;">Date</th>
+                <th style="padding: 6px 8px; border: 1px solid #CBD5E1; text-align: left;">Type</th>
+                <th style="padding: 6px 8px; border: 1px solid #CBD5E1; text-align: right;">Amount (₹)</th>
+                <th style="padding: 6px 8px; border: 1px solid #CBD5E1; text-align: left;">Mode</th>
+                <th style="padding: 6px 8px; border: 1px solid #CBD5E1; text-align: left;">Reference / Cheque</th>
+                <th style="padding: 6px 8px; border: 1px solid #CBD5E1; text-align: left;">Bill No</th>
+                <th style="padding: 6px 8px; border: 1px solid #CBD5E1; text-align: left;">Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($contractor->payments as $k => $p)
+            <tr>
+                <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">{{ $k + 1 }}</td>
+                <td style="padding: 5px 8px; border: 1px solid #E2E8F0; font-weight: 700;">{{ $p->payment_date ? \Carbon\Carbon::parse($p->payment_date)->format('d M Y') : '—' }}</td>
+                <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">{{ $p->payment_type ?: 'Part Payment' }}</td>
+                <td style="padding: 5px 8px; border: 1px solid #E2E8F0; text-align: right; font-weight: 700; color: #059669;">₹{{ number_format($p->amount, 2) }}</td>
+                <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">{{ $p->payment_mode }}</td>
+                <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">{{ $p->reference_no ?: '—' }}</td>
+                <td style="padding: 5px 8px; border: 1px solid #E2E8F0;">{{ $p->bill_no ?: '—' }}</td>
+                <td style="padding: 5px 8px; border: 1px solid #E2E8F0; color: #64748B;">{{ $p->remarks ?: '—' }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+        <tfoot>
+            <tr style="background: #F8FAFC; font-weight: 700;">
+                <td colspan="3" style="padding: 6px 8px; border: 1px solid #CBD5E1; text-align: right;">Total Paid to Date:</td>
+                <td style="padding: 6px 8px; border: 1px solid #CBD5E1; text-align: right; color: #059669;">₹{{ number_format($contractor->paid_amount ?? 0, 2) }}</td>
+                <td colspan="4" style="padding: 6px 8px; border: 1px solid #CBD5E1; color: #DC2626;">Due Balance: ₹{{ number_format($contractor->due_amount ?? 0, 2) }}</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+@endif
+
 <div class="sig-row">
     <div class="sig-box">Contractor Signature</div>
     <div class="sig-box">Project Head / Authorized Signatory</div>

@@ -322,6 +322,74 @@ textarea.form-control { resize: vertical; min-height: 80px; }
         </div>
     </div>
 
+    <div class="section-heading"><i class="fa-solid fa-file-invoice-dollar"></i> Work / Contract & Financial Details (Optional)</div>
+    <div class="form-grid">
+        <div class="form-group">
+            <label class="form-label" for="contract_amount">Total Contract / Work Amount (₹)</label>
+            <input type="number" step="0.01" min="0" name="contract_amount" id="contract_amount" value="{{ old('contract_amount') }}"
+                   class="form-control @error('contract_amount') is-invalid @enderror" placeholder="e.g. 150000.00">
+            @error('contract_amount')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="work_type">Work Type / Category</label>
+            <input type="text" name="work_type" id="work_type" value="{{ old('work_type') }}"
+                   class="form-control @error('work_type') is-invalid @enderror" placeholder="e.g. Civil Work, Plumbing, Electrical, Painting" list="workTypesList">
+            <datalist id="workTypesList">
+                <option value="Civil Construction Work">
+                <option value="Plumbing & Sanitary">
+                <option value="Electrical & Wiring">
+                <option value="Flooring & Tiling">
+                <option value="Painting & POP">
+                <option value="Carpentry & Woodwork">
+                <option value="Fabrication & Grill Work">
+                <option value="Waterproofing">
+                <option value="Labour Supply / Daily Wages">
+                <option value="Site Maintenance Work">
+            </datalist>
+            @error('work_type')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="contract_date">Contract / Agreement Date</label>
+            <input type="date" name="contract_date" id="contract_date" value="{{ old('contract_date', date('Y-m-d')) }}"
+                   class="form-control @error('contract_date') is-invalid @enderror">
+            @error('contract_date')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="initial_payment_amount">Initial Advance / Payment (₹) <small style="color: #94A3B8;">(Optional)</small></label>
+            <input type="number" step="0.01" min="0" name="initial_payment_amount" id="initial_payment_amount" value="{{ old('initial_payment_amount') }}"
+                   class="form-control @error('initial_payment_amount') is-invalid @enderror" placeholder="e.g. 25000.00">
+            <small style="color: #93C5FD; font-size: 11px; margin-top: 4px; display: block;">If entered, an advance payment installment will be auto-recorded.</small>
+            @error('initial_payment_amount')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="initial_payment_mode">Initial Payment Mode</label>
+            <select name="initial_payment_mode" id="initial_payment_mode" class="form-control">
+                <option value="Cash" {{ old('initial_payment_mode') == 'Cash' ? 'selected' : '' }}>Cash</option>
+                <option value="Bank Transfer" {{ old('initial_payment_mode') == 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer / NEFT / RTGS</option>
+                <option value="Cheque" {{ old('initial_payment_mode') == 'Cheque' ? 'selected' : '' }}>Cheque</option>
+                <option value="UPI" {{ old('initial_payment_mode') == 'UPI' ? 'selected' : '' }}>UPI / GooglePay / PhonePe</option>
+                <option value="Online" {{ old('initial_payment_mode') == 'Online' ? 'selected' : '' }}>Online</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="initial_reference_no">Initial Payment Ref / Cheque No</label>
+            <input type="text" name="initial_reference_no" id="initial_reference_no" value="{{ old('initial_reference_no') }}"
+                   class="form-control" placeholder="e.g. CHQ-991823 or UTR-20260901">
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="contract_notes">Work Scope & Contract Notes</label>
+            <textarea name="contract_notes" id="contract_notes" class="form-control @error('contract_notes') is-invalid @enderror"
+                      placeholder="Brief details about work scope, rates, milestones or terms...">{{ old('contract_notes') }}</textarea>
+            @error('contract_notes')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+    </div>
+
     <div class="section-heading"><i class="fa-solid fa-location-dot"></i> Address & Status</div>
     <div class="form-grid">
         <div class="form-group" style="grid-column: 1 / -1;">

@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ContractorRequest;
 use App\Models\Contractor;
+use App\Models\ContractorPayment;
 use App\Models\Firm;
+use App\Models\PaymentMode;
 use App\Models\Project;
+use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ContractorController extends Controller
 {
@@ -122,6 +126,8 @@ class ContractorController extends Controller
         }
         $primaryProjectId = reset($projectIds) ?: null;
 
+        $contractAmount = $request->filled('contract_amount') ? floatval($request->contract_amount) : 0.00;
+
         $contractor = Contractor::create([
             'firm_id'         => $primaryFirmId,
             'project_id'      => $primaryProjectId,
@@ -134,6 +140,13 @@ class ContractorController extends Controller
             'ifsc_code'       => $request->ifsc_code,
             'branch_name'     => $request->branch_name,
             'address'         => $request->address,
+            'contract_amount' => $contractAmount,
+            'paid_amount'     => 0.00,
+            'due_amount'      => $contractAmount,
+            'payment_status'  => 'unpaid',
+            'work_type'       => $request->work_type,
+            'contract_date'   => $request->contract_date,
+            'contract_notes'  => $request->contract_notes,
             'status'          => $request->status,
             'created_by'      => Auth::id(),
             'updated_by'      => Auth::id(),
@@ -144,6 +157,31 @@ class ContractorController extends Controller
 
         $propertyIds = (array) $request->property_ids;
         $contractor->syncProperties($propertyIds);
+
+        // Record initial payment / advance if entered during creation
+        if ($request->filled('initial_payment_amount') && floatval($request->initial_payment_amount) > 0) {
+            $initialAmt = floatval($request->initial_payment_amount);
+            $payMode = $request->initial_payment_mode ?: 'Cash';
+            $pmId = PaymentMode::where('name', $payMode)->value('id');
+
+            ContractorPayment::create([
+                'contractor_id'   => $contractor->id,
+                'firm_id'         => $primaryFirmId,
+                'project_id'      => $primaryProjectId,
+                'property_id'     => !empty($propertyIds) ? $propertyIds[0] : null,
+                'payment_mode_id' => $pmId,
+                'amount'          => $initialAmt,
+                'payment_date'    => $request->contract_date ?: date('Y-m-d'),
+                'payment_mode'    => $payMode,
+                'reference_no'    => $request->initial_reference_no,
+                'payment_type'    => 'Advance',
+                'remarks'         => 'Initial payment / advance recorded during contractor creation',
+                'created_by'      => Auth::id(),
+                'updated_by'      => Auth::id(),
+            ]);
+
+            $contractor->recalculatePaymentStatus();
+        }
 
         \App\Models\AuditLog::log(
             'Contractor Management',
@@ -158,9 +196,23 @@ class ContractorController extends Controller
     public function show(Contractor $contractor)
     {
         $this->authorise($contractor);
-        $contractor->load(['project.propertyMaster', 'projects.propertyMaster', 'properties.project', 'firm', 'firms', 'creator', 'updater']);
+        $contractor->load([
+            'project.propertyMaster',
+            'projects.propertyMaster',
+            'properties.project',
+            'firm',
+            'firms',
+            'creator',
+            'updater',
+            'payments.creator',
+            'payments.project',
+            'payments.property',
+            'payments.paymentMode'
+        ]);
 
-        return view('admin.contractors.show', compact('contractor'));
+        $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
+
+        return view('admin.contractors.show', compact('contractor', 'paymentModes'));
     }
 
     public function edit(Contractor $contractor)
@@ -200,6 +252,8 @@ class ContractorController extends Controller
         }
         $primaryProjectId = reset($projectIds) ?: null;
 
+        $contractAmount = $request->filled('contract_amount') ? floatval($request->contract_amount) : 0.00;
+
         $contractor->update([
             'firm_id'         => $primaryFirmId,
             'project_id'      => $primaryProjectId,
@@ -212,6 +266,10 @@ class ContractorController extends Controller
             'ifsc_code'       => $request->ifsc_code,
             'branch_name'     => $request->branch_name,
             'address'         => $request->address,
+            'contract_amount' => $contractAmount,
+            'work_type'       => $request->work_type,
+            'contract_date'   => $request->contract_date,
+            'contract_notes'  => $request->contract_notes,
             'status'          => $request->status,
             'updated_by'      => Auth::id(),
         ]);
@@ -222,6 +280,8 @@ class ContractorController extends Controller
         $propertyIds = (array) $request->property_ids;
         $contractor->syncProperties($propertyIds);
 
+        $contractor->recalculatePaymentStatus();
+
         \App\Models\AuditLog::log(
             'Contractor Management',
             'Update',
@@ -230,6 +290,91 @@ class ContractorController extends Controller
 
         return redirect()->route('contractors.index')
             ->with('success', "Contractor '{$contractor->contractor_name}' updated successfully.");
+    }
+
+    public function storePayment(Request $request, Contractor $contractor)
+    {
+        $this->authorise($contractor);
+
+        $validated = $request->validate([
+            'amount'        => 'required|numeric|min:0.01',
+            'payment_date'  => 'required|date',
+            'payment_mode'  => 'required|string|max:100',
+            'reference_no'  => 'nullable|string|max:150',
+            'bank_name'     => 'nullable|string|max:150',
+            'bill_no'       => 'nullable|string|max:150',
+            'project_id'    => 'nullable|exists:projects,id',
+            'property_id'   => 'nullable|exists:properties,id',
+            'payment_type'  => 'nullable|string|max:50',
+            'document_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'remarks'       => 'nullable|string|max:1000',
+        ]);
+
+        $user = Auth::user();
+        $firmId = $contractor->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+
+        $docPath = null;
+        if ($request->hasFile('document_file')) {
+            $docPath = $request->file('document_file')->store('contractors/payments', 'public');
+        }
+
+        $pmId = PaymentMode::where('name', $validated['payment_mode'])->value('id');
+
+        ContractorPayment::create([
+            'contractor_id'   => $contractor->id,
+            'firm_id'         => $firmId,
+            'project_id'      => $validated['project_id'] ?? $contractor->project_id,
+            'property_id'     => $validated['property_id'] ?? null,
+            'payment_mode_id' => $pmId,
+            'amount'          => (float)$validated['amount'],
+            'payment_date'    => $validated['payment_date'],
+            'payment_mode'    => $validated['payment_mode'],
+            'reference_no'    => $validated['reference_no'] ?? null,
+            'bank_name'       => $validated['bank_name'] ?? null,
+            'bill_no'         => $validated['bill_no'] ?? null,
+            'document_file'   => $docPath,
+            'payment_type'    => $validated['payment_type'] ?? 'Part Payment',
+            'remarks'         => $validated['remarks'] ?? null,
+            'created_by'      => $user ? $user->id : null,
+            'updated_by'      => $user ? $user->id : null,
+        ]);
+
+        $contractor->recalculatePaymentStatus();
+
+        \App\Models\AuditLog::log(
+            'Contractor Management',
+            'Payment',
+            "Recorded payment installment of ₹" . number_format($validated['amount'], 2) . " for contractor '{$contractor->contractor_name}'"
+        );
+
+        return redirect()->route('contractors.show', $contractor->id)
+            ->with('success', 'Payment installment of ₹' . number_format($validated['amount'], 2) . ' recorded successfully.');
+    }
+
+    public function destroyPayment(Contractor $contractor, ContractorPayment $payment)
+    {
+        $this->authorise($contractor);
+
+        if ($payment->contractor_id != $contractor->id) {
+            abort(404);
+        }
+
+        $amount = $payment->amount;
+        if ($payment->document_file) {
+            Storage::disk('public')->delete($payment->document_file);
+        }
+
+        $payment->delete();
+        $contractor->recalculatePaymentStatus();
+
+        \App\Models\AuditLog::log(
+            'Contractor Management',
+            'Delete Payment',
+            "Deleted payment record of ₹" . number_format($amount, 2) . " for contractor '{$contractor->contractor_name}'"
+        );
+
+        return redirect()->route('contractors.show', $contractor->id)
+            ->with('success', 'Payment record of ₹' . number_format($amount, 2) . ' removed successfully.');
     }
 
     public function destroy(Contractor $contractor)

@@ -498,6 +498,10 @@ class PropertyMasterController extends Controller
                 'remarks'            => 'Initial Payment / Advance',
                 'created_by'         => auth()->id(),
             ]);
+        } elseif ($propertyMaster->payments()->count() === 1 && $request->filled('paid_amount')) {
+            $singlePayment = $propertyMaster->payments()->first();
+            $singlePayment->update(['amount' => $paidAmount]);
+            $propertyMaster->recalculatePaymentStatus();
         } elseif ($propertyMaster->payments()->count() > 0) {
             $propertyMaster->recalculatePaymentStatus();
         }

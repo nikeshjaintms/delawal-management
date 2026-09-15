@@ -20,10 +20,55 @@ class Contractor extends Model
         'ifsc_code',
         'branch_name',
         'address',
+        'contract_amount',
+        'paid_amount',
+        'due_amount',
+        'payment_status',
+        'work_type',
+        'contract_date',
+        'contract_notes',
         'status',
         'created_by',
         'updated_by',
     ];
+
+    protected $casts = [
+        'contract_amount' => 'decimal:2',
+        'paid_amount'     => 'decimal:2',
+        'due_amount'      => 'decimal:2',
+        'contract_date'   => 'date',
+    ];
+
+    public function payments()
+    {
+        return $this->hasMany(ContractorPayment::class)->orderBy('payment_date', 'desc')->orderBy('id', 'desc');
+    }
+
+    public function recalculatePaymentStatus(): void
+    {
+        $totalPaid = (float) $this->payments()->sum('amount');
+        $contractAmount = (float) ($this->contract_amount ?? 0.00);
+        $dueAmount = max(0.00, $contractAmount - $totalPaid);
+
+        $status = 'unpaid';
+        if ($contractAmount > 0) {
+            if ($totalPaid >= $contractAmount) {
+                $status = 'paid';
+            } elseif ($totalPaid > 0) {
+                $status = 'partial';
+            } else {
+                $status = 'unpaid';
+            }
+        } elseif ($totalPaid > 0) {
+            $status = 'paid';
+        }
+
+        $this->update([
+            'paid_amount'    => $totalPaid,
+            'due_amount'     => $dueAmount,
+            'payment_status' => $status,
+        ]);
+    }
 
     public function firm()
     {

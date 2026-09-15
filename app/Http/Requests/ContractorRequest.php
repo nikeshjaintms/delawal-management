@@ -51,8 +51,15 @@ class ContractorRequest extends FormRequest
             'account_number'  => 'nullable|string|max:50',
             'ifsc_code'       => 'nullable|string|max:30',
             'branch_name'     => 'nullable|string|max:100',
-            'address'         => 'nullable|string|max:1000',
-            'status'          => 'required|in:active,inactive',
+            'address'                => 'nullable|string|max:1000',
+            'contract_amount'        => 'nullable|numeric|min:0',
+            'work_type'              => 'nullable|string|max:100',
+            'contract_date'          => 'nullable|date',
+            'contract_notes'         => 'nullable|string|max:1000',
+            'initial_payment_amount' => 'nullable|numeric|min:0',
+            'initial_payment_mode'   => 'nullable|string|max:100',
+            'initial_reference_no'   => 'nullable|string|max:150',
+            'status'                 => 'required|in:active,inactive',
         ];
     }
 
