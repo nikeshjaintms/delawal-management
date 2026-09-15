@@ -318,7 +318,7 @@
                 <a href="{{ route('property-sales.create') }}" class="dqa-btn dqa-green"><i class="fa-solid fa-handshake"></i> Add Property Sell</a>
                 <a href="{{ route('projects.create') }}" class="dqa-btn dqa-teal"><i class="fa-solid fa-city"></i> Add Project</a>
                 <a href="{{ route('contractors.create') }}" class="dqa-btn dqa-amber"><i class="fa-solid fa-helmet-safety"></i> Add Contractor</a>
-                <a href="{{ route('vendors.create') }}" class="dqa-btn dqa-orange"><i class="fa-solid fa-truck-field"></i> Add Vendor</a>
+                <a href="{{ route('vendors.create') }}" class="dqa-btn dqa-orange"><i class="fa-solid fa-truck-field"></i> Add Vendor / Seller</a>
                 <a href="{{ route('customers.create') }}" class="dqa-btn dqa-blue"><i class="fa-solid fa-users"></i> Add Customer</a>
                 <a href="{{ route('tenants.create') }}" class="dqa-btn dqa-cyan"><i class="fa-solid fa-house-user"></i> Add Tenant</a>
                 <a href="{{ route('brokers.create') }}" class="dqa-btn dqa-violet"><i class="fa-solid fa-user-tie"></i> Add Broker</a>
@@ -340,49 +340,49 @@
     </div>
 
     <div class="kpi-grid-4">
-        <div class="kpi-card">
+        <a href="{{ route('firm-master.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-building"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Firms</span>
                 <span class="kpi-value">{{ number_format($totalFirms) }}</span>
                 <span class="kpi-badge bk-blue">Registered Firms</span>
             </div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('firm-master.index') }}?status=active" class="kpi-card">
             <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-toggle-on"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Active Firms</span>
                 <span class="kpi-value">{{ number_format($activeFirms) }}</span>
                 <span class="kpi-badge bk-blue">Operational</span>
             </div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('firm-master.index') }}?status=inactive" class="kpi-card">
             <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-toggle-off"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Inactive Firms</span>
                 <span class="kpi-value">{{ number_format($inactiveFirms) }}</span>
                 <span class="kpi-badge bk-blue">Suspended</span>
             </div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('users.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-user-gear"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Users</span>
                 <span class="kpi-value">{{ number_format($totalUsers) }}</span>
                 <span class="kpi-badge bk-blue">All Roles</span>
             </div>
-        </div>
+        </a>
     </div>
 
     <div class="kpi-grid-4" style="margin-bottom: 28px;">
-        <div class="kpi-card">
+        <a href="{{ route('users.index') }}?status=active" class="kpi-card">
             <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-user-check"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Active Users</span>
                 <span class="kpi-value">{{ number_format($activeUsers) }}</span>
                 <span class="kpi-badge bk-blue">Logged in</span>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Properties & Bookings -->
@@ -393,7 +393,7 @@
     </div>
 
     <div class="kpi-grid">
-        <div class="kpi-card">
+        <a href="{{ route('customers.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-indigo"><i class="fa-solid fa-users"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Customers</span>
@@ -401,8 +401,8 @@
                 <span class="kpi-badge bk-indigo">ERP Clients</span>
             </div>
             <div class="kpi-deco deco-indigo"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('projects.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-city"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Projects</span>
@@ -410,8 +410,8 @@
                 <span class="kpi-badge bk-blue">All Projects</span>
             </div>
             <div class="kpi-deco deco-blue"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('projects.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-green"><i class="fa-solid fa-circle-check"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Active Projects</span>
@@ -419,8 +419,8 @@
                 <span class="kpi-badge bk-green">Operational</span>
             </div>
             <div class="kpi-deco deco-green"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('property-masters.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-purple"><i class="fa-solid fa-city"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Properties</span>
@@ -428,8 +428,8 @@
                 <span class="kpi-badge bk-purple">All Units</span>
             </div>
             <div class="kpi-deco deco-purple"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('property-availability.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-green"><i class="fa-solid fa-house-circle-check"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Available Properties</span>
@@ -437,8 +437,8 @@
                 <span class="kpi-badge bk-green">On Market</span>
             </div>
             <div class="kpi-deco deco-green"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('property-sales.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-amber"><i class="fa-solid fa-house-circle-xmark"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Sold Properties</span>
@@ -446,8 +446,8 @@
                 <span class="kpi-badge bk-amber">Closed Sales</span>
             </div>
             <div class="kpi-deco deco-amber"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('rentals.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-sky"><i class="fa-solid fa-key"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Rented Properties</span>
@@ -455,7 +455,7 @@
                 <span class="kpi-badge bk-sky">Active Lease</span>
             </div>
             <div class="kpi-deco deco-sky"></div>
-        </div>
+        </a>
     </div>
 
     <!-- System Finances -->
@@ -464,7 +464,7 @@
         <h3>System-Wide Finances</h3>
         <div class="kpi-section-divider"></div>
     </div>    <div class="kpi-grid-4" style="margin-bottom: 24px;">
-        <div class="kpi-card">
+        <a href="{{ route('bookings.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-orange"><i class="fa-solid fa-file-invoice-dollar"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Bookings</span>
@@ -472,8 +472,8 @@
                 <span class="kpi-badge bk-orange">Sales Contracts</span>
             </div>
             <div class="kpi-deco deco-orange"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('payments.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-green"><i class="fa-solid fa-money-bill-trend-up"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Revenue</span>
@@ -481,8 +481,8 @@
                 <span class="kpi-badge bk-green">Total Received</span>
             </div>
             <div class="kpi-deco deco-green"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('expenses.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-red"><i class="fa-solid fa-receipt"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Expenses</span>
@@ -490,8 +490,8 @@
                 <span class="kpi-badge bk-red">All Outflows</span>
             </div>
             <div class="kpi-deco deco-red"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('reports.profit-loss') }}" class="kpi-card">
             <div class="kpi-icon-box {{ $netProfit >= 0 ? 'ik-green' : 'ik-red' }}"><i class="fa-solid fa-{{ $netProfit >= 0 ? 'arrow-trend-up' : 'arrow-trend-down' }}"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Net Profit (Est.)</span>
@@ -499,7 +499,7 @@
                 <span class="kpi-badge {{ $netProfit >= 0 ? 'bk-green' : 'bk-red' }}">{{ $netProfit >= 0 ? 'Profit' : 'Loss' }}</span>
             </div>
             <div class="kpi-deco {{ $netProfit >= 0 ? 'deco-green' : 'deco-red' }}"></div>
-        </div>
+        </a>
     </div>
 
     <!-- Status Summaries Section -->
@@ -516,18 +516,18 @@
                 <i class="fa-solid fa-house-circle-check" style="color:#10B981;"></i> Property Portfolio
             </div>
             <div class="chip-row">
-                <div class="chip ch-green">
+                <a href="{{ route('property-availability.index') }}" class="chip ch-green">
                     <span class="chip-num">{{ $availableProperties }}</span> Available
-                </div>
-                <div class="chip ch-orange">
+                </a>
+                <a href="{{ route('property-sales.index') }}" class="chip ch-orange">
                     <span class="chip-num">{{ $soldProperties }}</span> Sold
-                </div>
-                <div class="chip ch-sky">
+                </a>
+                <a href="{{ route('rentals.index') }}" class="chip ch-sky">
                     <span class="chip-num">{{ $rentedProperties }}</span> Rented
-                </div>
-                <div class="chip ch-blue">
+                </a>
+                <a href="{{ route('property-masters.index') }}" class="chip ch-blue">
                     <span class="chip-num">{{ $totalProperties }}</span> Total Units
-                </div>
+                </a>
             </div>
         </div>
 
@@ -537,18 +537,18 @@
                 <i class="fa-solid fa-users-gear" style="color:#3B82F6;"></i> Firms &amp; Users
             </div>
             <div class="chip-row">
-                <div class="chip ch-green">
+                <a href="{{ route('firm-master.index') }}?status=active" class="chip ch-green">
                     <span class="chip-num">{{ $activeFirms }}</span> Active Firms
-                </div>
-                <div class="chip ch-red">
+                </a>
+                <a href="{{ route('firm-master.index') }}?status=inactive" class="chip ch-red">
                     <span class="chip-num">{{ $inactiveFirms }}</span> Inactive
-                </div>
-                <div class="chip ch-blue">
+                </a>
+                <a href="{{ route('users.index') }}?status=active" class="chip ch-blue">
                     <span class="chip-num">{{ $activeUsers }}</span> Active Users
-                </div>
-                <div class="chip ch-purple">
+                </a>
+                <a href="{{ route('users.index') }}" class="chip ch-purple">
                     <span class="chip-num">{{ $totalUsers }}</span> Total Users
-                </div>
+                </a>
             </div>
         </div>
 
@@ -557,22 +557,22 @@
             <div class="summary-title">
                 <i class="fa-solid fa-wallet" style="color:#F59E0B;"></i> Financial Summary
             </div>
-            <div class="summary-row">
+            <a href="{{ route('payments.index') }}" class="summary-row">
                 <span class="summary-label"><i class="fa-solid fa-money-bill-trend-up" style="color:#10B981;"></i> Total Revenue</span>
                 <span class="summary-val g">₹{{ number_format($totalReceivedAmt, 0) }}</span>
-            </div>
-            <div class="summary-row">
+            </a>
+            <a href="{{ route('expenses.index') }}" class="summary-row">
                 <span class="summary-label"><i class="fa-solid fa-receipt" style="color:#EF4444;"></i> Total Expenses</span>
                 <span class="summary-val r">₹{{ number_format($totalExpenses, 0) }}</span>
-            </div>
-            <div class="summary-row">
+            </a>
+            <a href="{{ route('reports.profit-loss') }}" class="summary-row">
                 <span class="summary-label"><i class="fa-solid fa-chart-line" style="color:{{ $netProfit >= 0 ? '#10B981' : '#EF4444' }};"></i> Net Profit (Est.)</span>
                 <span class="summary-val {{ $netProfit >= 0 ? 'g' : 'r' }}">₹{{ number_format($netProfit, 0) }}</span>
-            </div>
-            <div class="summary-row">
+            </a>
+            <a href="{{ route('property-sales.index') }}" class="summary-row">
                 <span class="summary-label"><i class="fa-solid fa-clock-rotate-left" style="color:#F97316;"></i> Outstanding</span>
                 <span class="summary-val o">₹{{ number_format($totalPendingAmt, 0) }}</span>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -673,7 +673,7 @@
                     </div>
                 </div>
                 <div>
-                    <div class="status-summary-item">
+                    <a href="{{ route('property-availability.index') }}" class="status-summary-item" style="text-decoration:none; display:block;">
                         <div class="status-summary-header">
                             <span>🟢 Available</span>
                             <span class="status-pct">{{ $availableProperties }} units ({{ $availPct }}%)</span>
@@ -681,8 +681,8 @@
                         <div class="progress-bg">
                             <div class="progress-fill" style="width:{{ $availPct }}%; background: #10B981;"></div>
                         </div>
-                    </div>
-                    <div class="status-summary-item">
+                    </a>
+                    <a href="{{ route('property-sales.index') }}" class="status-summary-item" style="text-decoration:none; display:block; margin-top: 18px;">
                         <div class="status-summary-header">
                             <span>🟡 Sold</span>
                             <span class="status-pct">{{ $soldProperties }} units ({{ $soldPct }}%)</span>
@@ -690,7 +690,7 @@
                         <div class="progress-bg">
                             <div class="progress-fill" style="width:{{ $soldPct }}%; background: #F59E0B;"></div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </div>
 
@@ -704,13 +704,13 @@
                 </div>
                 <div>
                     @if($totalPendingAmt > 0)
-                        <div class="task-item warning">
+                        <a href="{{ route('property-sales.index') }}" class="task-item warning" style="text-decoration:none; display:flex;">
                             <div class="task-icon-wrap"><i class="fa-solid fa-exclamation-triangle"></i></div>
                             <div class="task-content">
                                 <h5>Pending Payments</h5>
                                 <p>₹{{ number_format($totalPendingAmt, 0) }} outstanding.</p>
                             </div>
-                        </div>
+                        </a>
                     @else
                         <div class="task-item success">
                             <div class="task-icon-wrap"><i class="fa-solid fa-check"></i></div>

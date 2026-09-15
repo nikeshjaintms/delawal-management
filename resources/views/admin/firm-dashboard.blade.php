@@ -231,7 +231,7 @@
                 <a href="{{ route('property-sales.create') }}" class="dqa-btn dqa-green"><i class="fa-solid fa-handshake"></i> Add Property Sell</a>
                 <a href="{{ route('projects.create') }}" class="dqa-btn dqa-teal"><i class="fa-solid fa-city"></i> Add Project</a>
                 <a href="{{ route('contractors.create') }}" class="dqa-btn dqa-amber"><i class="fa-solid fa-helmet-safety"></i> Add Contractor</a>
-                <a href="{{ route('vendors.create') }}" class="dqa-btn dqa-orange"><i class="fa-solid fa-truck-field"></i> Add Vendor</a>
+                <a href="{{ route('vendors.create') }}" class="dqa-btn dqa-orange"><i class="fa-solid fa-truck-field"></i> Add Vendor / Seller</a>
                 <a href="{{ route('customers.create') }}" class="dqa-btn dqa-blue"><i class="fa-solid fa-users"></i> Add Customer</a>
                 <a href="{{ route('tenants.create') }}" class="dqa-btn dqa-cyan"><i class="fa-solid fa-house-user"></i> Add Tenant</a>
                 <a href="{{ route('brokers.create') }}" class="dqa-btn dqa-violet"><i class="fa-solid fa-user-tie"></i> Add Broker</a>
@@ -261,7 +261,7 @@
     </div>
 
     <div class="kpi-grid">
-        <div class="kpi-card">
+        <a href="{{ route('customers.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-purple"><i class="fa-solid fa-users"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Customers</span>
@@ -269,8 +269,8 @@
                 <span class="kpi-badge bk-purple">{{ $newCustomersMonth > 0 ? "+$newCustomersMonth this month" : 'All clients' }}</span>
             </div>
             <div class="kpi-deco deco-purple"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('projects.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-city"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Projects</span>
@@ -278,8 +278,8 @@
                 <span class="kpi-badge bk-blue">All projects</span>
             </div>
             <div class="kpi-deco deco-blue"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('projects.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-green"><i class="fa-solid fa-circle-check"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Active Projects</span>
@@ -287,8 +287,8 @@
                 <span class="kpi-badge bk-green">Operational</span>
             </div>
             <div class="kpi-deco deco-green"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('property-masters.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-building"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Properties</span>
@@ -296,8 +296,8 @@
                 <span class="kpi-badge bk-blue">All units</span>
             </div>
             <div class="kpi-deco deco-blue"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('property-availability.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-green"><i class="fa-solid fa-circle-check"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Available Units</span>
@@ -305,8 +305,8 @@
                 <span class="kpi-badge bk-green">{{ $availPct }}% of portfolio</span>
             </div>
             <div class="kpi-deco deco-green"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('bookings.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-orange"><i class="fa-solid fa-file-contract"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Bookings</span>
@@ -314,8 +314,8 @@
                 <span class="kpi-badge bk-orange">{{ $bookedPct }}% booked</span>
             </div>
             <div class="kpi-deco deco-orange"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('property-sales.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-amber"><i class="fa-solid fa-handshake"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Sold Properties</span>
@@ -323,7 +323,7 @@
                 <span class="kpi-badge bk-amber">{{ $soldPct }}% sold</span>
             </div>
             <div class="kpi-deco deco-amber"></div>
-        </div>
+        </a>
     </div>
 
     <div class="kpi-section-header" style="margin-top:10px;">
@@ -333,7 +333,7 @@
     </div>
 
     <div class="kpi-grid-2">
-        <div class="kpi-card">
+        <a href="{{ route('payments.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-teal"><i class="fa-solid fa-circle-check"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Received Amount</span>
@@ -341,8 +341,8 @@
                 <span class="kpi-badge bk-teal">Payments collected</span>
             </div>
             <div class="kpi-deco deco-teal"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('property-sales.index') }}" class="kpi-card">
             <div class="kpi-icon-box {{ $totalPendingAmt > 0 ? 'ik-red' : 'ik-green' }}"><i class="fa-solid fa-clock-rotate-left"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Pending Amount</span>
@@ -350,8 +350,8 @@
                 <span class="kpi-badge {{ $totalPendingAmt > 0 ? 'bk-red' : 'bk-green' }}">{{ $totalPendingAmt > 0 ? 'Outstanding Dues' : 'All Payments Cleared' }}</span>
             </div>
             <div class="kpi-deco deco-{{ $totalPendingAmt > 0 ? 'red' : 'green' }}"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('rentals.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-sky"><i class="fa-solid fa-sack-dollar"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Rental Income</span>
@@ -359,8 +359,8 @@
                 <span class="kpi-badge bk-sky">{{ $activeRentals }} active rentals</span>
             </div>
             <div class="kpi-deco deco-sky"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('expenses.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-rose"><i class="fa-solid fa-receipt"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Total Expenses</span>
@@ -368,8 +368,8 @@
                 <span class="kpi-badge bk-rose">All expenses</span>
             </div>
             <div class="kpi-deco deco-rose"></div>
-        </div>
-        <div class="kpi-card">
+        </a>
+        <a href="{{ route('reports.profit-loss') }}" class="kpi-card">
             <div class="kpi-icon-box {{ $netProfit >= 0 ? 'ik-green' : 'ik-red' }}"><i class="fa-solid fa-{{ $netProfit >= 0 ? 'arrow-trend-up' : 'arrow-trend-down' }}"></i></div>
             <div class="kpi-info">
                 <span class="kpi-label">Net Profit (Est.)</span>
@@ -377,7 +377,7 @@
                 <span class="kpi-badge {{ $netProfit >= 0 ? 'bk-green' : 'bk-red' }}">{{ $netProfit >= 0 ? 'Profit' : 'Loss' }}</span>
             </div>
             <div class="kpi-deco {{ $netProfit >= 0 ? 'deco-green' : 'deco-red' }}"></div>
-        </div>
+        </a>
     </div>
 
     <div class="dashboard-grid">
@@ -471,7 +471,7 @@
                     </div>
                 </div>
                 <div>
-                    <div class="status-summary-item">
+                    <a href="{{ route('property-availability.index') }}" class="status-summary-item" style="text-decoration:none; display:block;">
                         <div class="status-summary-header">
                             <span>🟢 Available</span>
                             <span class="status-pct">{{ $availableProperties }} units ({{ $availPct }}%)</span>
@@ -479,8 +479,8 @@
                         <div class="progress-bg">
                             <div class="progress-fill" style="width:{{ $availPct }}%; background: #10B981;"></div>
                         </div>
-                    </div>
-                    <div class="status-summary-item">
+                    </a>
+                    <a href="{{ route('property-sales.index') }}" class="status-summary-item" style="text-decoration:none; display:block; margin-top: 18px;">
                         <div class="status-summary-header">
                             <span>🟡 Sold</span>
                             <span class="status-pct">{{ $soldProperties }} units ({{ $soldPct }}%)</span>
@@ -488,7 +488,7 @@
                         <div class="progress-bg">
                             <div class="progress-fill" style="width:{{ $soldPct }}%; background: #F59E0B;"></div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </div>
 
@@ -502,13 +502,13 @@
                 </div>
                 <div>
                     @if($totalPendingAmt > 0)
-                        <div class="task-item warning">
+                        <a href="{{ route('property-sales.index') }}" class="task-item warning" style="text-decoration:none; display:flex;">
                             <div class="task-icon-wrap"><i class="fa-solid fa-exclamation-triangle"></i></div>
                             <div class="task-content">
                                 <h5>Pending Payments</h5>
                                 <p>₹{{ number_format($totalPendingAmt, 0) }} outstanding.</p>
                             </div>
-                        </div>
+                        </a>
                     @endif
                 </div>
             </div>

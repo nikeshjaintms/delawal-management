@@ -283,8 +283,8 @@ select.search-input option {
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Vendor Master</h2>
-        <p>Add and manage vendor and supplier details.</p>
+        <h2>Vendor / Seller Master</h2>
+        <p>Add and manage vendor and seller/supplier details.</p>
     </div>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <a href="{{ route('vendors.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important; border: 1px solid #F87171 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.40);">
@@ -292,7 +292,7 @@ select.search-input option {
         </a>
         <a href="{{ route('vendors.create') }}" class="btn-gold">
             <i class="fa-solid fa-plus"></i>
-            <span>Add Vendor</span>
+            <span>Add Vendor / Seller</span>
         </a>
     </div>
 </div>

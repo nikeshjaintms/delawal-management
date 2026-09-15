@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Add Vendor')
-@section('page-title', 'Vendor Master')
+@section('title', 'Add Vendor / Seller')
+@section('page-title', 'Vendor / Seller Master')
 
 @section('content')
 <style>
@@ -163,8 +163,8 @@
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Add Vendor</h2>
-        <p>Add and manage vendor and supplier details.</p>
+        <h2>Add Vendor / Seller</h2>
+        <p>Add and manage vendor and seller/supplier details.</p>
     </div>
 </div>
 
@@ -249,7 +249,7 @@
 
         <div class="form-actions">
             <button type="submit" class="btn-gold">
-                <i class="fa-solid fa-check"></i> Save Vendor
+                <i class="fa-solid fa-check"></i> Save Vendor / Seller
             </button>
             <a href="{{ route('vendors.index') }}" class="btn-outline">
                 Back

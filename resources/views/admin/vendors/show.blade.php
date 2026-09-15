@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 
-@section('title', 'View Vendor')
-@section('page-title', 'Vendor Master')
+@section('title', 'View Vendor / Seller')
+@section('page-title', 'Vendor / Seller Master')
 
 @section('content')
 <style>
@@ -267,8 +267,8 @@
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Vendor Details</h2>
-        <p>Full profile view for firm-wise vendor record.</p>
+        <h2>Vendor / Seller Details</h2>
+        <p>Full profile view for firm-wise vendor / seller record.</p>
     </div>
 </div>
 
@@ -418,7 +418,7 @@
             <i class="fa-solid fa-file-pdf"></i> Print / PDF Dossier
         </a>
         <a href="{{ route('vendors.edit', $vendor->id) }}" class="btn-gold">
-            <i class="fa-regular fa-pen-to-square"></i> Edit Vendor
+            <i class="fa-regular fa-pen-to-square"></i> Edit Vendor / Seller
         </a>
         <a href="{{ route('vendors.index') }}" class="btn-outline">
             <i class="fa-solid fa-arrow-left"></i> Back to List

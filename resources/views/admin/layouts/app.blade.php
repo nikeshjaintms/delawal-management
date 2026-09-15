@@ -2341,7 +2341,7 @@
                         @if($authUser->hasPermission('vendor_view'))
                         <li class="submenu-item">
                             <a href="{{ route('vendors.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'vendors.') ? 'active' : '' }}">
-                                <i class="fa-solid fa-truck-field"></i><span>Vendor Master</span>
+                                <i class="fa-solid fa-truck-field"></i><span>Vendor / Seller Master</span>
                             </a>
                         </li>
                         @endif

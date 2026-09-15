@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Property;
 use App\Models\PropertySale;
+use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\Rental;
 use App\Models\RentalPayment;
@@ -47,11 +48,22 @@ class DashboardController extends Controller
         $availableProperties = Property::where('status', 'available')->count();
         $soldProperties      = Property::where('status', 'sold')->count();
         $rentedProperties    = Property::where('status', 'rented')->count();
-        $totalBookings       = PropertySale::count();
-        $totalReceivedAmt    = Payment::sum('payment_amount') ?: 0;
+        $totalBookings       = Booking::count();
+        
+        // Comprehensive revenue calculation from all modules
+        $paymentReceived     = Payment::sum('payment_amount') ?: 0;
+        $bookingReceived     = Booking::sum('booking_amount') ?: 0;
+        $saleInitialPaid     = PropertySale::sum('booking_amount') ?: 0;
+        $rentalReceived      = RentalPayment::sum('paid_amount') ?: 0;
+        $totalReceivedAmt    = $paymentReceived + $bookingReceived + $saleInitialPaid + $rentalReceived;
+        
         $totalExpenses       = Expense::sum('amount') ?: 0;
         $netProfit           = $totalReceivedAmt - $totalExpenses;
-        $totalPendingAmt     = PropertySale::sum('remaining_amount') ?: 0;
+        
+        $salePending         = PropertySale::sum('remaining_amount') ?: 0;
+        $bookingPending      = Booking::sum('remaining_amount') ?: 0;
+        $totalPendingAmt     = $salePending + $bookingPending;
+        
         $recentCustomers     = Customer::latest()->limit(5)->get();
         $recentPayments      = Payment::with(['customer', 'property'])->latest()->limit(5)->get();
         $totalProjects       = \App\Models\Project::count();
@@ -88,12 +100,18 @@ class DashboardController extends Controller
         $portfolioVal        = Property::where('firm_id', $firmId)->sum('price') ?: 0;
 
         // ── Sales / Bookings ───────────────────────────────────────
-        $totalBookings = PropertySale::where('firm_id', $firmId)->count();
+        $totalBookings = Booking::where('firm_id', $firmId)->count();
         $totalSalesAmt = PropertySale::where('firm_id', $firmId)->sum('grand_total') ?: 0;
 
-        // ── Payments ───────────────────────────────────────────────
-        $totalReceivedAmt = Payment::where('firm_id', $firmId)->sum('payment_amount') ?: 0;
-        $totalPendingAmt  = PropertySale::where('firm_id', $firmId)->sum('remaining_amount') ?: 0;
+        // ── Payments & Revenue ─────────────────────────────────────
+        $firmPaymentReceived = Payment::where('firm_id', $firmId)->sum('payment_amount') ?: 0;
+        $firmBookingReceived = Booking::where('firm_id', $firmId)->sum('booking_amount') ?: 0;
+        $firmSaleInitialPaid = PropertySale::where('firm_id', $firmId)->sum('booking_amount') ?: 0;
+        $firmRentalReceived  = RentalPayment::whereHas('rental', fn($q) => $q->where('firm_id', $firmId))->sum('paid_amount') ?: 0;
+        $totalReceivedAmt    = $firmPaymentReceived + $firmBookingReceived + $firmSaleInitialPaid + $firmRentalReceived;
+
+        $totalPendingAmt     = (PropertySale::where('firm_id', $firmId)->sum('remaining_amount') ?: 0)
+                             + (Booking::where('firm_id', $firmId)->sum('remaining_amount') ?: 0);
 
         // ── Rental Income ──────────────────────────────────────────
         $activeRentals = Rental::where('firm_id', $firmId)
