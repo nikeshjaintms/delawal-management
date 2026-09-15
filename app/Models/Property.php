@@ -78,6 +78,83 @@ class Property extends Model
         return $this->belongsToMany(Contractor::class, 'contractor_property', 'property_id', 'contractor_id')->withTimestamps();
     }
 
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function sales()
+    {
+        return $this->hasMany(PropertySale::class);
+    }
+
+    public function rentals()
+    {
+        return $this->hasMany(Rental::class);
+    }
+
+    /**
+     * Synchronize all property statuses based on active bookings, sales, and rentals.
+     */
+    public static function syncAllStatuses(): void
+    {
+        // 1. Mark properties with active bookings as 'booked'
+        \Illuminate\Support\Facades\DB::table('properties')
+            ->whereIn('id', function ($query) {
+                $query->select('property_id')
+                    ->from('bookings')
+                    ->where('status', '!=', 'cancelled')
+                    ->whereNotNull('property_id');
+            })
+            ->where('status', 'available')
+            ->update(['status' => 'booked']);
+
+        // 2. Mark properties with active property sales as 'sold'
+        \Illuminate\Support\Facades\DB::table('properties')
+            ->whereIn('id', function ($query) {
+                $query->select('property_id')
+                    ->from('property_sales')
+                    ->where('sale_status', '!=', 'cancelled')
+                    ->whereNotNull('property_id');
+            })
+            ->whereIn('status', ['available', 'booked'])
+            ->update(['status' => 'sold']);
+
+        // 3. Mark properties with active rentals as 'rented'
+        \Illuminate\Support\Facades\DB::table('properties')
+            ->whereIn('id', function ($query) {
+                $query->select('property_id')
+                    ->from('rentals')
+                    ->where('status', 'active')
+                    ->whereNotNull('property_id');
+            })
+            ->where('status', '!=', 'sold')
+            ->update(['status' => 'rented']);
+
+        // 4. Revert any properties that are marked 'booked' but have NO active bookings, sales, or rentals
+        \Illuminate\Support\Facades\DB::table('properties')
+            ->where('status', 'booked')
+            ->whereNotIn('id', function ($query) {
+                $query->select('property_id')
+                    ->from('bookings')
+                    ->where('status', '!=', 'cancelled')
+                    ->whereNotNull('property_id');
+            })
+            ->whereNotIn('id', function ($query) {
+                $query->select('property_id')
+                    ->from('property_sales')
+                    ->where('sale_status', '!=', 'cancelled')
+                    ->whereNotNull('property_id');
+            })
+            ->whereNotIn('id', function ($query) {
+                $query->select('property_id')
+                    ->from('rentals')
+                    ->where('status', 'active')
+                    ->whereNotNull('property_id');
+            })
+            ->update(['status' => 'available']);
+    }
+
     public function getFormattedSizeAttribute(): string
     {
         if (empty($this->size)) {

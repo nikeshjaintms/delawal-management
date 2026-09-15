@@ -152,12 +152,14 @@ class ProjectController extends Controller
     public function show(Project $project)
     {
         $this->authorise($project);
+        Property::syncAllStatuses();
         $project->load([
             'propertyMasters',
             'propertyMaster',
             'firm',
             'properties.propertyType',
             'properties.propertyMaster',
+            'properties.bookings.customer',
             'contractors',
         ]);
 

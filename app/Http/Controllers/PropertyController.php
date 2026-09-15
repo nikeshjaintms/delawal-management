@@ -25,6 +25,7 @@ class PropertyController extends Controller
     // ----------------------------------------------------------------
     public function index(Request $request)
     {
+        Property::syncAllStatuses();
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         $query = Property::with(['propertyType', 'firm', 'project.propertyMaster', 'propertyMaster']);
 

@@ -662,6 +662,14 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                             <span class="badge badge-{{ strtolower($property->status ?? 'available') }}">
                                 <i class="fa-solid fa-circle-dot"></i> {{ ucfirst($property->status ?? 'Available') }}
                             </span>
+                            @if(strtolower($property->status ?? '') === 'booked' && $property->relationLoaded('bookings') && $property->bookings)
+                                @php $activeB = $property->bookings->where('status', '!=', 'cancelled')->first(); @endphp
+                                @if($activeB)
+                                    <div style="font-size: 11px; color: #FBBF24; font-weight: 600; margin-top: 3px;" title="Booked by {{ $activeB->customer->name ?? 'Customer' }}">
+                                        <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name ?? 'Client' }}
+                                    </div>
+                                @endif
+                            @endif
                         </td>
                         <td style="text-align: right; white-space: nowrap;">
                             <div class="tbl-actions-wrap">

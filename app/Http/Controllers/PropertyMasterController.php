@@ -285,6 +285,7 @@ class PropertyMasterController extends Controller
     public function show(PropertyMaster $propertyMaster)
     {
         $this->authorise($propertyMaster);
+        Property::syncAllStatuses();
         $propertyMaster->load([
             'firm',
             'vendor',
