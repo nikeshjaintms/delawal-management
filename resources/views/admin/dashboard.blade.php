@@ -438,6 +438,15 @@
             </div>
             <div class="kpi-deco deco-green"></div>
         </a>
+        <a href="{{ route('bookings.index') }}" class="kpi-card">
+            <div class="kpi-icon-box ik-purple"><i class="fa-solid fa-calendar-check"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Booked Properties</span>
+                <span class="kpi-value" style="color:#8B5CF6;">{{ number_format($totalBookings) }}</span>
+                <span class="kpi-badge bk-purple">Active Bookings</span>
+            </div>
+            <div class="kpi-deco deco-purple"></div>
+        </a>
         <a href="{{ route('property-sales.index') }}" class="kpi-card">
             <div class="kpi-icon-box ik-amber"><i class="fa-solid fa-house-circle-xmark"></i></div>
             <div class="kpi-info">
@@ -519,6 +528,9 @@
                 <a href="{{ route('property-availability.index') }}" class="chip ch-green">
                     <span class="chip-num">{{ $availableProperties }}</span> Available
                 </a>
+                <a href="{{ route('bookings.index') }}" class="chip ch-purple">
+                    <span class="chip-num">{{ $totalBookings }}</span> Booked
+                </a>
                 <a href="{{ route('property-sales.index') }}" class="chip ch-orange">
                     <span class="chip-num">{{ $soldProperties }}</span> Sold
                 </a>
@@ -579,7 +591,9 @@
     @php
         $propTotal = max(1, $totalProperties);
         $availPct  = round(($availableProperties / $propTotal) * 100);
+        $bookedPct = round(($totalBookings       / $propTotal) * 100);
         $soldPct   = round(($soldProperties     / $propTotal) * 100);
+        $rentedPct = round(($rentedProperties   / $propTotal) * 100);
     @endphp
 
     <div class="dashboard-grid" style="margin-top: 30px;">
@@ -682,13 +696,31 @@
                             <div class="progress-fill" style="width:{{ $availPct }}%; background: #10B981;"></div>
                         </div>
                     </a>
-                    <a href="{{ route('property-sales.index') }}" class="status-summary-item" style="text-decoration:none; display:block; margin-top: 18px;">
+                    <a href="{{ route('bookings.index') }}" class="status-summary-item" style="text-decoration:none; display:block; margin-top: 14px;">
+                        <div class="status-summary-header">
+                            <span>🟣 Booked</span>
+                            <span class="status-pct">{{ $totalBookings }} units ({{ $bookedPct }}%)</span>
+                        </div>
+                        <div class="progress-bg">
+                            <div class="progress-fill" style="width:{{ $bookedPct }}%; background: #8B5CF6;"></div>
+                        </div>
+                    </a>
+                    <a href="{{ route('property-sales.index') }}" class="status-summary-item" style="text-decoration:none; display:block; margin-top: 14px;">
                         <div class="status-summary-header">
                             <span>🟡 Sold</span>
                             <span class="status-pct">{{ $soldProperties }} units ({{ $soldPct }}%)</span>
                         </div>
                         <div class="progress-bg">
                             <div class="progress-fill" style="width:{{ $soldPct }}%; background: #F59E0B;"></div>
+                        </div>
+                    </a>
+                    <a href="{{ route('rentals.index') }}" class="status-summary-item" style="text-decoration:none; display:block; margin-top: 14px;">
+                        <div class="status-summary-header">
+                            <span>🔵 Rented</span>
+                            <span class="status-pct">{{ $rentedProperties }} units ({{ $rentedPct }}%)</span>
+                        </div>
+                        <div class="progress-bg">
+                            <div class="progress-fill" style="width:{{ $rentedPct }}%; background: #0EA5E9;"></div>
                         </div>
                     </a>
                 </div>

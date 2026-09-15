@@ -46,6 +46,7 @@ class DashboardController extends Controller
         $totalCustomers      = Customer::count();
         $totalProperties     = Property::count();
         $availableProperties = Property::where('status', 'available')->count();
+        $bookedProperties    = Property::where('status', 'booked')->count();
         $soldProperties      = Property::where('status', 'sold')->count();
         $rentedProperties    = Property::where('status', 'rented')->count();
         $totalBookings       = Booking::count();
@@ -71,9 +72,10 @@ class DashboardController extends Controller
 
         return view('admin.dashboard', compact(
             'totalFirms', 'activeFirms', 'inactiveFirms', 'totalUsers', 'activeUsers',
-            'totalCustomers', 'totalProperties', 'availableProperties', 'soldProperties',
-            'rentedProperties', 'totalBookings', 'totalReceivedAmt', 'totalExpenses', 'netProfit',
-            'totalPendingAmt', 'recentCustomers', 'recentPayments', 'totalProjects', 'activeProjects'
+            'totalCustomers', 'totalProperties', 'availableProperties', 'bookedProperties',
+            'soldProperties', 'rentedProperties', 'totalBookings', 'totalReceivedAmt',
+            'totalExpenses', 'netProfit', 'totalPendingAmt', 'recentCustomers',
+            'recentPayments', 'totalProjects', 'activeProjects'
         ));
     }
 

@@ -480,13 +480,31 @@
                             <div class="progress-fill" style="width:{{ $availPct }}%; background: #10B981;"></div>
                         </div>
                     </a>
-                    <a href="{{ route('property-sales.index') }}" class="status-summary-item" style="text-decoration:none; display:block; margin-top: 18px;">
+                    <a href="{{ route('bookings.index') }}" class="status-summary-item" style="text-decoration:none; display:block; margin-top: 14px;">
+                        <div class="status-summary-header">
+                            <span>🟣 Booked</span>
+                            <span class="status-pct">{{ $totalBookings }} units ({{ $bookedPct }}%)</span>
+                        </div>
+                        <div class="progress-bg">
+                            <div class="progress-fill" style="width:{{ $bookedPct }}%; background: #8B5CF6;"></div>
+                        </div>
+                    </a>
+                    <a href="{{ route('property-sales.index') }}" class="status-summary-item" style="text-decoration:none; display:block; margin-top: 14px;">
                         <div class="status-summary-header">
                             <span>🟡 Sold</span>
                             <span class="status-pct">{{ $soldProperties }} units ({{ $soldPct }}%)</span>
                         </div>
                         <div class="progress-bg">
                             <div class="progress-fill" style="width:{{ $soldPct }}%; background: #F59E0B;"></div>
+                        </div>
+                    </a>
+                    <a href="{{ route('rentals.index') }}" class="status-summary-item" style="text-decoration:none; display:block; margin-top: 14px;">
+                        <div class="status-summary-header">
+                            <span>🔵 Rented</span>
+                            <span class="status-pct">{{ $rentedProperties }} units ({{ $rentedPct }}%)</span>
+                        </div>
+                        <div class="progress-bg">
+                            <div class="progress-fill" style="width:{{ $rentedPct }}%; background: #0EA5E9;"></div>
                         </div>
                     </a>
                 </div>
