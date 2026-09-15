@@ -153,45 +153,74 @@ textarea.form-control { resize: vertical; min-height: 85px; }
             @error('booking_type') <div class="text-error">{{ $message }}</div> @enderror
         </div>
 
-        {{-- 1. Property / Land Master Selection --}}
-        <div class="form-row">
-            <div class="form-group">
-                <label class="form-label" for="property_master_id">Property / Land Master <span>*</span></label>
-                <select name="property_master_id" id="property_master_id" class="form-control @error('property_master_id') is-invalid @enderror" required>
-                    <option value="">-- Select Property / Land --</option>
-                    @foreach($propertyMasters as $pm)
-                        <option value="{{ $pm->id }}"
-                                data-price="{{ $pm->purchase_price ?: ($pm->plots->sum('price') ?: 0) }}"
-                                data-area="{{ $pm->total_area ? ($pm->total_area . ' ' . ($pm->area_unit ?? 'Sq.Ft')) : '' }}"
-                                data-plots-count="{{ $pm->plots->count() }}"
-                                data-code="{{ $pm->property_code }}"
-                                data-name="{{ $pm->property_name }}"
-                                data-firm-id="{{ $pm->firm_id }}"
-                                data-projects='@json($pm->all_projects->map(fn($p) => ["id" => $p->id, "name" => $p->project_name]))'
-                                {{ old('property_master_id', request('property_master_id')) == $pm->id ? 'selected' : '' }}>
-                            {{ $pm->property_name }}
-                            @if($pm->property_code) [{{ $pm->property_code }}] @endif
-                            @if($pm->total_area) — Area: {{ $pm->total_area }} {{ $pm->area_unit ?? 'Sq.Ft' }} @endif
-                            ({{ $pm->plots->count() }} Plots)
-                        </option>
-                    @endforeach
-                </select>
-                <div style="font-size:12px;color:#94A3B8;margin-top:4px;">Select the main Property / Land acquisition first.</div>
-                @error('property_master_id') <div class="text-error">{{ $message }}</div> @enderror
-            </div>
+        {{-- 1. Project / Property Selection --}}
+        <div class="form-group" style="margin-bottom: 22px;">
+            <label class="form-label" for="entity_selector">Project / Property Master <span>*</span></label>
+            <select id="entity_selector" class="form-control @error('property_master_id') is-invalid @enderror @error('project_id') is-invalid @enderror" required onchange="onEntitySelectionChange()">
+                <option value="">-- Select Project or Standalone Property --</option>
+                
+                @if($projects->isNotEmpty())
+                    <optgroup label="🏢 PROJECTS / SCHEMES (Merged Properties)">
+                        @foreach($projects as $proj)
+                            @php
+                                $linkedPmIds = $proj->propertyMasters->pluck('id')->toArray();
+                                if ($proj->property_id && !in_array($proj->property_id, $linkedPmIds)) {
+                                    $linkedPmIds[] = $proj->property_id;
+                                }
+                                $projPlotCount = $properties->filter(fn($p) => $p->project_id == $proj->id || in_array($p->property_master_id, $linkedPmIds))->count();
+                                $projPlotsPrice = $properties->filter(fn($p) => $p->project_id == $proj->id || in_array($p->property_master_id, $linkedPmIds))->sum('price');
+                                $projMastersPrice = $proj->propertyMasters->sum('purchase_price') ?: $projPlotsPrice;
+                                $projMastersCount = count($linkedPmIds);
+                                $isSel = old('project_id', request('project_id')) == $proj->id;
+                            @endphp
+                            <option value="project:{{ $proj->id }}"
+                                    data-type="project"
+                                    data-id="{{ $proj->id }}"
+                                    data-name="{{ $proj->project_name }}"
+                                    data-code="{{ $proj->project_code }}"
+                                    data-price="{{ $projMastersPrice ?: $projPlotsPrice }}"
+                                    data-plots-count="{{ $projPlotCount }}"
+                                    data-properties-count="{{ $projMastersCount }}"
+                                    data-master-ids='@json($linkedPmIds)'
+                                    {{ $isSel ? 'selected' : '' }}>
+                                🏢 Project: {{ $proj->project_name }} @if($proj->project_code)[{{ $proj->project_code }}]@endif — ({{ $projMastersCount > 0 ? $projMastersCount . ' Properties, ' : '' }}{{ $projPlotCount }} Plots)
+                            </option>
+                        @endforeach
+                    </optgroup>
+                @endif
 
-            <div class="form-group">
-                <label class="form-label" for="project_id">Project / Scheme (Optional)</label>
-                <select name="project_id" id="project_id" class="form-control">
-                    <option value="">— All / Direct —</option>
-                    @foreach($projects as $proj)
-                        <option value="{{ $proj->id }}" {{ old('project_id', request('project_id')) == $proj->id ? 'selected' : '' }}>
-                            {{ $proj->project_name }}
-                        </option>
-                    @endforeach
-                </select>
-                <div id="project_hint_msg" style="font-size:12px;color:#94A3B8;margin-top:4px;">Select Property first. If property belongs to a project, it will link automatically.</div>
-            </div>
+                @if($standalonePropertyMasters->isNotEmpty())
+                    <optgroup label="🏡 STANDALONE PROPERTIES / LAND (No Project)">
+                        @foreach($standalonePropertyMasters as $pm)
+                            @php
+                                $pmPrice = $pm->purchase_price ?: ($pm->plots->sum('price') ?: 0);
+                                $pmArea = $pm->total_area ? ($pm->total_area . ' ' . ($pm->area_unit ?? 'Sq.Ft')) : '';
+                                $pmPlotsCount = $pm->plots->count();
+                                $isSel = old('property_master_id', request('property_master_id')) == $pm->id;
+                            @endphp
+                            <option value="property:{{ $pm->id }}"
+                                    data-type="property"
+                                    data-id="{{ $pm->id }}"
+                                    data-name="{{ $pm->property_name }}"
+                                    data-code="{{ $pm->property_code }}"
+                                    data-price="{{ $pmPrice }}"
+                                    data-area="{{ $pmArea }}"
+                                    data-plots-count="{{ $pmPlotsCount }}"
+                                    data-master-ids='[{{ $pm->id }}]'
+                                    {{ $isSel ? 'selected' : '' }}>
+                                🏡 Property: {{ $pm->property_name }} @if($pm->property_code)[{{ $pm->property_code }}]@endif @if($pmArea)— Area: {{ $pmArea }}@endif ({{ $pmPlotsCount }} Plots)
+                            </option>
+                        @endforeach
+                    </optgroup>
+                @endif
+            </select>
+
+            <input type="hidden" name="project_id" id="project_id" value="{{ old('project_id', request('project_id')) }}">
+            <input type="hidden" name="property_master_id" id="property_master_id" value="{{ old('property_master_id', request('property_master_id')) }}">
+
+            <div id="entity_info_pill" style="display: none; margin-top: 8px; font-size: 12.5px;"></div>
+            @error('property_master_id') <div class="text-error">{{ $message }}</div> @enderror
+            @error('project_id') <div class="text-error">{{ $message }}</div> @enderror
         </div>
 
         {{-- 2. Booking Scope / Type Switcher --}}
@@ -201,33 +230,33 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 <label id="scope_entire_card" style="display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 12px; border: 1.5px solid rgba(59, 130, 246, 0.5); background: rgba(37, 99, 235, 0.12); cursor: pointer; transition: all .2s ease;">
                     <input type="radio" name="booking_scope" id="booking_scope_entire" value="entire" {{ old('booking_scope', 'entire') == 'entire' ? 'checked' : '' }} onchange="onBookingScopeChange()" style="accent-color: #3B82F6; width: 18px; height: 18px;">
                     <div>
-                        <div style="font-weight: 800; font-size: 14px; color: #60A5FA;">🏢 Entire Property / Whole Land</div>
-                        <div style="font-size: 12px; color: #CBD5E1; margin-top: 2px;">Book the complete property / all plots together in one deal.</div>
+                        <div style="font-weight: 800; font-size: 14px; color: #60A5FA;">🏢 Entire Property / Project Deal</div>
+                        <div style="font-size: 12px; color: #CBD5E1; margin-top: 2px;">Book the complete property or project / all plots together.</div>
                     </div>
                 </label>
                 <label id="scope_plot_card" style="display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 12px; border: 1.5px solid rgba(255, 255, 255, 0.15); background: rgba(16, 22, 34, 0.6); cursor: pointer; transition: all .2s ease;">
                     <input type="radio" name="booking_scope" id="booking_scope_plot" value="plot" {{ old('booking_scope') == 'plot' ? 'checked' : '' }} onchange="onBookingScopeChange()" style="accent-color: #3B82F6; width: 18px; height: 18px;">
                     <div>
                         <div style="font-weight: 800; font-size: 14px; color: #FBBF24;">🏷️ Specific Plot / Unit</div>
-                        <div style="font-size: 12px; color: #CBD5E1; margin-top: 2px;">Book an individual plot or sub-unit under this property.</div>
+                        <div style="font-size: 12px; color: #CBD5E1; margin-top: 2px;">Book an individual plot or sub-unit under this property/project.</div>
                     </div>
                 </label>
             </div>
         </div>
 
-        {{-- 3A. Entire Property Summary Banner --}}
+        {{-- 3A. Entire Property / Project Summary Banner --}}
         <div id="entire_prop_banner" style="display: none; background: rgba(37, 99, 235, 0.10); border: 1.5px dashed rgba(96, 165, 250, 0.4); border-radius: 14px; padding: 16px 20px; margin-bottom: 22px;">
             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
                 <div>
                     <div style="font-weight: 800; color: #93C5FD; font-size: 14.5px;" id="entire_prop_title">
-                        🏢 Booking Entire Property Master
+                        🏢 Booking Entire Property / Project
                     </div>
                     <div style="font-size: 12.5px; color: #CBD5E1; margin-top: 3px;" id="entire_prop_desc">
-                        Please select a Property / Land Master above.
+                        Please select a Project or Standalone Property above.
                     </div>
                 </div>
                 <div id="entire_prop_badge" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399; font-size: 12.5px; font-weight: 700; padding: 6px 14px; border-radius: 8px;">
-                    Whole Land Booking
+                    Full Project / Land Booking
                 </div>
             </div>
         </div>
@@ -664,15 +693,65 @@ textarea.form-control { resize: vertical; min-height: 85px; }
         };
         window.onBookingTypeChange();
 
+        // Entity Selection Change (Project or Standalone Property)
+        window.onEntitySelectionChange = function() {
+            const sel = document.getElementById('entity_selector');
+            const projectInput = document.getElementById('project_id');
+            const masterInput = document.getElementById('property_master_id');
+            const pill = document.getElementById('entity_info_pill');
+            if (!sel) return;
+
+            const opt = sel.selectedOptions[0];
+            if (!opt || !opt.value) {
+                projectInput.value = '';
+                masterInput.value = '';
+                if (pill) pill.style.display = 'none';
+                window.updateScopeView();
+                return;
+            }
+
+            const type = opt.dataset.type; // 'project' or 'property'
+            const id = opt.dataset.id;
+            const name = opt.dataset.name || '';
+            const code = opt.dataset.code || '';
+            const plotsCount = opt.dataset.plotsCount || '0';
+            const price = parseFloat(opt.dataset.price) || 0;
+            const masterIds = JSON.parse(opt.dataset.masterIds || '[]');
+
+            if (type === 'project') {
+                projectInput.value = id;
+                masterInput.value = masterIds.length > 0 ? masterIds[0] : '';
+                if (pill) {
+                    pill.style.display = 'block';
+                    pill.innerHTML = `<span style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); padding: 5px 12px; border-radius: 8px; color:#93C5FD; font-weight:600; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-city" style="color:#60A5FA;"></i> Linked Project: <strong>${name}</strong> [${code}] &bull; ${opt.dataset.propertiesCount || 1} Merged Properties &bull; ${plotsCount} Total Plots</span>`;
+                }
+            } else {
+                projectInput.value = '';
+                masterInput.value = id;
+                const area = opt.dataset.area || '';
+                if (pill) {
+                    pill.style.display = 'block';
+                    pill.innerHTML = `<span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 5px 12px; border-radius: 8px; color:#6EE7B7; font-weight:600; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-tree" style="color:#34D399;"></i> Standalone Property: <strong>${name}</strong> [${code}] ${area ? '&bull; Area: ' + area : ''} &bull; ${plotsCount} Plots</span>`;
+                }
+            }
+
+            window.updateScopeView();
+        };
+
         // Booking scope switcher logic
         window.onBookingScopeChange = function() {
+            window.updateScopeView();
+        };
+
+        window.updateScopeView = function() {
             const isEntire = document.getElementById('booking_scope_entire').checked;
             const entireCard = document.getElementById('scope_entire_card');
             const plotCard = document.getElementById('scope_plot_card');
             const entireBanner = document.getElementById('entire_prop_banner');
             const plotContainer = document.getElementById('plot_select_container');
             const propSelect = document.getElementById('property_id');
-            const masterSelect = document.getElementById('property_master_id');
+            const sel = document.getElementById('entity_selector');
+            const opt = sel ? sel.selectedOptions[0] : null;
 
             if (isEntire) {
                 entireCard.style.borderColor = 'rgba(59, 130, 246, 0.5)';
@@ -682,9 +761,38 @@ textarea.form-control { resize: vertical; min-height: 85px; }
 
                 entireBanner.style.display = 'block';
                 plotContainer.style.display = 'none';
-                propSelect.removeAttribute('required');
+                if (propSelect) propSelect.removeAttribute('required');
 
-                updateEntirePropInfo();
+                const titleEl = document.getElementById('entire_prop_title');
+                const descEl = document.getElementById('entire_prop_desc');
+                const badgeEl = document.getElementById('entire_prop_badge');
+
+                if (opt && opt.value) {
+                    const type = opt.dataset.type;
+                    const name = opt.dataset.name || opt.text;
+                    const code = opt.dataset.code || '';
+                    const plotsCount = opt.dataset.plotsCount || '0';
+                    const price = parseFloat(opt.dataset.price) || 0;
+
+                    if (type === 'project') {
+                        titleEl.innerHTML = `🏢 Booking Entire Project: <strong>${name}</strong> ${code ? `[${code}]` : ''}`;
+                        descEl.innerHTML = `Includes <strong>${opt.dataset.propertiesCount || 1} Merged Properties</strong> with <strong>${plotsCount} Total Plots</strong>. All sub-plots will be marked as Booked upon confirmation.`;
+                        if (badgeEl) badgeEl.textContent = 'Whole Project Booking';
+                    } else {
+                        const area = opt.dataset.area || 'N/A';
+                        titleEl.innerHTML = `🏢 Booking Entire Property: <strong>${name}</strong> ${code ? `[${code}]` : ''}`;
+                        descEl.innerHTML = `Total Area: <strong>${area}</strong> | Includes <strong>${plotsCount} Plots</strong>. All sub-plots will be marked as Booked upon confirmation.`;
+                        if (badgeEl) badgeEl.textContent = 'Whole Land Booking';
+                    }
+
+                    if (price > 0 && (!totalAmountInput.value || totalAmountInput.value === '0')) {
+                        totalAmountInput.value = price.toFixed(2);
+                        calculateAmounts();
+                    }
+                } else {
+                    titleEl.innerHTML = `🏢 Booking Entire Property / Project`;
+                    descEl.innerHTML = `Please select a Project or Standalone Property above.`;
+                }
             } else {
                 plotCard.style.borderColor = 'rgba(245, 158, 11, 0.5)';
                 plotCard.style.background = 'rgba(245, 158, 11, 0.15)';
@@ -693,37 +801,11 @@ textarea.form-control { resize: vertical; min-height: 85px; }
 
                 entireBanner.style.display = 'none';
                 plotContainer.style.display = 'block';
-                propSelect.setAttribute('required', 'required');
+                if (propSelect) propSelect.setAttribute('required', 'required');
 
-                filterPlotsByMaster();
+                filterPlotsByEntity();
             }
         };
-
-        function updateEntirePropInfo() {
-            const masterSelect = document.getElementById('property_master_id');
-            const selectedOpt = masterSelect.selectedOptions[0];
-            const titleEl = document.getElementById('entire_prop_title');
-            const descEl = document.getElementById('entire_prop_desc');
-
-            if (selectedOpt && selectedOpt.value) {
-                const name = selectedOpt.dataset.name || selectedOpt.text;
-                const code = selectedOpt.dataset.code || '';
-                const area = selectedOpt.dataset.area || '';
-                const plotsCount = selectedOpt.dataset.plotsCount || '0';
-                const price = parseFloat(selectedOpt.dataset.price) || 0;
-
-                titleEl.innerHTML = `🏢 Booking Entire Property: <strong>${name}</strong> ${code ? `(${code})` : ''}`;
-                descEl.innerHTML = `Total Area: <strong>${area || 'N/A'}</strong> | Includes <strong>${plotsCount} Plots</strong>. All sub-plots will be marked as Booked upon confirmation.`;
-
-                if (price > 0 && (!totalAmountInput.value || totalAmountInput.value === '0')) {
-                    totalAmountInput.value = price.toFixed(2);
-                    calculateAmounts();
-                }
-            } else {
-                titleEl.innerHTML = `🏢 Booking Entire Property Master`;
-                descEl.innerHTML = `Please select a Property / Land Master above.`;
-            }
-        }
 
         window.togglePlotCardSelection = function(id) {
             const propSelect = document.getElementById('property_id');
@@ -821,22 +903,36 @@ textarea.form-control { resize: vertical; min-height: 85px; }
         window.filterPlotCardsBySearch = function() {
             const searchInput = document.getElementById('plot_search_input');
             const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-            const masterSelect = document.getElementById('property_master_id');
-            const selectedMasterId = masterSelect ? masterSelect.value : '';
+            const sel = document.getElementById('entity_selector');
+            const opt = sel ? sel.selectedOptions[0] : null;
+            const isEntitySelected = opt && opt.value;
+            const type = isEntitySelected ? opt.dataset.type : null;
+            const entityId = isEntitySelected ? String(opt.dataset.id) : null;
+            const masterIds = isEntitySelected ? JSON.parse(opt.dataset.masterIds || '[]').map(String) : [];
+
             const cards = document.querySelectorAll('.plot-card-item');
             const noPlotsMsg = document.getElementById('no_plots_msg');
 
             let visibleCount = 0;
             cards.forEach(card => {
-                const masterId = card.dataset.masterId || '';
+                const cardMasterId = String(card.dataset.masterId || '');
+                const cardProjectId = String(card.dataset.projectId || '');
                 const name = card.dataset.name || '';
                 const unitNo = card.dataset.unitNo || '';
                 const code = card.dataset.code || '';
 
-                const matchesMaster = (!selectedMasterId || masterId === selectedMasterId);
+                let matchesEntity = false;
+                if (!isEntitySelected) {
+                    matchesEntity = true;
+                } else if (type === 'project') {
+                    matchesEntity = (cardProjectId === entityId) || (cardMasterId && masterIds.includes(cardMasterId));
+                } else if (type === 'property') {
+                    matchesEntity = (cardMasterId === entityId);
+                }
+
                 const matchesQuery = (!query || name.includes(query) || unitNo.includes(query) || code.includes(query));
 
-                if (matchesMaster && matchesQuery) {
+                if (matchesEntity && matchesQuery) {
                     card.style.display = 'flex';
                     visibleCount++;
                 } else {
@@ -849,34 +945,49 @@ textarea.form-control { resize: vertical; min-height: 85px; }
             }
         };
 
-        function filterPlotsByMaster() {
-            const masterSelect = document.getElementById('property_master_id');
+        function filterPlotsByEntity() {
+            const sel = document.getElementById('entity_selector');
             const propSelect = document.getElementById('property_id');
-            if (!masterSelect || !propSelect) return;
-
-            const selectedMasterId = masterSelect.value;
             const cards = document.querySelectorAll('.plot-card-item');
             const noPlotsMsg = document.getElementById('no_plots_msg');
+            if (!propSelect) return;
+
+            const opt = sel ? sel.selectedOptions[0] : null;
+            const isEntitySelected = opt && opt.value;
+            const type = isEntitySelected ? opt.dataset.type : null;
+            const entityId = isEntitySelected ? String(opt.dataset.id) : null;
+            const masterIds = isEntitySelected ? JSON.parse(opt.dataset.masterIds || '[]').map(String) : [];
+
             let visibleCount = 0;
 
             cards.forEach(card => {
-                const cardMasterId = card.dataset.masterId || '';
+                const cardMasterId = String(card.dataset.masterId || '');
+                const cardProjectId = String(card.dataset.projectId || '');
                 const id = card.dataset.id;
-                const opt = Array.from(propSelect.options).find(o => o.value == id);
+                const formOpt = Array.from(propSelect.options).find(o => o.value == id);
 
-                if (!selectedMasterId || cardMasterId === selectedMasterId) {
+                let matches = false;
+                if (!isEntitySelected) {
+                    matches = true;
+                } else if (type === 'project') {
+                    matches = (cardProjectId === entityId) || (cardMasterId && masterIds.includes(cardMasterId));
+                } else if (type === 'property') {
+                    matches = (cardMasterId === entityId);
+                }
+
+                if (matches) {
                     card.style.display = 'flex';
-                    if (opt) {
-                        opt.hidden = false;
-                        opt.disabled = false;
+                    if (formOpt) {
+                        formOpt.hidden = false;
+                        formOpt.disabled = false;
                     }
                     visibleCount++;
                 } else {
                     card.style.display = 'none';
-                    if (opt) {
-                        opt.hidden = true;
-                        opt.disabled = true;
-                        opt.selected = false;
+                    if (formOpt) {
+                        formOpt.hidden = true;
+                        formOpt.disabled = true;
+                        formOpt.selected = false;
                         syncSingleCardUI(id, false);
                     }
                 }
@@ -926,103 +1037,23 @@ textarea.form-control { resize: vertical; min-height: 85px; }
             }
         };
 
-        const allProjectsList = @json($projects->map(fn($p) => ['id' => $p->id, 'name' => $p->project_name]));
-
-        function syncProjectsForSelectedMaster(preferredProjectId = null) {
-            const masterSelect = document.getElementById('property_master_id');
-            const projectSelect = document.getElementById('project_id');
-            const projectHint = document.getElementById('project_hint_msg');
-            if (!masterSelect || !projectSelect) return;
-
-            const selectedOpt = masterSelect.selectedOptions[0];
-            const currentVal = preferredProjectId !== null ? preferredProjectId : projectSelect.value;
-
-            if (!selectedOpt || !selectedOpt.value) {
-                let html = `<option value="">— All / Direct —</option>`;
-                allProjectsList.forEach(p => {
-                    html += `<option value="${p.id}" ${currentVal == p.id ? 'selected' : ''}>${p.name}</option>`;
-                });
-                projectSelect.innerHTML = html;
-                if (projectHint) {
-                    projectHint.innerHTML = `<span style="color:#94A3B8;">Select Property first. If property belongs to a project, it will link automatically.</span>`;
-                }
-                return;
-            }
-
-            let linkedProjects = [];
-            try {
-                linkedProjects = JSON.parse(selectedOpt.dataset.projects || '[]');
-            } catch(e) {
-                linkedProjects = [];
-            }
-
-            if (linkedProjects && linkedProjects.length > 0) {
-                let html = '';
-                if (linkedProjects.length > 1) {
-                    html += `<option value="">-- Select Linked Project (or Direct) --</option>`;
-                }
-
-                let hasMatchedCurrent = false;
-                linkedProjects.forEach(p => {
-                    const isSel = (currentVal == p.id) || (linkedProjects.length === 1 && !currentVal);
-                    if (isSel) hasMatchedCurrent = true;
-                    html += `<option value="${p.id}" ${isSel ? 'selected' : ''}>${p.name}</option>`;
-                });
-
-                html += `<option value="" ${(!hasMatchedCurrent && currentVal === '') ? 'selected' : ''}>— Direct / Standalone (No Project) —</option>`;
-                projectSelect.innerHTML = html;
-
-                if (projectHint) {
-                    const names = linkedProjects.map(p => p.name).join(', ');
-                    projectHint.innerHTML = `<span style="color:#60A5FA;font-weight:600;"><i class="fa-solid fa-city"></i> Linked to Project: <strong>${names}</strong></span>`;
-                }
-            } else {
-                let html = `<option value="" selected>— Direct Property / No Project —</option>`;
-                projectSelect.innerHTML = html;
-                if (projectHint) {
-                    projectHint.innerHTML = `<span style="color:#34D399;font-weight:600;"><i class="fa-solid fa-circle-check"></i> Direct Standalone Property (No Project needed)</span>`;
-                }
-            }
-        }
-
-        const handleMasterChange = function() {
-            syncProjectsForSelectedMaster();
-            const isEntire = document.getElementById('booking_scope_entire').checked;
-            if (isEntire) {
-                updateEntirePropInfo();
-                const opt = masterSelect.selectedOptions[0];
-                if (opt && opt.dataset.price) {
-                    const price = parseFloat(opt.dataset.price);
-                    if (price > 0) {
-                        totalAmountInput.value = price.toFixed(2);
-                        calculateAmounts();
-                    }
-                }
-            } else {
-                filterPlotsByMaster();
-            }
-        };
-
-        const handlePropChange = function() {
-            window.updatePlotsCalculation();
-        };
-
-        const masterSelect = document.getElementById('property_master_id');
-        if (masterSelect) {
-            masterSelect.addEventListener('change', handleMasterChange);
+        const entitySelect = document.getElementById('entity_selector');
+        if (entitySelect) {
+            entitySelect.addEventListener('change', window.onEntitySelectionChange);
         }
 
         const propSelect = document.getElementById('property_id');
         if (propSelect) {
-            propSelect.addEventListener('change', handlePropChange);
+            propSelect.addEventListener('change', window.updatePlotsCalculation);
         }
 
         if (window.jQuery) {
-            jQuery('#property_master_id').on('change select2:select select2:unselect select2:clear', handleMasterChange);
-            jQuery('#property_id').on('change select2:select select2:unselect select2:clear', handlePropChange);
+            jQuery('#entity_selector').on('change select2:select select2:unselect select2:clear', window.onEntitySelectionChange);
+            jQuery('#property_id').on('change select2:select select2:unselect select2:clear', window.updatePlotsCalculation);
         }
 
-        syncProjectsForSelectedMaster("{{ old('project_id', request('project_id')) }}");
+        // Initialize state
+        window.onEntitySelectionChange();
         window.onBookingScopeChange();
         calculateAmounts();
     });

@@ -32,29 +32,52 @@ class BookingRequest extends FormRequest
             }
         }
 
-        // Handle Entire Property sale / booking scope
-        if ((($inputs['sale_scope'] ?? $inputs['booking_scope'] ?? null) === 'entire') && !empty($inputs['property_master_id'])) {
-            $pm = \App\Models\PropertyMaster::find($inputs['property_master_id']);
-            if ($pm) {
-                $entireProp = \App\Models\Property::firstOrCreate(
-                    ['property_master_id' => $pm->id, 'unit_no' => null],
-                    [
-                        'firm_id'          => $pm->firm_id,
-                        'property_name'    => $pm->property_name . ' (Entire Property)',
-                        'property_code'    => $pm->property_code ? $pm->property_code . '-ENTIRE' : 'PROP-' . $pm->id . '-ENTIRE',
-                        'location'         => $pm->location,
-                        'city'             => $pm->city,
-                        'address'          => $pm->address,
-                        'size'             => $pm->total_area,
-                        'size_unit'        => $pm->area_unit ?: 'sq.ft',
-                        'price'            => $pm->purchase_price,
-                        'purchase_rate'    => $pm->purchase_rate,
-                        'purchase_date'    => $pm->purchase_date,
-                        'status'           => 'available',
-                        'description'      => 'Entire Property Master: ' . $pm->property_name,
-                    ]
-                );
-                $inputs['property_id'] = $entireProp->id;
+        // Handle Entire Property or Entire Project booking scope
+        if ((($inputs['sale_scope'] ?? $inputs['booking_scope'] ?? null) === 'entire')) {
+            if (!empty($inputs['project_id'])) {
+                $proj = \App\Models\Project::with('propertyMasters')->find($inputs['project_id']);
+                if ($proj) {
+                    $primaryPmId = $proj->propertyMasters->first()?->id ?: $proj->property_id;
+                    $entireProp = \App\Models\Property::firstOrCreate(
+                        ['project_id' => $proj->id, 'unit_no' => null],
+                        [
+                            'firm_id'            => $proj->firm_id,
+                            'property_master_id' => $primaryPmId,
+                            'property_name'      => $proj->project_name . ' (Entire Project)',
+                            'property_code'      => $proj->project_code ? $proj->project_code . '-ENTIRE' : 'PRJ-' . $proj->id . '-ENTIRE',
+                            'location'           => $proj->address,
+                            'city'               => $proj->city,
+                            'address'            => $proj->address,
+                            'price'              => $inputs['total_amount'] ?? 0,
+                            'status'             => 'available',
+                            'description'        => 'Entire Project: ' . $proj->project_name,
+                        ]
+                    );
+                    $inputs['property_id'] = $entireProp->id;
+                }
+            } elseif (!empty($inputs['property_master_id'])) {
+                $pm = \App\Models\PropertyMaster::find($inputs['property_master_id']);
+                if ($pm) {
+                    $entireProp = \App\Models\Property::firstOrCreate(
+                        ['property_master_id' => $pm->id, 'unit_no' => null],
+                        [
+                            'firm_id'          => $pm->firm_id,
+                            'property_name'    => $pm->property_name . ' (Entire Property)',
+                            'property_code'    => $pm->property_code ? $pm->property_code . '-ENTIRE' : 'PROP-' . $pm->id . '-ENTIRE',
+                            'location'         => $pm->location,
+                            'city'             => $pm->city,
+                            'address'          => $pm->address,
+                            'size'             => $pm->total_area,
+                            'size_unit'        => $pm->area_unit ?: 'sq.ft',
+                            'price'            => $pm->purchase_price,
+                            'purchase_rate'    => $pm->purchase_rate,
+                            'purchase_date'    => $pm->purchase_date,
+                            'status'           => 'available',
+                            'description'      => 'Entire Property Master: ' . $pm->property_name,
+                        ]
+                    );
+                    $inputs['property_id'] = $entireProp->id;
+                }
             }
         }
 

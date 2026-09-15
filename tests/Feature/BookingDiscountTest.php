@@ -87,4 +87,69 @@ class BookingDiscountTest extends TestCase
             'status'           => 'confirmed'
         ]);
     }
+
+    /** @test */
+    public function test_project_grouping_vs_standalone_properties_in_booking()
+    {
+        // 1. Create 3 Property Masters
+        $pm1 = \App\Models\PropertyMaster::create([
+            'firm_id' => $this->firm->id,
+            'property_name' => 'Aman Park Phase 1',
+            'property_code' => 'TEST-PM-01',
+            'total_area' => 5000,
+            'purchase_price' => 500000,
+            'status' => 'active',
+        ]);
+        $pm2 = \App\Models\PropertyMaster::create([
+            'firm_id' => $this->firm->id,
+            'property_name' => 'Aman Park Phase 2',
+            'property_code' => 'TEST-PM-02',
+            'total_area' => 6000,
+            'purchase_price' => 600000,
+            'status' => 'active',
+        ]);
+        $pm3 = \App\Models\PropertyMaster::create([
+            'firm_id' => $this->firm->id,
+            'property_name' => 'Aman Park Phase 3',
+            'property_code' => 'TEST-PM-03',
+            'total_area' => 7000,
+            'purchase_price' => 700000,
+            'status' => 'active',
+        ]);
+
+        // Standalone Property Master (no project)
+        $standalonePm = \App\Models\PropertyMaster::create([
+            'firm_id' => $this->firm->id,
+            'property_name' => 'Shivam Farm Standalone',
+            'property_code' => 'TEST-PM-04',
+            'total_area' => 3000,
+            'purchase_price' => 300000,
+            'status' => 'active',
+        ]);
+
+        // 2. Create Project and group the 3 Property Masters
+        $project = \App\Models\Project::create([
+            'firm_id' => $this->firm->id,
+            'project_name' => 'Aman Park Project Group',
+            'project_code' => 'TEST-PRJ-01',
+            'status' => 'active',
+        ]);
+        $project->syncPropertyMasters([$pm1->id, $pm2->id, $pm3->id]);
+
+        // 3. Request create booking page and verify standalonePropertyMasters vs projects
+        $response = $this->actingAs($this->admin)
+            ->withSession(['firm_id' => $this->firm->id])
+            ->get(route('bookings.create'));
+
+        $response->assertStatus(200);
+
+        $standaloneList = $response->viewData('standalonePropertyMasters');
+        $this->assertTrue($standaloneList->contains('id', $standalonePm->id));
+        $this->assertFalse($standaloneList->contains('id', $pm1->id));
+        $this->assertFalse($standaloneList->contains('id', $pm2->id));
+        $this->assertFalse($standaloneList->contains('id', $pm3->id));
+
+        $projectList = $response->viewData('projects');
+        $this->assertTrue($projectList->contains('id', $project->id));
+    }
 }

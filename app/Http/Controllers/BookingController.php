@@ -22,7 +22,7 @@ class BookingController extends Controller
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        $projQuery = Project::with('propertyMaster')->orderBy('project_name');
+        $projQuery = Project::with(['propertyMasters', 'properties'])->orderBy('project_name');
         $propQuery = Property::with(['project.propertyMaster', 'propertyMaster'])->orderBy('property_name');
         $pmQueryM  = \App\Models\PropertyMaster::with(['plots', 'projects'])->orderBy('property_name');
         $custQuery = Customer::where('status', 'active')->orderBy('name');
@@ -45,14 +45,23 @@ class BookingController extends Controller
             $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
         }
 
+        $projects = $projQuery->get();
+        $allPropertyMasters = $pmQueryM->get();
+
+        // Standalone property masters are those that do NOT belong to any project
+        $standalonePropertyMasters = $allPropertyMasters->filter(function ($pm) {
+            return $pm->all_projects->isEmpty();
+        })->values();
+
         return [
-            'firms'           => $firms,
-            'projects'        => $projQuery->get(),
-            'properties'      => $propQuery->get(),
-            'propertyMasters' => $pmQueryM->get(),
-            'customers'       => $custQuery->get(),
-            'brokers'         => $brokQuery->get(),
-            'paymentModes'    => $paymentModes,
+            'firms'                     => $firms,
+            'projects'                  => $projects,
+            'properties'                => $propQuery->get(),
+            'propertyMasters'           => $allPropertyMasters,
+            'standalonePropertyMasters' => $standalonePropertyMasters,
+            'customers'                 => $custQuery->get(),
+            'brokers'                   => $brokQuery->get(),
+            'paymentModes'              => $paymentModes,
         ];
     }
 
