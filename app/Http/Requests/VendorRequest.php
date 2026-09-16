@@ -44,6 +44,7 @@ class VendorRequest extends FormRequest
             'firm_ids'      => 'nullable|array',
             'firm_ids.*'    => 'nullable|integer',
             'firm_id'       => 'nullable|integer',
+            'project_id'    => 'nullable|exists:projects,id',
             'name'          => 'required|string|max:255',
             'mobile'        => 'required|string|min:10|max:15',
             'email'         => 'nullable|email|max:255',
@@ -96,6 +97,7 @@ class VendorRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'project_id' => 'Project',
             'name' => 'Vendor Name',
             'mobile' => 'Mobile Number',
             'email' => 'Email Address',

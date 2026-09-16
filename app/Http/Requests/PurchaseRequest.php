@@ -78,7 +78,8 @@ class PurchaseRequest extends FormRequest
     {
         return [
             'firm_id'         => 'Firm',
-            'vendor_id'       => 'Vendor / Seller',
+            'seller_id'       => 'Seller / Landowner',
+            'vendor_id'       => 'Vendor',
             'property_name'   => 'Property / Plot Name',
             'property_type'   => 'Property Type',
             'property_code'   => 'Property Number / Code',

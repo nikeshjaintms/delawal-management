@@ -34,6 +34,7 @@ use App\Http\Controllers\RentalController;
 use App\Http\Controllers\RentalPaymentController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SellerController;
 use App\Http\Controllers\StockInwardController;
 use App\Http\Controllers\StockOutwardController;
 use App\Http\Controllers\StockReportController;
@@ -67,6 +68,11 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('broker-commissions/export-pdf', [\App\Http\Controllers\BrokerCommissionController::class, 'exportPdf'])->name('broker-commissions.pdf')->middleware(['permission:broker_commission_print']);
     Route::resource('broker-commissions', \App\Http\Controllers\BrokerCommissionController::class)->middleware(['permission:broker_commission_view']);
     Route::patch('broker-commissions/{brokerCommission}/toggle-status', [\App\Http\Controllers\BrokerCommissionController::class, 'toggleStatus'])->name('broker-commissions.toggle-status')->middleware(['permission:broker_commission_edit']);
+
+    Route::post('sellers/quick-store', [SellerController::class, 'quickStore'])->name('sellers.quick-store')->middleware(['auth']);
+    Route::get('sellers/export-pdf', [SellerController::class, 'exportPdf'])->name('sellers.pdf')->middleware(['permission:property_view']);
+    Route::get('sellers/{seller}/pdf', [SellerController::class, 'downloadPdf'])->name('sellers.detail-pdf')->middleware(['permission:property_view']);
+    Route::resource('sellers', SellerController::class)->middleware(['permission:property_view']);
 
     Route::post('vendors/quick-store', [VendorController::class, 'quickStore'])->name('vendors.quick-store')->middleware(['auth']);
     Route::get('vendors/export-pdf', [VendorController::class, 'exportPdf'])->name('vendors.pdf')->middleware(['permission:vendor_view']);

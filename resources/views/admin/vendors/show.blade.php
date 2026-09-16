@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 
-@section('title', 'View Vendor / Seller')
-@section('page-title', 'Vendor / Seller Master')
+@section('title', 'View Vendor')
+@section('page-title', 'Vendor Master')
 
 @section('content')
 <style>
@@ -267,8 +267,8 @@
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Vendor / Seller Details</h2>
-        <p>Full profile view for firm-wise vendor / seller record.</p>
+        <h2>Vendor Details</h2>
+        <p>Full profile view for firm-wise vendor record.</p>
     </div>
 </div>
 
@@ -283,6 +283,15 @@
             <p>{{ $vendor->email ?? $vendor->mobile }}</p>
             <div class="vendor-badges">
                 <span class="badge badge-{{ $vendor->status }}">{{ ucfirst($vendor->status) }}</span>
+                @if($vendor->project)
+                    <span class="badge" style="background: rgba(59, 130, 246, 0.18); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.35);">
+                        <i class="fa-solid fa-city" style="font-size:10px;"></i> Project: {{ $vendor->project->project_name }}
+                    </span>
+                @else
+                    <span class="badge" style="background: rgba(148, 163, 184, 0.18); color: #CBD5E1; border: 1px solid rgba(148, 163, 184, 0.35);">
+                        <i class="fa-solid fa-globe" style="font-size:10px;"></i> All Projects
+                    </span>
+                @endif
                 @if($vendor->gst_no)
                     <span class="gst-chip">GST: {{ $vendor->gst_no }}</span>
                 @endif
@@ -305,6 +314,19 @@
                 Vendor Name
             </div>
             <div class="detail-value">{{ $vendor->name }}</div>
+        </div>
+
+        <!-- Project Scope -->
+        <div class="detail-item">
+            <div class="detail-label">
+                <i class="fa-solid fa-city"></i>
+                Specific Project
+            </div>
+            @if($vendor->project)
+                <div class="detail-value" style="color: #60A5FA; font-weight: 700;">{{ $vendor->project->project_name }}</div>
+            @else
+                <div class="detail-value empty">All Projects / General</div>
+            @endif
         </div>
 
         <!-- Mobile -->
@@ -418,7 +440,7 @@
             <i class="fa-solid fa-file-pdf"></i> Print / PDF Dossier
         </a>
         <a href="{{ route('vendors.edit', $vendor->id) }}" class="btn-gold">
-            <i class="fa-regular fa-pen-to-square"></i> Edit Vendor / Seller
+            <i class="fa-regular fa-pen-to-square"></i> Edit Vendor
         </a>
         <a href="{{ route('vendors.index') }}" class="btn-outline">
             <i class="fa-solid fa-arrow-left"></i> Back to List

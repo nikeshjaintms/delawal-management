@@ -92,6 +92,11 @@ class Project extends Model
         return $this->hasMany(Contractor::class, 'project_id')->latest();
     }
 
+    public function vendors()
+    {
+        return $this->hasMany(Vendor::class, 'project_id')->latest();
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

@@ -3,23 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PropertyMasterRequest;
+use App\Models\Firm;
+use App\Models\PaymentMode;
+use App\Models\Project;
+use App\Models\Property;
 use App\Models\PropertyMaster;
 use App\Models\PropertyMasterPayment;
-use App\Models\PaymentMode;
-use App\Models\Property;
 use App\Models\PropertyType;
-use App\Models\Firm;
-use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class PropertyMasterController extends Controller
 {
@@ -44,12 +44,13 @@ class PropertyMasterController extends Controller
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
-                $q->where('property_name', 'like', "%{$s}%")
-                  ->orWhere('property_code', 'like', "%{$s}%")
-                  ->orWhere('property_type', 'like', "%{$s}%")
-                  ->orWhere('location',      'like', "%{$s}%")
-                  ->orWhere('city',          'like', "%{$s}%")
-                  ->orWhere('status',        'like', "%{$s}%");
+                $q
+                    ->where('property_name', 'like', "%{$s}%")
+                    ->orWhere('property_code', 'like', "%{$s}%")
+                    ->orWhere('property_type', 'like', "%{$s}%")
+                    ->orWhere('location', 'like', "%{$s}%")
+                    ->orWhere('city', 'like', "%{$s}%")
+                    ->orWhere('status', 'like', "%{$s}%");
             });
         }
 
@@ -58,7 +59,7 @@ class PropertyMasterController extends Controller
         }
 
         $propertyMasters = $query->latest()->paginate(15)->withQueryString();
-        $propertyTypes   = PropertyMaster::PROPERTY_TYPES;
+        $propertyTypes = PropertyMaster::PROPERTY_TYPES;
 
         return view('admin.property-masters.index', compact('propertyMasters', 'propertyTypes'));
     }
@@ -74,11 +75,12 @@ class PropertyMasterController extends Controller
             $firms = Firm::where('id', $firmId)->get();
         }
 
-        $vendors       = \App\Models\Vendor::where('status', 'active')->orderBy('name')->get();
-        $brokers       = \App\Models\Broker::where('status', 'active')->orderBy('name')->get();
+        $sellers = \App\Models\Seller::where('status', 'active')->orderBy('name')->get();
+        $vendors = \App\Models\Vendor::where('status', 'active')->orderBy('name')->get();
+        $brokers = \App\Models\Broker::where('status', 'active')->orderBy('name')->get();
         $propertyTypes = PropertyMaster::PROPERTY_TYPES;
 
-        return view('admin.property-masters.create', compact('firms', 'vendors', 'brokers', 'propertyTypes'));
+        return view('admin.property-masters.create', compact('firms', 'sellers', 'vendors', 'brokers', 'propertyTypes'));
     }
 
     public function store(PropertyMasterRequest $request)
@@ -94,7 +96,7 @@ class PropertyMasterController extends Controller
         }
 
         $mainImagePath = null;
-        $documentPath  = null;
+        $documentPath = null;
 
         if ($request->hasFile('main_image')) {
             $mainImagePath = $request->file('main_image')->store('property-masters/images', 'public');
@@ -103,9 +105,9 @@ class PropertyMasterController extends Controller
             $documentPath = $request->file('document_file')->store('property-masters/documents', 'public');
         }
 
-        $purchasePrice = $request->filled('purchase_price') ? floatval($request->purchase_price) : 0.00;
-        $paidAmount = $request->filled('paid_amount') ? floatval($request->paid_amount) : ($request->filled('purchase_price') && $request->payment_status === 'paid' ? $purchasePrice : 0.00);
-        $dueAmount = max(0.00, $purchasePrice - $paidAmount);
+        $purchasePrice = $request->filled('purchase_price') ? floatval($request->purchase_price) : 0.0;
+        $paidAmount = $request->filled('paid_amount') ? floatval($request->paid_amount) : ($request->filled('purchase_price') && $request->payment_status === 'paid' ? $purchasePrice : 0.0);
+        $dueAmount = max(0.0, $purchasePrice - $paidAmount);
 
         $paymentStatus = $request->payment_status;
         if (empty($paymentStatus)) {
@@ -127,16 +129,17 @@ class PropertyMasterController extends Controller
         $brokerName = $request->broker_name;
         if ($brokerId && empty($brokerName)) {
             $bObj = \App\Models\Broker::find($brokerId);
-            if ($bObj) $brokerName = $bObj->name;
+            if ($bObj)
+                $brokerName = $bObj->name;
         }
         $brokerCommType = $request->broker_commission_type ?: 'percentage';
         $brokerCommRate = $request->filled('broker_commission_rate') ? floatval($request->broker_commission_rate) : null;
-        $brokerCommAmount = $request->filled('broker_commission_amount') ? floatval($request->broker_commission_amount) : 0.00;
+        $brokerCommAmount = $request->filled('broker_commission_amount') ? floatval($request->broker_commission_amount) : 0.0;
         if ($brokerCommType === 'percentage' && $brokerCommRate && $brokerCommAmount == 0 && $purchasePrice > 0) {
             $brokerCommAmount = round(($purchasePrice * $brokerCommRate) / 100, 2);
         }
-        $brokerCommPaid = $request->filled('broker_commission_paid') ? floatval($request->broker_commission_paid) : 0.00;
-        $brokerCommDue = max(0.00, $brokerCommAmount - $brokerCommPaid);
+        $brokerCommPaid = $request->filled('broker_commission_paid') ? floatval($request->broker_commission_paid) : 0.0;
+        $brokerCommDue = max(0.0, $brokerCommAmount - $brokerCommPaid);
         $brokerCommStatus = $request->broker_commission_status;
         if (empty($brokerCommStatus)) {
             if ($brokerCommAmount > 0) {
@@ -153,51 +156,72 @@ class PropertyMasterController extends Controller
         }
 
         $unitNumbersList = $request->unit_numbers_list;
-        $parsedUnits     = PropertyMaster::parseUnitNumbersString($unitNumbersList);
-        $totalUnitsCount = $request->filled('total_units_count') ? (int)$request->total_units_count : (!empty($parsedUnits) ? count($parsedUnits) : null);
-        $unitPrefix      = $request->unit_prefix ?: 'Plot ';
+        $parsedUnits = PropertyMaster::parseUnitNumbersString($unitNumbersList);
+        $totalUnitsCount = $request->filled('total_units_count') ? (int) $request->total_units_count : (!empty($parsedUnits) ? count($parsedUnits) : null);
+        $unitPrefix = $request->unit_prefix ?: 'Plot ';
+
+        // Seller resolution
+        $sellerId = $request->seller_id ?: null;
+        $sellerName = $request->seller_name;
+        if ($sellerId && empty($sellerName)) {
+            $sObj = \App\Models\Seller::find($sellerId);
+            if ($sObj) $sellerName = $sObj->name;
+        } elseif (!$sellerId && !empty($sellerName)) {
+            $sObj = \App\Models\Seller::where('firm_id', $firmId)->where('name', trim($sellerName))->first();
+            if ($sObj) {
+                $sellerId = $sObj->id;
+            } else {
+                $sObj = \App\Models\Seller::create([
+                    'firm_id' => $firmId,
+                    'name'    => trim($sellerName),
+                    'status'  => 'active',
+                ]);
+                $sellerId = $sObj->id;
+            }
+        }
 
         $propertyMaster = PropertyMaster::create([
-            'firm_id'                        => $firmId,
-            'property_name'                  => $request->property_name,
-            'property_code'                  => $propertyCode,
-            'property_type'                  => $request->property_type,
-            'purchase_price'                 => $purchasePrice,
-            'paid_amount'                    => $paidAmount,
-            'due_amount'                     => $dueAmount,
-            'purchase_date'                  => $request->purchase_date ?: date('Y-m-d'),
-            'purchase_rate'                  => $request->purchase_rate ?: null,
-            'total_area'                     => $request->total_area ?: null,
-            'area_unit'                      => $request->area_unit ?: 'Sq.Ft',
-            'total_units_count'              => $totalUnitsCount,
-            'unit_numbers_list'              => $unitNumbersList,
-            'unit_prefix'                    => $unitPrefix,
-            'seller_name'                    => $request->seller_name,
-            'vendor_id'                      => $request->vendor_id ?: null,
-            'broker_id'                      => $brokerId,
-            'broker_name'                    => $brokerName,
-            'broker_commission_type'         => $brokerCommType,
-            'broker_commission_rate'         => $brokerCommRate,
-            'broker_commission_amount'       => $brokerCommAmount,
-            'broker_commission_paid'         => $brokerCommPaid,
-            'broker_commission_due'          => $brokerCommDue,
+            'firm_id' => $firmId,
+            'property_name' => $request->property_name,
+            'property_code' => $propertyCode,
+            'property_type' => $request->property_type,
+            'purchase_price' => $purchasePrice,
+            'paid_amount' => $paidAmount,
+            'due_amount' => $dueAmount,
+            'purchase_date' => $request->purchase_date ?: date('Y-m-d'),
+            'purchase_rate' => $request->purchase_rate ?: null,
+            'total_area' => $request->total_area ?: null,
+            'area_unit' => $request->area_unit ?: 'Sq.Ft',
+            'total_units_count' => $totalUnitsCount,
+            'unit_numbers_list' => $unitNumbersList,
+            'unit_prefix' => $unitPrefix,
+            'seller_id' => $sellerId,
+            'seller_name' => $sellerName,
+            'vendor_id' => $request->vendor_id ?: null,
+            'broker_id' => $brokerId,
+            'broker_name' => $brokerName,
+            'broker_commission_type' => $brokerCommType,
+            'broker_commission_rate' => $brokerCommRate,
+            'broker_commission_amount' => $brokerCommAmount,
+            'broker_commission_paid' => $brokerCommPaid,
+            'broker_commission_due' => $brokerCommDue,
             'broker_commission_payment_mode' => $request->broker_commission_payment_mode,
-            'broker_commission_status'       => $brokerCommStatus,
-            'broker_notes'                   => $request->broker_notes,
-            'payment_mode'                   => $request->payment_mode,
-            'payment_status'                 => $paymentStatus,
-            'location'                       => $request->location,
-            'address'                        => $request->address,
-            'city'                           => $request->city,
-            'state'                          => $request->state,
-            'country'                        => $request->country,
-            'pincode'                        => $request->pincode,
-            'description'                    => $request->description,
-            'status'                         => $request->status,
-            'main_image'                     => $mainImagePath,
-            'document_file'                  => $documentPath,
-            'created_by'                     => auth()->id(),
-            'updated_by'                     => auth()->id(),
+            'broker_commission_status' => $brokerCommStatus,
+            'broker_notes' => $request->broker_notes,
+            'payment_mode' => $request->payment_mode,
+            'payment_status' => $paymentStatus,
+            'location' => $request->location,
+            'address' => $request->address,
+            'city' => $request->city,
+            'state' => $request->state,
+            'country' => $request->country,
+            'pincode' => $request->pincode,
+            'description' => $request->description,
+            'status' => $request->status,
+            'main_image' => $mainImagePath,
+            'document_file' => $documentPath,
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
         ]);
 
         $plotSource = $request->input('plot_source', $request->hasFile('excel_file') ? 'excel' : ($request->boolean('auto_generate_units') || $request->filled('unit_numbers_list') ? 'generator' : 'none'));
@@ -230,29 +254,29 @@ class PropertyMasterController extends Controller
             $resolvedTypeId = $resolvedType->id;
 
             foreach ($parsedUnits as $unitNo) {
-                $cleanUnit = trim((string)$unitNo);
+                $cleanUnit = trim((string) $unitNo);
                 $plotCode = 'P-' . $propPrefix . '-' . str_pad($cleanUnit, 3, '0', STR_PAD_LEFT);
                 if (Property::where('firm_id', $firmId)->where('property_code', $plotCode)->exists()) {
                     $plotCode .= '-' . Str::random(3);
                 }
 
                 Property::create([
-                    'firm_id'            => $firmId,
+                    'firm_id' => $firmId,
                     'property_master_id' => $propertyMaster->id,
-                    'property_type_id'   => $resolvedTypeId,
-                    'property_name'      => trim($unitPrefix . ' ' . $cleanUnit),
-                    'property_code'      => $plotCode,
-                    'unit_no'            => $cleanUnit,
-                    'size'               => $unitArea,
-                    'size_unit'          => $propertyMaster->area_unit ?: 'sq.ft',
-                    'location'           => $propertyMaster->location,
-                    'city'               => $propertyMaster->city,
-                    'address'            => $propertyMaster->address,
-                    'purchase_rate'      => $propertyMaster->purchase_rate,
-                    'purchase_date'      => $propertyMaster->purchase_date ?: date('Y-m-d'),
-                    'price'              => $unitPrice,
-                    'status'             => 'available',
-                    'description'        => 'Auto-created unit #' . $cleanUnit . ' under ' . $propertyMaster->property_name,
+                    'property_type_id' => $resolvedTypeId,
+                    'property_name' => trim($unitPrefix . ' ' . $cleanUnit),
+                    'property_code' => $plotCode,
+                    'unit_no' => $cleanUnit,
+                    'size' => $unitArea,
+                    'size_unit' => $propertyMaster->area_unit ?: 'sq.ft',
+                    'location' => $propertyMaster->location,
+                    'city' => $propertyMaster->city,
+                    'address' => $propertyMaster->address,
+                    'purchase_rate' => $propertyMaster->purchase_rate,
+                    'purchase_date' => $propertyMaster->purchase_date ?: date('Y-m-d'),
+                    'price' => $unitPrice,
+                    'status' => 'available',
+                    'description' => 'Auto-created unit #' . $cleanUnit . ' under ' . $propertyMaster->property_name,
                 ]);
             }
         }
@@ -261,24 +285,26 @@ class PropertyMasterController extends Controller
             $paymentModeId = null;
             if ($request->payment_mode) {
                 $pm = PaymentMode::where('name', $request->payment_mode)->first();
-                if ($pm) $paymentModeId = $pm->id;
+                if ($pm)
+                    $paymentModeId = $pm->id;
             }
 
             PropertyMasterPayment::create([
                 'property_master_id' => $propertyMaster->id,
-                'firm_id'            => $firmId,
-                'payment_mode_id'    => $paymentModeId,
-                'amount'             => $paidAmount,
-                'payment_date'       => $propertyMaster->purchase_date ?: date('Y-m-d'),
-                'payment_mode'       => $request->payment_mode ?: 'Cash',
-                'reference_no'       => $request->reference_no ?? null,
-                'bank_name'          => $request->bank_name ?? null,
-                'remarks'            => $request->remarks ?: 'Initial Payment / Advance',
-                'created_by'         => auth()->id(),
+                'firm_id' => $firmId,
+                'payment_mode_id' => $paymentModeId,
+                'amount' => $paidAmount,
+                'payment_date' => $propertyMaster->purchase_date ?: date('Y-m-d'),
+                'payment_mode' => $request->payment_mode ?: 'Cash',
+                'reference_no' => $request->reference_no ?? null,
+                'bank_name' => $request->bank_name ?? null,
+                'remarks' => $request->remarks ?: 'Initial Payment / Advance',
+                'created_by' => auth()->id(),
             ]);
         }
 
-        return redirect()->route('property-masters.show', $propertyMaster->id)
+        return redirect()
+            ->route('property-masters.show', $propertyMaster->id)
             ->with('success', 'Property Master created successfully.');
     }
 
@@ -288,6 +314,7 @@ class PropertyMasterController extends Controller
         Property::syncAllStatuses();
         $propertyMaster->load([
             'firm',
+            'seller',
             'vendor',
             'broker',
             'projects.properties',
@@ -319,11 +346,12 @@ class PropertyMasterController extends Controller
             $firms = Firm::where('id', $firmId)->get();
         }
 
-        $vendors       = \App\Models\Vendor::where('status', 'active')->orderBy('name')->get();
-        $brokers       = \App\Models\Broker::where('status', 'active')->orderBy('name')->get();
+        $sellers = \App\Models\Seller::where('status', 'active')->orderBy('name')->get();
+        $vendors = \App\Models\Vendor::where('status', 'active')->orderBy('name')->get();
+        $brokers = \App\Models\Broker::where('status', 'active')->orderBy('name')->get();
         $propertyTypes = PropertyMaster::PROPERTY_TYPES;
 
-        return view('admin.property-masters.edit', compact('propertyMaster', 'firms', 'vendors', 'brokers', 'propertyTypes'));
+        return view('admin.property-masters.edit', compact('propertyMaster', 'firms', 'sellers', 'vendors', 'brokers', 'propertyTypes'));
     }
 
     public function update(PropertyMasterRequest $request, PropertyMaster $propertyMaster)
@@ -334,7 +362,7 @@ class PropertyMasterController extends Controller
         $firmId = $isAdmin ? $request->firm_id : $propertyMaster->firm_id;
 
         $mainImagePath = $propertyMaster->main_image;
-        $documentPath  = $propertyMaster->document_file;
+        $documentPath = $propertyMaster->document_file;
 
         if ($request->hasFile('main_image')) {
             if ($propertyMaster->main_image) {
@@ -350,9 +378,9 @@ class PropertyMasterController extends Controller
             $documentPath = $request->file('document_file')->store('property-masters/documents', 'public');
         }
 
-        $purchasePrice = $request->purchase_price !== null ? floatval($request->purchase_price) : ($propertyMaster->purchase_price ?? 0.00);
-        $paidAmount    = $request->paid_amount !== null ? floatval($request->paid_amount) : ($propertyMaster->paid_amount ?? 0.00);
-        $dueAmount     = max(0.00, $purchasePrice - $paidAmount);
+        $purchasePrice = $request->purchase_price !== null ? floatval($request->purchase_price) : ($propertyMaster->purchase_price ?? 0.0);
+        $paidAmount = $request->paid_amount !== null ? floatval($request->paid_amount) : ($propertyMaster->paid_amount ?? 0.0);
+        $dueAmount = max(0.0, $purchasePrice - $paidAmount);
 
         $paymentStatus = $request->payment_status;
         if (empty($paymentStatus)) {
@@ -374,12 +402,12 @@ class PropertyMasterController extends Controller
         $brokerName = $request->filled('broker_name') ? $request->broker_name : ($brokerId ? ($propertyMaster->broker_id == $brokerId ? $propertyMaster->broker_name : (\App\Models\Broker::find($brokerId)?->name ?? null)) : null);
         $brokerCommType = $request->filled('broker_commission_type') ? $request->broker_commission_type : ($propertyMaster->broker_commission_type ?? 'percentage');
         $brokerCommRate = $request->filled('broker_commission_rate') ? floatval($request->broker_commission_rate) : ($request->has('broker_commission_rate') ? null : $propertyMaster->broker_commission_rate);
-        $brokerCommAmount = $request->filled('broker_commission_amount') ? floatval($request->broker_commission_amount) : ($propertyMaster->broker_commission_amount ?? 0.00);
+        $brokerCommAmount = $request->filled('broker_commission_amount') ? floatval($request->broker_commission_amount) : ($propertyMaster->broker_commission_amount ?? 0.0);
         if ($brokerCommType === 'percentage' && $brokerCommRate && ($brokerCommAmount == 0 || $request->filled('broker_commission_rate')) && $purchasePrice > 0) {
             $brokerCommAmount = round(($purchasePrice * $brokerCommRate) / 100, 2);
         }
-        $brokerCommPaid = $request->filled('broker_commission_paid') ? floatval($request->broker_commission_paid) : ($propertyMaster->broker_commission_paid ?? 0.00);
-        $brokerCommDue = max(0.00, $brokerCommAmount - $brokerCommPaid);
+        $brokerCommPaid = $request->filled('broker_commission_paid') ? floatval($request->broker_commission_paid) : ($propertyMaster->broker_commission_paid ?? 0.0);
+        $brokerCommDue = max(0.0, $brokerCommAmount - $brokerCommPaid);
         $brokerCommStatus = $request->broker_commission_status;
         if (empty($brokerCommStatus)) {
             if ($brokerCommAmount > 0) {
@@ -396,64 +424,68 @@ class PropertyMasterController extends Controller
         }
 
         $unitNumbersList = $request->has('unit_numbers_list') ? $request->unit_numbers_list : $propertyMaster->unit_numbers_list;
-        $parsedUnits     = PropertyMaster::parseUnitNumbersString($unitNumbersList);
-        $totalUnitsCount = $request->filled('total_units_count') ? (int)$request->total_units_count : (!empty($parsedUnits) ? count($parsedUnits) : $propertyMaster->total_units_count);
-        $unitPrefix      = $request->unit_prefix ?: ($propertyMaster->unit_prefix ?? 'Plot ');
+        $parsedUnits = PropertyMaster::parseUnitNumbersString($unitNumbersList);
+        $totalUnitsCount = $request->filled('total_units_count') ? (int) $request->total_units_count : (!empty($parsedUnits) ? count($parsedUnits) : $propertyMaster->total_units_count);
+        $unitPrefix = $request->unit_prefix ?: ($propertyMaster->unit_prefix ?? 'Plot ');
+
+        $sellerId = $request->filled('seller_id') ? $request->seller_id : ($request->has('seller_id') ? null : $propertyMaster->seller_id);
+        $sellerName = $request->filled('seller_name') ? $request->seller_name : ($sellerId ? (\App\Models\Seller::find($sellerId)?->name ?? $propertyMaster->seller_name) : $propertyMaster->seller_name);
 
         $propertyMaster->update([
-            'firm_id'                        => $firmId,
-            'property_name'                  => $request->property_name,
-            'property_code'                  => $request->property_code ?: $propertyMaster->property_code,
-            'property_type'                  => $request->property_type,
-            'purchase_price'                 => $purchasePrice,
-            'paid_amount'                    => $paidAmount,
-            'due_amount'                     => $dueAmount,
-            'purchase_date'                  => $request->purchase_date ?: $propertyMaster->purchase_date,
-            'purchase_rate'                  => $request->purchase_rate ?: $propertyMaster->purchase_rate,
-            'total_area'                     => $request->total_area ?: $propertyMaster->total_area,
-            'area_unit'                      => $request->area_unit ?: ($propertyMaster->area_unit ?? 'Sq.Ft'),
-            'total_units_count'              => $totalUnitsCount,
-            'unit_numbers_list'              => $unitNumbersList,
-            'unit_prefix'                    => $unitPrefix,
-            'seller_name'                    => $request->seller_name ?: $propertyMaster->seller_name,
-            'vendor_id'                      => $request->vendor_id ?: $propertyMaster->vendor_id,
-            'broker_id'                      => $brokerId,
-            'broker_name'                    => $brokerName,
-            'broker_commission_type'         => $brokerCommType,
-            'broker_commission_rate'         => $brokerCommRate,
-            'broker_commission_amount'       => $brokerCommAmount,
-            'broker_commission_paid'         => $brokerCommPaid,
-            'broker_commission_due'          => $brokerCommDue,
+            'firm_id' => $firmId,
+            'property_name' => $request->property_name,
+            'property_code' => $request->property_code ?: $propertyMaster->property_code,
+            'property_type' => $request->property_type,
+            'purchase_price' => $purchasePrice,
+            'paid_amount' => $paidAmount,
+            'due_amount' => $dueAmount,
+            'purchase_date' => $request->purchase_date ?: $propertyMaster->purchase_date,
+            'purchase_rate' => $request->purchase_rate ?: $propertyMaster->purchase_rate,
+            'total_area' => $request->total_area ?: $propertyMaster->total_area,
+            'area_unit' => $request->area_unit ?: ($propertyMaster->area_unit ?? 'Sq.Ft'),
+            'total_units_count' => $totalUnitsCount,
+            'unit_numbers_list' => $unitNumbersList,
+            'unit_prefix' => $unitPrefix,
+            'seller_id' => $sellerId,
+            'seller_name' => $sellerName,
+            'vendor_id' => $request->vendor_id ?: $propertyMaster->vendor_id,
+            'broker_id' => $brokerId,
+            'broker_name' => $brokerName,
+            'broker_commission_type' => $brokerCommType,
+            'broker_commission_rate' => $brokerCommRate,
+            'broker_commission_amount' => $brokerCommAmount,
+            'broker_commission_paid' => $brokerCommPaid,
+            'broker_commission_due' => $brokerCommDue,
             'broker_commission_payment_mode' => $request->broker_commission_payment_mode ?: $propertyMaster->broker_commission_payment_mode,
-            'broker_commission_status'       => $brokerCommStatus,
-            'broker_notes'                   => $request->broker_notes ?: $propertyMaster->broker_notes,
-            'payment_mode'                   => $request->payment_mode ?: $propertyMaster->payment_mode,
-            'payment_status'                 => $paymentStatus,
-            'location'                       => $request->location,
-            'address'                        => $request->address,
-            'city'                           => $request->city,
-            'state'                          => $request->state,
-            'country'                        => $request->country,
-            'pincode'                        => $request->pincode,
-            'description'                    => $request->description,
-            'status'                         => $request->status,
-            'main_image'                     => $mainImagePath,
-            'document_file'                  => $documentPath,
-            'updated_by'                     => auth()->id(),
+            'broker_commission_status' => $brokerCommStatus,
+            'broker_notes' => $request->broker_notes ?: $propertyMaster->broker_notes,
+            'payment_mode' => $request->payment_mode ?: $propertyMaster->payment_mode,
+            'payment_status' => $paymentStatus,
+            'location' => $request->location,
+            'address' => $request->address,
+            'city' => $request->city,
+            'state' => $request->state,
+            'country' => $request->country,
+            'pincode' => $request->pincode,
+            'description' => $request->description,
+            'status' => $request->status,
+            'main_image' => $mainImagePath,
+            'document_file' => $documentPath,
+            'updated_by' => auth()->id(),
         ]);
 
         // Auto-generate missing unit plots if requested
         if ($request->boolean('auto_generate_units') && !empty($parsedUnits)) {
-            $existingUnitNos = $propertyMaster->plots()->pluck('unit_no')->map(fn($u) => trim((string)$u))->toArray();
+            $existingUnitNos = $propertyMaster->plots()->pluck('unit_no')->map(fn($u) => trim((string) $u))->toArray();
             $propPrefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $propertyMaster->property_name), 0, 4)) ?: 'PROP';
             $unitCount = count($parsedUnits);
             $unitPrice = ($unitCount > 0 && $purchasePrice > 0) ? round($purchasePrice / $unitCount, 2) : ($propertyMaster->purchase_rate ?: 0);
             $unitArea = ($unitCount > 0 && $propertyMaster->total_area > 0) ? round($propertyMaster->total_area / $unitCount, 2) : null;
 
             foreach ($parsedUnits as $unitNo) {
-                $cleanUnit = trim((string)$unitNo);
+                $cleanUnit = trim((string) $unitNo);
                 if (in_array($cleanUnit, $existingUnitNos)) {
-                    continue; // skip if already created
+                    continue;  // skip if already created
                 }
 
                 $plotCode = 'P-' . $propPrefix . '-' . str_pad($cleanUnit, 3, '0', STR_PAD_LEFT);
@@ -462,21 +494,21 @@ class PropertyMasterController extends Controller
                 }
 
                 Property::create([
-                    'firm_id'            => $firmId,
+                    'firm_id' => $firmId,
                     'property_master_id' => $propertyMaster->id,
-                    'property_name'      => trim($unitPrefix . ' ' . $cleanUnit),
-                    'property_code'      => $plotCode,
-                    'unit_no'            => $cleanUnit,
-                    'size'               => $unitArea,
-                    'size_unit'          => $propertyMaster->area_unit ?: 'sq.ft',
-                    'location'           => $propertyMaster->location,
-                    'city'               => $propertyMaster->city,
-                    'address'            => $propertyMaster->address,
-                    'purchase_rate'      => $propertyMaster->purchase_rate,
-                    'purchase_date'      => $propertyMaster->purchase_date ?: date('Y-m-d'),
-                    'price'              => $unitPrice,
-                    'status'             => 'available',
-                    'description'        => 'Auto-created unit #' . $cleanUnit . ' under ' . $propertyMaster->property_name,
+                    'property_name' => trim($unitPrefix . ' ' . $cleanUnit),
+                    'property_code' => $plotCode,
+                    'unit_no' => $cleanUnit,
+                    'size' => $unitArea,
+                    'size_unit' => $propertyMaster->area_unit ?: 'sq.ft',
+                    'location' => $propertyMaster->location,
+                    'city' => $propertyMaster->city,
+                    'address' => $propertyMaster->address,
+                    'purchase_rate' => $propertyMaster->purchase_rate,
+                    'purchase_date' => $propertyMaster->purchase_date ?: date('Y-m-d'),
+                    'price' => $unitPrice,
+                    'status' => 'available',
+                    'description' => 'Auto-created unit #' . $cleanUnit . ' under ' . $propertyMaster->property_name,
                 ]);
             }
         }
@@ -485,20 +517,21 @@ class PropertyMasterController extends Controller
             $paymentModeId = null;
             if ($request->payment_mode) {
                 $pm = PaymentMode::where('name', $request->payment_mode)->first();
-                if ($pm) $paymentModeId = $pm->id;
+                if ($pm)
+                    $paymentModeId = $pm->id;
             }
 
             PropertyMasterPayment::create([
                 'property_master_id' => $propertyMaster->id,
-                'firm_id'            => $firmId,
-                'payment_mode_id'    => $paymentModeId,
-                'amount'             => $paidAmount,
-                'payment_date'       => $propertyMaster->purchase_date ?: date('Y-m-d'),
-                'payment_mode'       => $request->payment_mode ?: 'Cash',
-                'reference_no'       => $request->reference_no ?? null,
-                'bank_name'          => $request->bank_name ?? null,
-                'remarks'            => 'Initial Payment / Advance',
-                'created_by'         => auth()->id(),
+                'firm_id' => $firmId,
+                'payment_mode_id' => $paymentModeId,
+                'amount' => $paidAmount,
+                'payment_date' => $propertyMaster->purchase_date ?: date('Y-m-d'),
+                'payment_mode' => $request->payment_mode ?: 'Cash',
+                'reference_no' => $request->reference_no ?? null,
+                'bank_name' => $request->bank_name ?? null,
+                'remarks' => 'Initial Payment / Advance',
+                'created_by' => auth()->id(),
             ]);
         } elseif ($propertyMaster->payments()->count() === 1 && $request->filled('paid_amount')) {
             $singlePayment = $propertyMaster->payments()->first();
@@ -508,7 +541,8 @@ class PropertyMasterController extends Controller
             $propertyMaster->recalculatePaymentStatus();
         }
 
-        return redirect()->route('property-masters.show', $propertyMaster->id)
+        return redirect()
+            ->route('property-masters.show', $propertyMaster->id)
             ->with('success', 'Property Master updated successfully.');
     }
 
@@ -517,12 +551,12 @@ class PropertyMasterController extends Controller
         $this->authorise($propertyMaster);
 
         $validated = $request->validate([
-            'amount'       => 'required|numeric|min:0.01',
+            'amount' => 'required|numeric|min:0.01',
             'payment_date' => 'required|date',
             'payment_mode' => 'required|string|max:100',
             'reference_no' => 'nullable|string|max:150',
-            'bank_name'    => 'nullable|string|max:150',
-            'remarks'      => 'nullable|string|max:1000',
+            'bank_name' => 'nullable|string|max:150',
+            'remarks' => 'nullable|string|max:1000',
         ]);
 
         $user = Auth::user();
@@ -530,24 +564,26 @@ class PropertyMasterController extends Controller
 
         $paymentModeId = null;
         $pm = PaymentMode::where('name', $validated['payment_mode'])->first();
-        if ($pm) $paymentModeId = $pm->id;
+        if ($pm)
+            $paymentModeId = $pm->id;
 
         PropertyMasterPayment::create([
             'property_master_id' => $propertyMaster->id,
-            'firm_id'            => $firmId,
-            'payment_mode_id'    => $paymentModeId,
-            'amount'             => (float)$validated['amount'],
-            'payment_date'       => $validated['payment_date'],
-            'payment_mode'       => $validated['payment_mode'],
-            'reference_no'       => $validated['reference_no'] ?? null,
-            'bank_name'          => $validated['bank_name'] ?? null,
-            'remarks'            => $validated['remarks'] ?? null,
-            'created_by'         => $user ? $user->id : null,
+            'firm_id' => $firmId,
+            'payment_mode_id' => $paymentModeId,
+            'amount' => (float) $validated['amount'],
+            'payment_date' => $validated['payment_date'],
+            'payment_mode' => $validated['payment_mode'],
+            'reference_no' => $validated['reference_no'] ?? null,
+            'bank_name' => $validated['bank_name'] ?? null,
+            'remarks' => $validated['remarks'] ?? null,
+            'created_by' => $user ? $user->id : null,
         ]);
 
         $propertyMaster->recalculatePaymentStatus();
 
-        return redirect()->route('property-masters.show', $propertyMaster->id)
+        return redirect()
+            ->route('property-masters.show', $propertyMaster->id)
             ->with('success', 'Payment installment of ₹' . number_format($validated['amount'], 2) . ' recorded successfully.');
     }
 
@@ -563,7 +599,8 @@ class PropertyMasterController extends Controller
         $payment->delete();
         $propertyMaster->recalculatePaymentStatus();
 
-        return redirect()->route('property-masters.show', $propertyMaster->id)
+        return redirect()
+            ->route('property-masters.show', $propertyMaster->id)
             ->with('success', 'Payment record of ₹' . number_format($amount, 2) . ' removed successfully.');
     }
 
@@ -574,7 +611,8 @@ class PropertyMasterController extends Controller
         // Check if any plots are booked or sold
         $bookedOrSold = $propertyMaster->plots()->whereIn('status', ['booked', 'sold'])->count();
         if ($bookedOrSold > 0) {
-            return redirect()->back()
+            return redirect()
+                ->back()
                 ->with('error', "Cannot delete Property Master because {$bookedOrSold} plot(s) are already booked or sold.");
         }
 
@@ -591,7 +629,8 @@ class PropertyMasterController extends Controller
             $propertyMaster->delete();
         });
 
-        return redirect()->route('property-masters.index')
+        return redirect()
+            ->route('property-masters.index')
             ->with('success', 'Property Master and all available plots deleted successfully.');
     }
 
@@ -607,17 +646,17 @@ class PropertyMasterController extends Controller
         $this->authorise($propertyMaster);
 
         $request->validate([
-            'property_name'     => 'required|string|max:255',
-            'unit_no'           => 'nullable|string|max:50',
-            'property_type_id'  => 'nullable|exists:property_types,id',
-            'size'              => 'nullable|numeric|min:0',
-            'size_unit'         => 'nullable|string|max:50',
-            'facing'            => 'nullable|string|max:50',
-            'purchase_rate'     => 'nullable|numeric|min:0',
-            'price'             => 'nullable|numeric|min:0',
-            'status'            => 'required|in:available,booked,sold,reserved',
-            'project_id'        => 'nullable|exists:projects,id',
-            'description'       => 'nullable|string',
+            'property_name' => 'required|string|max:255',
+            'unit_no' => 'nullable|string|max:50',
+            'property_type_id' => 'nullable|exists:property_types,id',
+            'size' => 'nullable|numeric|min:0',
+            'size_unit' => 'nullable|string|max:50',
+            'facing' => 'nullable|string|max:50',
+            'purchase_rate' => 'nullable|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
+            'status' => 'required|in:available,booked,sold,reserved',
+            'project_id' => 'nullable|exists:projects,id',
+            'description' => 'nullable|string',
         ]);
 
         $propPrefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $propertyMaster->property_name), 0, 4)) ?: 'PROP';
@@ -649,28 +688,29 @@ class PropertyMasterController extends Controller
         if ($request->filled('facing')) {
             $validFacings = ['East', 'West', 'North', 'South', 'North-East', 'North-West', 'South-East', 'South-West'];
             $matchFacing = collect($validFacings)->first(fn($f) => strcasecmp($f, trim($request->facing)) === 0);
-            if ($matchFacing) $facing = $matchFacing;
+            if ($matchFacing)
+                $facing = $matchFacing;
         }
 
         $plot = Property::create([
-            'firm_id'            => $propertyMaster->firm_id,
+            'firm_id' => $propertyMaster->firm_id,
             'property_master_id' => $propertyMaster->id,
-            'project_id'         => $request->project_id ?: null,
-            'property_type_id'   => $targetTypeId,
-            'property_name'      => $request->property_name,
-            'property_code'      => $plotCode,
-            'unit_no'            => $unitNo,
-            'size'               => $request->size ?: null,
-            'size_unit'          => $request->size_unit ?: ($propertyMaster->area_unit ?: 'sq.ft'),
-            'facing'             => $facing,
-            'location'           => $propertyMaster->location,
-            'city'               => $propertyMaster->city,
-            'address'            => $propertyMaster->address,
-            'purchase_rate'      => $purchaseRate,
-            'purchase_date'      => $propertyMaster->purchase_date ?: date('Y-m-d'),
-            'price'              => $price,
-            'status'             => $request->status,
-            'description'        => $request->description,
+            'project_id' => $request->project_id ?: null,
+            'property_type_id' => $targetTypeId,
+            'property_name' => $request->property_name,
+            'property_code' => $plotCode,
+            'unit_no' => $unitNo,
+            'size' => $request->size ?: null,
+            'size_unit' => $request->size_unit ?: ($propertyMaster->area_unit ?: 'sq.ft'),
+            'facing' => $facing,
+            'location' => $propertyMaster->location,
+            'city' => $propertyMaster->city,
+            'address' => $propertyMaster->address,
+            'purchase_rate' => $purchaseRate,
+            'purchase_date' => $propertyMaster->purchase_date ?: date('Y-m-d'),
+            'price' => $price,
+            'status' => $request->status,
+            'description' => $request->description,
         ]);
 
         // If a project is selected, ensure the project is also linked in pivot table
@@ -681,7 +721,8 @@ class PropertyMasterController extends Controller
             }
         }
 
-        return redirect()->route('property-masters.show', $propertyMaster->id)
+        return redirect()
+            ->route('property-masters.show', $propertyMaster->id)
             ->with('success', "Plot '{$plot->property_name}' added successfully.");
     }
 
@@ -693,17 +734,17 @@ class PropertyMasterController extends Controller
         $this->authorise($propertyMaster);
 
         $request->validate([
-            'total_plots'        => 'nullable|integer|min:1|max:1000',
-            'unit_numbers_list'  => 'nullable|string|max:2000',
-            'plot_prefix'        => 'nullable|string|max:50',
-            'start_number'       => 'nullable|integer|min:1',
-            'property_type_id'   => 'nullable|exists:property_types,id',
-            'size'               => 'nullable|numeric|min:0',
-            'size_unit'          => 'nullable|string|max:50',
-            'facing'             => 'nullable|string|max:50',
-            'purchase_rate'      => 'nullable|numeric|min:0',
-            'price'              => 'nullable|numeric|min:0',
-            'project_id'         => 'nullable|exists:projects,id',
+            'total_plots' => 'nullable|integer|min:1|max:1000',
+            'unit_numbers_list' => 'nullable|string|max:2000',
+            'plot_prefix' => 'nullable|string|max:50',
+            'start_number' => 'nullable|integer|min:1',
+            'property_type_id' => 'nullable|exists:property_types,id',
+            'size' => 'nullable|numeric|min:0',
+            'size_unit' => 'nullable|string|max:50',
+            'facing' => 'nullable|string|max:50',
+            'purchase_rate' => 'nullable|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
+            'project_id' => 'nullable|exists:projects,id',
         ]);
 
         $customList = $request->unit_numbers_list;
@@ -733,7 +774,8 @@ class PropertyMasterController extends Controller
         if ($request->filled('facing')) {
             $validFacings = ['East', 'West', 'North', 'South', 'North-East', 'North-West', 'South-East', 'South-West'];
             $matchFacing = collect($validFacings)->first(fn($f) => strcasecmp($f, trim($request->facing)) === 0);
-            if ($matchFacing) $facing = $matchFacing;
+            if ($matchFacing)
+                $facing = $matchFacing;
         }
 
         $generatedUnits = [];
@@ -748,24 +790,24 @@ class PropertyMasterController extends Controller
                     }
 
                     Property::create([
-                        'firm_id'            => $propertyMaster->firm_id,
+                        'firm_id' => $propertyMaster->firm_id,
                         'property_master_id' => $propertyMaster->id,
-                        'project_id'         => $request->project_id ?: null,
-                        'property_type_id'   => $targetTypeId,
-                        'property_name'      => trim($prefix . ' ' . $cleanUnit),
-                        'property_code'      => $plotCode,
-                        'unit_no'            => (string) $cleanUnit,
-                        'size'               => $request->size ?: null,
-                        'size_unit'          => $sizeUnit,
-                        'facing'             => $facing,
-                        'location'           => $propertyMaster->location,
-                        'city'               => $propertyMaster->city,
-                        'address'            => $propertyMaster->address,
-                        'purchase_rate'      => $purchaseRate,
-                        'purchase_date'      => $propertyMaster->purchase_date ?: date('Y-m-d'),
-                        'price'              => $price,
-                        'status'             => 'available',
-                        'description'        => 'Bulk generated under ' . $propertyMaster->property_name,
+                        'project_id' => $request->project_id ?: null,
+                        'property_type_id' => $targetTypeId,
+                        'property_name' => trim($prefix . ' ' . $cleanUnit),
+                        'property_code' => $plotCode,
+                        'unit_no' => (string) $cleanUnit,
+                        'size' => $request->size ?: null,
+                        'size_unit' => $sizeUnit,
+                        'facing' => $facing,
+                        'location' => $propertyMaster->location,
+                        'city' => $propertyMaster->city,
+                        'address' => $propertyMaster->address,
+                        'purchase_rate' => $purchaseRate,
+                        'purchase_date' => $propertyMaster->purchase_date ?: date('Y-m-d'),
+                        'price' => $price,
+                        'status' => 'available',
+                        'description' => 'Bulk generated under ' . $propertyMaster->property_name,
                     ]);
                     $generatedUnits[] = $cleanUnit;
                 }
@@ -783,24 +825,24 @@ class PropertyMasterController extends Controller
                     }
 
                     Property::create([
-                        'firm_id'            => $propertyMaster->firm_id,
+                        'firm_id' => $propertyMaster->firm_id,
                         'property_master_id' => $propertyMaster->id,
-                        'project_id'         => $request->project_id ?: null,
-                        'property_type_id'   => $targetTypeId,
-                        'property_name'      => trim($prefix . ' ' . $num),
-                        'property_code'      => $plotCode,
-                        'unit_no'            => (string) $num,
-                        'size'               => $request->size ?: null,
-                        'size_unit'          => $sizeUnit,
-                        'facing'             => $facing,
-                        'location'           => $propertyMaster->location,
-                        'city'               => $propertyMaster->city,
-                        'address'            => $propertyMaster->address,
-                        'purchase_rate'      => $purchaseRate,
-                        'purchase_date'      => $propertyMaster->purchase_date ?: date('Y-m-d'),
-                        'price'              => $price,
-                        'status'             => 'available',
-                        'description'        => 'Bulk generated under ' . $propertyMaster->property_name,
+                        'project_id' => $request->project_id ?: null,
+                        'property_type_id' => $targetTypeId,
+                        'property_name' => trim($prefix . ' ' . $num),
+                        'property_code' => $plotCode,
+                        'unit_no' => (string) $num,
+                        'size' => $request->size ?: null,
+                        'size_unit' => $sizeUnit,
+                        'facing' => $facing,
+                        'location' => $propertyMaster->location,
+                        'city' => $propertyMaster->city,
+                        'address' => $propertyMaster->address,
+                        'purchase_rate' => $purchaseRate,
+                        'purchase_date' => $propertyMaster->purchase_date ?: date('Y-m-d'),
+                        'price' => $price,
+                        'status' => 'available',
+                        'description' => 'Bulk generated under ' . $propertyMaster->property_name,
                     ]);
                     $generatedUnits[] = $num;
                 }
@@ -815,8 +857,9 @@ class PropertyMasterController extends Controller
         });
 
         $genCount = count($generatedUnits);
-        return redirect()->route('property-masters.show', $propertyMaster->id)
-            ->with('success', "{$genCount} plots/units generated successfully (" . implode(', ', array_slice($generatedUnits, 0, 10)) . ($genCount > 10 ? '...' : '') . ").");
+        return redirect()
+            ->route('property-masters.show', $propertyMaster->id)
+            ->with('success', "{$genCount} plots/units generated successfully (" . implode(', ', array_slice($generatedUnits, 0, 10)) . ($genCount > 10 ? '...' : '') . ').');
     }
 
     /**
@@ -838,7 +881,8 @@ class PropertyMasterController extends Controller
             return redirect()->back()->with('error', 'No valid plots could be imported from the Excel file. Please ensure data rows are present.');
         }
 
-        return redirect()->route('property-masters.show', $propertyMaster->id)
+        return redirect()
+            ->route('property-masters.show', $propertyMaster->id)
             ->with('success', "{$count} plots imported successfully from Excel without any column mismatch.");
     }
 
@@ -884,13 +928,16 @@ class PropertyMasterController extends Controller
         ];
 
         foreach ($rows as $rowIndex => $rowCells) {
-            if ($rowIndex > 15) break;
-            if (!is_array($rowCells)) continue;
+            if ($rowIndex > 15)
+                break;
+            if (!is_array($rowCells))
+                continue;
 
             $matchedCount = 0;
             foreach ($rowCells as $cell) {
-                if (is_null($cell)) continue;
-                $clean = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', (string)$cell));
+                if (is_null($cell))
+                    continue;
+                $clean = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', (string) $cell));
                 foreach ($knownHeaderKeywords as $kw) {
                     if (str_contains($clean, $kw)) {
                         $matchedCount++;
@@ -915,21 +962,21 @@ class PropertyMasterController extends Controller
 
         // 2. Build column mapping dictionary with exact normalized aliases
         $exactDict = [
-            'unit_no'       => ['unitno', 'unitnumber', 'plotno', 'unitnoplotno', 'unitnoplotno*', 'flatno', 'unit#', 'plot#', 'plotunitno', 'plotunitno*', 'plot/unitno*', 'plot/unitno'],
-            'plot_name'     => ['plotname', 'plotname*', 'propertyname', 'propertyname*', 'unitname', 'name', 'title'],
-            'plot_code'     => ['plotcode', 'plotcode*', 'propertycode', 'propertycode*', 'unitcode', 'code', 'propcode'],
-            'size'          => ['size', 'area', 'plotsize', 'plotarea', 'sizearea', 'size/area', 'sqft', 'areainsqft', 'areainsqyd', 'carpetarea', 'builtuparea', 'superarea', 'dimensionsize', 'dimension', 'sqyards', 'sqmeter', 'acre', 'bigha', 'plotareainsqft', 'sizenumeric', 'size(numeric)'],
-            'size_unit'     => ['sizeunit', 'measurementunit', 'areatype', 'areauom', 'uom', 'unittype', 'sizeunitsqftsqyard', 'sizeunit(sq.ft/sq.yard)'],
-            'facing'        => ['facing', 'direction', 'orientation', 'plotfacing', 'facingdirection', 'facingdirectioneastwestnorthsouth', 'facingdirection(east/west/north/south)'],
+            'unit_no' => ['unitno', 'unitnumber', 'plotno', 'unitnoplotno', 'unitnoplotno*', 'flatno', 'unit#', 'plot#', 'plotunitno', 'plotunitno*', 'plot/unitno*', 'plot/unitno'],
+            'plot_name' => ['plotname', 'plotname*', 'propertyname', 'propertyname*', 'unitname', 'name', 'title'],
+            'plot_code' => ['plotcode', 'plotcode*', 'propertycode', 'propertycode*', 'unitcode', 'code', 'propcode'],
+            'size' => ['size', 'area', 'plotsize', 'plotarea', 'sizearea', 'size/area', 'sqft', 'areainsqft', 'areainsqyd', 'carpetarea', 'builtuparea', 'superarea', 'dimensionsize', 'dimension', 'sqyards', 'sqmeter', 'acre', 'bigha', 'plotareainsqft', 'sizenumeric', 'size(numeric)'],
+            'size_unit' => ['sizeunit', 'measurementunit', 'areatype', 'areauom', 'uom', 'unittype', 'sizeunitsqftsqyard', 'sizeunit(sq.ft/sq.yard)'],
+            'facing' => ['facing', 'direction', 'orientation', 'plotfacing', 'facingdirection', 'facingdirectioneastwestnorthsouth', 'facingdirection(east/west/north/south)'],
             'purchase_rate' => ['purchaserate', 'buyrate', 'originalpurchaserate', 'rate', 'costrate', 'batchrate', 'purchaserateperunit', 'purchaserateinr', 'purchaserate(₹)', 'purchaserate₹'],
-            'price'         => ['price', 'sellingprice', 'price(inr)', 'priceinr', 'askingprice', 'priceaskingprice', 'saleprice', 'amount', 'cost', 'value', 'expectedprice', 'sellingprice(₹)', 'sellingprice₹'],
-            'status'        => ['status', 'propertystatus', 'propertystatus*', 'state', 'statusavailablebookedsold', 'status(available/booked/sold)'],
+            'price' => ['price', 'sellingprice', 'price(inr)', 'priceinr', 'askingprice', 'priceaskingprice', 'saleprice', 'amount', 'cost', 'value', 'expectedprice', 'sellingprice(₹)', 'sellingprice₹'],
+            'status' => ['status', 'propertystatus', 'propertystatus*', 'state', 'statusavailablebookedsold', 'status(available/booked/sold)'],
             'property_type' => ['propertytype', 'propertytype*', 'proptype', 'type', 'category', 'kind', 'projecttype'],
-            'floor_no'      => ['floorno', 'floor', 'level'],
-            'description'   => ['description', 'descriptionnotes', 'notes', 'remarks', 'details', 'propertydescription'],
-            'location'      => ['location', 'loc', 'landmark'],
-            'city'          => ['city', 'town'],
-            'address'       => ['address', 'addr'],
+            'floor_no' => ['floorno', 'floor', 'level'],
+            'description' => ['description', 'descriptionnotes', 'notes', 'remarks', 'details', 'propertydescription'],
+            'location' => ['location', 'loc', 'landmark'],
+            'city' => ['city', 'town'],
+            'address' => ['address', 'addr'],
         ];
 
         $columnMap = [];
@@ -937,9 +984,10 @@ class PropertyMasterController extends Controller
 
         // Pass 1: Exact Match
         foreach ($headerRow as $colIdx => $rawHeader) {
-            $cleanBom = preg_replace('/\x{EF}\x{BB}\x{BF}/', '', (string)$rawHeader);
+            $cleanBom = preg_replace('/\x{EF}\x{BB}\x{BF}/', '', (string) $rawHeader);
             $norm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $cleanBom));
-            if (empty($norm)) continue;
+            if (empty($norm))
+                continue;
 
             $matchedKey = null;
             foreach ($exactDict as $fieldKey => $validNorms) {
@@ -1000,22 +1048,22 @@ class PropertyMasterController extends Controller
         $defaultTypeId = $defaultTypeObj->id;
 
         $validFacingMap = [
-            'east'       => 'East',
-            'west'       => 'West',
-            'north'      => 'North',
-            'south'      => 'South',
+            'east' => 'East',
+            'west' => 'West',
+            'north' => 'North',
+            'south' => 'South',
             'north-east' => 'North-East',
-            'northeast'  => 'North-East',
-            'ne'         => 'North-East',
+            'northeast' => 'North-East',
+            'ne' => 'North-East',
             'north-west' => 'North-West',
-            'northwest'  => 'North-West',
-            'nw'         => 'North-West',
+            'northwest' => 'North-West',
+            'nw' => 'North-West',
             'south-east' => 'South-East',
-            'southeast'  => 'South-East',
-            'se'         => 'South-East',
+            'southeast' => 'South-East',
+            'se' => 'South-East',
             'south-west' => 'South-West',
-            'southwest'  => 'South-West',
-            'sw'         => 'South-West',
+            'southwest' => 'South-West',
+            'sw' => 'South-West',
         ];
         $validStatuses = ['available', 'booked', 'sold', 'reserved', 'rented', 'blocked'];
         $validSizeUnits = ['sq.ft', 'sq.yard', 'sq.meter', 'acre', 'bigha'];
@@ -1034,30 +1082,32 @@ class PropertyMasterController extends Controller
 
             for ($r = $dataStartRowIndex; $r < $totalRows; $r++) {
                 $row = $rows[$r] ?? null;
-                if (!is_array($row)) continue;
+                if (!is_array($row))
+                    continue;
 
                 // Check if row has any non-empty data
                 $hasData = false;
                 foreach ($row as $val) {
-                    if (!is_null($val) && trim((string)$val) !== '') {
+                    if (!is_null($val) && trim((string) $val) !== '') {
                         $hasData = true;
                         break;
                     }
                 }
-                if (!$hasData) continue;
+                if (!$hasData)
+                    continue;
 
                 // 1. Raw field extraction
-                $rawUnit = isset($columnMap['unit_no']) && isset($row[$columnMap['unit_no']]) ? trim((string)$row[$columnMap['unit_no']]) : '';
-                $rawName = isset($columnMap['plot_name']) && isset($row[$columnMap['plot_name']]) ? trim((string)$row[$columnMap['plot_name']]) : '';
-                $rawCode = isset($columnMap['plot_code']) && isset($row[$columnMap['plot_code']]) ? trim((string)$row[$columnMap['plot_code']]) : '';
-                $rawSize = isset($columnMap['size']) && isset($row[$columnMap['size']]) ? trim((string)$row[$columnMap['size']]) : '';
-                $rawSizeUnit = isset($columnMap['size_unit']) && isset($row[$columnMap['size_unit']]) ? trim((string)$row[$columnMap['size_unit']]) : '';
-                $rawFacing = isset($columnMap['facing']) && isset($row[$columnMap['facing']]) ? trim((string)$row[$columnMap['facing']]) : '';
-                $rawRate = isset($columnMap['purchase_rate']) && isset($row[$columnMap['purchase_rate']]) ? trim((string)$row[$columnMap['purchase_rate']]) : '';
-                $rawPrice = isset($columnMap['price']) && isset($row[$columnMap['price']]) ? trim((string)$row[$columnMap['price']]) : '';
-                $rawStatus = isset($columnMap['status']) && isset($row[$columnMap['status']]) ? strtolower(trim((string)$row[$columnMap['status']])) : '';
-                $rawType = isset($columnMap['property_type']) && isset($row[$columnMap['property_type']]) ? trim((string)$row[$columnMap['property_type']]) : '';
-                $rawDesc = isset($columnMap['description']) && isset($row[$columnMap['description']]) ? trim((string)$row[$columnMap['description']]) : '';
+                $rawUnit = isset($columnMap['unit_no']) && isset($row[$columnMap['unit_no']]) ? trim((string) $row[$columnMap['unit_no']]) : '';
+                $rawName = isset($columnMap['plot_name']) && isset($row[$columnMap['plot_name']]) ? trim((string) $row[$columnMap['plot_name']]) : '';
+                $rawCode = isset($columnMap['plot_code']) && isset($row[$columnMap['plot_code']]) ? trim((string) $row[$columnMap['plot_code']]) : '';
+                $rawSize = isset($columnMap['size']) && isset($row[$columnMap['size']]) ? trim((string) $row[$columnMap['size']]) : '';
+                $rawSizeUnit = isset($columnMap['size_unit']) && isset($row[$columnMap['size_unit']]) ? trim((string) $row[$columnMap['size_unit']]) : '';
+                $rawFacing = isset($columnMap['facing']) && isset($row[$columnMap['facing']]) ? trim((string) $row[$columnMap['facing']]) : '';
+                $rawRate = isset($columnMap['purchase_rate']) && isset($row[$columnMap['purchase_rate']]) ? trim((string) $row[$columnMap['purchase_rate']]) : '';
+                $rawPrice = isset($columnMap['price']) && isset($row[$columnMap['price']]) ? trim((string) $row[$columnMap['price']]) : '';
+                $rawStatus = isset($columnMap['status']) && isset($row[$columnMap['status']]) ? strtolower(trim((string) $row[$columnMap['status']])) : '';
+                $rawType = isset($columnMap['property_type']) && isset($row[$columnMap['property_type']]) ? trim((string) $row[$columnMap['property_type']]) : '';
+                $rawDesc = isset($columnMap['description']) && isset($row[$columnMap['description']]) ? trim((string) $row[$columnMap['description']]) : '';
 
                 // 2. Unit number & Plot Name cleanup (Prevent firm/company name in unit_no!)
                 $cleanUnit = $rawUnit;
@@ -1078,7 +1128,7 @@ class PropertyMasterController extends Controller
                 }
 
                 if ($cleanUnit === '') {
-                    $cleanUnit = (string)($propertyMaster->getNextPlotSequenceNumber() + $createdCount);
+                    $cleanUnit = (string) ($propertyMaster->getNextPlotSequenceNumber() + $createdCount);
                 }
 
                 $plotName = $rawName !== '' ? $rawName : ('Plot ' . $cleanUnit);
@@ -1102,7 +1152,7 @@ class PropertyMasterController extends Controller
 
                     $cleanSize = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawSize));
                     if ($cleanSize !== '' && is_numeric($cleanSize)) {
-                        $size = (float)$cleanSize;
+                        $size = (float) $cleanSize;
                     }
                 }
 
@@ -1140,7 +1190,7 @@ class PropertyMasterController extends Controller
                 if ($rawRate !== '') {
                     $cleanRate = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawRate));
                     if ($cleanRate !== '' && is_numeric($cleanRate)) {
-                        $rateVal = (float)$cleanRate;
+                        $rateVal = (float) $cleanRate;
                     }
                 }
 
@@ -1148,7 +1198,7 @@ class PropertyMasterController extends Controller
                 if ($rawPrice !== '') {
                     $cleanPrice = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawPrice));
                     if ($cleanPrice !== '' && is_numeric($cleanPrice)) {
-                        $priceVal = (float)$cleanPrice;
+                        $priceVal = (float) $cleanPrice;
                     }
                 }
 
@@ -1181,24 +1231,24 @@ class PropertyMasterController extends Controller
                 $description = $rawDesc !== '' ? $rawDesc : ('Imported via Excel under ' . $propertyMaster->property_name);
 
                 $plot = Property::create([
-                    'firm_id'            => $firmId,
+                    'firm_id' => $firmId,
                     'property_master_id' => $propertyMaster->id,
-                    'project_id'         => $projectId ?: null,
-                    'property_type_id'   => $propertyTypeId,
-                    'property_name'      => $plotName,
-                    'property_code'      => $plotCode,
-                    'unit_no'            => (string)$cleanUnit,
-                    'size'               => $size,
-                    'size_unit'          => $sizeUnit,
-                    'facing'             => $facing,
-                    'location'           => $propertyMaster->location,
-                    'city'               => $propertyMaster->city,
-                    'address'            => $propertyMaster->address,
-                    'purchase_rate'      => $rateVal,
-                    'purchase_date'      => $propertyMaster->purchase_date ?: date('Y-m-d'),
-                    'price'              => $priceVal,
-                    'status'             => $status,
-                    'description'        => $description,
+                    'project_id' => $projectId ?: null,
+                    'property_type_id' => $propertyTypeId,
+                    'property_name' => $plotName,
+                    'property_code' => $plotCode,
+                    'unit_no' => (string) $cleanUnit,
+                    'size' => $size,
+                    'size_unit' => $sizeUnit,
+                    'facing' => $facing,
+                    'location' => $propertyMaster->location,
+                    'city' => $propertyMaster->city,
+                    'address' => $propertyMaster->address,
+                    'purchase_rate' => $rateVal,
+                    'purchase_date' => $propertyMaster->purchase_date ?: date('Y-m-d'),
+                    'price' => $priceVal,
+                    'status' => $status,
+                    'description' => $description,
                 ]);
 
                 $createdCount++;
@@ -1300,11 +1350,12 @@ class PropertyMasterController extends Controller
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
-                $q->where('property_name', 'like', "%{$s}%")
-                  ->orWhere('property_code', 'like', "%{$s}%")
-                  ->orWhere('location',      'like', "%{$s}%")
-                  ->orWhere('city',          'like', "%{$s}%")
-                  ->orWhere('status',        'like', "%{$s}%");
+                $q
+                    ->where('property_name', 'like', "%{$s}%")
+                    ->orWhere('property_code', 'like', "%{$s}%")
+                    ->orWhere('location', 'like', "%{$s}%")
+                    ->orWhere('city', 'like', "%{$s}%")
+                    ->orWhere('status', 'like', "%{$s}%");
             });
         }
 
@@ -1328,6 +1379,7 @@ class PropertyMasterController extends Controller
         $this->authorise($propertyMaster);
         $propertyMaster->load([
             'firm',
+            'seller',
             'vendor',
             'broker',
             'plots.propertyType',

@@ -75,6 +75,7 @@
         <tr>
             <th style="width:24px;">#</th>
             <th>Vendor Name</th>
+            <th>Project</th>
             <th>Mobile</th>
             <th>Email</th>
             <th>Firm</th>
@@ -89,6 +90,7 @@
         <tr>
             <td style="color:#9CA3AF;">{{ $i+1 }}</td>
             <td><strong>{{ $item->name }}</strong></td>
+            <td>{{ $item->project->project_name ?? 'All Projects' }}</td>
             <td>{{ $item->mobile ?: '-' }}</td>
             <td>{{ $item->email ?: '-' }}</td>
             <td>{{ $item->firm->firm_name ?? '-' }}</td>
@@ -104,7 +106,7 @@
             </td>
         </tr>
         @empty
-        <tr><td colspan="9" style="text-align:center;padding:20px;color:#64748B;">No vendor records found.</td></tr>
+        <tr><td colspan="10" style="text-align:center;padding:20px;color:#64748B;">No vendor records found.</td></tr>
         @endforelse
     </tbody>
 </table>

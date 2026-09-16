@@ -10,6 +10,7 @@ class Vendor extends Model
 
     protected $fillable = [
         'firm_id',
+        'project_id',
         'name',
         'mobile',
         'email',
@@ -23,5 +24,25 @@ class Vendor extends Model
     public function firm()
     {
         return $this->belongsTo(Firm::class);
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id');
+    }
+
+    public function purchaseOrders()
+    {
+        return $this->hasMany(PurchaseOrder::class, 'vendor_id');
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'vendor_id');
+    }
+
+    public function debitNotes()
+    {
+        return $this->hasMany(DebitNote::class, 'vendor_id');
     }
 }

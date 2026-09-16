@@ -98,6 +98,10 @@
     <div class="grid-col">
         <div class="col-heading">&#9632; Commercial &amp; Location</div>
         <div class="info-row">
+            <span class="info-label">Assigned Project:</span>
+            <span class="info-value" style="color:#2563EB;">{{ $vendor->project->project_name ?? 'All Projects (General)' }}</span>
+        </div>
+        <div class="info-row">
             <span class="info-label">City:</span>
             <span class="info-value">{{ $vendor->city ?: '-' }}</span>
         </div>

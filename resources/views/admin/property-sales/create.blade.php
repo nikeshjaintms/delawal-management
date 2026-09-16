@@ -302,7 +302,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
             <!-- Broker Commission Section -->
             <div id="sale_broker_commission_box" style="{{ old('broker_id') ? 'display:block;' : 'display:none;' }} background: rgba(167, 139, 250, 0.08); border: 1.5px solid rgba(167, 139, 250, 0.3); border-radius: 12px; padding: 16px; margin-top: 10px;">
                 <div style="font-size: 13px; font-weight: 700; color: #A78BFA; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-percent"></i> Broker Commission Details (દલાલી વિગતો)
+                    <i class="fa-solid fa-percent"></i> Broker Commission Details
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;">
                     <div class="form-group" style="margin-bottom: 0;">

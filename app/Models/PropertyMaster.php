@@ -11,15 +11,15 @@ class PropertyMaster extends Model
     protected $table = 'property_masters';
 
     const PROPERTY_TYPES = [
-        'Land'        => 'Land',
-        'Plot'        => 'Plot',
-        'House'       => 'House',
-        'Flat'        => 'Flat',
-        'Commercial'  => 'Commercial',
-        'Villa'       => 'Villa',
-        'Farmhouse'   => 'Farmhouse',
-        'Industrial'  => 'Industrial',
-        'Other'       => 'Other',
+        'Land' => 'Land',
+        'Plot' => 'Plot',
+        'House' => 'House',
+        'Flat' => 'Flat',
+        'Commercial' => 'Commercial',
+        'Villa' => 'Villa',
+        'Farmhouse' => 'Farmhouse',
+        'Industrial' => 'Industrial',
+        'Other' => 'Other',
     ];
 
     protected $fillable = [
@@ -37,6 +37,7 @@ class PropertyMaster extends Model
         'total_units_count',
         'unit_numbers_list',
         'unit_prefix',
+        'seller_id',
         'seller_name',
         'vendor_id',
         'broker_id',
@@ -66,17 +67,17 @@ class PropertyMaster extends Model
     ];
 
     protected $casts = [
-        'purchase_price'           => 'decimal:2',
-        'paid_amount'              => 'decimal:2',
-        'due_amount'               => 'decimal:2',
-        'purchase_rate'            => 'decimal:2',
-        'total_area'               => 'decimal:2',
-        'total_units_count'        => 'integer',
-        'broker_commission_rate'   => 'decimal:2',
+        'purchase_price' => 'decimal:2',
+        'paid_amount' => 'decimal:2',
+        'due_amount' => 'decimal:2',
+        'purchase_rate' => 'decimal:2',
+        'total_area' => 'decimal:2',
+        'total_units_count' => 'integer',
+        'broker_commission_rate' => 'decimal:2',
         'broker_commission_amount' => 'decimal:2',
-        'broker_commission_paid'   => 'decimal:2',
-        'broker_commission_due'    => 'decimal:2',
-        'purchase_date'            => 'date',
+        'broker_commission_paid' => 'decimal:2',
+        'broker_commission_due' => 'decimal:2',
+        'purchase_date' => 'date',
     ];
 
     /**
@@ -94,13 +95,14 @@ class PropertyMaster extends Model
 
         foreach ($rawSegments as $segment) {
             $segment = trim($segment);
-            if ($segment === '') continue;
+            if ($segment === '')
+                continue;
 
             // Match patterns like "1 to 10", "1-10", "1..10" or "A-1 to A-10" or "Plot 1 to Plot 10"
             if (preg_match('/^(.*?)\s*(\d+)\s*(?:-|to|\.\.)\s*(?:.*?)(\d+)$/i', $segment, $m)) {
                 $prefix = trim($m[1]);
-                $start = (int)$m[2];
-                $end = (int)$m[3];
+                $start = (int) $m[2];
+                $end = (int) $m[3];
 
                 if ($start <= $end && ($end - $start) <= 500) {
                     for ($i = $start; $i <= $end; $i++) {
@@ -135,7 +137,7 @@ class PropertyMaster extends Model
     public function getPaidPercentageAttribute(): float
     {
         $price = floatval($this->purchase_price ?? 0);
-        $paid  = floatval($this->paid_amount ?? 0);
+        $paid = floatval($this->paid_amount ?? 0);
         if ($price <= 0) {
             return $paid > 0 ? 100.0 : 0.0;
         }
@@ -144,7 +146,8 @@ class PropertyMaster extends Model
 
     public function payments()
     {
-        return $this->hasMany(PropertyMasterPayment::class, 'property_master_id')
+        return $this
+            ->hasMany(PropertyMasterPayment::class, 'property_master_id')
             ->orderBy('payment_date', 'asc')
             ->orderBy('id', 'asc');
     }
@@ -154,8 +157,8 @@ class PropertyMaster extends Model
      */
     public function recalculatePaymentStatus(): void
     {
-        $totalPaid = (float)$this->payments()->sum('amount');
-        $totalPrice = (float)($this->purchase_price ?? 0);
+        $totalPaid = (float) $this->payments()->sum('amount');
+        $totalPrice = (float) ($this->purchase_price ?? 0);
         $due = max(0, $totalPrice - $totalPaid);
 
         if ($totalPrice > 0) {
@@ -173,11 +176,16 @@ class PropertyMaster extends Model
         $latestPayment = $this->payments()->latest('payment_date')->first();
 
         $this->updateQuietly([
-            'paid_amount'    => $totalPaid,
-            'due_amount'     => $due,
+            'paid_amount' => $totalPaid,
+            'due_amount' => $due,
             'payment_status' => $status,
-            'payment_mode'   => $latestPayment ? $latestPayment->payment_mode : $this->payment_mode,
+            'payment_mode' => $latestPayment ? $latestPayment->payment_mode : $this->payment_mode,
         ]);
+    }
+
+    public function seller()
+    {
+        return $this->belongsTo(Seller::class);
     }
 
     public function vendor()
@@ -197,7 +205,8 @@ class PropertyMaster extends Model
 
     public function plots()
     {
-        return $this->hasMany(Property::class, 'property_master_id')
+        return $this
+            ->hasMany(Property::class, 'property_master_id')
             ->orderByRaw('CAST(COALESCE(NULLIF(unit_no, ""), id) AS UNSIGNED) ASC, id ASC');
     }
 
@@ -208,7 +217,8 @@ class PropertyMaster extends Model
 
     public function projects()
     {
-        return $this->belongsToMany(Project::class, 'project_property_master', 'property_master_id', 'project_id')
+        return $this
+            ->belongsToMany(Project::class, 'project_property_master', 'property_master_id', 'project_id')
             ->withTimestamps();
     }
 
@@ -285,21 +295,21 @@ class PropertyMaster extends Model
         $maxNumber = 0;
         foreach ($plots as $plot) {
             // 1. Check unit_no if numeric
-            if (is_numeric($plot->unit_no) && (int)$plot->unit_no > $maxNumber) {
-                $maxNumber = (int)$plot->unit_no;
+            if (is_numeric($plot->unit_no) && (int) $plot->unit_no > $maxNumber) {
+                $maxNumber = (int) $plot->unit_no;
             }
 
             // 2. Check property_name if ends in number (e.g. "Plot 14")
-            if (preg_match('/(\d+)\s*$/', (string)$plot->property_name, $m)) {
-                $num = (int)$m[1];
+            if (preg_match('/(\d+)\s*$/', (string) $plot->property_name, $m)) {
+                $num = (int) $m[1];
                 if ($num > $maxNumber) {
                     $maxNumber = $num;
                 }
             }
 
             // 3. Check property_code (e.g. "P-AMAN-B6-015")
-            if (preg_match('/-(\d+)$/', (string)$plot->property_code, $m)) {
-                $num = (int)$m[1];
+            if (preg_match('/-(\d+)$/', (string) $plot->property_code, $m)) {
+                $num = (int) $m[1];
                 if ($num > $maxNumber) {
                     $maxNumber = $num;
                 }

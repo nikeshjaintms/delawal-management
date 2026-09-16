@@ -10,6 +10,7 @@ class Purchase extends Model
 
     protected $fillable = [
         'firm_id',
+        'seller_id',
         'vendor_id',
         'property_id',
         'property_name',
@@ -36,24 +37,44 @@ class Purchase extends Model
     ];
 
     protected $casts = [
-        'purchase_date'   => 'date',
+        'purchase_date' => 'date',
         'purchase_amount' => 'decimal:2',
-        'paid_amount'     => 'decimal:2',
-        'due_amount'      => 'decimal:2',
+        'paid_amount' => 'decimal:2',
+        'due_amount' => 'decimal:2',
     ];
 
-    public function firm()     { return $this->belongsTo(Firm::class); }
-    public function vendor()   { return $this->belongsTo(Vendor::class); }
-    public function property() { return $this->belongsTo(Property::class); }
-    public function payments() { return $this->hasMany(PurchasePayment::class)->orderBy('payment_date', 'asc')->orderBy('id', 'asc'); }
+    public function firm()
+    {
+        return $this->belongsTo(Firm::class);
+    }
+
+    public function seller()
+    {
+        return $this->belongsTo(Seller::class);
+    }
+
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
+    public function property()
+    {
+        return $this->belongsTo(Property::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(PurchasePayment::class)->orderBy('payment_date', 'asc')->orderBy('id', 'asc');
+    }
 
     /**
      * Recalculate and update paid_amount, due_amount, payment_status based on payments table
      */
     public function recalculatePaymentStatus(): void
     {
-        $totalPaid = (float)$this->payments()->sum('amount');
-        $totalPrice = (float)($this->purchase_amount ?? 0);
+        $totalPaid = (float) $this->payments()->sum('amount');
+        $totalPrice = (float) ($this->purchase_amount ?? 0);
         $due = max(0, $totalPrice - $totalPaid);
 
         if ($totalPrice > 0) {
@@ -71,10 +92,10 @@ class Purchase extends Model
         $latestPayment = $this->payments()->latest('payment_date')->first();
 
         $this->updateQuietly([
-            'paid_amount'    => $totalPaid,
-            'due_amount'     => $due,
+            'paid_amount' => $totalPaid,
+            'due_amount' => $due,
             'payment_status' => $status,
-            'payment_mode'   => $latestPayment ? $latestPayment->payment_mode : $this->payment_mode,
+            'payment_mode' => $latestPayment ? $latestPayment->payment_mode : $this->payment_mode,
         ]);
     }
 
@@ -91,8 +112,8 @@ class Purchase extends Model
      */
     public function getPaidPercentageAttribute(): float
     {
-        $price = (float)($this->purchase_amount ?? 0);
-        $paid  = (float)($this->paid_amount ?? 0);
+        $price = (float) ($this->purchase_amount ?? 0);
+        $paid = (float) ($this->paid_amount ?? 0);
         if ($price <= 0) {
             return $paid > 0 ? 100.0 : 0.0;
         }

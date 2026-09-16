@@ -283,8 +283,8 @@ select.search-input option {
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Vendor / Seller Master</h2>
-        <p>Add and manage vendor and seller/supplier details.</p>
+        <h2>Vendor Master</h2>
+        <p>Add and manage material vendors and goods suppliers.</p>
     </div>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <a href="{{ route('vendors.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important; border: 1px solid #F87171 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.40);">
@@ -292,7 +292,7 @@ select.search-input option {
         </a>
         <a href="{{ route('vendors.create') }}" class="btn-gold">
             <i class="fa-solid fa-plus"></i>
-            <span>Add Vendor / Seller</span>
+            <span>Add Vendor</span>
         </a>
     </div>
 </div>
@@ -308,7 +308,7 @@ select.search-input option {
     <div class="filter-bar">
         <form method="GET" action="{{ route('vendors.index') }}" class="search-form">
             @if($authUser && $authUser->isAdmin())
-                <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width: 200px;">
+                <select name="firm_id" class="search-input" onchange="this.form.submit()" style="max-width: 180px;">
                     <option value="">All Firms</option>
                     @foreach(\App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get() as $firm)
                         <option value="{{ $firm->id }}" {{ request('firm_id') == $firm->id ? 'selected' : '' }}>
@@ -317,9 +317,20 @@ select.search-input option {
                     @endforeach
                 </select>
             @endif
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, mobile, email, city, GST no..." class="search-input @error('search') is-invalid @enderror">
+            <select name="project_id" class="search-input" onchange="this.form.submit()" style="max-width: 200px;">
+                <option value="">All Project Scope</option>
+                <option value="general" {{ request('project_id') === 'general' ? 'selected' : '' }}>General (All Projects)</option>
+                @if(isset($projects))
+                    @foreach($projects as $proj)
+                        <option value="{{ $proj->id }}" {{ request('project_id') == $proj->id ? 'selected' : '' }}>
+                            {{ $proj->project_name }}
+                        </option>
+                    @endforeach
+                @endif
+            </select>
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, mobile, email, city, GST, project..." class="search-input @error('search') is-invalid @enderror">
             <button type="submit" class="btn-search">Search</button>
-            @if(request('search') || request('firm_id'))
+            @if(request('search') || request('firm_id') || request('project_id'))
                 <a href="{{ route('vendors.index') }}" class="btn-reset">Reset</a>
             @endif
         </form>
@@ -333,7 +344,8 @@ select.search-input option {
                     @if($authUser && $authUser->isAdmin())
                         <th>Firm</th>
                     @endif
-                    <th>Name</th>
+                    <th>Vendor Name</th>
+                    <th>Project</th>
                     <th>Mobile</th>
                     <th>Email</th>
                     <th>GST No</th>
@@ -351,6 +363,15 @@ select.search-input option {
                             <td><strong style="color: #FFFFFF !important;">{{ $vendor->firm->firm_name ?? '-' }}</strong></td>
                         @endif
                         <td><strong>{{ $vendor->name }}</strong></td>
+                        <td>
+                            @if($vendor->project)
+                                <span class="badge" style="background: rgba(59, 130, 246, 0.18); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.35); font-weight: 600; font-size: 11.5px; padding: 4px 8px;">
+                                    <i class="fa-solid fa-city" style="font-size:10px; margin-right:3px;"></i> {{ $vendor->project->project_name }}
+                                </span>
+                            @else
+                                <span style="color: #94A3B8; font-size: 12px; font-weight: 500;">All Projects</span>
+                            @endif
+                        </td>
                         <td>{{ $vendor->mobile }}</td>
                         <td>{{ $vendor->email ?? '-' }}</td>
                         <td>

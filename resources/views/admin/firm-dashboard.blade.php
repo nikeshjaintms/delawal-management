@@ -231,7 +231,8 @@
                 <a href="{{ route('property-sales.create') }}" class="dqa-btn dqa-green"><i class="fa-solid fa-handshake"></i> Add Property Sell</a>
                 <a href="{{ route('projects.create') }}" class="dqa-btn dqa-teal"><i class="fa-solid fa-city"></i> Add Project</a>
                 <a href="{{ route('contractors.create') }}" class="dqa-btn dqa-amber"><i class="fa-solid fa-helmet-safety"></i> Add Contractor</a>
-                <a href="{{ route('vendors.create') }}" class="dqa-btn dqa-orange"><i class="fa-solid fa-truck-field"></i> Add Vendor / Seller</a>
+                <a href="{{ route('vendors.create') }}" class="dqa-btn dqa-orange"><i class="fa-solid fa-truck-field"></i> Add Vendor</a>
+                <a href="{{ route('sellers.create') }}" class="dqa-btn dqa-amber"><i class="fa-solid fa-user-tag"></i> Add Seller</a>
                 <a href="{{ route('customers.create') }}" class="dqa-btn dqa-blue"><i class="fa-solid fa-users"></i> Add Customer</a>
                 <a href="{{ route('tenants.create') }}" class="dqa-btn dqa-cyan"><i class="fa-solid fa-house-user"></i> Add Tenant</a>
                 <a href="{{ route('brokers.create') }}" class="dqa-btn dqa-violet"><i class="fa-solid fa-user-tie"></i> Add Broker</a>

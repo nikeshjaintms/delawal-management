@@ -6,11 +6,11 @@ use Tests\TestCase;
 use App\Models\Property;
 use App\Models\Firm;
 use App\Models\PropertyMaster;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class NaturalSortPlotTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     public function test_properties_and_plots_are_sorted_in_natural_line_order()
     {

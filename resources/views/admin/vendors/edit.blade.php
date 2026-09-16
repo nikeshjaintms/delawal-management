@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Edit Vendor / Seller')
-@section('page-title', 'Vendor / Seller Master')
+@section('title', 'Edit Vendor')
+@section('page-title', 'Vendor Master')
 
 @section('content')
 <style>
@@ -167,8 +167,8 @@
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Edit Vendor / Seller</h2>
-        <p>Update vendor / seller details — <strong>{{ $vendor->name }}</strong></p>
+        <h2>Edit Vendor</h2>
+        <p>Update vendor details — <strong>{{ $vendor->name }}</strong></p>
     </div>
 </div>
 
@@ -243,6 +243,21 @@
 
         <div class="form-row">
             <div class="form-group">
+                <label class="form-label" for="project_id">Specific Project <small style="color:var(--text-secondary); font-weight:normal;">(Optional)</small></label>
+                <select name="project_id" id="project_id" class="form-control @error('project_id') is-invalid @enderror">
+                    <option value="">— All Projects / General Supplier —</option>
+                    @if(isset($projects))
+                        @foreach($projects as $p)
+                            <option value="{{ $p->id }}" {{ old('project_id', $vendor->project_id) == $p->id ? 'selected' : '' }}>
+                                {{ $p->project_name }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+                @error('project_id') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="form-group">
                 <label class="form-label" for="status">Status <span>*</span></label>
                 <select name="status" id="status" class="form-control @error('status') is-invalid @enderror">
                     <option value="active" {{ old('status', $vendor->status) == 'active' ? 'selected' : '' }}>Active</option>
@@ -254,7 +269,7 @@
 
         <div class="form-actions">
             <button type="submit" class="btn-gold">
-                <i class="fa-solid fa-floppy-disk"></i> Update Vendor / Seller
+                <i class="fa-solid fa-floppy-disk"></i> Update Vendor
             </button>
             <a href="{{ route('vendors.index') }}" class="btn-outline">
                 Back

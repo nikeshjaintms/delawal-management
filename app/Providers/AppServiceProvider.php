@@ -42,7 +42,8 @@ class AppServiceProvider extends ServiceProvider
                 $user->setRelation('role', $role);
 
                 return new class($user) extends \App\Models\User {
-                    public function __construct($user) {
+                    public function __construct($user)
+                    {
                         parent::__construct();
                         $this->id = $user->id;
                         $this->firm_id = $user->firm_id;
@@ -51,10 +52,14 @@ class AppServiceProvider extends ServiceProvider
                         $this->status = $user->status;
                         $this->setRelation('role', $user->getRelation('role'));
                     }
-                    public function isAdmin(): bool {
+
+                    public function isAdmin(): bool
+                    {
                         return false;
                     }
-                    public function hasPermission(string $permissionKey): bool {
+
+                    public function hasPermission(string $permissionKey): bool
+                    {
                         return true;
                     }
                 };
@@ -75,6 +80,7 @@ class AppServiceProvider extends ServiceProvider
         $models = [
             \App\Models\Customer::class,
             \App\Models\Broker::class,
+            \App\Models\Seller::class,
             \App\Models\Vendor::class,
             \App\Models\Tenant::class,
             \App\Models\PropertyType::class,
@@ -137,11 +143,11 @@ class AppServiceProvider extends ServiceProvider
                     $name = class_basename($model);
                     $displayName = preg_replace('/(?<!^)(?=[A-Z])/', ' ', $name);
                     $id = $model->id ?? '';
-                    
+
                     $dirty = $model->getDirty();
                     unset($dirty['updated_at']);
-                    
-                    $changesStr = count($dirty) > 0 ? " Changes: " . json_encode($dirty) : "";
+
+                    $changesStr = count($dirty) > 0 ? ' Changes: ' . json_encode($dirty) : '';
                     \App\Models\AuditLog::log($displayName, 'Update Record', "Updated {$displayName} record (ID: {$id}).{$changesStr}");
                 });
 

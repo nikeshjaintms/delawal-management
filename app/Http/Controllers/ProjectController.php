@@ -162,6 +162,7 @@ class ProjectController extends Controller
             'properties.bookings.customer',
             'properties.bookingsList.customer',
             'contractors',
+            'vendors',
         ]);
 
         $project->setRelation('properties', Property::naturalSort($project->properties));

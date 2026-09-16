@@ -2302,6 +2302,13 @@
                     </a>
                 </li>
                 @endif
+                @if($authUser->hasPermission('property_view'))
+                <li class="submenu-item">
+                    <a href="{{ route('sellers.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'sellers.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-user-tag" style="color: #FBBF24;"></i><span>Seller Master</span>
+                    </a>
+                </li>
+                @endif
             </ul>
         </li>
 
@@ -2341,7 +2348,7 @@
                         @if($authUser->hasPermission('vendor_view'))
                         <li class="submenu-item">
                             <a href="{{ route('vendors.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'vendors.') ? 'active' : '' }}">
-                                <i class="fa-solid fa-truck-field"></i><span>Vendor / Seller Master</span>
+                                <i class="fa-solid fa-truck-field"></i><span>Vendor Master</span>
                             </a>
                         </li>
                         @endif
