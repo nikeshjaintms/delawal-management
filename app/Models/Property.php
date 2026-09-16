@@ -83,6 +83,11 @@ class Property extends Model
         return $this->hasMany(Booking::class);
     }
 
+    public function bookingsList()
+    {
+        return $this->belongsToMany(Booking::class, 'booking_property')->withTimestamps();
+    }
+
     public function sales()
     {
         return $this->hasMany(PropertySale::class);
@@ -100,11 +105,18 @@ class Property extends Model
     {
         // 1. Mark properties with active bookings as 'booked'
         \Illuminate\Support\Facades\DB::table('properties')
-            ->whereIn('id', function ($query) {
-                $query->select('property_id')
-                    ->from('bookings')
-                    ->where('status', '!=', 'cancelled')
-                    ->whereNotNull('property_id');
+            ->where(function ($q) {
+                $q->whereIn('id', function ($query) {
+                    $query->select('property_id')
+                        ->from('bookings')
+                        ->where('status', '!=', 'cancelled')
+                        ->whereNotNull('property_id');
+                })->orWhereIn('id', function ($query) {
+                    $query->select('booking_property.property_id')
+                        ->from('booking_property')
+                        ->join('bookings', 'booking_property.booking_id', '=', 'bookings.id')
+                        ->where('bookings.status', '!=', 'cancelled');
+                });
             })
             ->where('status', 'available')
             ->update(['status' => 'booked']);
@@ -139,6 +151,12 @@ class Property extends Model
                     ->from('bookings')
                     ->where('status', '!=', 'cancelled')
                     ->whereNotNull('property_id');
+            })
+            ->whereNotIn('id', function ($query) {
+                $query->select('booking_property.property_id')
+                    ->from('booking_property')
+                    ->join('bookings', 'booking_property.booking_id', '=', 'bookings.id')
+                    ->where('bookings.status', '!=', 'cancelled');
             })
             ->whereNotIn('id', function ($query) {
                 $query->select('property_id')

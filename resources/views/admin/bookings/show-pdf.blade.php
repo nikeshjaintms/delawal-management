@@ -85,38 +85,54 @@
 <div class="grid-2">
     <!-- Property Details -->
     <div class="grid-col">
-        <div class="col-heading">&#9632; Booked Unit / Property Details</div>
+        @php
+            $allProps = $booking->properties->isNotEmpty() ? $booking->properties : ($booking->property ? collect([$booking->property]) : collect([]));
+            $mainProp = $booking->property ?: $allProps->first();
+        @endphp
+        <div class="col-heading">&#9632; Booked Unit / Property Details ({{ $allProps->count() }} {{ $allProps->count() > 1 ? 'Units' : 'Unit' }})</div>
         <div class="info-row">
-            <span class="info-label">Property / Unit:</span>
-            <span class="info-value">{{ $booking->property->property_name ?? '-' }}</span>
+            <span class="info-label">Property / Unit(s):</span>
+            <span class="info-value">
+                @if($allProps->count() > 1)
+                    {{ $allProps->pluck('property_name')->implode(', ') }}
+                @else
+                    {{ $mainProp->property_name ?? '-' }}
+                @endif
+            </span>
         </div>
         <div class="info-row">
             <span class="info-label">Property Code:</span>
-            <span class="info-value">{{ $booking->property->property_code ?? '-' }}</span>
+            <span class="info-value">
+                @if($allProps->count() > 1)
+                    {{ $allProps->pluck('property_code')->filter()->implode(', ') ?: '-' }}
+                @else
+                    {{ $mainProp->property_code ?? '-' }}
+                @endif
+            </span>
         </div>
-        @if($booking->property && $booking->property->project)
+        @if($mainProp && $mainProp->project)
         <div class="info-row">
             <span class="info-label">Project:</span>
-            <span class="info-value">{{ $booking->property->project->project_name }}</span>
+            <span class="info-value">{{ $mainProp->project->project_name }}</span>
         </div>
         @endif
-        @if($booking->property && $booking->property->propertyMaster)
+        @if($mainProp && $mainProp->propertyMaster)
         <div class="info-row">
             <span class="info-label">Property Master:</span>
-            <span class="info-value">{{ $booking->property->propertyMaster->property_name }}</span>
+            <span class="info-value">{{ $mainProp->propertyMaster->property_name }}</span>
         </div>
         @endif
         <div class="info-row">
             <span class="info-label">Property Type:</span>
-            <span class="info-value">{{ $booking->property->propertyType->name ?? 'Residential / Commercial' }}</span>
+            <span class="info-value">{{ $mainProp?->propertyType->name ?? 'Residential / Commercial' }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Size / Area:</span>
-            <span class="info-value">{{ $booking->property && $booking->property->size ? $booking->property->size . ' ' . ($booking->property->size_unit ?? 'sq.ft') : '-' }}</span>
+            <span class="info-value">{{ $mainProp && $mainProp->size ? $mainProp->size . ' ' . ($mainProp->size_unit ?? 'sq.ft') : '-' }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Location / City:</span>
-            <span class="info-value">{{ $booking->property->location ?? ($booking->property->city ?? '-') }}</span>
+            <span class="info-value">{{ $mainProp->location ?? ($mainProp->city ?? '-') }}</span>
         </div>
     </div>
 

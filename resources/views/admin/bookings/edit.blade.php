@@ -123,6 +123,10 @@ textarea.form-control { resize: vertical; min-height: 85px; }
     <form method="POST" action="{{ route('bookings.update', $booking->id) }}" id="bookingForm">
         @csrf @method('PUT')
         @php
+            $bookingPropIds = $booking->properties->pluck('id')->toArray();
+            if (empty($bookingPropIds) && $booking->property_id) {
+                $bookingPropIds = [$booking->property_id];
+            }
             $bookedProp = $booking->property;
             $isEntireBooking = ($bookedProp && $bookedProp->unit_no === null) || old('booking_scope') === 'entire';
             if ($bookedProp && $bookedProp->unit_no !== null) {
@@ -320,12 +324,15 @@ textarea.form-control { resize: vertical; min-height: 85px; }
             {{-- Hidden select kept in sync for form submit --}}
             <select name="property_ids[]" id="property_id" multiple style="display: none;">
                 @foreach($properties as $p)
+                    @php
+                        $isOptSelected = is_array(old('property_ids')) ? in_array($p->id, old('property_ids')) : in_array($p->id, $bookingPropIds);
+                    @endphp
                     <option value="{{ $p->id }}"
                             data-master-id="{{ $p->property_master_id ?? '' }}"
                             data-project-id="{{ $p->project_id ?? '' }}"
                             data-unit-no="{{ $p->unit_no ?? '' }}"
                             data-price="{{ $p->price ?? '' }}"
-                            {{ (is_array(old('property_ids')) && in_array($p->id, old('property_ids'))) || old('property_id', $booking->property_id)==$p->id?'selected':'' }}>
+                            {{ $isOptSelected ? 'selected' : '' }}>
                         {{ $p->property_name }}
                     </option>
                 @endforeach
@@ -336,7 +343,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 <div id="plot_cards_grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px;">
                     @foreach($properties as $p)
                         @php
-                            $isSelected = (is_array(old('property_ids')) && in_array($p->id, old('property_ids'))) || old('property_id', $booking->property_id) == $p->id;
+                            $isSelected = is_array(old('property_ids')) ? in_array($p->id, old('property_ids')) : in_array($p->id, $bookingPropIds);
                             $statusColor = $p->status === 'available' ? '#34D399' : ($p->status === 'booked' ? '#FBBF24' : '#F87171');
                             $statusBg = $p->status === 'available' ? 'rgba(16, 185, 129, 0.15)' : ($p->status === 'booked' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)');
                         @endphp

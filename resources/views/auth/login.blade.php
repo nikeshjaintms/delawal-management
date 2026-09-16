@@ -586,6 +586,13 @@
             eyeIcon.className = hidden ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
         });
     }
+
+    // Ensure CSRF token is fresh if navigating back via browser history/cache
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
 </script>
 </body>
 </html>

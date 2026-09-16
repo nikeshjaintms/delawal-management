@@ -18,7 +18,20 @@ class Booking extends Model
 
     public function firm()        { return $this->belongsTo(Firm::class); }
     public function property()    { return $this->belongsTo(Property::class); }
+    public function properties()  { return $this->belongsToMany(Property::class, 'booking_property')->withTimestamps(); }
     public function customer()    { return $this->belongsTo(Customer::class); }
     public function broker()      { return $this->belongsTo(Broker::class); }
     public function paymentMode() { return $this->belongsTo(PaymentMode::class, 'payment_mode_id'); }
+
+    public function getAllPropertiesAttribute()
+    {
+        if ($this->relationLoaded('properties') && $this->properties->isNotEmpty()) {
+            return $this->properties;
+        }
+        if ($this->properties()->exists()) {
+            return $this->properties;
+        }
+        return $this->property ? collect([$this->property]) : collect([]);
+    }
 }
+

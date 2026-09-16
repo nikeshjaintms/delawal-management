@@ -112,6 +112,8 @@ class BookingRequest extends FormRequest
         $rules = [
             'firm_id'           => 'required|exists:firms,id',
             'property_id'       => 'required|exists:properties,id',
+            'property_ids'      => 'nullable|array',
+            'property_ids.*'    => 'exists:properties,id',
             'customer_id'       => 'required|exists:customers,id',
             'broker_id'         => 'nullable|exists:brokers,id',
             'booking_type'      => 'nullable|in:booking,selling,buying',

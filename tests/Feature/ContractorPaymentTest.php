@@ -204,4 +204,43 @@ class ContractorPaymentTest extends TestCase
         $this->assertEquals(50000, $contractor->due_amount);
         $this->assertEquals('unpaid', $contractor->payment_status);
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_displays_contractor_index_with_kpi_summary_totals_and_payments_breakdown()
+    {
+        $uniqueName = 'Shiv Electrical Works ' . uniqid();
+        $contractor = Contractor::create([
+            'firm_id'         => $this->firm->id,
+            'project_id'      => $this->project->id,
+            'contractor_name' => $uniqueName,
+            'contract_amount' => 0, // No fixed contract
+            'paid_amount'     => 0,
+            'due_amount'      => 0,
+            'payment_status'  => 'unpaid',
+            'status'          => 'active',
+        ]);
+
+        ContractorPayment::create([
+            'contractor_id' => $contractor->id,
+            'firm_id'       => $this->firm->id,
+            'amount'        => 7500,
+            'payment_date'  => date('Y-m-d'),
+            'payment_mode'  => 'Cash',
+        ]);
+        $contractor->recalculatePaymentStatus();
+
+        $response = $this->actingAs($this->admin)->withSession(['firm_id' => $this->firm->id])
+            ->get(route('contractors.index'));
+
+        $response->assertOk();
+        $response->assertViewHas('totalPaid');
+        $response->assertViewHas('totalContract');
+        $response->assertViewHas('totalDue');
+        $response->assertViewHas('totalContractors');
+        $response->assertSee('Total Paid (All Payments)');
+        $response->assertSee('₹7,500.00');
+        $response->assertSee('#1');
+        $response->assertSee('1 payment');
+    }
 }
+

@@ -65,13 +65,18 @@ class BookingController extends Controller
         ];
     }
 
-    private function updatePropertyStatus(Booking $booking, array $allPropertyIds = [], ?int $oldPropertyId = null): void
+    private function updatePropertyStatus(Booking $booking, array $allPropertyIds = [], array|int|null $oldPropertyIds = []): void
     {
-        // If property changed, revert the old property to available
-        if ($oldPropertyId && $oldPropertyId != $booking->property_id) {
-            $oldProp = Property::find($oldPropertyId);
-            if ($oldProp) {
-                $oldProp->update(['status' => 'available']);
+        $oldPropIds = is_array($oldPropertyIds) ? $oldPropertyIds : ($oldPropertyIds ? [$oldPropertyIds] : []);
+        $propertyIds = !empty($allPropertyIds) ? $allPropertyIds : ($booking->property_id ? [$booking->property_id] : []);
+        $propertyIds = array_values(array_filter($propertyIds));
+
+        // If any properties were removed from this booking, revert them to available
+        $removedPropIds = array_diff($oldPropIds, $propertyIds);
+        if (!empty($removedPropIds)) {
+            $removedProps = Property::whereIn('id', $removedPropIds)->get();
+            Property::whereIn('id', $removedPropIds)->update(['status' => 'available']);
+            foreach ($removedProps as $oldProp) {
                 if ($oldProp->property_master_id && $oldProp->unit_no === null) {
                     $oldPm = \App\Models\PropertyMaster::find($oldProp->property_master_id);
                     if ($oldPm) {
@@ -82,8 +87,6 @@ class BookingController extends Controller
             }
         }
 
-        $propertyIds = !empty($allPropertyIds) ? $allPropertyIds : [$booking->property_id];
-        $propertyIds = array_values(array_filter($propertyIds));
         if (empty($propertyIds)) return;
 
         $properties = Property::whereIn('id', $propertyIds)->get();
@@ -117,7 +120,7 @@ class BookingController extends Controller
 
     public function index(Request $request)
     {
-        $query = Booking::with(['firm', 'property', 'customer', 'broker', 'paymentMode']);
+        $query = Booking::with(['firm', 'property', 'properties', 'customer', 'broker', 'paymentMode']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -138,6 +141,7 @@ class BookingController extends Controller
                   ->orWhere('payment_mode', 'like', "%{$s}%")
                   ->orWhere('transaction_ref', 'like', "%{$s}%")
                   ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
+                  ->orWhereHas('properties', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
                   ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
@@ -177,10 +181,11 @@ class BookingController extends Controller
 
         $submittedPropIds = (array) ($request->property_ids ?: ($request->property_id ? [$request->property_id] : []));
         $submittedPropIds = array_values(array_filter($submittedPropIds));
+        $primaryPropId = !empty($submittedPropIds) ? $submittedPropIds[0] : $request->property_id;
 
         $booking = Booking::create([
             'firm_id'          => $firmId,
-            'property_id'      => $request->property_id,
+            'property_id'      => $primaryPropId,
             'customer_id'      => $request->customer_id,
             'broker_id'        => $request->broker_id ?: null,
             'booking_type'     => $request->booking_type ?: 'booking',
@@ -200,6 +205,10 @@ class BookingController extends Controller
             'payment_status'   => $request->payment_status,
             'remarks'          => $request->remarks,
         ]);
+
+        if (!empty($submittedPropIds)) {
+            $booking->properties()->sync($submittedPropIds);
+        }
 
         $this->updatePropertyStatus($booking, $submittedPropIds);
 
@@ -229,7 +238,7 @@ class BookingController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
         if (!$isAdmin && $booking->firm_id != $firmId) abort(403);
-        $booking->load(['firm', 'property.propertyType', 'customer', 'broker', 'paymentMode']);
+        $booking->load(['firm', 'property.propertyType', 'property.project', 'property.propertyMaster', 'properties.propertyType', 'properties.project', 'properties.propertyMaster', 'customer', 'broker', 'paymentMode']);
         return view('admin.bookings.show', compact('booking'));
     }
 
@@ -239,6 +248,7 @@ class BookingController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
         if (!$isAdmin && $booking->firm_id != $firmId) abort(403);
+        $booking->load(['properties']);
         $commission = \App\Models\BrokerCommission::where('booking_id', $booking->id)->first();
         return view('admin.bookings.edit', array_merge([
             'booking' => $booking,
@@ -265,12 +275,16 @@ class BookingController extends Controller
 
         $submittedPropIds = (array) ($request->property_ids ?: ($request->property_id ? [$request->property_id] : []));
         $submittedPropIds = array_values(array_filter($submittedPropIds));
+        $primaryPropId = !empty($submittedPropIds) ? $submittedPropIds[0] : $request->property_id;
 
-        $oldPropertyId = $booking->property_id;
+        $oldPropIds = $booking->properties()->pluck('properties.id')->toArray();
+        if (empty($oldPropIds) && $booking->property_id) {
+            $oldPropIds = [$booking->property_id];
+        }
 
         $booking->update([
             'firm_id'          => $firmId,
-            'property_id'      => $request->property_id,
+            'property_id'      => $primaryPropId,
             'customer_id'      => $request->customer_id,
             'broker_id'        => $request->broker_id ?: null,
             'booking_type'     => $request->booking_type ?: 'booking',
@@ -291,7 +305,11 @@ class BookingController extends Controller
             'remarks'          => $request->remarks,
         ]);
 
-        $this->updatePropertyStatus($booking, $submittedPropIds, $oldPropertyId);
+        if (!empty($submittedPropIds)) {
+            $booking->properties()->sync($submittedPropIds);
+        }
+
+        $this->updatePropertyStatus($booking, $submittedPropIds, $oldPropIds);
 
         // Save or update broker commission
         if ($booking->broker_id && $request->filled('commission_value')) {
@@ -322,14 +340,21 @@ class BookingController extends Controller
         $firmId = $user ? $user->firm_id : session('firm_id');
         if (!$isAdmin && $booking->firm_id != $firmId) abort(403);
 
-        $property = Property::find($booking->property_id);
-        if ($property) {
-            $property->update(['status' => 'available']);
-            if ($property->property_master_id && $property->unit_no === null) {
-                $pm = \App\Models\PropertyMaster::find($property->property_master_id);
-                if ($pm) {
-                    $pm->update(['status' => 'active']);
-                    $pm->plots()->update(['status' => 'available']);
+        $propIds = $booking->properties()->pluck('properties.id')->toArray();
+        if (empty($propIds) && $booking->property_id) {
+            $propIds = [$booking->property_id];
+        }
+
+        if (!empty($propIds)) {
+            $properties = Property::whereIn('id', $propIds)->get();
+            Property::whereIn('id', $propIds)->update(['status' => 'available']);
+            foreach ($properties as $property) {
+                if ($property->property_master_id && $property->unit_no === null) {
+                    $pm = \App\Models\PropertyMaster::find($property->property_master_id);
+                    if ($pm) {
+                        $pm->update(['status' => 'active']);
+                        $pm->plots()->update(['status' => 'available']);
+                    }
                 }
             }
         }
@@ -341,7 +366,7 @@ class BookingController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $query = Booking::with(['firm', 'property.project', 'property.propertyMaster', 'customer', 'broker', 'paymentMode']);
+        $query = Booking::with(['firm', 'property.project', 'property.propertyMaster', 'properties.project', 'properties.propertyMaster', 'customer', 'broker', 'paymentMode']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -361,6 +386,7 @@ class BookingController extends Controller
                   ->orWhere('payment_mode', 'like', "%{$s}%")
                   ->orWhere('transaction_ref', 'like', "%{$s}%")
                   ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
+                  ->orWhereHas('properties', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
                   ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
@@ -393,6 +419,9 @@ class BookingController extends Controller
             'property.propertyType',
             'property.project',
             'property.propertyMaster',
+            'properties.propertyType',
+            'properties.project',
+            'properties.propertyMaster',
             'customer',
             'broker',
             'paymentMode'
@@ -403,3 +432,4 @@ class BookingController extends Controller
         return view('admin.bookings.show-pdf', compact('booking', 'commission'));
     }
 }
+

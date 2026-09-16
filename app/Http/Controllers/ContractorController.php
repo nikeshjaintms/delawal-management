@@ -77,7 +77,12 @@ class ContractorController extends Controller
             });
         }
 
-        $contractors = $query->latest()->paginate(15)->withQueryString();
+        $totalContract = (float) (clone $query)->sum('contract_amount');
+        $totalPaid = (float) (clone $query)->sum('paid_amount');
+        $totalDue = (float) (clone $query)->sum('due_amount');
+        $totalContractors = (clone $query)->count();
+
+        $contractors = $query->with('payments.paymentMode')->latest()->paginate(15)->withQueryString();
 
         $projectsQuery = Project::orderBy('project_name');
         if (!$isAdmin) {
@@ -89,7 +94,15 @@ class ContractorController extends Controller
 
         $firms = $isAdmin ? Firm::where('status', 'active')->orderBy('firm_name')->get() : collect();
 
-        return view('admin.contractors.index', compact('contractors', 'projects', 'firms'));
+        return view('admin.contractors.index', compact(
+            'contractors',
+            'projects',
+            'firms',
+            'totalContract',
+            'totalPaid',
+            'totalDue',
+            'totalContractors'
+        ));
     }
 
     public function create(Request $request)

@@ -121,8 +121,20 @@
                 @endif
             </td>
             <td>
-                <strong>{{ $item->property->property_name ?? '-' }}</strong><br>
-                <span style="font-size:9.5px; color:#64748B;">{{ $item->property->property_code ?? '-' }}</span>
+                @php
+                    $allProps = $item->properties->isNotEmpty() ? $item->properties : ($item->property ? collect([$item->property]) : collect([]));
+                @endphp
+                @if($allProps->count() > 1)
+                    @foreach($allProps as $p)
+                        <div style="font-weight: 700; color: #0F1F35; font-size: 11px;">
+                            • {{ $p->property_name }} @if($p->unit_no)<span style="font-size: 9.5px; color: #64748B;">({{ $p->unit_no }})</span>@endif
+                        </div>
+                    @endforeach
+                    <span style="font-size:9px; color:#2563EB; font-weight:700;">({{ $allProps->count() }} Units)</span>
+                @else
+                    <strong>{{ $item->property->property_name ?? '-' }}</strong><br>
+                    <span style="font-size:9.5px; color:#64748B;">{{ $item->property->property_code ?? '-' }}</span>
+                @endif
             </td>
             <td>
                 <strong>{{ $item->customer->name ?? '-' }}</strong><br>

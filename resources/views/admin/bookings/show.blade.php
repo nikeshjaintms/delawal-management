@@ -137,11 +137,42 @@
             <div class="detail-label">Firm</div>
             <div class="detail-value">{{ $booking->firm->firm_name ?? '-' }}</div>
         </div>
-        <div class="detail-item">
-            <div class="detail-label">Property</div>
+        @php
+            $allProps = $booking->properties->isNotEmpty() ? $booking->properties : ($booking->property ? collect([$booking->property]) : collect([]));
+        @endphp
+        <div class="detail-item" @if($allProps->count() > 1) style="grid-column:span 2;" @endif>
+            <div class="detail-label">
+                Booked Property / Unit(s)
+                @if($allProps->count() > 1)
+                    <span style="background: rgba(59,130,246,0.2); color: #60A5FA; border: 1px solid rgba(59,130,246,0.35); padding: 1px 7px; border-radius: 6px; font-size: 11px; margin-left: 6px; text-transform:none;">{{ $allProps->count() }} Units</span>
+                @endif
+            </div>
             <div class="detail-value">
-                {{ $booking->property->property_name ?? '-' }}
-                @if($booking->property?->unit_no) <span style="font-size:12px;color:#94A3B8;">(Unit: {{ $booking->property->unit_no }})</span> @endif
+                @if($allProps->count() > 1)
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 8px;">
+                        @foreach($allProps as $p)
+                            <div style="background: rgba(16, 22, 34, 0.7); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <div>
+                                    <div style="font-size: 13.5px; font-weight: 700; color: #FFFFFF;">
+                                        {{ $p->property_name }}
+                                        @if($p->unit_no) <span style="font-size: 11px; color: #94A3B8;">(Unit: {{ $p->unit_no }})</span> @endif
+                                    </div>
+                                    @if($p->property_code)
+                                        <div style="font-size: 11px; color: #93C5FD; font-weight: 600;">{{ $p->property_code }}</div>
+                                    @endif
+                                </div>
+                                @if($p->price)
+                                    <div style="font-size: 12px; font-weight: 700; color: #34D399; white-space: nowrap;">
+                                        ₹{{ number_format($p->price, 2) }}
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    {{ $booking->property->property_name ?? '-' }}
+                    @if($booking->property?->unit_no) <span style="font-size:12px;color:#94A3B8;">(Unit: {{ $booking->property->unit_no }})</span> @endif
+                @endif
             </div>
         </div>
         <div class="detail-item">

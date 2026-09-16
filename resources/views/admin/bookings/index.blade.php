@@ -184,8 +184,30 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     <td><strong style="color: #FFFFFF !important;">{{ $booking->firm->firm_name ?? '-' }}</strong></td>
                     <td>{{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') : '-' }}</td>
                     <td>
-                        <strong>{{ $booking->property->property_name ?? '-' }}</strong>
-                        @if($booking->property?->unit_no) <span style="font-size:11px;color:#94A3B8;">({{ $booking->property->unit_no }})</span> @endif
+                        @php
+                            $allProps = $booking->properties->isNotEmpty() ? $booking->properties : ($booking->property ? collect([$booking->property]) : collect([]));
+                        @endphp
+                        @if($allProps->count() > 1)
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                @foreach($allProps as $p)
+                                    <div style="display: flex; align-items: center; gap: 5px; font-weight: 700; color: #FFFFFF; font-size: 13px;">
+                                        <span style="color: #60A5FA; font-size: 10px;">•</span>
+                                        <span>{{ $p->property_name }}</span>
+                                        @if($p->unit_no)
+                                            <span style="font-size: 10.5px; color: #94A3B8; font-weight: 500;">({{ $p->unit_no }})</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                                <div style="margin-top: 2px;">
+                                    <span style="font-size: 10px; background: rgba(59, 130, 246, 0.18); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.35); padding: 1px 7px; border-radius: 4px; font-weight: 700; display: inline-block;">
+                                        {{ $allProps->count() }} Units Booked
+                                    </span>
+                                </div>
+                            </div>
+                        @else
+                            <strong>{{ $booking->property->property_name ?? '-' }}</strong>
+                            @if($booking->property?->unit_no) <span style="font-size:11px;color:#94A3B8;">({{ $booking->property->unit_no }})</span> @endif
+                        @endif
                     </td>
                     <td>{{ $booking->customer->name ?? '-' }}</td>
                     <td>
