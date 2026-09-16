@@ -211,4 +211,42 @@ class Property extends Model
 
         return $sizeStr . ' sq.ft';
     }
+
+    /**
+     * Naturally sort any Property collection by property_name and unit_no in human sequential order.
+     */
+    public static function naturalSort($collection)
+    {
+        return $collection->sort(function ($a, $b) {
+            // Group by property_master_id if present
+            $masterA = $a->property_master_id ?? 0;
+            $masterB = $b->property_master_id ?? 0;
+            if ($masterA !== $masterB) {
+                return $masterA <=> $masterB;
+            }
+
+            // Group by project_id if present
+            $projA = $a->project_id ?? 0;
+            $projB = $b->project_id ?? 0;
+            if ($projA !== $projB) {
+                return $projA <=> $projB;
+            }
+
+            $nameA = trim((string) ($a->property_name ?? ''));
+            $nameB = trim((string) ($b->property_name ?? ''));
+            if ($nameA !== '' && $nameB !== '') {
+                $cmp = strnatcasecmp($nameA, $nameB);
+                if ($cmp !== 0) return $cmp;
+            }
+
+            $unitA = trim((string) ($a->unit_no ?? ''));
+            $unitB = trim((string) ($b->unit_no ?? ''));
+            if ($unitA !== '' && $unitB !== '') {
+                $cmp = strnatcasecmp($unitA, $unitB);
+                if ($cmp !== 0) return $cmp;
+            }
+
+            return ($a->id ?? 0) <=> ($b->id ?? 0);
+        })->values();
+    }
 }

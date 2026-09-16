@@ -36,7 +36,7 @@ class PropertySaleController extends Controller
         }
 
         $projects        = $projectsQuery->get();
-        $properties      = $propertiesQuery->get();
+        $properties      = Property::naturalSort($propertiesQuery->get());
         $propertyMasters = $propertyMastersQuery->get();
         $customers       = $customersQuery->get();
         $brokers         = $brokersQuery->get();

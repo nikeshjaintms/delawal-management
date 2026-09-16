@@ -53,10 +53,12 @@ class BookingController extends Controller
             return $pm->all_projects->isEmpty();
         })->values();
 
+        $properties = Property::naturalSort($propQuery->get());
+
         return [
             'firms'                     => $firms,
             'projects'                  => $projects,
-            'properties'                => $propQuery->get(),
+            'properties'                => $properties,
             'propertyMasters'           => $allPropertyMasters,
             'standalonePropertyMasters' => $standalonePropertyMasters,
             'customers'                 => $custQuery->get(),

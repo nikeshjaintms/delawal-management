@@ -295,6 +295,7 @@ class PropertyMasterController extends Controller
             'payments.creator',
             'payments.paymentMode'
         ]);
+        $propertyMaster->setRelation('plots', Property::naturalSort($propertyMaster->plots));
 
         $propertyTypes = PropertyType::whereHas('firms', function ($q) use ($propertyMaster) {
             $q->where('firms.id', $propertyMaster->firm_id);
@@ -1335,6 +1336,7 @@ class PropertyMasterController extends Controller
             'creator',
             'updater'
         ]);
+        $propertyMaster->setRelation('plots', Property::naturalSort($propertyMaster->plots));
 
         return view('admin.property-masters.show-pdf', compact('propertyMaster'));
     }

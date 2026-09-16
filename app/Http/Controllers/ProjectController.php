@@ -164,6 +164,8 @@ class ProjectController extends Controller
             'contractors',
         ]);
 
+        $project->setRelation('properties', Property::naturalSort($project->properties));
+
         return view('admin.projects.show', compact('project'));
     }
 
@@ -311,11 +313,12 @@ class ProjectController extends Controller
                 if ($projectId) {
                     $sub->orWhere('project_id', $projectId);
                 }
-            })->orderByRaw('CAST(COALESCE(NULLIF(unit_no, ""), id) AS UNSIGNED) ASC, id ASC');
+            });
         }])->get();
 
         $result = [];
         foreach ($propertyMasters as $pm) {
+            $sortedPlots = Property::naturalSort($pm->plots);
             $result[] = [
                 'id'            => $pm->id,
                 'property_name' => $pm->property_name,
@@ -328,7 +331,7 @@ class ProjectController extends Controller
                 'pincode'       => $pm->pincode,
                 'full_address'  => $pm->full_address,
                 'purchase_rate' => $pm->purchase_rate,
-                'plots'         => $pm->plots->map(function ($plot) {
+                'plots'         => $sortedPlots->map(function ($plot) {
                     return [
                         'id'            => $plot->id,
                         'property_name' => $plot->property_name,
@@ -454,6 +457,8 @@ class ProjectController extends Controller
             'properties.propertyMaster',
             'contractors',
         ]);
+
+        $project->setRelation('properties', Property::naturalSort($project->properties));
 
         $totalPlots = $project->properties->count();
         $availablePlots = $project->properties->where('status', 'available')->count();
