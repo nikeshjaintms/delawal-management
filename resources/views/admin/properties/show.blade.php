@@ -161,6 +161,15 @@
             <div class="detail-label"><i class="fa-solid fa-circle-dot"></i> Status</div>
             <div class="detail-value">
                 <span class="badge badge-{{ $property->status }}">{{ ucfirst($property->status) }}</span>
+                @if(strtolower($property->status ?? '') === 'booked')
+                    @php $activeB = $property->active_booking; @endphp
+                    @if($activeB)
+                        <div style="font-size: 12px; color: #D97706; font-weight: 700; margin-top: 4px;">
+                            <i class="fa-solid fa-user-check"></i> Booked by: {{ $activeB->customer->name ?? 'Client' }}
+                            @if($activeB->customer?->mobile) ({{ $activeB->customer->mobile }}) @endif
+                        </div>
+                    @endif
+                @endif
             </div>
         </div>
     </div>

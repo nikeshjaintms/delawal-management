@@ -406,6 +406,18 @@
                         </td>
                         <td>
                             <span class="badge badge-{{ $property->status }}">{{ ucfirst($property->status) }}</span>
+                            @if(strtolower($property->status ?? '') === 'booked')
+                                @php
+                                    $activeB = ($property->relationLoaded('bookings') ? $property->bookings->where('status', '!=', 'cancelled')->first() : null)
+                                        ?: ($property->relationLoaded('bookingsList') ? $property->bookingsList->where('status', '!=', 'cancelled')->first() : null)
+                                        ?: $property->active_booking;
+                                @endphp
+                                @if($activeB)
+                                    <div style="font-size: 11px; color: #FBBF24; font-weight: 600; margin-top: 3px;" title="Booked by {{ $activeB->customer->name ?? 'Customer' }}">
+                                        <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name ?? 'Client' }}
+                                    </div>
+                                @endif
+                            @endif
                         </td>
                         <td>
                             <div class="action-buttons-wrap">

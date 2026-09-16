@@ -1206,6 +1206,18 @@
                             <span class="badge badge-{{ $plot->status }}">
                                 <i class="fa-solid fa-circle-dot"></i> {{ ucfirst($plot->status) }}
                             </span>
+                            @if(strtolower($plot->status ?? '') === 'booked')
+                                @php
+                                    $activeB = ($plot->relationLoaded('bookings') ? $plot->bookings->where('status', '!=', 'cancelled')->first() : null)
+                                        ?: ($plot->relationLoaded('bookingsList') ? $plot->bookingsList->where('status', '!=', 'cancelled')->first() : null)
+                                        ?: $plot->active_booking;
+                                @endphp
+                                @if($activeB)
+                                    <div style="font-size: 11px; color: #FBBF24; font-weight: 600; margin-top: 3px;" title="Booked by {{ $activeB->customer->name ?? 'Customer' }}">
+                                        <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name ?? 'Client' }}
+                                    </div>
+                                @endif
+                            @endif
                         </td>
                         <td style="text-align: right;">
                             <div style="display: inline-flex; gap: 6px;">

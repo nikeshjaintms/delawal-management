@@ -168,7 +168,18 @@
         @foreach($customer->bookings as $i => $b)
         <tr>
             <td style="color:#9CA3AF;">{{ $i+1 }}</td>
-            <td><strong>{{ $b->property->property_name ?? '-' }}</strong></td>
+            <td>
+                @php $allP = $b->properties->isNotEmpty() ? $b->properties : ($b->property ? collect([$b->property]) : collect([])); @endphp
+                @if($allP->count() > 1)
+                    @foreach($allP as $p)
+                        <div>• <strong>{{ $p->property_name }}</strong> @if($p->unit_no)<span style="color:#64748B;">({{ $p->unit_no }})</span>@endif</div>
+                    @endforeach
+                    <small style="color:#2563EB; font-weight:700;">({{ $allP->count() }} Units)</small>
+                @else
+                    <strong>{{ $b->property->property_name ?? '-' }}</strong>
+                    @if($b->property?->unit_no) <span style="color:#64748B;">({{ $b->property->unit_no }})</span> @endif
+                @endif
+            </td>
             <td>{{ $b->booking_date ? \Carbon\Carbon::parse($b->booking_date)->format('d M Y') : '-' }}</td>
             <td class="r">₹{{ number_format($b->final_amount, 2) }}</td>
             <td class="r" style="color:#059669;">₹{{ number_format($b->booking_amount, 2) }}</td>

@@ -27,7 +27,7 @@ class PropertyController extends Controller
     {
         Property::syncAllStatuses();
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
-        $query = Property::with(['propertyType', 'firm', 'project.propertyMaster', 'propertyMaster']);
+        $query = Property::with(['propertyType', 'firm', 'project.propertyMaster', 'propertyMaster', 'bookings.customer', 'bookingsList.customer']);
 
         if ($isAdmin) {
             if ($request->filled('firm_id')) {

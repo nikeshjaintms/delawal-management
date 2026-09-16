@@ -88,6 +88,20 @@ class Property extends Model
         return $this->belongsToMany(Booking::class, 'booking_property')->withTimestamps();
     }
 
+    public function getActiveBookingAttribute()
+    {
+        if ($this->relationLoaded('bookings') && $this->bookings->isNotEmpty()) {
+            $b = $this->bookings->where('status', '!=', 'cancelled')->first();
+            if ($b) return $b;
+        }
+        if ($this->relationLoaded('bookingsList') && $this->bookingsList->isNotEmpty()) {
+            $b = $this->bookingsList->where('status', '!=', 'cancelled')->first();
+            if ($b) return $b;
+        }
+        return $this->bookingsList()->where('bookings.status', '!=', 'cancelled')->first()
+            ?: $this->bookings()->where('bookings.status', '!=', 'cancelled')->first();
+    }
+
     public function sales()
     {
         return $this->hasMany(PropertySale::class);

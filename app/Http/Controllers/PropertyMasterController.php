@@ -291,7 +291,7 @@ class PropertyMasterController extends Controller
             'vendor',
             'broker',
             'projects.properties',
-            'plots' => fn($q) => $q->with(['project', 'propertyType']),
+            'plots' => fn($q) => $q->with(['project', 'propertyType', 'bookings.customer', 'bookingsList.customer']),
             'payments.creator',
             'payments.paymentMode'
         ]);

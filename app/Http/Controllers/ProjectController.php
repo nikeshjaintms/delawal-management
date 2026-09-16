@@ -160,6 +160,7 @@ class ProjectController extends Controller
             'properties.propertyType',
             'properties.propertyMaster',
             'properties.bookings.customer',
+            'properties.bookingsList.customer',
             'contractors',
         ]);
 
