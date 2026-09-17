@@ -110,8 +110,16 @@
         <tr>
             <td style="color:#9CA3AF;">{{ $i+1 }}</td>
             <td>
-                <strong>{{ $sale->property->property_name ?? '-' }}</strong><br>
-                <span style="font-size:9.5px; color:#64748B;">{{ $sale->property->property_code ?? '-' }}</span>
+                @php
+                    $pList = $sale->all_properties;
+                @endphp
+                @if($pList->count() > 1)
+                    <strong>{{ $pList->pluck('property_name')->implode(', ') }}</strong><br>
+                    <span style="font-size:9.5px; color:#2563EB;">({{ $pList->count() }} Units: {{ $pList->pluck('property_code')->filter()->implode(', ') }})</span>
+                @else
+                    <strong>{{ $sale->property->property_name ?? '-' }}</strong><br>
+                    <span style="font-size:9.5px; color:#64748B;">{{ $sale->property->property_code ?? '-' }}</span>
+                @endif
             </td>
             <td>
                 <strong>{{ $sale->customer->name ?? '-' }}</strong><br>

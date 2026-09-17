@@ -8,6 +8,8 @@ use App\Models\Property;
 use App\Models\Customer;
 use App\Models\Broker;
 use App\Models\Firm;
+use App\Models\Payment;
+use App\Models\PaymentMode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -47,7 +49,8 @@ class PropertySaleController extends Controller
     private function updatePropertyStatus(PropertySale $sale, array $allPropertyIds = [])
     {
         $propertyIds = !empty($allPropertyIds) ? $allPropertyIds : [$sale->property_id];
-        $properties = Property::whereIn('id', $propertyIds)->get();
+        $propertyIds = array_values(array_filter($propertyIds));
+        $properties  = Property::whereIn('id', $propertyIds)->get();
         if ($properties->isEmpty()) return;
 
         $statusMap = [
@@ -76,7 +79,7 @@ class PropertySaleController extends Controller
 
     public function index(Request $request)
     {
-        $query = PropertySale::with(['firm', 'property', 'customer', 'broker']);
+        $query = PropertySale::with(['firm', 'property', 'properties', 'customer', 'broker', 'payments']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -92,6 +95,10 @@ class PropertySaleController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->whereHas('property', function ($p) use ($search) {
+                    $p->where('property_name', 'like', "%{$search}%")
+                      ->orWhere('property_code', 'like', "%{$search}%");
+                })
+                ->orWhereHas('properties', function ($p) use ($search) {
                     $p->where('property_name', 'like', "%{$search}%")
                       ->orWhere('property_code', 'like', "%{$search}%");
                 })
@@ -111,8 +118,9 @@ class PropertySaleController extends Controller
 
         $propertySales = $query->latest()->paginate(10)->withQueryString();
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
 
-        return view('admin.property-sales.index', compact('propertySales', 'firms'));
+        return view('admin.property-sales.index', compact('propertySales', 'firms', 'paymentModes'));
     }
 
     public function create()
@@ -132,7 +140,7 @@ class PropertySaleController extends Controller
         }
 
         $submittedPropIds = (array) ($request->property_ids ?: ($request->property_id ? [$request->property_id] : []));
-        $submittedPropIds = array_values(array_filter($submittedPropIds));
+        $submittedPropIds = array_values(array_unique(array_filter($submittedPropIds)));
         if (!empty($submittedPropIds)) {
             $request->merge(['property_id' => $submittedPropIds[0]]);
         }
@@ -194,7 +202,7 @@ class PropertySaleController extends Controller
 
         $saleAmount      = (float)($request->sale_amount ?? 0);
         $bookingAmount   = (float)($request->booking_amount ?? 0);
-        $remainingAmount = max(0, $saleAmount - $bookingAmount);
+        $remainingAmount = max(0, round($saleAmount - $bookingAmount, 2));
 
         $paymentStatus = $request->payment_status ?: 'pending';
         if ($saleAmount > 0) {
@@ -255,7 +263,31 @@ class PropertySaleController extends Controller
             'note'                           => $request->note,
         ]);
 
+        // Sync multiple properties in pivot table
+        if (!empty($submittedPropIds)) {
+            $sale->properties()->sync($submittedPropIds);
+        }
+
         $this->updatePropertyStatus($sale, $submittedPropIds);
+
+        // Record initial booking payment if booking_amount > 0
+        if ($bookingAmount > 0) {
+            Payment::create([
+                'firm_id'          => $sale->firm_id,
+                'property_sale_id' => $sale->id,
+                'customer_id'      => $sale->customer_id,
+                'property_id'      => $sale->property_id,
+                'total_amount'     => $saleAmount,
+                'paid_amount'      => $bookingAmount,
+                'pending_amount'   => $remainingAmount,
+                'payment_amount'   => $bookingAmount,
+                'payment_mode'     => $request->payment_mode ?: 'Cash',
+                'transaction_ref'  => $request->transaction_ref ?: null,
+                'payment_date'     => $request->sale_date ?: now()->toDateString(),
+                'status'           => $paymentStatus,
+                'remarks'          => 'Initial booking / down payment',
+            ]);
+        }
 
         return redirect()->route('property-sales.index')->with('success', 'Sales agreement added successfully.');
     }
@@ -270,9 +302,18 @@ class PropertySaleController extends Controller
             abort(403);
         }
 
-        $propertySale->load(['firm', 'property.propertyType', 'customer', 'broker']);
+        $propertySale->load([
+            'firm',
+            'property.propertyType',
+            'properties.propertyType',
+            'customer',
+            'broker',
+            'payments',
+        ]);
 
-        return view('admin.property-sales.show', compact('propertySale'));
+        $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
+
+        return view('admin.property-sales.show', compact('propertySale', 'paymentModes'));
     }
 
     public function edit(PropertySale $propertySale)
@@ -284,6 +325,8 @@ class PropertySaleController extends Controller
         if (!$isAdmin && $propertySale->firm_id != $firmId) {
             abort(403);
         }
+
+        $propertySale->load(['properties', 'property']);
 
         return view('admin.property-sales.edit', array_merge(
             ['propertySale' => $propertySale],
@@ -308,7 +351,7 @@ class PropertySaleController extends Controller
         }
 
         $submittedPropIds = (array) ($request->property_ids ?: ($request->property_id ? [$request->property_id] : []));
-        $submittedPropIds = array_values(array_filter($submittedPropIds));
+        $submittedPropIds = array_values(array_unique(array_filter($submittedPropIds)));
         if (!empty($submittedPropIds)) {
             $request->merge(['property_id' => $submittedPropIds[0]]);
         }
@@ -372,8 +415,16 @@ class PropertySaleController extends Controller
         }
 
         $saleAmount      = (float)($request->sale_amount !== null ? $request->sale_amount : ($propertySale->sale_amount ?? 0));
-        $bookingAmount   = (float)($request->booking_amount !== null ? $request->booking_amount : ($propertySale->booking_amount ?? 0));
-        $remainingAmount = max(0, $saleAmount - $bookingAmount);
+        
+        // If payments table has records, preserve the accurate sum of payments
+        $paymentsSum = (float)$propertySale->payments()->sum('payment_amount');
+        if ($paymentsSum > 0 && !$request->filled('booking_amount')) {
+            $bookingAmount = $paymentsSum;
+        } else {
+            $bookingAmount = (float)($request->booking_amount !== null ? $request->booking_amount : ($propertySale->booking_amount ?? 0));
+        }
+        
+        $remainingAmount = max(0, round($saleAmount - $bookingAmount, 2));
 
         $paymentStatus = $request->payment_status ?: ($propertySale->payment_status ?? 'pending');
         if ($saleAmount > 0) {
@@ -411,6 +462,9 @@ class PropertySaleController extends Controller
             }
         }
 
+        // Collect old properties to release removed ones
+        $oldPropIds = $propertySale->all_properties->pluck('id')->toArray();
+
         $propertySale->update([
             'firm_id'                        => $request->firm_id,
             'property_id'                    => $request->property_id,
@@ -434,9 +488,118 @@ class PropertySaleController extends Controller
             'note'                           => $request->note,
         ]);
 
+        if (!empty($submittedPropIds)) {
+            $propertySale->properties()->sync($submittedPropIds);
+        }
+
+        // Release removed properties
+        $removedPropIds = array_diff($oldPropIds, $submittedPropIds);
+        if (!empty($removedPropIds)) {
+            Property::whereIn('id', $removedPropIds)->update(['status' => 'available']);
+        }
+
         $this->updatePropertyStatus($propertySale, $submittedPropIds);
 
         return redirect()->route('property-sales.index')->with('success', 'Sales agreement updated successfully.');
+    }
+
+    public function storePayment(Request $request, PropertySale $propertySale)
+    {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $propertySale->firm_id != $firmId) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'payment_amount'  => 'required|numeric|min:0.01',
+            'payment_date'    => 'required|date',
+            'payment_mode'    => 'required|string|max:100',
+            'transaction_ref' => 'nullable|string|max:150',
+            'remarks'         => 'nullable|string|max:1000',
+        ]);
+
+        $saleTotal       = (float)($propertySale->sale_amount ?? 0);
+        $totalPaidSoFar  = (float)Payment::where('property_sale_id', $propertySale->id)->sum('payment_amount');
+        
+        // If this is the first payment entry in the payments table, but propertySale already had an initial booking_amount,
+        // create a backfilled record for that initial booking_amount so history is accurate.
+        if ($totalPaidSoFar == 0 && (float)$propertySale->booking_amount > 0) {
+            Payment::create([
+                'firm_id'          => $propertySale->firm_id,
+                'property_sale_id' => $propertySale->id,
+                'customer_id'      => $propertySale->customer_id,
+                'property_id'      => $propertySale->property_id,
+                'total_amount'     => $saleTotal,
+                'paid_amount'      => (float)$propertySale->booking_amount,
+                'pending_amount'   => max(0.00, round($saleTotal - (float)$propertySale->booking_amount, 2)),
+                'payment_amount'   => (float)$propertySale->booking_amount,
+                'payment_mode'     => 'Cash / Initial Payment',
+                'transaction_ref'  => null,
+                'payment_date'     => $propertySale->sale_date ?: now()->toDateString(),
+                'status'           => 'paid',
+                'remarks'          => 'Initial booking payment / Down payment',
+            ]);
+            $totalPaidSoFar = (float)$propertySale->booking_amount;
+        }
+
+        $newPaymentAmt   = (float)$validated['payment_amount'];
+        $newTotalPaid    = round($totalPaidSoFar + $newPaymentAmt, 2);
+        $pendingAfter    = max(0.00, round($saleTotal - $newTotalPaid, 2));
+
+        if ($saleTotal > 0 && $newTotalPaid >= $saleTotal) {
+            $status = 'paid';
+        } elseif ($newTotalPaid > 0) {
+            $status = 'partial';
+        } else {
+            $status = 'pending';
+        }
+
+        Payment::create([
+            'firm_id'          => $propertySale->firm_id,
+            'property_sale_id' => $propertySale->id,
+            'customer_id'      => $propertySale->customer_id,
+            'property_id'      => $propertySale->property_id,
+            'total_amount'     => $saleTotal,
+            'paid_amount'      => $newTotalPaid,
+            'pending_amount'   => $pendingAfter,
+            'payment_amount'   => $newPaymentAmt,
+            'payment_mode'     => $validated['payment_mode'],
+            'transaction_ref'  => $validated['transaction_ref'] ?? null,
+            'payment_date'     => $validated['payment_date'],
+            'status'           => $status,
+            'remarks'          => $validated['remarks'] ?? null,
+        ]);
+
+        $propertySale->update([
+            'booking_amount'   => $newTotalPaid,
+            'remaining_amount' => $pendingAfter,
+            'payment_status'   => $status,
+        ]);
+
+        return redirect()->back()->with('success', 'Installment payment of ₹' . number_format($newPaymentAmt, 2) . ' recorded successfully.');
+    }
+
+    public function destroyPayment(PropertySale $propertySale, Payment $payment)
+    {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $propertySale->firm_id != $firmId) {
+            abort(403);
+        }
+
+        if ($payment->property_sale_id != $propertySale->id) {
+            abort(404);
+        }
+
+        $payment->delete();
+        $propertySale->recalculatePaymentStatus();
+
+        return redirect()->back()->with('success', 'Payment record deleted and balances updated successfully.');
     }
 
     public function destroy(PropertySale $propertySale)
@@ -453,12 +616,12 @@ class PropertySaleController extends Controller
             Storage::disk('public')->delete($propertySale->agreement_file);
         }
 
-        // Restore property to available when sale is deleted
-        $property = Property::find($propertySale->property_id);
-        if ($property) {
-            $property->update(['status' => 'available']);
-            if ($property->property_master_id && $property->unit_no === null) {
-                $pm = \App\Models\PropertyMaster::find($property->property_master_id);
+        // Restore all associated properties to available
+        $properties = $propertySale->all_properties;
+        foreach ($properties as $prop) {
+            $prop->update(['status' => 'available']);
+            if ($prop->property_master_id && $prop->unit_no === null) {
+                $pm = \App\Models\PropertyMaster::find($prop->property_master_id);
                 if ($pm) {
                     $pm->update(['status' => 'active']);
                     $pm->plots()->update(['status' => 'available']);
@@ -466,6 +629,7 @@ class PropertySaleController extends Controller
             }
         }
 
+        $propertySale->properties()->detach();
         $propertySale->delete();
 
         return redirect()->route('property-sales.index')->with('success', 'Property sale deleted successfully.');
@@ -473,7 +637,7 @@ class PropertySaleController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $query = PropertySale::with(['firm', 'property.project', 'property.propertyMaster', 'customer', 'broker']);
+        $query = PropertySale::with(['firm', 'property.project', 'property.propertyMaster', 'properties', 'customer', 'broker', 'payments']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -489,6 +653,10 @@ class PropertySaleController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->whereHas('property', function ($p) use ($search) {
+                    $p->where('property_name', 'like', "%{$search}%")
+                      ->orWhere('property_code', 'like', "%{$search}%");
+                })
+                ->orWhereHas('properties', function ($p) use ($search) {
                     $p->where('property_name', 'like', "%{$search}%")
                       ->orWhere('property_code', 'like', "%{$search}%");
                 })
@@ -532,8 +700,10 @@ class PropertySaleController extends Controller
             'property.propertyType',
             'property.project',
             'property.propertyMaster',
+            'properties.propertyType',
             'customer',
             'broker',
+            'payments',
         ]);
 
         return view('admin.property-sales.show-pdf', compact('propertySale'));

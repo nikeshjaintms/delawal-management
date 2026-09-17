@@ -86,13 +86,26 @@
     <!-- Property Details -->
     <div class="grid-col">
         <div class="col-heading">&#9632; Property / Unit Information</div>
+        @php $pdfPlots = $propertySale->all_properties; @endphp
         <div class="info-row">
-            <span class="info-label">Property Name:</span>
-            <span class="info-value">{{ $propertySale->property->property_name ?? '-' }}</span>
+            <span class="info-label">Property / Plot(s):</span>
+            <span class="info-value">
+                @if($pdfPlots->count() > 1)
+                    {{ $pdfPlots->pluck('property_name')->implode(', ') }} ({{ $pdfPlots->count() }} Units)
+                @else
+                    {{ $propertySale->property->property_name ?? '-' }}
+                @endif
+            </span>
         </div>
         <div class="info-row">
-            <span class="info-label">Property Code:</span>
-            <span class="info-value">{{ $propertySale->property->property_code ?? '-' }}</span>
+            <span class="info-label">Property Code(s):</span>
+            <span class="info-value">
+                @if($pdfPlots->count() > 1)
+                    {{ $pdfPlots->pluck('property_code')->filter()->implode(', ') }}
+                @else
+                    {{ $propertySale->property->property_code ?? '-' }}
+                @endif
+            </span>
         </div>
         <div class="info-row">
             <span class="info-label">Property Type:</span>
@@ -129,7 +142,7 @@
         </div>
         <div class="info-row">
             <span class="info-label">Customer Phone:</span>
-            <span class="info-value">{{ $propertySale->customer->phone ?? '-' }}</span>
+            <span class="info-value">{{ $propertySale->customer->phone ?? ($propertySale->customer->mobile ?? '-') }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Customer Email:</span>
@@ -143,10 +156,10 @@
             <span class="info-label">Facilitating Broker:</span>
             <span class="info-value">{{ $propertySale->broker->name ?? 'Direct Sale (No Broker)' }}</span>
         </div>
-        @if($propertySale->broker && $propertySale->broker->phone)
+        @if($propertySale->broker && ($propertySale->broker->phone || $propertySale->broker->mobile))
         <div class="info-row">
             <span class="info-label">Broker Contact:</span>
-            <span class="info-value">{{ $propertySale->broker->phone }}</span>
+            <span class="info-value">{{ $propertySale->broker->phone ?? $propertySale->broker->mobile }}</span>
         </div>
         @endif
     </div>
@@ -161,9 +174,19 @@
                 <td class="value">₹{{ number_format($propertySale->sale_amount, 2) }}</td>
             </tr>
             <tr>
-                <td class="label">Initial Booking / Advance Token Amount Received</td>
+                <td class="label">Total Paid Consideration Amount Received</td>
                 <td class="value" style="color:#059669;">- ₹{{ number_format($propertySale->booking_amount, 2) }}</td>
             </tr>
+            @if($propertySale->payments->count() > 0)
+                @foreach($propertySale->payments as $idx => $p)
+                <tr>
+                    <td class="label" style="padding-left: 20px; font-size: 11px; color: #64748B;">
+                        ↳ Installment #{{ $idx + 1 }} ({{ $p->payment_date ? \Carbon\Carbon::parse($p->payment_date)->format('d M Y') : '—' }} - {{ $p->payment_mode }})
+                    </td>
+                    <td class="value" style="font-size: 11px; color: #059669;">₹{{ number_format($p->payment_amount, 2) }}</td>
+                </tr>
+                @endforeach
+            @endif
             <tr class="total">
                 <td class="label">Net Outstanding Balance Consideration Due</td>
                 <td class="value">₹{{ number_format($propertySale->remaining_amount, 2) }}</td>

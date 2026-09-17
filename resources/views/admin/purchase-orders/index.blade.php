@@ -299,7 +299,30 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     <td>{{ $po->firm->firm_name ?? '-' }}</td>
                     <td>{{ $po->project->project_name ?? '—' }}</td>
                     <td>
-                        @if($po->contractor)
+                        @php
+                            $assignedContractors = $po->all_contractors;
+                            $cCount = $assignedContractors->count();
+                        @endphp
+                        @if($cCount > 1)
+                            <div style="margin-bottom: 4px;">
+                                <span class="badge" style="background: rgba(59, 130, 246, 0.20) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.40) !important; font-size: 10.5px; padding: 1px 7px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="fa-solid fa-helmet-safety"></i> {{ $cCount }} Contractors
+                                </span>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 220px;">
+                                @foreach($assignedContractors as $con)
+                                    <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.30); border-radius: 5px; padding: 1.5px 6px; font-size: 11px; font-weight: 600; color: #FFFFFF;" title="{{ $con->contractor_name }}">
+                                        <i class="fa-solid fa-user-gear" style="font-size: 9px; color: #60A5FA;"></i>
+                                        <span>{{ $con->contractor_name }}</span>
+                                    </span>
+                                @endforeach
+                            </div>
+                        @elseif($cCount === 1)
+                            @php $singleCon = $assignedContractors->first(); @endphp
+                            <span style="display: inline-flex; align-items: center; gap: 4px; color: #60A5FA; font-weight: 600;">
+                                <i class="fa-solid fa-helmet-safety" style="font-size: 11px;"></i> {{ $singleCon->contractor_name }}
+                            </span>
+                        @elseif($po->contractor)
                             <span style="display: inline-flex; align-items: center; gap: 4px; color: #60A5FA; font-weight: 600;">
                                 <i class="fa-solid fa-helmet-safety" style="font-size: 11px;"></i> {{ $po->contractor->contractor_name }}
                             </span>

@@ -57,7 +57,7 @@ class PurchaseOrderController extends Controller
 
     public function index(Request $request)
     {
-        $query = PurchaseOrder::with(['firm', 'vendor', 'contractor', 'creator', 'project.propertyMaster']);
+        $query = PurchaseOrder::with(['firm', 'vendor', 'contractor', 'contractors', 'creator', 'project.propertyMaster']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -76,7 +76,9 @@ class PurchaseOrderController extends Controller
                   ->orWhere('status', 'like', "%{$s}%")
                   ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
-                  ->orWhereHas('project', fn($p) => $p->where('project_name', 'like', "%{$s}%"));
+                  ->orWhereHas('project', fn($p) => $p->where('project_name', 'like', "%{$s}%"))
+                  ->orWhereHas('contractor', fn($c) => $c->where('contractor_name', 'like', "%{$s}%"))
+                  ->orWhereHas('contractors', fn($c) => $c->where('contractor_name', 'like', "%{$s}%"));
             });
         }
 
@@ -87,7 +89,11 @@ class PurchaseOrderController extends Controller
             $query->where('project_id', $request->filter_project);
         }
         if ($request->filled('filter_contractor')) {
-            $query->where('contractor_id', $request->filter_contractor);
+            $cId = $request->filter_contractor;
+            $query->where(function($q) use ($cId) {
+                $q->where('contractor_id', $cId)
+                  ->orWhereHas('contractors', fn($c) => $c->where('contractors.id', $cId));
+            });
         }
 
         if ($request->filled('start_date')) {
@@ -119,15 +125,21 @@ class PurchaseOrderController extends Controller
 
     public function store(Request $request)
     {
+        $submittedContractorIds = (array)($request->contractor_ids ?: ($request->contractor_id ? [$request->contractor_id] : []));
+        $submittedContractorIds = array_values(array_unique(array_filter($submittedContractorIds)));
+        $primaryContractorId    = $submittedContractorIds[0] ?? null;
+
         $request->validate([
-            'firm_id'       => 'required|exists:firms,id',
-            'project_id'    => 'nullable|exists:projects,id',
-            'contractor_id' => 'nullable|exists:contractors,id',
-            'vendor_id'     => 'required|exists:vendors,id',
-            'po_date'       => 'required|date',
-            'delivery_date' => 'nullable|date|after_or_equal:po_date',
-            'status'        => 'required|in:Draft,Pending,Approved,Ordered,Received,Cancelled',
-            'items'         => 'required|array|min:1',
+            'firm_id'          => 'required|exists:firms,id',
+            'project_id'       => 'nullable|exists:projects,id',
+            'contractor_id'    => 'nullable|exists:contractors,id',
+            'contractor_ids'   => 'nullable|array',
+            'contractor_ids.*' => 'exists:contractors,id',
+            'vendor_id'        => 'required|exists:vendors,id',
+            'po_date'          => 'required|date',
+            'delivery_date'    => 'nullable|date|after_or_equal:po_date',
+            'status'           => 'required|in:Draft,Pending,Approved,Ordered,Received,Cancelled',
+            'items'            => 'required|array|min:1',
             'items.*.material_id' => 'required|exists:materials,id',
             'items.*.qty'         => 'required|numeric|min:0.01',
             'items.*.rate'        => 'required|numeric|min:0.00',
@@ -149,8 +161,8 @@ class PurchaseOrderController extends Controller
             }
 
             $projectId = $request->project_id;
-            if (!$projectId && $request->contractor_id) {
-                $con = Contractor::find($request->contractor_id);
+            if (!$projectId && $primaryContractorId) {
+                $con = Contractor::find($primaryContractorId);
                 if ($con && $con->project_id) {
                     $projectId = $con->project_id;
                 }
@@ -159,7 +171,7 @@ class PurchaseOrderController extends Controller
             $po = PurchaseOrder::create([
                 'firm_id'         => $request->firm_id,
                 'project_id'      => $projectId ?: null,
-                'contractor_id'   => $request->contractor_id ?: null,
+                'contractor_id'   => $primaryContractorId,
                 'po_number'       => $poNumber,
                 'vendor_id'       => $request->vendor_id,
                 'po_date'         => $request->po_date,
@@ -175,6 +187,10 @@ class PurchaseOrderController extends Controller
                 'remarks'         => $request->remarks,
                 'created_by'      => Auth::id(),
             ]);
+
+            if (!empty($submittedContractorIds)) {
+                $po->contractors()->sync($submittedContractorIds);
+            }
 
             $subTotal = 0;
             $totalDiscount = 0;
@@ -252,21 +268,21 @@ class PurchaseOrderController extends Controller
     public function show(PurchaseOrder $purchaseOrder)
     {
         $this->authorise($purchaseOrder);
-        $purchaseOrder->load(['firm', 'vendor', 'contractor', 'creator', 'project.propertyMaster', 'items.material']);
+        $purchaseOrder->load(['firm', 'vendor', 'contractor', 'contractors', 'creator', 'project.propertyMaster', 'items.material']);
         return view('admin.purchase-orders.show', compact('purchaseOrder'));
     }
 
     public function print(PurchaseOrder $purchaseOrder)
     {
         $this->authorise($purchaseOrder);
-        $purchaseOrder->load(['firm', 'vendor', 'contractor', 'creator', 'project.propertyMaster', 'items.material']);
+        $purchaseOrder->load(['firm', 'vendor', 'contractor', 'contractors', 'creator', 'project.propertyMaster', 'items.material']);
         return view('admin.purchase-orders.show', compact('purchaseOrder'))->with('printMode', true);
     }
 
     public function edit(PurchaseOrder $purchaseOrder)
     {
         $this->authorise($purchaseOrder);
-        $purchaseOrder->load(['items.material']);
+        $purchaseOrder->load(['items.material', 'contractors', 'contractor']);
         $dropdowns = $this->dropdowns($purchaseOrder->firm_id);
         return view('admin.purchase-orders.edit', array_merge(['purchaseOrder' => $purchaseOrder], $dropdowns));
     }
@@ -275,15 +291,21 @@ class PurchaseOrderController extends Controller
     {
         $this->authorise($purchaseOrder);
 
+        $submittedContractorIds = (array)($request->contractor_ids ?: ($request->contractor_id ? [$request->contractor_id] : []));
+        $submittedContractorIds = array_values(array_unique(array_filter($submittedContractorIds)));
+        $primaryContractorId    = $submittedContractorIds[0] ?? null;
+
         $request->validate([
-            'firm_id'       => 'required|exists:firms,id',
-            'project_id'    => 'nullable|exists:projects,id',
-            'contractor_id' => 'nullable|exists:contractors,id',
-            'vendor_id'     => 'required|exists:vendors,id',
-            'po_date'       => 'required|date',
-            'delivery_date' => 'nullable|date|after_or_equal:po_date',
-            'status'        => 'required|in:Draft,Pending,Approved,Ordered,Received,Cancelled',
-            'items'         => 'required|array|min:1',
+            'firm_id'          => 'required|exists:firms,id',
+            'project_id'       => 'nullable|exists:projects,id',
+            'contractor_id'    => 'nullable|exists:contractors,id',
+            'contractor_ids'   => 'nullable|array',
+            'contractor_ids.*' => 'exists:contractors,id',
+            'vendor_id'        => 'required|exists:vendors,id',
+            'po_date'          => 'required|date',
+            'delivery_date'    => 'nullable|date|after_or_equal:po_date',
+            'status'           => 'required|in:Draft,Pending,Approved,Ordered,Received,Cancelled',
+            'items'            => 'required|array|min:1',
             'items.*.material_id' => 'required|exists:materials,id',
             'items.*.qty'         => 'required|numeric|min:0.01',
             'items.*.rate'        => 'required|numeric|min:0.00',
@@ -294,8 +316,8 @@ class PurchaseOrderController extends Controller
         DB::beginTransaction();
         try {
             $projectId = $request->project_id;
-            if (!$projectId && $request->contractor_id) {
-                $con = Contractor::find($request->contractor_id);
+            if (!$projectId && $primaryContractorId) {
+                $con = Contractor::find($primaryContractorId);
                 if ($con && $con->project_id) {
                     $projectId = $con->project_id;
                 }
@@ -304,13 +326,15 @@ class PurchaseOrderController extends Controller
             $purchaseOrder->update([
                 'firm_id'       => $request->firm_id,
                 'project_id'    => $projectId ?: null,
-                'contractor_id' => $request->contractor_id ?: null,
+                'contractor_id' => $primaryContractorId,
                 'vendor_id'     => $request->vendor_id,
                 'po_date'       => $request->po_date,
                 'delivery_date' => $request->delivery_date,
                 'status'        => $request->status,
                 'remarks'       => $request->remarks,
             ]);
+
+            $purchaseOrder->contractors()->sync($submittedContractorIds);
 
             // Sync items
             $purchaseOrder->items()->delete();
@@ -397,7 +421,7 @@ class PurchaseOrderController extends Controller
     public function downloadPdf(PurchaseOrder $purchaseOrder)
     {
         $this->authorise($purchaseOrder);
-        $purchaseOrder->load(['firm', 'vendor', 'contractor', 'creator', 'project.propertyMaster', 'items.material']);
+        $purchaseOrder->load(['firm', 'vendor', 'contractor', 'contractors', 'creator', 'project.propertyMaster', 'items.material']);
         return view('admin.purchase-orders.show', compact('purchaseOrder'))->with('printMode', true);
     }
 
@@ -405,7 +429,7 @@ class PurchaseOrderController extends Controller
     {
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
-        $query = PurchaseOrder::with(['firm', 'vendor', 'contractor', 'creator', 'project']);
+        $query = PurchaseOrder::with(['firm', 'vendor', 'contractor', 'contractors', 'creator', 'project']);
 
         if (!$isAdmin) {
             $firmId = $user ? $user->firm_id : session('firm_id');
@@ -421,7 +445,9 @@ class PurchaseOrderController extends Controller
                   ->orWhere('status', 'like', "%{$s}%")
                   ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
-                  ->orWhereHas('project', fn($p) => $p->where('project_name', 'like', "%{$s}%"));
+                  ->orWhereHas('project', fn($p) => $p->where('project_name', 'like', "%{$s}%"))
+                  ->orWhereHas('contractor', fn($c) => $c->where('contractor_name', 'like', "%{$s}%"))
+                  ->orWhereHas('contractors', fn($c) => $c->where('contractor_name', 'like', "%{$s}%"));
             });
         }
 
@@ -432,7 +458,11 @@ class PurchaseOrderController extends Controller
             $query->where('project_id', $request->filter_project);
         }
         if ($request->filled('filter_contractor')) {
-            $query->where('contractor_id', $request->filter_contractor);
+            $cId = $request->filter_contractor;
+            $query->where(function($q) use ($cId) {
+                $q->where('contractor_id', $cId)
+                  ->orWhereHas('contractors', fn($c) => $c->where('contractors.id', $cId));
+            });
         }
         if ($request->filled('start_date')) {
             $query->whereDate('po_date', '>=', $request->start_date);
@@ -458,7 +488,7 @@ class PurchaseOrderController extends Controller
             fputcsv($handle, []);
 
             fputcsv($handle, [
-                'PO Number', 'Firm', 'Project', 'Contractor', 'Supplier / Vendor',
+                'PO Number', 'Firm', 'Project', 'Contractor(s)', 'Supplier / Vendor',
                 'PO Date', 'Delivery Date', 'Status', 'Taxable Amount (Rs)', 'GST Amount (Rs)', 'Grand Total (Rs)'
             ]);
 
@@ -467,7 +497,7 @@ class PurchaseOrderController extends Controller
                     $po->po_number,
                     $po->firm->firm_name ?? '-',
                     $po->project->project_name ?? '-',
-                    $po->contractor->contractor_name ?? '-',
+                    $po->contractor_names,
                     $po->vendor->name ?? '-',
                     $po->po_date ? $po->po_date->format('d M Y') : '-',
                     $po->delivery_date ? $po->delivery_date->format('d M Y') : '-',

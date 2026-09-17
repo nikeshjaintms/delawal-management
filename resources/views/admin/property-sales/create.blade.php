@@ -723,6 +723,7 @@ function filterPlotsByMaster() {
     }
 
     filterPlotCardsBySearch();
+    syncAllCardsFromSelect();
     updatePlotsCalculation();
 }
 
@@ -925,7 +926,25 @@ document.addEventListener('DOMContentLoaded', function() {
     syncProjectsForSelectedMaster("{{ old('project_id', request('project_id')) }}");
     // Initialize state
     onSaleScopeChange();
+    syncAllCardsFromSelect();
+    updatePlotsCalculation();
     recalcSaleBrokerageDue();
+
+    const form = document.querySelector('form[action*="property-sales"]');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const isPlotScope = document.getElementById('sale_scope_plot') && document.getElementById('sale_scope_plot').checked;
+            if (isPlotScope) {
+                const selectedPlots = propSelect ? Array.from(propSelect.selectedOptions).filter(o => o.value) : [];
+                if (selectedPlots.length === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one Plot / Unit card before saving.');
+                    document.getElementById('plot_select_container')?.scrollIntoView({ behavior: 'smooth' });
+                    return false;
+                }
+            }
+        });
+    }
 });
 </script>
 @endsection

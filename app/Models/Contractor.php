@@ -90,6 +90,11 @@ class Contractor extends Model
         return $this->belongsToMany(Property::class, 'contractor_property', 'contractor_id', 'property_id')->withTimestamps();
     }
 
+    public function purchaseOrders()
+    {
+        return $this->belongsToMany(PurchaseOrder::class, 'contractor_purchase_order', 'contractor_id', 'purchase_order_id')->withTimestamps();
+    }
+
     public function syncProjects($projectIds): void
     {
         $projectIds = array_values(array_filter((array) $projectIds));

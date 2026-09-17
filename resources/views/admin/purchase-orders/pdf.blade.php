@@ -116,8 +116,12 @@
                 <div class="info-row"><span class="info-label">Address:</span><span class="info-value">{{ $purchaseOrder->vendor->address ?? '-' }}, {{ $purchaseOrder->vendor->city ?? '' }}</span></div>
             </div>
             <div class="info-box">
-                <div class="info-title">Delivery &amp; Status</div>
+                <div class="info-title">Order &amp; Contractor Details</div>
                 <div class="info-row"><span class="info-label">Order Number:</span><span class="info-value"><strong>{{ $purchaseOrder->po_number }}</strong></span></div>
+                @if($purchaseOrder->project)
+                    <div class="info-row"><span class="info-label">Project:</span><span class="info-value">{{ $purchaseOrder->project->project_name }}</span></div>
+                @endif
+                <div class="info-row"><span class="info-label">Contractor(s):</span><span class="info-value"><strong>{{ $purchaseOrder->contractor_names }}</strong></span></div>
                 <div class="info-row"><span class="info-label">Expected Date:</span><span class="info-value">{{ $purchaseOrder->delivery_date ? $purchaseOrder->delivery_date->format('d M Y') : '—' }}</span></div>
                 <div class="info-row"><span class="info-label">Order Status:</span><span class="info-value">{{ $purchaseOrder->status }}</span></div>
                 <div class="info-row"><span class="info-label">Created By:</span><span class="info-value">{{ $purchaseOrder->creator->name ?? '-' }}</span></div>

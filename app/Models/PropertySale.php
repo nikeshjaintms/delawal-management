@@ -64,6 +64,31 @@ class PropertySale extends Model
         return $this->belongsTo(Property::class);
     }
 
+    public function properties()
+    {
+        return $this->belongsToMany(Property::class, 'property_sale_property')->withTimestamps();
+    }
+
+    public function getAllPropertiesAttribute()
+    {
+        if ($this->relationLoaded('properties') && $this->properties->isNotEmpty()) {
+            return $this->properties;
+        }
+        if ($this->properties()->exists()) {
+            return $this->properties;
+        }
+        return $this->property ? collect([$this->property]) : collect([]);
+    }
+
+    public function getPropertyNamesAttribute(): string
+    {
+        $props = $this->all_properties;
+        if ($props->isNotEmpty()) {
+            return $props->pluck('property_name')->implode(', ');
+        }
+        return $this->property->property_name ?? '—';
+    }
+
     public function customer()
     {
         return $this->belongsTo(Customer::class);
@@ -76,7 +101,39 @@ class PropertySale extends Model
 
     public function payments()
     {
-        return $this->hasMany(Payment::class, 'property_sale_id');
+        return $this->hasMany(Payment::class, 'property_sale_id')->latest('payment_date')->latest('id');
+    }
+
+    /**
+     * Recalculate paid_amount, remaining_amount, and payment_status based on payments table
+     */
+    public function recalculatePaymentStatus(): void
+    {
+        $saleTotal = (float)($this->sale_amount ?? 0);
+        $paymentsCount = $this->payments()->count();
+
+        if ($paymentsCount > 0) {
+            $paid = (float)$this->payments()->sum('payment_amount');
+        } else {
+            $paid = (float)($this->booking_amount ?? 0);
+        }
+
+        $due = max(0.00, round($saleTotal - $paid, 2));
+
+        $status = 'pending';
+        if ($saleTotal > 0) {
+            if ($paid >= $saleTotal) {
+                $status = 'paid';
+            } elseif ($paid > 0) {
+                $status = 'partial';
+            }
+        }
+
+        $this->updateQuietly([
+            'booking_amount'   => $paid,
+            'remaining_amount' => $due,
+            'payment_status'   => $status,
+        ]);
     }
 
     /**

@@ -191,6 +191,18 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                     </div>
                 </div>
 
+                @php
+                    $oldPropIds = old('property_ids');
+                    if ($oldPropIds !== null) {
+                        $assignedPropIds = (array)$oldPropIds;
+                    } else {
+                        $assignedPropIds = $propertySale->all_properties->pluck('id')->toArray();
+                        if (empty($assignedPropIds) && $propertySale->property_id) {
+                            $assignedPropIds = [$propertySale->property_id];
+                        }
+                    }
+                @endphp
+
                 {{-- Hidden select kept in sync for form submit --}}
                 <select name="property_ids[]" id="property_id" multiple style="display: none;">
                     @foreach($properties as $property)
@@ -199,7 +211,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                 data-project-id="{{ $property->project_id ?? '' }}"
                                 data-unit-no="{{ $property->unit_no ?? '' }}"
                                 data-price="{{ $property->price ?? 0 }}"
-                                {{ (is_array(old('property_ids')) && in_array($property->id, old('property_ids'))) || old('property_id', $propertySale->property_id) == $property->id ? 'selected' : '' }}>
+                                {{ in_array($property->id, $assignedPropIds) ? 'selected' : '' }}>
                             {{ $property->property_name }}
                         </option>
                     @endforeach
@@ -210,7 +222,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                     <div id="plot_cards_grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px;">
                         @foreach($properties as $property)
                             @php
-                                $isSelected = (is_array(old('property_ids')) && in_array($property->id, old('property_ids'))) || old('property_id', $propertySale->property_id) == $property->id;
+                                $isSelected = in_array($property->id, $assignedPropIds);
                                 $statusColor = $property->status === 'available' ? '#34D399' : ($property->status === 'booked' ? '#FBBF24' : '#F87171');
                                 $statusBg = $property->status === 'available' ? 'rgba(16, 185, 129, 0.15)' : ($property->status === 'booked' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)');
                             @endphp
@@ -593,6 +605,16 @@ function syncSingleCardUI(id, isSelected) {
     }
 }
 
+function syncAllCardsFromSelect() {
+    const propSelect = document.getElementById('property_id');
+    if (!propSelect) return;
+    Array.from(propSelect.options).forEach(opt => {
+        if (opt.value) {
+            syncSingleCardUI(opt.value, opt.selected);
+        }
+    });
+}
+
 function selectAllVisiblePlots() {
     const propSelect = document.getElementById('property_id');
     const cards = document.querySelectorAll('.plot-card-item');
@@ -713,6 +735,7 @@ function filterPlotsByMaster() {
     }
 
     filterPlotCardsBySearch();
+    syncAllCardsFromSelect();
     updatePlotsCalculation();
 }
 
@@ -914,8 +937,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     syncProjectsForSelectedMaster("{{ old('project_id', $propertySale->property?->project_id) }}");
     onSaleScopeChange();
+    syncAllCardsFromSelect();
     updatePlotsCalculation();
     recalcSaleBrokerageDue();
+
+    const form = document.querySelector('form[action*="property-sales"]');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const isPlotScope = document.getElementById('sale_scope_plot') && document.getElementById('sale_scope_plot').checked;
+            if (isPlotScope) {
+                const selectedPlots = propSelect ? Array.from(propSelect.selectedOptions).filter(o => o.value) : [];
+                if (selectedPlots.length === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one Plot / Unit card before saving.');
+                    document.getElementById('plot_select_container')?.scrollIntoView({ behavior: 'smooth' });
+                    return false;
+                }
+            }
+        });
+    }
 });
 </script>
 @endsection

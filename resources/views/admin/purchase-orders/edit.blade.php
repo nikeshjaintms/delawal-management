@@ -161,31 +161,13 @@ input[type=number] {
         <div class="form-grid">
             <div class="form-group">
                 <label class="form-label">Project</label>
-                <select name="project_id" id="project_id" class="form-control">
-                    <option value="">Select Project</option>
+                <select name="project_id" id="project_id" class="form-control" onchange="filterContractorsByProject()">
+                    <option value="">Select Project (Optional)</option>
                     @foreach($projects as $proj)
                         <option value="{{ $proj->id }}" {{ old('project_id', $purchaseOrder->project_id) == $proj->id ? 'selected' : '' }}>{{ $proj->project_name }} ({{ $proj->propertyMaster->property_name ?? 'Property' }})</option>
                     @endforeach
                 </select>
                 @error('project_id') <span class="text-error show">{{ $message }}</span> @enderror
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Contractor / Agency</label>
-                <select name="contractor_id" id="contractor_id" class="form-control">
-                    <option value="">Select Contractor (Optional)</option>
-                    @if(isset($contractors))
-                        @foreach($contractors as $con)
-                            <option value="{{ $con->id }}"
-                                    data-project-id="{{ $con->project_id }}"
-                                    data-firm-id="{{ $con->firm_id }}"
-                                    {{ old('contractor_id', $purchaseOrder->contractor_id) == $con->id ? 'selected' : '' }}>
-                                {{ $con->contractor_name }} {{ $con->project ? '('.$con->project->project_name.')' : '' }}
-                            </option>
-                        @endforeach
-                    @endif
-                </select>
-                @error('contractor_id') <span class="text-error show">{{ $message }}</span> @enderror
             </div>
 
             <div class="form-group">
@@ -208,8 +190,138 @@ input[type=number] {
             </div>
         </div>
 
+        {{-- Multi-Contractor Selection Section --}}
+        <div class="form-group" style="margin-top: 14px; margin-bottom: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                <div>
+                    <label class="form-label" style="margin-bottom: 2px;">
+                        <i class="fa-solid fa-helmet-safety" style="color:#60A5FA;"></i> Select Contractor(s) / Agency (Multiple Supported)
+                    </label>
+                    <div style="font-size: 12px; color: #94A3B8;">Click any contractor card below to link one or multiple contractors to this PO.</div>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="contractor_search_input" oninput="filterContractorCardsBySearch()" placeholder="🔍 Search contractor..." style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.15); color: #FFFFFF; font-size: 12px; border-radius: 8px; padding: 5px 12px; outline: none; width: 180px;">
+                    <button type="button" onclick="selectAllVisibleContractors()" style="background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59, 130, 246, 0.4); color: #60A5FA; font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer;">
+                        <i class="fa-solid fa-check-double"></i> Select All
+                    </button>
+                    <button type="button" onclick="clearSelectedContractors()" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer;">
+                        <i class="fa-solid fa-xmark"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            @php
+                $assignedConIds = old('contractor_ids');
+                if ($assignedConIds === null) {
+                    $assignedConIds = $purchaseOrder->all_contractors->pluck('id')->toArray();
+                    if (empty($assignedConIds) && $purchaseOrder->contractor_id) {
+                        $assignedConIds = [$purchaseOrder->contractor_id];
+                    }
+                } else {
+                    $assignedConIds = (array)$assignedConIds;
+                }
+            @endphp
+
+            {{-- Hidden select keeping form sync --}}
+            <select name="contractor_ids[]" id="contractor_id" multiple style="display: none;">
+                @if(isset($contractors))
+                    @foreach($contractors as $con)
+                        <option value="{{ $con->id }}"
+                                data-project-id="{{ $con->project_id }}"
+                                data-firm-id="{{ $con->firm_id }}"
+                                {{ in_array($con->id, $assignedConIds) ? 'selected' : '' }}>
+                            {{ $con->contractor_name }}
+                        </option>
+                    @endforeach
+                @endif
+            </select>
+
+            {{-- Visual Selection Cards Container --}}
+            <div id="contractor_cards_scrollbox" style="max-height: 220px; overflow-y: auto; padding: 10px; border-radius: 12px; background: rgba(10, 15, 26, 0.75); border: 1.5px solid rgba(255, 255, 255, 0.12);">
+                <div id="contractor_cards_grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px;">
+                    @if(isset($contractors))
+                        @foreach($contractors as $con)
+                            @php
+                                $isSelected = in_array($con->id, $assignedConIds);
+                            @endphp
+                            <div class="contractor-card-item {{ $isSelected ? 'is-selected' : '' }}"
+                                 id="contractor_card_{{ $con->id }}"
+                                 data-id="{{ $con->id }}"
+                                 data-project-id="{{ $con->project_id ?? '' }}"
+                                 data-name="{{ strtolower($con->contractor_name ?? '') }}"
+                                 data-mobile="{{ strtolower($con->mobile ?? '') }}"
+                                 onclick="toggleContractorCardSelection({{ $con->id }})"
+                                 style="cursor: pointer; user-select: none; padding: 8px 12px; border-radius: 10px; background: {{ $isSelected ? 'rgba(37, 99, 235, 0.22)' : 'rgba(20, 27, 41, 0.65)' }}; border: 1.5px solid {{ $isSelected ? '#3B82F6' : 'rgba(255, 255, 255, 0.10)' }}; transition: all .2s ease; display: flex; align-items: center; gap: 10px; box-shadow: {{ $isSelected ? '0 0 12px rgba(59, 130, 246, 0.35)' : 'none' }};">
+                                <div class="con-checkbox-circle" style="width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid {{ $isSelected ? '#3B82F6' : 'rgba(255, 255, 255, 0.25)' }}; background: {{ $isSelected ? '#2563EB' : 'transparent' }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #FFFFFF; font-size: 10px; transition: all .2s ease;">
+                                    <i class="fa-solid fa-check" style="display: {{ $isSelected ? 'block' : 'none' }};"></i>
+                                </div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div class="con-name-el" style="font-weight: 700; color: #FFFFFF; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ $con->contractor_name }}
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                                        @if($con->project)
+                                            <span style="font-size: 10px; font-weight: 600; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93C5FD; padding: 1px 5px; border-radius: 4px;">
+                                                {{ $con->project->project_name }}
+                                            </span>
+                                        @endif
+                                        @if($con->mobile)
+                                            <span style="font-size: 11px; color: #94A3B8;">{{ $con->mobile }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+                <div id="no_contractors_msg" style="display: none; text-align: center; padding: 20px; color: #94A3B8; font-size: 13px;">
+                    No contractors found matching search or project filter.
+                </div>
+            </div>
+
+            {{-- Selected Summary Badge / Chips --}}
+            <div id="contractor_summary_badge" style="display: none; margin-top: 8px; padding: 8px 12px; border-radius: 8px; background: rgba(37, 99, 235, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 12px; color: #93C5FD; font-weight: 700;" id="contractor_summary_text">
+                    0 Contractors Selected
+                </div>
+                <div id="contractor_summary_pills" style="display: flex; flex-wrap: wrap; gap: 4px;"></div>
+            </div>
+
+            @error('contractor_ids') <span class="text-error show">{{ $message }}</span> @enderror
+        </div>
+
         <div class="section-heading" style="margin-top:30px;"><i class="fa-solid fa-list"></i> Order Items</div>
         
+        @php
+            $editItems = old('items');
+            if (!is_array($editItems) || empty($editItems)) {
+                $editItems = $purchaseOrder->items->map(function($item) {
+                    return [
+                        'material_id' => $item->material_id,
+                        'qty' => $item->qty,
+                        'rate' => $item->rate,
+                        'discount_pct' => $item->discount_pct,
+                        'gst_pct' => $item->gst_pct,
+                        'gst_amount' => $item->gst_amount,
+                        'line_total' => $item->line_total,
+                    ];
+                })->toArray();
+            }
+            if (empty($editItems)) {
+                $editItems = [
+                    [
+                        'material_id' => '',
+                        'qty' => 1,
+                        'rate' => 0.00,
+                        'discount_pct' => 0,
+                        'gst_pct' => 18,
+                        'gst_amount' => 0.00,
+                        'line_total' => 0.00,
+                    ]
+                ];
+            }
+        @endphp
+
         <div class="table-container">
             <table class="items-table" id="items-table">
                 <thead>
@@ -225,7 +337,7 @@ input[type=number] {
                     </tr>
                 </thead>
                 <tbody id="item-rows">
-                    @foreach($purchaseOrder->items as $index => $item)
+                    @foreach($editItems as $index => $item)
                     <tr class="item-row">
                         <td>
                             <select name="items[{{ $index }}][material_id]" class="form-control material-select" required>
@@ -238,19 +350,19 @@ input[type=number] {
                                             data-unit="{{ $mat->unit ?? '' }}"
                                             data-project-id="{{ $mat->project_id ?? '' }}"
                                             data-contractor-id="{{ $mat->contractor_id ?? '' }}"
-                                            {{ $item->material_id == $mat->id ? 'selected' : '' }}>
+                                            {{ ((isset($item['material_id']) ? $item['material_id'] : '') == $mat->id) ? 'selected' : '' }}>
                                         {{ $mat->material_name }} (Stock: {{ number_format($mat->current_stock, 2) }} {{ $mat->unit }} | ₹{{ number_format($mat->unit_price ?? 0, 2) }})
                                     </option>
                                 @endforeach
                             </select>
                             <div class="stock-badge" style="font-size:11.5px; margin-top:4px; color:#60A5FA; font-weight:600;"></div>
                         </td>
-                        <td><input type="number" name="items[{{ $index }}][qty]" class="form-control qty-input" value="{{ $item->qty }}" step="0.01" min="0.01" autocomplete="off" required></td>
-                        <td><input type="number" name="items[{{ $index }}][rate]" class="form-control rate-input" value="{{ $item->rate }}" step="0.01" min="0.00" autocomplete="off" required></td>
-                        <td><input type="number" name="items[{{ $index }}][discount_pct]" class="form-control discount-pct-input" value="{{ $item->discount_pct }}" step="0.01" min="0" max="100" autocomplete="off"></td>
-                        <td><input type="number" name="items[{{ $index }}][gst_pct]" class="form-control gst-pct-input" value="{{ $item->gst_pct }}" step="0.01" min="0" max="100" autocomplete="off"></td>
-                        <td><input type="text" class="form-control gst-amount-input" value="{{ $item->gst_amount }}" style="background:rgba(255,255,255,0.06) !important; cursor:default;" readonly></td>
-                        <td><input type="text" class="form-control line-total-input" value="{{ $item->line_total }}" style="background:rgba(255,255,255,0.06) !important; cursor:default;" readonly></td>
+                        <td><input type="number" name="items[{{ $index }}][qty]" class="form-control qty-input" value="{{ $item['qty'] ?? 1 }}" step="0.01" min="0.01" autocomplete="off" required></td>
+                        <td><input type="number" name="items[{{ $index }}][rate]" class="form-control rate-input" value="{{ $item['rate'] ?? '0.00' }}" step="0.01" min="0.00" autocomplete="off" required></td>
+                        <td><input type="number" name="items[{{ $index }}][discount_pct]" class="form-control discount-pct-input" value="{{ $item['discount_pct'] ?? 0 }}" step="0.01" min="0" max="100" autocomplete="off"></td>
+                        <td><input type="number" name="items[{{ $index }}][gst_pct]" class="form-control gst-pct-input" value="{{ $item['gst_pct'] ?? 18 }}" step="0.01" min="0" max="100" autocomplete="off"></td>
+                        <td><input type="text" class="form-control gst-amount-input" value="{{ $item['gst_amount'] ?? '0.00' }}" style="background:rgba(255,255,255,0.06) !important; cursor:default;" readonly></td>
+                        <td><input type="text" class="form-control line-total-input" value="{{ $item['line_total'] ?? '0.00' }}" style="background:rgba(255,255,255,0.06) !important; cursor:default;" readonly></td>
                         <td style="text-align:center;"><button type="button" class="remove-row-btn" title="Remove Item"><i class="fa-solid fa-trash-can"></i></button></td>
                     </tr>
                     @endforeach
@@ -293,7 +405,7 @@ input[type=number] {
 
         <div class="form-group" style="margin-top:24px;">
             <label class="form-label">Remarks / Terms &amp; Conditions</label>
-            <textarea name="remarks" class="form-control" rows="3" placeholder="Enter any extra details or terms...">{{ $purchaseOrder->remarks }}</textarea>
+            <textarea name="remarks" class="form-control" rows="3" placeholder="Enter any extra details or terms...">{{ old('remarks', $purchaseOrder->remarks) }}</textarea>
         </div>
 
         <div style="margin-top:32px; display:flex; gap:12px; justify-content:flex-end;">
@@ -305,7 +417,7 @@ input[type=number] {
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        let rowCount = {{ count($purchaseOrder->items) }};
+        let rowCount = {{ count($editItems) }};
         const itemRows = document.getElementById('item-rows');
         const addRowBtn = document.getElementById('add-row-btn');
         const firmSelect = document.getElementById('firm_id');
@@ -479,98 +591,159 @@ input[type=number] {
         firmSelect.addEventListener('change', calculateRowAndTotals);
         vendorSelect.addEventListener('change', calculateRowAndTotals);
 
-        // Project and Contractor dynamic fetch & auto-select
-        const projectSelect = document.getElementById('project_id');
-        const contractorSelect = document.getElementById('contractor_id');
-        const allContractors = @json($contractors ?? []);
+        // Multi-Contractor Selection Management
+        window.toggleContractorCardSelection = function(id) {
+            const conSelect = document.getElementById('contractor_id');
+            const card = document.getElementById('contractor_card_' + id);
+            if (!conSelect || !card) return;
 
-        function populateAndAutoSelectContractors(contractorList, preserveId = null) {
-            if (!contractorSelect) return;
-            contractorSelect.innerHTML = '';
-
-            if (contractorList.length === 0) {
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = (projectSelect && projectSelect.value) ? '— No contractor assigned to this project —' : 'Select Contractor (Optional)';
-                contractorSelect.appendChild(opt);
-                return;
+            let opt = Array.from(conSelect.options).find(o => o.value == id);
+            if (!opt) {
+                opt = document.createElement('option');
+                opt.value = id;
+                opt.text = card.querySelector('.con-name-el')?.innerText || 'Contractor #' + id;
+                conSelect.appendChild(opt);
             }
 
-            const defaultOpt = document.createElement('option');
-            defaultOpt.value = '';
-            defaultOpt.textContent = `Select Contractor (${contractorList.length} available)`;
-            contractorSelect.appendChild(defaultOpt);
+            opt.selected = !opt.selected;
+            syncSingleContractorCardUI(id, opt.selected);
+            updateContractorsSummary();
+        };
 
-            let selectedValue = preserveId || '';
+        window.syncSingleContractorCardUI = function(id, isSelected) {
+            const card = document.getElementById('contractor_card_' + id);
+            if (!card) return;
+            const checkCircle = card.querySelector('.con-checkbox-circle');
+            const checkIcon = card.querySelector('.con-checkbox-circle i');
 
-            contractorList.forEach((c) => {
-                const opt = document.createElement('option');
-                opt.value = c.id;
-                opt.setAttribute('data-project-id', c.project_id || '');
-                opt.setAttribute('data-firm-id', c.firm_id || '');
-                opt.textContent = c.contractor_name + (c.mobile ? ` (${c.mobile})` : '');
-                contractorSelect.appendChild(opt);
+            if (isSelected) {
+                card.classList.add('is-selected');
+                card.style.background = 'rgba(37, 99, 235, 0.22)';
+                card.style.borderColor = '#3B82F6';
+                card.style.boxShadow = '0 0 12px rgba(59, 130, 246, 0.35)';
+                if (checkCircle) {
+                    checkCircle.style.borderColor = '#3B82F6';
+                    checkCircle.style.background = '#2563EB';
+                }
+                if (checkIcon) checkIcon.style.display = 'block';
+            } else {
+                card.classList.remove('is-selected');
+                card.style.background = 'rgba(20, 27, 41, 0.65)';
+                card.style.borderColor = 'rgba(255, 255, 255, 0.10)';
+                card.style.boxShadow = 'none';
+                if (checkCircle) {
+                    checkCircle.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+                    checkCircle.style.background = 'transparent';
+                }
+                if (checkIcon) checkIcon.style.display = 'none';
+            }
+        };
 
-                if (preserveId && String(c.id) === String(preserveId)) {
-                    selectedValue = c.id;
-                } else if (!preserveId && contractorList.length === 1) {
-                    selectedValue = c.id;
+        window.syncAllContractorCardsFromSelect = function() {
+            const conSelect = document.getElementById('contractor_id');
+            if (!conSelect) return;
+            Array.from(conSelect.options).forEach(opt => {
+                if (opt.value) {
+                    syncSingleContractorCardUI(opt.value, opt.selected);
                 }
             });
+            updateContractorsSummary();
+        };
 
-            if (selectedValue) {
-                contractorSelect.value = selectedValue;
-            }
-        }
+        window.selectAllVisibleContractors = function() {
+            const conSelect = document.getElementById('contractor_id');
+            const cards = document.querySelectorAll('.contractor-card-item');
+            if (!conSelect) return;
 
-        async function onProjectChange() {
-            if (!projectSelect || !contractorSelect) return;
-            const selectedProjId = projectSelect.value;
-            const previousContractorId = contractorSelect.value;
-
-            if (!selectedProjId) {
-                populateAndAutoSelectContractors(allContractors);
-                return;
-            }
-
-            const localFiltered = allContractors.filter(c => String(c.project_id) === String(selectedProjId));
-            populateAndAutoSelectContractors(localFiltered, previousContractorId);
-
-            try {
-                const res = await fetch(`/projects/${selectedProjId}/contractors`);
-                if (res.ok) {
-                    const freshData = await res.json();
-                    populateAndAutoSelectContractors(freshData, contractorSelect.value);
-                }
-            } catch (err) {
-                console.log('Contractor fetch error:', err);
-            }
-        }
-
-        if (projectSelect) {
-            projectSelect.addEventListener('change', onProjectChange);
-        }
-
-        if (contractorSelect) {
-            contractorSelect.addEventListener('change', function() {
-                const opt = contractorSelect.options[contractorSelect.selectedIndex];
-                if (opt && opt.value) {
-                    const pId = opt.getAttribute('data-project-id');
-                    if (pId && (!projectSelect.value || projectSelect.value !== pId)) {
-                        projectSelect.value = pId;
+            cards.forEach(card => {
+                if (card.style.display !== 'none') {
+                    const id = card.dataset.id;
+                    let opt = Array.from(conSelect.options).find(o => o.value == id);
+                    if (!opt) {
+                        opt = document.createElement('option');
+                        opt.value = id;
+                        opt.text = card.querySelector('.con-name-el')?.innerText || 'Contractor #' + id;
+                        conSelect.appendChild(opt);
                     }
+                    opt.selected = true;
+                    syncSingleContractorCardUI(id, true);
                 }
             });
-        }
+            updateContractorsSummary();
+        };
 
-        // Initialize on load
-        const initialContractorId = "{{ old('contractor_id', $purchaseOrder->contractor_id) }}";
-        if (projectSelect && projectSelect.value) {
-            const initialFiltered = allContractors.filter(c => String(c.project_id) === String(projectSelect.value));
-            populateAndAutoSelectContractors(initialFiltered, initialContractorId);
-        } else if (initialContractorId) {
-            contractorSelect.value = initialContractorId;
-        }
+        window.clearSelectedContractors = function() {
+            const conSelect = document.getElementById('contractor_id');
+            if (!conSelect) return;
+            Array.from(conSelect.options).forEach(opt => {
+                opt.selected = false;
+                if (opt.value) syncSingleContractorCardUI(opt.value, false);
+            });
+            updateContractorsSummary();
+        };
+
+        window.filterContractorCardsBySearch = function() {
+            const searchInput = document.getElementById('contractor_search_input');
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            const projectSelect = document.getElementById('project_id');
+            const selectedProjId = projectSelect ? projectSelect.value : '';
+            const cards = document.querySelectorAll('.contractor-card-item');
+            const noMsg = document.getElementById('no_contractors_msg');
+
+            let visibleCount = 0;
+            cards.forEach(card => {
+                const projId = card.dataset.projectId || '';
+                const name = card.dataset.name || '';
+                const mobile = card.dataset.mobile || '';
+
+                const matchesProj = (!selectedProjId || projId === selectedProjId || !projId);
+                const matchesQuery = (!query || name.includes(query) || mobile.includes(query));
+
+                if (matchesProj && matchesQuery) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (noMsg) {
+                noMsg.style.display = (visibleCount === 0) ? 'block' : 'none';
+            }
+        };
+
+        window.filterContractorsByProject = function() {
+            filterContractorCardsBySearch();
+        };
+
+        window.updateContractorsSummary = function() {
+            const conSelect = document.getElementById('contractor_id');
+            const badge = document.getElementById('contractor_summary_badge');
+            const badgeText = document.getElementById('contractor_summary_text');
+            const badgePills = document.getElementById('contractor_summary_pills');
+            if (!conSelect || !badge) return;
+
+            const selectedOpts = Array.from(conSelect.selectedOptions).filter(o => o.value);
+            const count = selectedOpts.length;
+
+            if (count > 0) {
+                badge.style.display = 'flex';
+                badgeText.innerHTML = `<strong>${count} Contractor(s) Selected</strong>`;
+                let pillsHtml = '';
+                selectedOpts.forEach(opt => {
+                    const card = document.getElementById('contractor_card_' + opt.value);
+                    const name = card ? card.querySelector('.con-name-el').innerText : opt.text.trim();
+                    pillsHtml += `<span style="background: rgba(59, 130, 246, 0.25); border: 1px solid rgba(59, 130, 246, 0.45); padding: 2px 8px; border-radius: 6px; font-size: 11px; color: #E0F2FE;">${name}</span>`;
+                });
+                badgePills.innerHTML = pillsHtml;
+            } else {
+                badge.style.display = 'none';
+            }
+        };
+
+        // Initialize state on DOM load
+        syncAllContractorCardsFromSelect();
+        filterContractorCardsBySearch();
 
         // Run calculation once on load to populate the summary values
         calculateRowAndTotals();

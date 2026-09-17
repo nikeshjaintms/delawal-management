@@ -230,7 +230,19 @@
             <div class="detail-row"><span class="detail-label">PO Number</span><span class="detail-value">{{ $purchaseOrder->po_number }}</span></div>
             <div class="detail-row"><span class="detail-label">Firm</span><span class="detail-value">{{ $purchaseOrder->firm->firm_name ?? '-' }}</span></div>
             <div class="detail-row"><span class="detail-label">Project</span><span class="detail-value">{{ $purchaseOrder->project->project_name ?? '—' }}</span></div>
-            <div class="detail-row"><span class="detail-label">Contractor</span><span class="detail-value" style="color: #60A5FA; font-weight: 700;">{{ $purchaseOrder->contractor->contractor_name ?? '—' }}</span></div>
+            <div class="detail-row">
+                <span class="detail-label">Contractor(s)</span>
+                <span class="detail-value" style="color: #60A5FA; font-weight: 700;">
+                    @php $pCons = $purchaseOrder->all_contractors; @endphp
+                    @if($pCons->count() > 1)
+                        {{ $pCons->pluck('contractor_name')->implode(', ') }} ({{ $pCons->count() }} Contractors)
+                    @elseif($pCons->count() === 1)
+                        {{ $pCons->first()->contractor_name }}
+                    @else
+                        {{ $purchaseOrder->contractor->contractor_name ?? '—' }}
+                    @endif
+                </span>
+            </div>
             <div class="detail-row"><span class="detail-label">Status</span><span class="badge badge-{{ $purchaseOrder->status }}">{{ $purchaseOrder->status }}</span></div>
             <div class="detail-row"><span class="detail-label">Created By</span><span class="detail-value">{{ $purchaseOrder->creator->name ?? '-' }}</span></div>
         </div>

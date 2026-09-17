@@ -458,14 +458,16 @@ function filterProjectsByFirm() {
             opt.disabled = false;
             opt.hidden = false;
         } else {
-            opt.disabled = true;
-            opt.hidden = true;
-            opt.selected = false;
+            // Keep enabled if already selected, otherwise disable
+            if (!opt.selected) {
+                opt.disabled = true;
+                opt.hidden = true;
+            }
         }
     });
 
     if (window.jQuery && $(projSelect).data('select2')) {
-        $(projSelect).trigger('change');
+        $(projSelect).trigger('change.select2');
     }
 }
 

@@ -234,7 +234,7 @@
                 <label class="form-label" for="status">Status <span>*</span></label>
                 <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
                     <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ old('status', 'inactive') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                 </select>
                 @error('status') <div class="text-error">{{ $message }}</div> @enderror
             </div>

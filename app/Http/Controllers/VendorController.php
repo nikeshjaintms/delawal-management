@@ -47,14 +47,22 @@ class VendorController extends Controller
         }
 
         $vendors = $query->latest()->paginate(10)->withQueryString();
-        $projects = Project::where('status', 'active')->orderBy('project_name')->get();
+        $projects = Project::where(function ($q) {
+            $q->where('status', 'active')
+              ->orWhereRaw('LOWER(status) = ?', ['active'])
+              ->orWhereNull('status');
+        })->orderBy('project_name')->get();
 
         return view('admin.vendors.index', compact('vendors', 'projects'));
     }
 
     public function create()
     {
-        $projects = Project::where('status', 'active')->orderBy('project_name')->get();
+        $projects = Project::where(function ($q) {
+            $q->where('status', 'active')
+              ->orWhereRaw('LOWER(status) = ?', ['active'])
+              ->orWhereNull('status');
+        })->orderBy('project_name')->get();
         return view('admin.vendors.create', compact('projects'));
     }
 
@@ -178,7 +186,12 @@ class VendorController extends Controller
             abort(403);
         }
 
-        $projects = Project::where('status', 'active')->orderBy('project_name')->get();
+        $projects = Project::where(function ($q) use ($vendor) {
+            $q->where('status', 'active')
+              ->orWhereRaw('LOWER(status) = ?', ['active'])
+              ->orWhereNull('status')
+              ->orWhere('id', $vendor->project_id);
+        })->orderBy('project_name')->get();
 
         return view('admin.vendors.edit', compact('vendor', 'projects'));
     }
