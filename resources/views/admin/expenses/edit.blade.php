@@ -309,9 +309,9 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     @error('payment_mode')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="vendor_id">Paid To / Vendor <span class="opt">(Optional)</span></label>
+                    <label class="form-label" for="vendor_id">Vendor <span class="opt">(Optional)</span></label>
                     <select name="vendor_id" id="vendor_id" class="form-control @error('vendor_id') is-invalid @enderror">
-                        <option value="">— Select Registered Vendor / Payee —</option>
+                        <option value="">— Select Vendor (Optional) —</option>
                         @if(isset($vendors))
                             @foreach($vendors as $ven)
                                 <option value="{{ $ven->id }}"
@@ -324,7 +324,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                         @endif
                     </select>
                     @error('vendor_id')<div class="text-error">{{ $message }}</div>@enderror
-                    @error('paid_to')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
             <div class="form-row">

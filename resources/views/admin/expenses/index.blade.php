@@ -198,7 +198,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
             </select>
         </div>
         <div class="filter-group">
-            <span class="filter-label">Vendor / Payee</span>
+            <span class="filter-label">Vendor</span>
             <select name="filter_vendor" class="filter-control @error('filter_vendor') is-invalid @enderror">
                 <option value="">All Vendors</option>
                 @if(isset($vendors))
@@ -272,23 +272,23 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
             </div>
         </div>
 
-        <div style="background: rgba(139, 92, 246, 0.12); border: 1px solid rgba(139, 92, 246, 0.30); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(139, 92, 246, 0.20); color: #C4B5FD; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
-                <i class="fa-solid fa-file-invoice"></i>
+        <div style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.30); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(59, 130, 246, 0.20); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
             </div>
             <div>
-                <div style="font-size: 11px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">PO &amp; Material Purchases</div>
-                <div style="font-size: 20px; font-weight: 800; color: #C4B5FD; line-height: 1.2; margin-top: 2px;">₹{{ number_format($poExpensesTotal ?? 0, 2) }}</div>
+                <div style="font-size: 11px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Direct Expenses</div>
+                <div style="font-size: 20px; font-weight: 800; color: #60A5FA; line-height: 1.2; margin-top: 2px;">₹{{ number_format($directExpensesTotal ?? 0, 2) }}</div>
             </div>
         </div>
 
-        <div style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.30); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(59, 130, 246, 0.20); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
-                <i class="fa-solid fa-receipt"></i>
+        <div style="background: rgba(139, 92, 246, 0.12); border: 1px solid rgba(139, 92, 246, 0.30); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(139, 92, 246, 0.20); color: #A78BFA; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                <i class="fa-solid fa-cart-flatbed"></i>
             </div>
             <div>
-                <div style="font-size: 11px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Direct Site Expenses</div>
-                <div style="font-size: 20px; font-weight: 800; color: #60A5FA; line-height: 1.2; margin-top: 2px;">₹{{ number_format($directExpensesTotal ?? 0, 2) }}</div>
+                <div style="font-size: 11px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">PO Expenses</div>
+                <div style="font-size: 20px; font-weight: 800; color: #A78BFA; line-height: 1.2; margin-top: 2px;">₹{{ number_format($poExpensesTotal ?? 0, 2) }}</div>
             </div>
         </div>
 
@@ -315,7 +315,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     <th>Project / Property</th>
                     <th>Amount</th>
                     <th>Mode</th>
-                    <th>Paid To</th>
+                    <th>Vendor</th>
                     <th>Bill No</th>
                     <th style="text-align:center;">Status</th>
                     <th style="width:200px;">Action</th>
