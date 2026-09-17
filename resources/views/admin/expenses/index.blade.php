@@ -198,6 +198,19 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
             </select>
         </div>
         <div class="filter-group">
+            <span class="filter-label">Vendor / Payee</span>
+            <select name="filter_vendor" class="filter-control @error('filter_vendor') is-invalid @enderror">
+                <option value="">All Vendors</option>
+                @if(isset($vendors))
+                    @foreach($vendors as $ven)
+                        <option value="{{ $ven->id }}" {{ request('filter_vendor') == $ven->id ? 'selected' : '' }}>
+                            {{ $ven->name }}
+                        </option>
+                    @endforeach
+                @endif
+            </select>
+        </div>
+        <div class="filter-group">
             <span class="filter-label">Payment Mode</span>
             <select name="filter_mode" class="filter-control @error('filter_mode') is-invalid @enderror">
                 <option value="">All Modes</option>
@@ -220,21 +233,73 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
             <input type="date" name="filter_date" value="{{ request('filter_date') }}" class="filter-control @error('filter_date') is-invalid @enderror">
         </div>
         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-        @if(request()->hasAny(['search','filter_project','filter_property','filter_category','filter_mode','filter_status','filter_date','firm_id']))
+        @if(request()->hasAny(['search','filter_project','filter_property','filter_category','filter_vendor','filter_mode','filter_status','filter_date','firm_id']))
             <a href="{{ route('expenses.index') }}" class="btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset</a>
         @endif
     </form>
 
-    {{-- Total Amount Bar --}}
-    <div class="total-bar">
-        <i class="fa-solid fa-indian-rupee-sign" style="color:#FBBF24;font-size:18px;"></i>
-        <div>
-            <div class="total-label">Total Expense Amount</div>
-            <div class="total-amount">₹{{ number_format($totalAmount, 2) }}</div>
+    {{-- Project / Overall Expense KPI Breakdown Strip --}}
+    @if(isset($selectedProject) && $selectedProject)
+        <div style="background: rgba(37, 99, 235, 0.12); border: 1.5px solid rgba(59, 130, 246, 0.35); border-radius: 16px; padding: 14px 20px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(37, 99, 235, 0.25); display: flex; align-items: center; justify-content: center; color: #60A5FA; font-size: 18px;">
+                    <i class="fa-solid fa-city"></i>
+                </div>
+                <div>
+                    <div style="font-size: 11px; font-weight: 800; color: #93C5FD; text-transform: uppercase; letter-spacing: 0.8px;">Viewing Project Expense Ledger</div>
+                    <div style="font-size: 18px; font-weight: 800; color: #FFFFFF;">{{ $selectedProject->project_name }} ({{ $selectedProject->project_code }})</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a href="{{ route('projects.show', $selectedProject->id) }}" class="btn-gold" style="padding: 7px 14px; font-size: 12.5px; background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.20) !important;">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Project Details
+                </a>
+                <a href="{{ route('expenses.create', ['project_id' => $selectedProject->id]) }}" class="btn-gold" style="padding: 7px 14px; font-size: 12.5px;">
+                    <i class="fa-solid fa-plus"></i> Add Project Expense
+                </a>
+            </div>
         </div>
-        <div class="rec-count">
-            <i class="fa-solid fa-list-ul" style="color:#CBD5E1;"></i>
-            {{ $expenses->total() }} record{{ $expenses->total() != 1 ? 's' : '' }} found
+    @endif
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 24px;">
+        <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.30); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(245, 158, 11, 0.20); color: #FBBF24; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                <i class="fa-solid fa-calculator"></i>
+            </div>
+            <div>
+                <div style="font-size: 11px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Total Expenses</div>
+                <div style="font-size: 20px; font-weight: 800; color: #FBBF24; line-height: 1.2; margin-top: 2px;">₹{{ number_format($totalAmount, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(139, 92, 246, 0.12); border: 1px solid rgba(139, 92, 246, 0.30); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(139, 92, 246, 0.20); color: #C4B5FD; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                <i class="fa-solid fa-file-invoice"></i>
+            </div>
+            <div>
+                <div style="font-size: 11px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">PO &amp; Material Purchases</div>
+                <div style="font-size: 20px; font-weight: 800; color: #C4B5FD; line-height: 1.2; margin-top: 2px;">₹{{ number_format($poExpensesTotal ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.30); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(59, 130, 246, 0.20); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                <i class="fa-solid fa-receipt"></i>
+            </div>
+            <div>
+                <div style="font-size: 11px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Direct Site Expenses</div>
+                <div style="font-size: 20px; font-weight: 800; color: #60A5FA; line-height: 1.2; margin-top: 2px;">₹{{ number_format($directExpensesTotal ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.30); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(16, 185, 129, 0.20); color: #34D399; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div>
+                <div style="font-size: 11px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Approved ({{ $expenses->total() }} Rec)</div>
+                <div style="font-size: 20px; font-weight: 800; color: #34D399; line-height: 1.2; margin-top: 2px;">₹{{ number_format($approvedAmount ?? 0, 2) }}</div>
+            </div>
         </div>
     </div>
 
@@ -264,6 +329,15 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     <td style="color:#CBD5E1;">{{ \Carbon\Carbon::parse($expense->expense_date)->format('d M Y') }}</td>
                     <td>
                         <div class="expense-title">{{ $expense->expense_title }}</div>
+                        @if($expense->purchase_order_id && $expense->purchaseOrder)
+                            <div style="margin-top: 4px;">
+                                <a href="{{ route('purchase-orders.show', $expense->purchase_order_id) }}" 
+                                   style="background: rgba(139, 92, 246, 0.20); color: #C4B5FD; border: 1px solid rgba(139, 92, 246, 0.40); padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"
+                                   title="View linked Purchase Order">
+                                    <i class="fa-solid fa-file-invoice"></i> PO: {{ $expense->purchaseOrder->po_number }}
+                                </a>
+                            </div>
+                        @endif
                         @if($expense->remarks)
                             <div style="font-size:11.5px;color:#94A3B8;margin-top:2px;">
                                 {{ \Illuminate\Support\Str::limit($expense->remarks, 40) }}
@@ -304,7 +378,18 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                             <span style="color:#94A3B8;">—</span>
                         @endif
                     </td>
-                    <td style="color:#CBD5E1;">{{ $expense->paid_to ?? '—' }}</td>
+                    <td style="color:#CBD5E1;">
+                        @if($expense->vendor)
+                            <a href="{{ route('vendors.show', $expense->vendor_id) }}" style="color:#60A5FA; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="View Vendor Profile">
+                                <i class="fa-solid fa-building-user" style="font-size:11px;"></i> {{ $expense->vendor->name }}
+                            </a>
+                            @if($expense->paid_to && $expense->paid_to !== $expense->vendor->name)
+                                <div style="font-size:11px; color:#94A3B8;">({{ $expense->paid_to }})</div>
+                            @endif
+                        @else
+                            {{ $expense->paid_to ?? '—' }}
+                        @endif
+                    </td>
                     <td>
                         @if($expense->bill_no)
                             <span class="bill-chip">{{ $expense->bill_no }}</span>

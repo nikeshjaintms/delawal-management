@@ -35,12 +35,14 @@ class PurchaseOrderController extends Controller
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
         $vendorQuery     = Vendor::where('status', 'active')->orderBy('name');
+        $sellerQuery     = \App\Models\Seller::where('status', 'active')->orderBy('name');
         $materialQuery   = Material::where('status', 'active')->orderBy('material_name');
         $projectQuery    = Project::with('propertyMaster')->orderBy('project_name');
         $contractorQuery = Contractor::with('project')->where('status', 'active')->orderBy('contractor_name');
 
         if ($firmId && (!$user || !$user->isAdmin())) {
             $vendorQuery->where('firm_id', $firmId);
+            $sellerQuery->where('firm_id', $firmId);
             $materialQuery->where('firm_id', $firmId);
             $projectQuery->where('firm_id', $firmId);
             $contractorQuery->where('firm_id', $firmId);
@@ -49,6 +51,7 @@ class PurchaseOrderController extends Controller
         return [
             'firms'       => $firms,
             'vendors'     => $vendorQuery->get(),
+            'sellers'     => $sellerQuery->get(),
             'materials'   => $materialQuery->get(),
             'projects'    => $projectQuery->get(),
             'contractors' => $contractorQuery->get(),
@@ -57,7 +60,7 @@ class PurchaseOrderController extends Controller
 
     public function index(Request $request)
     {
-        $query = PurchaseOrder::with(['firm', 'vendor', 'contractor', 'contractors', 'creator', 'project.propertyMaster']);
+        $query = PurchaseOrder::with(['firm', 'vendor', 'seller', 'contractor', 'contractors', 'creator', 'project.propertyMaster']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -73,6 +76,7 @@ class PurchaseOrderController extends Controller
             $s = $request->search;
             $query->where(function ($q) use ($s) {
                 $q->where('po_number', 'like', "%{$s}%")
+                  ->orWhere('supplier_name', 'like', "%{$s}%")
                   ->orWhere('status', 'like', "%{$s}%")
                   ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
@@ -136,6 +140,8 @@ class PurchaseOrderController extends Controller
             'contractor_ids'   => 'nullable|array',
             'contractor_ids.*' => 'exists:contractors,id',
             'vendor_id'        => 'required|exists:vendors,id',
+            'seller_id'        => 'nullable|exists:sellers,id',
+            'supplier_name'    => 'nullable|string|max:255',
             'po_date'          => 'required|date',
             'delivery_date'    => 'nullable|date|after_or_equal:po_date',
             'status'           => 'required|in:Draft,Pending,Approved,Ordered,Received,Cancelled',
@@ -168,12 +174,22 @@ class PurchaseOrderController extends Controller
                 }
             }
 
+            $supplierName = $request->supplier_name;
+            if ($request->filled('seller_id') && empty($supplierName)) {
+                $seller = \App\Models\Seller::find($request->seller_id);
+                if ($seller) {
+                    $supplierName = $seller->name;
+                }
+            }
+
             $po = PurchaseOrder::create([
                 'firm_id'         => $request->firm_id,
                 'project_id'      => $projectId ?: null,
                 'contractor_id'   => $primaryContractorId,
                 'po_number'       => $poNumber,
                 'vendor_id'       => $request->vendor_id,
+                'seller_id'       => $request->seller_id ?: null,
+                'supplier_name'   => $supplierName,
                 'po_date'         => $request->po_date,
                 'delivery_date'   => $request->delivery_date,
                 'status'          => $request->status,
@@ -257,8 +273,11 @@ class PurchaseOrderController extends Controller
                 'grand_total'     => $grandTotal,
             ]);
 
+            // Automatically sync with Project Expenses
+            $po->syncToExpense();
+
             DB::commit();
-            return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order created successfully.');
+            return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order created and synced to Project Expenses.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->with('error', 'Failed to create Purchase Order: ' . $e->getMessage());
@@ -268,21 +287,21 @@ class PurchaseOrderController extends Controller
     public function show(PurchaseOrder $purchaseOrder)
     {
         $this->authorise($purchaseOrder);
-        $purchaseOrder->load(['firm', 'vendor', 'contractor', 'contractors', 'creator', 'project.propertyMaster', 'items.material']);
+        $purchaseOrder->load(['firm', 'vendor', 'seller', 'contractor', 'contractors', 'creator', 'project.propertyMaster', 'items.material']);
         return view('admin.purchase-orders.show', compact('purchaseOrder'));
     }
 
     public function print(PurchaseOrder $purchaseOrder)
     {
         $this->authorise($purchaseOrder);
-        $purchaseOrder->load(['firm', 'vendor', 'contractor', 'contractors', 'creator', 'project.propertyMaster', 'items.material']);
+        $purchaseOrder->load(['firm', 'vendor', 'seller', 'contractor', 'contractors', 'creator', 'project.propertyMaster', 'items.material']);
         return view('admin.purchase-orders.show', compact('purchaseOrder'))->with('printMode', true);
     }
 
     public function edit(PurchaseOrder $purchaseOrder)
     {
         $this->authorise($purchaseOrder);
-        $purchaseOrder->load(['items.material', 'contractors', 'contractor']);
+        $purchaseOrder->load(['items.material', 'contractors', 'contractor', 'seller', 'vendor']);
         $dropdowns = $this->dropdowns($purchaseOrder->firm_id);
         return view('admin.purchase-orders.edit', array_merge(['purchaseOrder' => $purchaseOrder], $dropdowns));
     }
@@ -302,6 +321,8 @@ class PurchaseOrderController extends Controller
             'contractor_ids'   => 'nullable|array',
             'contractor_ids.*' => 'exists:contractors,id',
             'vendor_id'        => 'required|exists:vendors,id',
+            'seller_id'        => 'nullable|exists:sellers,id',
+            'supplier_name'    => 'nullable|string|max:255',
             'po_date'          => 'required|date',
             'delivery_date'    => 'nullable|date|after_or_equal:po_date',
             'status'           => 'required|in:Draft,Pending,Approved,Ordered,Received,Cancelled',
@@ -323,11 +344,21 @@ class PurchaseOrderController extends Controller
                 }
             }
 
+            $supplierName = $request->supplier_name;
+            if ($request->filled('seller_id') && empty($supplierName)) {
+                $seller = \App\Models\Seller::find($request->seller_id);
+                if ($seller) {
+                    $supplierName = $seller->name;
+                }
+            }
+
             $purchaseOrder->update([
                 'firm_id'       => $request->firm_id,
                 'project_id'    => $projectId ?: null,
                 'contractor_id' => $primaryContractorId,
                 'vendor_id'     => $request->vendor_id,
+                'seller_id'     => $request->seller_id ?: null,
+                'supplier_name' => $supplierName,
                 'po_date'       => $request->po_date,
                 'delivery_date' => $request->delivery_date,
                 'status'        => $request->status,
@@ -403,8 +434,11 @@ class PurchaseOrderController extends Controller
                 'grand_total'     => $grandTotal,
             ]);
 
+            // Automatically sync with Project Expenses
+            $purchaseOrder->syncToExpense();
+
             DB::commit();
-            return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order updated successfully.');
+            return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order updated and synced to Project Expenses.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->with('error', 'Failed to update Purchase Order: ' . $e->getMessage());

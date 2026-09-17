@@ -66,14 +66,9 @@ class PermissionsSeeder extends Seeder
             }
         }
 
-        // Clear existing permissions to avoid duplicates
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('permissions')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        
-        // Insert in chunks to avoid memory issues
+        // Insert in chunks safely without truncating existing data
         foreach (array_chunk($permissions, 100) as $chunk) {
-            DB::table('permissions')->insert($chunk);
+            DB::table('permissions')->insertOrIgnore($chunk);
         }
 
         $this->command->info('Permissions seeded successfully!');

@@ -140,9 +140,9 @@ input[type=number] {
             </div>
 
             <div class="form-group">
-                <label class="form-label">Supplier / Vendor <span style="color:#F87171;">*</span></label>
+                <label class="form-label">Vendor <span style="color:#F87171;">*</span></label>
                 <select name="vendor_id" id="vendor_id" class="form-control" required>
-                    <option value="">Select Supplier</option>
+                    <option value="">Select Vendor</option>
                     @foreach($vendors as $vendor)
                         <option value="{{ $vendor->id }}" data-state="{{ $vendor->state ?? '' }}" {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>{{ $vendor->name }}</option>
                     @endforeach
@@ -151,19 +151,37 @@ input[type=number] {
             </div>
 
             <div class="form-group">
-                <label class="form-label">PO Date <span style="color:#F87171;">*</span></label>
-                <input type="date" name="po_date" id="po_date" class="form-control" value="{{ old('po_date', date('Y-m-d')) }}" required>
-                @error('po_date') <span class="text-error show">{{ $message }}</span> @enderror
+                <label class="form-label" for="seller_id">Seller / Supplier Store <span style="color:#94A3B8; font-size:11.5px; font-weight:normal;">(Optional)</span></label>
+                <select name="seller_id" id="seller_id" class="form-control">
+                    <option value="">— Select Seller / Store (Optional) —</option>
+                    @if(isset($sellers))
+                        @foreach($sellers as $sel)
+                            <option value="{{ $sel->id }}"
+                                    data-name="{{ $sel->name }}"
+                                    data-firm-id="{{ $sel->firm_id }}"
+                                    {{ old('seller_id') == $sel->id ? 'selected' : '' }}>
+                                {{ $sel->name }} {{ $sel->mobile ? '· ('.$sel->mobile.')' : '' }} {{ $sel->seller_type ? '· ['.$sel->seller_type.']' : '' }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+                @error('seller_id') <span class="text-error show">{{ $message }}</span> @enderror
             </div>
         </div>
 
         <div class="form-grid">
             <div class="form-group">
+                <label class="form-label">PO Date <span style="color:#F87171;">*</span></label>
+                <input type="date" name="po_date" id="po_date" class="form-control" value="{{ old('po_date', date('Y-m-d')) }}" required>
+                @error('po_date') <span class="text-error show">{{ $message }}</span> @enderror
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">Project</label>
                 <select name="project_id" id="project_id" class="form-control" onchange="filterContractorsByProject()">
                     <option value="">Select Project (Optional)</option>
                     @foreach($projects as $proj)
-                        <option value="{{ $proj->id }}" {{ old('project_id') == $proj->id ? 'selected' : '' }}>{{ $proj->project_name }} ({{ $proj->propertyMaster->property_name ?? 'Property' }})</option>
+                        <option value="{{ $proj->id }}" {{ old('project_id', $selectedProjectId ?? request('project_id', '')) == $proj->id ? 'selected' : '' }}>{{ $proj->project_name }} ({{ $proj->propertyMaster->property_name ?? 'Property' }})</option>
                     @endforeach
                 </select>
                 @error('project_id') <span class="text-error show">{{ $message }}</span> @enderror
@@ -174,7 +192,9 @@ input[type=number] {
                 <input type="date" name="delivery_date" id="delivery_date" class="form-control" value="{{ old('delivery_date') }}">
                 @error('delivery_date') <span class="text-error show">{{ $message }}</span> @enderror
             </div>
+        </div>
 
+        <div class="form-grid" style="grid-template-columns: 1fr 2fr;">
             <div class="form-group">
                 <label class="form-label">Status <span style="color:#F87171;">*</span></label>
                 <select name="status" class="form-control" required>
@@ -394,6 +414,58 @@ input[type=number] {
 </form>
 
 <script>
+    function toggleCustomSupplierMode() {
+        const dropdownWrap = document.getElementById('seller_dropdown_wrapper');
+        const customWrap = document.getElementById('custom_supplier_wrapper');
+        const sellerSelect = document.getElementById('seller_id');
+        const customInput = document.getElementById('supplier_name');
+
+        if (!dropdownWrap || !customWrap) return;
+
+        if (customWrap.style.display === 'none' || customWrap.style.display === '') {
+            dropdownWrap.style.display = 'none';
+            customWrap.style.display = 'block';
+            if (sellerSelect) sellerSelect.value = '__custom__';
+            if (customInput) customInput.focus();
+        } else {
+            switchToSellerDropdown();
+        }
+    }
+
+    function switchToSellerDropdown() {
+        const dropdownWrap = document.getElementById('seller_dropdown_wrapper');
+        const customWrap = document.getElementById('custom_supplier_wrapper');
+        const sellerSelect = document.getElementById('seller_id');
+        const customInput = document.getElementById('supplier_name');
+
+        if (dropdownWrap && customWrap) {
+            customWrap.style.display = 'none';
+            dropdownWrap.style.display = 'block';
+            if (sellerSelect && sellerSelect.value === '__custom__') {
+                sellerSelect.value = '';
+            }
+            if (customInput) customInput.value = '';
+        }
+    }
+
+    function handleSellerSelect(select) {
+        const customWrap = document.getElementById('custom_supplier_wrapper');
+        const customInput = document.getElementById('supplier_name');
+
+        if (select.value === '__custom__') {
+            toggleCustomSupplierMode();
+        } else if (select.value) {
+            if (customWrap) customWrap.style.display = 'none';
+            const opt = select.options[select.selectedIndex];
+            if (customInput && opt) {
+                customInput.value = opt.getAttribute('data-name') || '';
+            }
+        } else {
+            if (customWrap) customWrap.style.display = 'none';
+            if (customInput) customInput.value = '';
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         let rowCount = {{ count($oldItems) }};
         const itemRows = document.getElementById('item-rows');

@@ -163,11 +163,37 @@ class ProjectController extends Controller
             'properties.bookingsList.customer',
             'contractors',
             'vendors',
+            'expenses' => function ($q) {
+                $q->with(['expenseCategory', 'purchaseOrder.vendor'])->orderBy('expense_date', 'desc')->orderBy('id', 'desc');
+            },
+            'purchaseOrders' => function ($q) {
+                $q->with(['vendor', 'items'])->orderBy('po_date', 'desc')->orderBy('id', 'desc');
+            },
         ]);
 
         $project->setRelation('properties', Property::naturalSort($project->properties));
 
-        return view('admin.projects.show', compact('project'));
+        $projectExpenses = $project->expenses;
+        $totalExpenses = (float) $projectExpenses->sum('amount');
+        $poExpensesTotal = (float) $projectExpenses->whereNotNull('purchase_order_id')->sum('amount');
+        $directExpensesTotal = (float) $projectExpenses->whereNull('purchase_order_id')->sum('amount');
+        $approvedExpensesTotal = (float) $projectExpenses->where('approval_status', 'Approved')->sum('amount');
+        $pendingExpensesTotal = (float) $projectExpenses->where('approval_status', 'Pending')->sum('amount');
+
+        $projectPOs = $project->purchaseOrders;
+        $poTotalAmount = (float) $projectPOs->sum('grand_total');
+
+        return view('admin.projects.show', compact(
+            'project',
+            'projectExpenses',
+            'totalExpenses',
+            'poExpensesTotal',
+            'directExpensesTotal',
+            'approvedExpensesTotal',
+            'pendingExpensesTotal',
+            'projectPOs',
+            'poTotalAmount'
+        ));
     }
 
     public function edit(Project $project)
@@ -457,6 +483,10 @@ class ProjectController extends Controller
             'properties.propertyType',
             'properties.propertyMaster',
             'contractors',
+            'expenses' => function ($q) {
+                $q->with(['expenseCategory', 'purchaseOrder.vendor'])->orderBy('expense_date', 'desc');
+            },
+            'purchaseOrders.vendor',
         ]);
 
         $project->setRelation('properties', Property::naturalSort($project->properties));
@@ -468,8 +498,14 @@ class ProjectController extends Controller
         $totalValue = $project->properties->sum('price');
         $totalArea = $project->properties->sum('size');
 
+        $projectExpenses = $project->expenses;
+        $totalExpenses = (float) $projectExpenses->sum('amount');
+        $poExpensesTotal = (float) $projectExpenses->whereNotNull('purchase_order_id')->sum('amount');
+        $directExpensesTotal = (float) $projectExpenses->whereNull('purchase_order_id')->sum('amount');
+
         return view('admin.projects.show-pdf', compact(
-            'project', 'totalPlots', 'availablePlots', 'bookedPlots', 'soldPlots', 'totalValue', 'totalArea'
+            'project', 'totalPlots', 'availablePlots', 'bookedPlots', 'soldPlots', 'totalValue', 'totalArea',
+            'projectExpenses', 'totalExpenses', 'poExpensesTotal', 'directExpensesTotal'
         ));
     }
 

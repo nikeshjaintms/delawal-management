@@ -11,12 +11,12 @@ use App\Models\PropertyMaster;
 use App\Models\PurchaseOrder;
 use App\Models\User;
 use App\Models\Vendor;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
 class PurchaseOrderMultiContractorTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     private User $admin;
     private Firm $firm;

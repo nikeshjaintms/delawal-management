@@ -107,6 +107,31 @@ class Project extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'project_id');
+    }
+
+    public function purchaseOrders()
+    {
+        return $this->hasMany(PurchaseOrder::class, 'project_id');
+    }
+
+    public function getTotalExpensesAttribute(): float
+    {
+        return (float) ($this->expenses()->sum('amount') ?? 0);
+    }
+
+    public function getPoExpensesTotalAttribute(): float
+    {
+        return (float) ($this->expenses()->whereNotNull('purchase_order_id')->sum('amount') ?? 0);
+    }
+
+    public function getDirectExpensesTotalAttribute(): float
+    {
+        return (float) ($this->expenses()->whereNull('purchase_order_id')->sum('amount') ?? 0);
+    }
+
     /**
      * Get property address dynamically from parent PropertyMaster.
      */

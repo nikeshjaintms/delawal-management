@@ -55,11 +55,14 @@ return new class extends Migration {
             'users'                => 'App\\Models\\User',
         ];
 
+        $insertClause = DB::getDriverName() === 'sqlite' ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
+        $nowClause = DB::getDriverName() === 'sqlite' ? "datetime('now')" : "NOW()";
+
         foreach ($tablesToModels as $tableName => $modelClass) {
             if (Schema::hasTable($tableName) && Schema::hasColumn($tableName, 'firm_id')) {
                 DB::statement("
-                    INSERT IGNORE INTO firmables (firm_id, firmable_id, firmable_type, created_at, updated_at)
-                    SELECT firm_id, id, ?, NOW(), NOW()
+                    {$insertClause} INTO firmables (firm_id, firmable_id, firmable_type, created_at, updated_at)
+                    SELECT firm_id, id, ?, {$nowClause}, {$nowClause}
                     FROM {$tableName}
                     WHERE firm_id IS NOT NULL
                 ", [$modelClass]);

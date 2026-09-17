@@ -109,11 +109,16 @@
 
         <div class="info-grid">
             <div class="info-box">
-                <div class="info-title">Supplier Details</div>
-                <div class="info-row"><span class="info-label">Name:</span><span class="info-value">{{ $purchaseOrder->vendor->name ?? '-' }}</span></div>
+                <div class="info-title">Vendor &amp; Supplier Details</div>
+                <div class="info-row"><span class="info-label">Vendor:</span><span class="info-value"><strong>{{ $purchaseOrder->vendor->name ?? '-' }}</strong></span></div>
+                @if($purchaseOrder->seller)
+                    <div class="info-row"><span class="info-label">Seller:</span><span class="info-value"><strong>{{ $purchaseOrder->seller->name }}</strong>{{ $purchaseOrder->seller->mobile ? ' ('.$purchaseOrder->seller->mobile.')' : '' }}</span></div>
+                @elseif($purchaseOrder->supplier_name)
+                    <div class="info-row"><span class="info-label">Supplier / Store:</span><span class="info-value">{{ $purchaseOrder->supplier_name }}</span></div>
+                @endif
                 <div class="info-row"><span class="info-label">GSTIN:</span><span class="info-value">{{ $purchaseOrder->vendor->gst_no ?? 'N/A' }}</span></div>
                 <div class="info-row"><span class="info-label">Mobile:</span><span class="info-value">{{ $purchaseOrder->vendor->mobile ?? '-' }}</span></div>
-                <div class="info-row"><span class="info-label">Address:</span><span class="info-value">{{ $purchaseOrder->vendor->address ?? '-' }}, {{ $purchaseOrder->vendor->city ?? '' }}</span></div>
+                <div class="info-row"><span class="info-label">Address:</span><span class="info-value">{{ $purchaseOrder->vendor->address ?? '-' }}{{ $purchaseOrder->vendor->city ? ', '.$purchaseOrder->vendor->city : '' }}</span></div>
             </div>
             <div class="info-box">
                 <div class="info-title">Order &amp; Contractor Details</div>

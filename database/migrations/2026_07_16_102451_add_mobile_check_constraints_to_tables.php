@@ -12,10 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Enforce CHECK constraints for 10-digit numeric format on SQLite or MySQL
+        // Enforce CHECK constraints for 10-digit numeric format on MySQL
         $driver = DB::getDriverName();
 
-        if ($driver === 'mysql' || $driver === 'sqlite') {
+        if ($driver === 'mysql') {
             // Firms table
             DB::statement("ALTER TABLE firms ADD CONSTRAINT chk_firm_mobile CHECK (mobile REGEXP '^[0-9]{10}$');");
             DB::statement("ALTER TABLE firms ADD CONSTRAINT chk_firm_alt_mobile CHECK (alternate_mobile IS NULL OR alternate_mobile REGEXP '^[0-9]{10}$');");
@@ -44,7 +44,7 @@ return new class extends Migration
     {
         $driver = DB::getDriverName();
 
-        if ($driver === 'mysql' || $driver === 'sqlite') {
+        if ($driver === 'mysql') {
             DB::statement("ALTER TABLE firms DROP CONSTRAINT chk_firm_mobile;");
             DB::statement("ALTER TABLE firms DROP CONSTRAINT chk_firm_alt_mobile;");
             DB::statement("ALTER TABLE customers DROP CONSTRAINT chk_customer_mobile;");

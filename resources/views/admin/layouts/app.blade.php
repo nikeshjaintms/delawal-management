@@ -2339,48 +2339,40 @@
                 @endif
 
                 @if($authUser->hasPermission('inventory_view'))
-                <li class="submenu-item">
-                    <a href="javascript:void(0);" class="submenu-link nested-submenu-toggle" style="padding-left: 20px;">
-                        <i class="fa-solid fa-boxes-stacked"></i><span>Property Inventory</span>
-                        <i class="fa-solid fa-chevron-right submenu-arrow"></i>
-                    </a>
-                    <ul class="submenu-list nested-submenu-list" style="display: none; padding-left: 15px;">
-                        @if($authUser->hasPermission('vendor_view'))
-                        <li class="submenu-item">
-                            <a href="{{ route('vendors.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'vendors.') ? 'active' : '' }}">
-                                <i class="fa-solid fa-truck-field"></i><span>Vendor Master</span>
-                            </a>
-                        </li>
-                        @endif
-                        <li class="submenu-item">
-                            <a href="{{ route('materials.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'materials.') ? 'active' : '' }}">
-                                <i class="fa-solid fa-box"></i><span>Material Master</span>
-                            </a>
-                        </li>
-                        @if($authUser->hasPermission('purchase_order_view'))
-                        <li class="submenu-item">
-                            <a href="{{ route('purchase-orders.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'purchase-orders.') ? 'active' : '' }}">
-                                <i class="fa-solid fa-file-invoice"></i><span>Purchase Order</span>
-                            </a>
-                        </li>
-                        @endif
-                        <li class="submenu-item">
-                            <a href="{{ route('stock-inwards.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'stock-inwards.') ? 'active' : '' }}">
-                                <i class="fa-solid fa-arrow-down-to-bracket"></i><span>Stock Inward</span>
-                            </a>
-                        </li>
-                        <li class="submenu-item">
-                            <a href="{{ route('stock-outwards.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'stock-outwards.') ? 'active' : '' }}">
-                                <i class="fa-solid fa-arrow-up-from-bracket"></i><span>Stock Outward</span>
-                            </a>
-                        </li>
-                        <li class="submenu-item">
-                            <a href="{{ route('stock-report.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'stock-report.') ? 'active' : '' }}">
-                                <i class="fa-solid fa-chart-bar"></i><span>Current Stock Report</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                    @if($authUser->hasPermission('vendor_view'))
+                    <li class="submenu-item">
+                        <a href="{{ route('vendors.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'vendors.') ? 'active' : '' }}">
+                            <i class="fa-solid fa-truck-field"></i><span>Vendor Master</span>
+                        </a>
+                    </li>
+                    @endif
+                    <li class="submenu-item">
+                        <a href="{{ route('materials.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'materials.') ? 'active' : '' }}">
+                            <i class="fa-solid fa-box"></i><span>Material Master</span>
+                        </a>
+                    </li>
+                    @if($authUser->hasPermission('purchase_order_view'))
+                    <li class="submenu-item">
+                        <a href="{{ route('purchase-orders.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'purchase-orders.') ? 'active' : '' }}">
+                            <i class="fa-solid fa-file-invoice"></i><span>Purchase Order</span>
+                        </a>
+                    </li>
+                    @endif
+                    <li class="submenu-item">
+                        <a href="{{ route('stock-inwards.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'stock-inwards.') ? 'active' : '' }}">
+                            <i class="fa-solid fa-arrow-down-to-bracket"></i><span>Stock Inward</span>
+                        </a>
+                    </li>
+                    <li class="submenu-item">
+                        <a href="{{ route('stock-outwards.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'stock-outwards.') ? 'active' : '' }}">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i><span>Stock Outward</span>
+                        </a>
+                    </li>
+                    <li class="submenu-item">
+                        <a href="{{ route('stock-report.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'stock-report.') ? 'active' : '' }}">
+                            <i class="fa-solid fa-chart-bar"></i><span>Current Stock Report</span>
+                        </a>
+                    </li>
                 @endif
             </ul>
         </li>

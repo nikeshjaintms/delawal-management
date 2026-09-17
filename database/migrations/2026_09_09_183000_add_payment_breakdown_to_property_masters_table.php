@@ -25,8 +25,8 @@ return new class extends Migration
             // Initialize existing records
             DB::statement("
                 UPDATE property_masters
-                SET paid_amount = IF(payment_status = 'paid' OR payment_status IS NULL, purchase_price, 0),
-                    due_amount = IF(payment_status = 'paid' OR payment_status IS NULL, 0, purchase_price)
+                SET paid_amount = CASE WHEN payment_status = 'paid' OR payment_status IS NULL THEN purchase_price ELSE 0 END,
+                    due_amount = CASE WHEN payment_status = 'paid' OR payment_status IS NULL THEN 0 ELSE purchase_price END
                 WHERE purchase_price > 0
             ");
         }

@@ -309,10 +309,21 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     @error('payment_mode')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="paid_to">Paid To</label>
-                    <input type="text" name="paid_to" id="paid_to"
-                           value="{{ old('paid_to', $expense->paid_to) }}"
-                           class="form-control" placeholder="Vendor / person name">
+                    <label class="form-label" for="vendor_id">Paid To / Vendor <span class="opt">(Optional)</span></label>
+                    <select name="vendor_id" id="vendor_id" class="form-control @error('vendor_id') is-invalid @enderror">
+                        <option value="">— Select Registered Vendor / Payee —</option>
+                        @if(isset($vendors))
+                            @foreach($vendors as $ven)
+                                <option value="{{ $ven->id }}"
+                                        data-name="{{ $ven->name }}"
+                                        data-firm-id="{{ $ven->firm_id }}"
+                                        {{ old('vendor_id', $expense->vendor_id) == $ven->id ? 'selected' : '' }}>
+                                    {{ $ven->name }} {{ $ven->mobile ? '· ('.$ven->mobile.')' : '' }} {{ $ven->city ? '· ['.$ven->city.']' : '' }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                    @error('vendor_id')<div class="text-error">{{ $message }}</div>@enderror
                     @error('paid_to')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
@@ -446,6 +457,77 @@ function handleCategorySelect(select) {
     if (select.value === '__new__') {
         toggleCategoryMode();
     }
+}
+
+function handleVendorSelect(select) {
+    if (select.value === '__custom__') {
+        toggleCustomVendorMode();
+    } else {
+        const selectedOption = select.options[select.selectedIndex];
+        const vendorName = selectedOption && selectedOption.value ? (selectedOption.getAttribute('data-name') || '') : '';
+        const hiddenPaidTo = document.getElementById('paid_to_hidden');
+        if (hiddenPaidTo) {
+            hiddenPaidTo.value = vendorName;
+        }
+    }
+}
+
+function toggleCustomVendorMode() {
+    const selectWrapper = document.getElementById('vendor_select_wrapper');
+    const customWrapper = document.getElementById('vendor_custom_wrapper');
+    const toggleBtn     = document.getElementById('toggle_custom_vendor_btn');
+    const selectEl      = document.getElementById('vendor_id');
+    const hiddenInput   = document.getElementById('paid_to_hidden');
+    const customInput   = document.getElementById('paid_to_custom');
+
+    if (!selectWrapper || !customWrapper) return;
+
+    if (customWrapper.style.display === 'none' || customWrapper.style.display === '') {
+        selectWrapper.style.display = 'none';
+        customWrapper.style.display = 'block';
+        if (toggleBtn) {
+            toggleBtn.innerHTML = '<i class="fa-solid fa-list"></i> Select From List';
+        }
+        if (hiddenInput) hiddenInput.disabled = true;
+        if (customInput) {
+            customInput.disabled = false;
+            if (selectEl && selectEl.value && selectEl.value !== '__custom__') {
+                const opt = selectEl.options[selectEl.selectedIndex];
+                if (opt && opt.getAttribute('data-name')) {
+                    customInput.value = opt.getAttribute('data-name');
+                }
+            }
+            customInput.focus();
+        }
+        if (selectEl) selectEl.value = '';
+    } else {
+        switchToVendorDropdown();
+    }
+}
+
+function switchToVendorDropdown() {
+    const selectWrapper = document.getElementById('vendor_select_wrapper');
+    const customWrapper = document.getElementById('vendor_custom_wrapper');
+    const toggleBtn     = document.getElementById('toggle_custom_vendor_btn');
+    const selectEl      = document.getElementById('vendor_id');
+    const hiddenInput   = document.getElementById('paid_to_hidden');
+    const customInput   = document.getElementById('paid_to_custom');
+
+    if (!selectWrapper || !customWrapper) return;
+
+    customWrapper.style.display = 'none';
+    selectWrapper.style.display = 'block';
+    if (toggleBtn) {
+        toggleBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Type Custom';
+    }
+    if (customInput) {
+        customInput.disabled = true;
+    }
+    if (hiddenInput) {
+        hiddenInput.disabled = false;
+        hiddenInput.value = '';
+    }
+    if (selectEl) selectEl.value = '';
 }
 
 document.addEventListener('DOMContentLoaded', function() {

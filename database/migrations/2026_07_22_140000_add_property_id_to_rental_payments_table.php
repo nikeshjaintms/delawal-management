@@ -17,12 +17,19 @@ return new class extends Migration
             $table->foreign('property_id')->references('id')->on('properties')->onDelete('set null');
         });
 
-        // Backfill existing rental payments with the property_id from their associated rental record
-        DB::statement('
-            UPDATE rental_payments 
-            JOIN rentals ON rental_payments.rental_id = rentals.id 
-            SET rental_payments.property_id = rentals.property_id
-        ');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('
+                UPDATE rental_payments 
+                SET property_id = (SELECT property_id FROM rentals WHERE rentals.id = rental_payments.rental_id)
+                WHERE rental_id IS NOT NULL
+            ');
+        } else {
+            DB::statement('
+                UPDATE rental_payments 
+                JOIN rentals ON rental_payments.rental_id = rentals.id 
+                SET rental_payments.property_id = rentals.property_id
+            ');
+        }
     }
 
     /**

@@ -233,10 +233,63 @@
             </td>
         </tr>
         @empty
-        <tr><td colspan="10" style="text-align:center;padding:14px;color:#64748B;">No plots assigned to this project yet.</td></tr>
+        <tr><td colspan="9" style="text-align:center;padding:14px;color:#64748B;">No plots assigned to this project yet.</td></tr>
         @endforelse
     </tbody>
 </table>
+
+@if(isset($projectExpenses) && $projectExpenses->isNotEmpty())
+    <div class="section-label">&#9632; Project Expenses &amp; Procurement Summary (Total: ₹{{ number_format($totalExpenses ?? 0, 2) }})</div>
+    <table style="margin-bottom: 20px;">
+        <thead>
+            <tr>
+                <th style="width:25px;">#</th>
+                <th>Date</th>
+                <th>Expense Title</th>
+                <th>Source</th>
+                <th>Category</th>
+                <th>Paid To / Vendor</th>
+                <th>Mode</th>
+                <th class="r">Amount (₹)</th>
+                <th class="c">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($projectExpenses as $ei => $exp)
+            <tr>
+                <td style="color:#9CA3AF;">{{ $ei + 1 }}</td>
+                <td>{{ \Carbon\Carbon::parse($exp->expense_date)->format('d M Y') }}</td>
+                <td><strong>{{ $exp->expense_title }}</strong></td>
+                <td>
+                    @if($exp->purchase_order_id && $exp->purchaseOrder)
+                        PO #{{ $exp->purchaseOrder->po_number }}
+                    @else
+                        Direct Expense
+                    @endif
+                </td>
+                <td>{{ $exp->expenseCategory->name ?? ($exp->expense_category ?? '-') }}</td>
+                <td>{{ $exp->paid_to ?: ($exp->purchaseOrder?->vendor?->vendor_name ?? '-') }}</td>
+                <td>{{ $exp->payment_mode ?: '-' }}</td>
+                <td class="r" style="color: #DC2626;">₹{{ number_format($exp->amount, 2) }}</td>
+                <td class="c">
+                    @if(strtolower($exp->approval_status ?? '') === 'approved')
+                        <span class="badge badge-success">Approved</span>
+                    @elseif(strtolower($exp->approval_status ?? '') === 'rejected')
+                        <span class="badge badge-danger">Rejected</span>
+                    @else
+                        <span class="badge badge-warning">Pending</span>
+                    @endif
+                </td>
+            </tr>
+            @endforeach
+            <tr style="background:#F1F5F9; font-weight:bold;">
+                <td colspan="7" style="text-align:right; padding:8px; font-weight:700;">Total Project Expenditure:</td>
+                <td class="r" style="color:#DC2626; font-size:11px; padding:8px;">₹{{ number_format($totalExpenses ?? 0, 2) }}</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+@endif
 
 <div class="auth-block">
     <div class="auth-col">

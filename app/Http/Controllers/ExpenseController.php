@@ -36,13 +36,19 @@ class ExpenseController extends Controller
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        $propQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
-        $catQuery  = ExpenseCategory::where('status', 'active')->orderBy('name');
-        $projQuery = \App\Models\Project::with('propertyMaster')->orderBy('project_name');
+        $propQuery   = Property::with(['project.propertyMaster'])->orderBy('property_name');
+        $catQuery    = ExpenseCategory::where('status', 'active')->orderBy('name');
+        $projQuery   = \App\Models\Project::with('propertyMaster')->orderBy('project_name');
+        $vendorQuery = \App\Models\Vendor::where('status', 'active')->orderBy('name');
 
         if ($firmId && (!$user || !$user->isAdmin())) {
             $propQuery->where('firm_id', $firmId);
             $projQuery->where('firm_id', $firmId);
+            $vendorQuery->where(function($q) use ($firmId) {
+                $q->where('firm_id', $firmId)
+                  ->orWhereHas('firms', fn($f) => $f->where('firms.id', $firmId))
+                  ->orWhereNull('firm_id');
+            });
             $catQuery->whereHas('firms', function($q) use ($firmId) {
                 $q->where('firms.id', $firmId);
             });
@@ -53,12 +59,13 @@ class ExpenseController extends Controller
             'projects'   => $projQuery->get(),
             'properties' => $propQuery->get(),
             'categories' => $catQuery->get(),
+            'vendors'    => $vendorQuery->get(),
         ];
     }
 
     public function index(Request $request)
     {
-        $query = Expense::with(['firms', 'firm', 'project', 'property.propertyType', 'property.project', 'expenseCategory']);
+        $query = Expense::with(['firms', 'firm', 'project', 'property.propertyType', 'property.project', 'expenseCategory', 'vendor', 'purchaseOrder.vendor']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -78,10 +85,12 @@ class ExpenseController extends Controller
                   ->orWhere('expense_category', 'like', "%{$s}%")
                   ->orWhere('paid_to', 'like', "%{$s}%")
                   ->orWhere('bill_no', 'like', "%{$s}%")
+                  ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"))
                   ->orWhereHas('project', fn($pr) => $pr->where('project_name', 'like', "%{$s}%"))
                   ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
                   ->orWhereHas('firms', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
-                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
+                  ->orWhereHas('purchaseOrder', fn($po) => $po->where('po_number', 'like', "%{$s}%"));
             });
         }
 
@@ -97,6 +106,10 @@ class ExpenseController extends Controller
             $query->where('expense_category_id', $request->filter_category);
         }
 
+        if ($request->filled('filter_vendor')) {
+            $query->where('vendor_id', $request->filter_vendor);
+        }
+
         if ($request->filled('filter_mode')) {
             $query->where('payment_mode', $request->filter_mode);
         }
@@ -109,7 +122,12 @@ class ExpenseController extends Controller
             $query->where('expense_date', $request->filter_date);
         }
 
-        $totalAmount = (clone $query)->sum('amount');
+        $totalAmount         = (clone $query)->sum('amount');
+        $poExpensesTotal     = (clone $query)->whereNotNull('purchase_order_id')->sum('amount');
+        $directExpensesTotal = (clone $query)->whereNull('purchase_order_id')->sum('amount');
+        $approvedAmount      = (clone $query)->where('approval_status', 'Approved')->sum('amount');
+        $pendingAmount       = (clone $query)->where('approval_status', 'Pending')->sum('amount');
+
         $expenses    = $query->orderBy('expense_date', 'desc')->paginate(15)->withQueryString();
 
         $firmsData  = $this->dropdowns($request->firm_id);
@@ -117,15 +135,21 @@ class ExpenseController extends Controller
         $projects   = $firmsData['projects'];
         $properties = $firmsData['properties'];
         $categories = $firmsData['categories'];
+        $vendors    = $firmsData['vendors'];
+
+        $selectedProject = $request->filled('filter_project') ? \App\Models\Project::find($request->filter_project) : null;
 
         return view('admin.expenses.index', compact(
-            'expenses', 'firms', 'projects', 'properties', 'categories', 'totalAmount'
+            'expenses', 'firms', 'projects', 'properties', 'categories', 'vendors', 'totalAmount',
+            'poExpensesTotal', 'directExpensesTotal', 'approvedAmount', 'pendingAmount', 'selectedProject'
         ));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('admin.expenses.create', $this->dropdowns());
+        $data = $this->dropdowns();
+        $data['selectedProjectId'] = $request->input('project_id');
+        return view('admin.expenses.create', $data);
     }
 
     public function store(ExpenseRequest $request)
@@ -182,17 +206,34 @@ class ExpenseController extends Controller
             $projectId = $prop?->project_id ?: null;
         }
 
+        $vendorId = $request->input('vendor_id');
+        $paidTo   = $request->input('paid_to');
+
+        if ($vendorId && $vendorId !== '__custom__') {
+            $vendor = \App\Models\Vendor::find($vendorId);
+            if ($vendor) {
+                if (empty($paidTo)) {
+                    $paidTo = $vendor->name;
+                }
+            } else {
+                $vendorId = null;
+            }
+        } else {
+            $vendorId = null;
+        }
+
         $expense = Expense::create([
             'firm_id'             => $primaryFirmId,
             'project_id'          => $projectId,
             'property_id'         => $request->property_id ?: null,
+            'vendor_id'           => $vendorId,
             'expense_date'        => $request->expense_date,
             'expense_category_id' => $categoryId ?: null,
             'expense_category'    => $categoryName,
             'expense_title'       => $request->expense_title,
             'amount'              => $request->amount,
             'payment_mode'        => $request->payment_mode,
-            'paid_to'             => $request->paid_to,
+            'paid_to'             => $paidTo,
             'bill_no'             => $request->bill_no,
             'bill_file'           => $billFilePath,
             'approval_status'     => $request->approval_status,
@@ -214,7 +255,7 @@ class ExpenseController extends Controller
 
     public function edit(Expense $expense)
     {
-        $expense->load(['firms', 'firm', 'project', 'property.project']);
+        $expense->load(['firms', 'firm', 'project', 'property.project', 'vendor']);
         $this->authorise($expense);
         return view('admin.expenses.edit', array_merge(
             [
@@ -285,17 +326,34 @@ class ExpenseController extends Controller
             $projectId = $prop?->project_id ?: null;
         }
 
+        $vendorId = $request->input('vendor_id');
+        $paidTo   = $request->input('paid_to');
+
+        if ($vendorId && $vendorId !== '__custom__') {
+            $vendor = \App\Models\Vendor::find($vendorId);
+            if ($vendor) {
+                if (empty($paidTo)) {
+                    $paidTo = $vendor->name;
+                }
+            } else {
+                $vendorId = null;
+            }
+        } else {
+            $vendorId = null;
+        }
+
         $expense->update([
             'firm_id'             => $primaryFirmId,
             'project_id'          => $projectId,
             'property_id'         => $request->property_id ?: null,
+            'vendor_id'           => $vendorId,
             'expense_date'        => $request->expense_date,
             'expense_category_id' => $categoryId ?: null,
             'expense_category'    => $categoryName,
             'expense_title'       => $request->expense_title,
             'amount'              => $request->amount,
             'payment_mode'        => $request->payment_mode,
-            'paid_to'             => $request->paid_to,
+            'paid_to'             => $paidTo,
             'bill_no'             => $request->bill_no,
             'bill_file'           => $billFilePath,
             'approval_status'     => $request->approval_status,

@@ -284,7 +284,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     <th>Firm</th>
                     <th>Project</th>
                     <th>Contractor</th>
-                    <th>Supplier</th>
+                    <th>Vendor / Supplier</th>
                     <th>PO Date</th>
                     <th>Delivery Date</th>
                     <th>Status</th>
@@ -330,7 +330,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                             <span style="color: #94A3B8;">—</span>
                         @endif
                     </td>
-                    <td>{{ $po->vendor->name ?? '-' }}</td>
+                    <td>
+                        <strong style="color: #FFFFFF;">{{ $po->vendor->name ?? '-' }}</strong>
+                        @if($po->seller)
+                            <div style="font-size: 11.5px; color: #FBBF24; margin-top: 2px;">
+                                <i class="fa-solid fa-user-tag" style="font-size: 10px;"></i> {{ $po->seller->name }}
+                            </div>
+                        @elseif($po->supplier_name)
+                            <div style="font-size: 11.5px; color: #94A3B8; margin-top: 2px;">
+                                <i class="fa-solid fa-store" style="font-size: 10px; color: #FBBF24;"></i> {{ $po->supplier_name }}
+                            </div>
+                        @endif
+                    </td>
                     <td>{{ $po->po_date ? $po->po_date->format('d M Y') : '-' }}</td>
                     <td>{{ $po->delivery_date ? $po->delivery_date->format('d M Y') : '—' }}</td>
                     <td><span class="badge badge-{{ $po->status }}">{{ $po->status }}</span></td>

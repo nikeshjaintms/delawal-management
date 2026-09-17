@@ -47,12 +47,20 @@ return new class extends Migration
 
         // 3. Ensure all properties have property_master_id set (if they only had acquisition_batch_id)
         if (Schema::hasTable('acquisition_batches') && Schema::hasColumn('properties', 'acquisition_batch_id')) {
-            DB::statement("
-                UPDATE properties p
-                INNER JOIN acquisition_batches b ON p.acquisition_batch_id = b.id
-                SET p.property_master_id = b.property_master_id
-                WHERE p.property_master_id IS NULL AND b.property_master_id IS NOT NULL
-            ");
+            if (DB::getDriverName() === 'sqlite') {
+                DB::statement("
+                    UPDATE properties
+                    SET property_master_id = (SELECT property_master_id FROM acquisition_batches WHERE acquisition_batches.id = properties.acquisition_batch_id)
+                    WHERE property_master_id IS NULL AND acquisition_batch_id IS NOT NULL
+                ");
+            } else {
+                DB::statement("
+                    UPDATE properties p
+                    INNER JOIN acquisition_batches b ON p.acquisition_batch_id = b.id
+                    SET p.property_master_id = b.property_master_id
+                    WHERE p.property_master_id IS NULL AND b.property_master_id IS NOT NULL
+                ");
+            }
         }
     }
 

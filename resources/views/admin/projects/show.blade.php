@@ -143,7 +143,7 @@
 /* ── Quick KPI Strip ── */
 .project-kpi-strip {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     gap: 14px;
     margin-top: 20px;
     padding-top: 18px;
@@ -177,6 +177,7 @@
 .pk-purple { background: rgba(167, 139, 250, 0.20); color: #C4B5FD; }
 .pk-green  { background: rgba(16, 185, 129, 0.20); color: #34D399; }
 .pk-amber  { background: rgba(245, 158, 11, 0.20); color: #FBBF24; }
+.pk-rose   { background: rgba(244, 63, 94, 0.20); color: #FB7185; }
 
 .pk-info { display: flex; flex-direction: column; }
 .pk-label { font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; }
@@ -593,6 +594,13 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                 <span class="pk-val">{{ $bookedPlots }} Plots</span>
             </div>
         </div>
+        <div class="pk-card">
+            <div class="pk-icon pk-rose"><i class="fa-solid fa-receipt"></i></div>
+            <div class="pk-info">
+                <span class="pk-label">Total Expenses</span>
+                <span class="pk-val" style="color: #FB7185;">₹{{ number_format($totalExpenses ?? 0, 2) }}</span>
+            </div>
+        </div>
     </div>
 
     @if($project->description)
@@ -697,6 +705,180 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             </tbody>
         </table>
     </div>
+</div>
+
+<!-- ================================================================
+     PROJECT EXPENSES & MATERIAL PROCUREMENT SECTION
+================================================================ -->
+<div class="card-box" style="margin-top: 24px;">
+    <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10); padding-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(245, 158, 11, 0.20); color: #FBBF24; display: flex; align-items: center; justify-content: center; font-size: 17px;">
+                <i class="fa-solid fa-receipt"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin: 0;">Project Expenses &amp; Material Procurement</h3>
+                <p style="font-size: 12.5px; color: #94A3B8; margin: 2px 0 0 0;">Combined financial ledger of site expenses, materials, and purchase orders ({{ $projectExpenses->count() }} records).</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <a href="{{ route('expenses.index', ['filter_project' => $project->id]) }}" class="btn-secondary-custom" style="padding: 7px 14px; min-height: 36px; font-size: 12.5px;">
+                <i class="fa-solid fa-table-list"></i> Full Ledger View
+            </a>
+            <a href="{{ route('purchase-orders.create', ['project_id' => $project->id]) }}" class="btn-secondary-custom" style="padding: 7px 14px; min-height: 36px; font-size: 12.5px; background: rgba(139, 92, 246, 0.18) !important; border-color: rgba(139, 92, 246, 0.40) !important; color: #C4B5FD !important;">
+                <i class="fa-solid fa-file-invoice"></i> Create PO
+            </a>
+            <a href="{{ route('expenses.create', ['project_id' => $project->id]) }}" class="btn-primary-custom" style="padding: 7px 16px; min-height: 36px; font-size: 12.5px;">
+                <i class="fa-solid fa-plus"></i> Add Project Expense
+            </a>
+        </div>
+    </div>
+
+    <!-- Expense Financial Breakdown KPI Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+        <div style="background: rgba(245, 158, 11, 0.10); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.20); color: #FBBF24; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-calculator"></i>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Total Project Cost</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FBBF24; line-height: 1.2; margin-top: 2px;">₹{{ number_format($totalExpenses, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(139, 92, 246, 0.10); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(139, 92, 246, 0.20); color: #C4B5FD; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-file-invoice"></i>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">PO &amp; Material Purchases</div>
+                <div style="font-size: 17px; font-weight: 800; color: #C4B5FD; line-height: 1.2; margin-top: 2px;">₹{{ number_format($poExpensesTotal, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(59, 130, 246, 0.10); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59, 130, 246, 0.20); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-receipt"></i>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Direct Site Expenses</div>
+                <div style="font-size: 17px; font-weight: 800; color: #60A5FA; line-height: 1.2; margin-top: 2px;">₹{{ number_format($directExpensesTotal, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.10); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.20); color: #34D399; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Approved ({{ $projectExpenses->where('approval_status', 'Approved')->count() }} Rec)</div>
+                <div style="font-size: 17px; font-weight: 800; color: #34D399; line-height: 1.2; margin-top: 2px;">₹{{ number_format($approvedExpensesTotal, 2) }}</div>
+            </div>
+        </div>
+    </div>
+
+    @if($projectExpenses->count() > 0)
+        <div class="table-responsive-wrapper">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th style="width: 45px;">#</th>
+                        <th>Date</th>
+                        <th>Expense Title / Details</th>
+                        <th>Source / Type</th>
+                        <th>Category</th>
+                        <th>Paid To / Vendor</th>
+                        <th>Amount</th>
+                        <th>Mode</th>
+                        <th style="text-align: center;">Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($projectExpenses as $idx => $exp)
+                        <tr>
+                            <td style="color: #94A3B8; font-weight: 700; font-size: 12px;">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
+                            <td style="color: #CBD5E1; white-space: nowrap;">{{ \Carbon\Carbon::parse($exp->expense_date)->format('d M Y') }}</td>
+                            <td>
+                                <strong style="color: #FFFFFF; font-weight: 700;">{{ $exp->expense_title }}</strong>
+                                @if($exp->remarks)
+                                    <div style="font-size: 11.5px; color: #94A3B8; margin-top: 2px;">{{ \Illuminate\Support\Str::limit($exp->remarks, 50) }}</div>
+                                @endif
+                            </td>
+                            <td>
+                                @if($exp->purchase_order_id && $exp->purchaseOrder)
+                                    <a href="{{ route('purchase-orders.show', $exp->purchase_order_id) }}" 
+                                       style="background: rgba(139, 92, 246, 0.20); color: #C4B5FD; border: 1px solid rgba(139, 92, 246, 0.40); padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fa-solid fa-file-invoice"></i> PO #{{ $exp->purchaseOrder->po_number }}
+                                    </a>
+                                @else
+                                    <span style="background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.30); padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600;">
+                                        Direct Site Expense
+                                    </span>
+                                @endif
+                            </td>
+                            <td>
+                                @if($exp->expenseCategory)
+                                    <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.30);">
+                                        {{ $exp->expenseCategory->name }}
+                                    </span>
+                                @elseif($exp->expense_category)
+                                    <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.30);">
+                                        {{ $exp->expense_category }}
+                                    </span>
+                                @else
+                                    <span style="color: #94A3B8;">—</span>
+                                @endif
+                            </td>
+                            <td style="color: #CBD5E1;">
+                                {{ $exp->paid_to ?: ($exp->purchaseOrder?->vendor?->vendor_name ?? '—') }}
+                            </td>
+                            <td>
+                                <strong style="color: #F87171; font-size: 14px;">₹{{ number_format($exp->amount, 2) }}</strong>
+                            </td>
+                            <td>
+                                <span style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 2px 7px; border-radius: 5px; font-size: 11.5px;">
+                                    {{ $exp->payment_mode ?: 'Other' }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                @php $st = strtolower($exp->approval_status ?? 'pending'); @endphp
+                                <span class="badge badge-{{ $st === 'approved' ? 'active' : ($st === 'rejected' ? 'inactive' : 'booked') }}">
+                                    <i class="fa-solid fa-circle-dot"></i> {{ ucfirst($exp->approval_status ?? 'Pending') }}
+                                </span>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <div style="display: inline-flex; gap: 6px;">
+                                    <a href="{{ route('expenses.detail-pdf', $exp->id) }}" target="_blank" class="btn-tbl-view" style="background: rgba(252,105,0,0.18) !important; color: #FF8A3D !important; border-color: rgba(252,105,0,0.40) !important; font-size: 11.5px; padding: 3px 8px; height: 28px;" title="Voucher PDF">
+                                        <i class="fa-solid fa-file-pdf"></i>
+                                    </a>
+                                    <a href="{{ route('expenses.show', $exp->id) }}" class="btn-tbl-view" style="font-size: 11.5px; padding: 3px 8px; height: 28px;">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </a>
+                                    <a href="{{ route('expenses.edit', $exp->id) }}" class="btn-tbl-edit" style="font-size: 11.5px; padding: 3px 8px; height: 28px;">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @else
+        <div style="text-align: center; color: #94A3B8; padding: 32px 0; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.12);">
+            <i class="fa-solid fa-receipt" style="font-size: 32px; color: #FBBF24; margin-bottom: 8px; display: block;"></i>
+            No expenses or purchase orders recorded for this project yet.
+            <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: center;">
+                <a href="{{ route('expenses.create', ['project_id' => $project->id]) }}" class="btn-primary-custom" style="padding: 6px 14px; font-size: 12.5px;">
+                    <i class="fa-solid fa-plus"></i> Add Expense
+                </a>
+                <a href="{{ route('purchase-orders.create', ['project_id' => $project->id]) }}" class="btn-secondary-custom" style="padding: 6px 14px; font-size: 12.5px;">
+                    <i class="fa-solid fa-file-invoice"></i> Create Purchase Order
+                </a>
+            </div>
+        </div>
+    @endif
 </div>
 
 <!-- ================================================================

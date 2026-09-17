@@ -245,10 +245,23 @@
             </div>
             <div class="detail-row"><span class="detail-label">Status</span><span class="badge badge-{{ $purchaseOrder->status }}">{{ $purchaseOrder->status }}</span></div>
             <div class="detail-row"><span class="detail-label">Created By</span><span class="detail-value">{{ $purchaseOrder->creator->name ?? '-' }}</span></div>
-        </div>
         <div class="detail-item">
-            <div class="detail-row"><span class="detail-label">Supplier Name</span><span class="detail-value">{{ $purchaseOrder->vendor->name ?? '-' }}</span></div>
-            <div class="detail-row"><span class="detail-label">GST No</span><span class="detail-value">{{ $purchaseOrder->vendor->gst_no ?? 'N/A' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Vendor</span><span class="detail-value" style="color: #60A5FA; font-weight: 700;">{{ $purchaseOrder->vendor->name ?? '-' }}</span></div>
+            <div class="detail-row">
+                <span class="detail-label">Seller / Supplier</span>
+                <span class="detail-value" style="color: #FBBF24; font-weight: 700;">
+                    @if($purchaseOrder->seller)
+                        <a href="{{ route('sellers.show', $purchaseOrder->seller->id) }}" style="color: #FBBF24; text-decoration: underline; text-underline-offset: 2px;">
+                            <i class="fa-solid fa-user-tag" style="font-size: 11px; margin-right: 3px;"></i> {{ $purchaseOrder->seller->name }}
+                        </a>
+                    @elseif($purchaseOrder->supplier_name)
+                        {{ $purchaseOrder->supplier_name }}
+                    @else
+                        —
+                    @endif
+                </span>
+            </div>
+            <div class="detail-row"><span class="detail-label">Vendor GST No</span><span class="detail-value">{{ $purchaseOrder->vendor->gst_no ?? 'N/A' }}</span></div>
             <div class="detail-row"><span class="detail-label">PO Date</span><span class="detail-value">{{ $purchaseOrder->po_date ? $purchaseOrder->po_date->format('d M Y') : '—' }}</span></div>
             <div class="detail-row"><span class="detail-label">Delivery Date</span><span class="detail-value">{{ $purchaseOrder->delivery_date ? $purchaseOrder->delivery_date->format('d M Y') : '—' }}</span></div>
         </div>
@@ -257,11 +270,11 @@
     @if($purchaseOrder->vendor)
     <div class="detail-grid" style="margin-top:-8px;">
         <div class="detail-item">
-            <div class="detail-row"><span class="detail-label">Supplier Mobile</span><span class="detail-value">{{ $purchaseOrder->vendor->mobile ?? '-' }}</span></div>
-            <div class="detail-row"><span class="detail-label">Supplier Email</span><span class="detail-value">{{ $purchaseOrder->vendor->email ?? '-' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Vendor Mobile</span><span class="detail-value">{{ $purchaseOrder->vendor->mobile ?? '-' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Vendor Email</span><span class="detail-value">{{ $purchaseOrder->vendor->email ?? '-' }}</span></div>
         </div>
         <div class="detail-item">
-            <div class="detail-row"><span class="detail-label">Supplier Address</span><span class="detail-value">{{ $purchaseOrder->vendor->address ?? '-' }}{{ $purchaseOrder->vendor->city ? ', '.$purchaseOrder->vendor->city : '' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Vendor Address</span><span class="detail-value">{{ $purchaseOrder->vendor->address ?? '-' }}{{ $purchaseOrder->vendor->city ? ', '.$purchaseOrder->vendor->city : '' }}</span></div>
         </div>
     </div>
     @endif

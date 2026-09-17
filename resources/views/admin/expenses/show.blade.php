@@ -208,8 +208,17 @@
             @endif
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-user"></i> Paid To</div>
-            @if($expense->paid_to)
+            <div class="detail-label"><i class="fa-solid fa-building-user"></i> Paid To / Vendor</div>
+            @if($expense->vendor)
+                <div class="detail-value">
+                    <a href="{{ route('vendors.show', $expense->vendor_id) }}" style="color: #60A5FA; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px;"></i> {{ $expense->vendor->name }}
+                    </a>
+                    @if($expense->paid_to && $expense->paid_to !== $expense->vendor->name)
+                        <div style="font-size: 12px; color: #94A3B8; margin-top: 2px;">Payee Note: {{ $expense->paid_to }}</div>
+                    @endif
+                </div>
+            @elseif($expense->paid_to)
                 <div class="detail-value">{{ $expense->paid_to }}</div>
             @else
                 <div class="detail-value empty">Not provided</div>
