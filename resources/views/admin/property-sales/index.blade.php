@@ -248,63 +248,69 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                         </td>
                         <td>
                             @if($sale->sale_amount > 0)
-                                <div style="font-size: 12.5px; color: #34D399; font-weight: 700; display: flex; align-items: center; gap: 5px;">
-                                    <i class="fa-solid fa-circle-check"></i> ₹{{ number_format($sale->booking_amount ?? 0, 2) }}
+                                <div style="display: flex; flex-direction: column; gap: 3px;">
+                                    <div style="font-size: 12.5px; color: #34D399; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+                                        <i class="fa-solid fa-circle-check" style="font-size: 11px;"></i>
+                                        <span>Paid: <strong>₹{{ number_format($sale->booking_amount ?? 0, 2) }}</strong></span>
+                                    </div>
+                                    <div style="font-size: 12.5px; color: {{ ($sale->remaining_amount ?? 0) > 0 ? '#F87171' : '#94A3B8' }}; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+                                        <i class="fa-solid fa-clock" style="font-size: 11px;"></i>
+                                        <span>Due: <strong>₹{{ number_format($sale->remaining_amount ?? 0, 2) }}</strong></span>
+                                    </div>
                                 </div>
-                                <div style="font-size: 12.5px; color: {{ ($sale->remaining_amount ?? 0) > 0 ? '#F87171' : '#94A3B8' }}; font-weight: 700; margin-top: 2px; display: flex; align-items: center; gap: 5px;">
-                                    <i class="fa-solid fa-clock"></i> ₹{{ number_format($sale->remaining_amount ?? 0, 2) }}
-                                                        {{-- Direct Listing of All Installments Made --}}
+
+                                {{-- Direct Listing of All Installments Made --}}
                                 @if($paymentsCount > 0)
-                                    <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 3px; max-width: 250px;">
+                                    <div style="margin-top: 7px; display: flex; flex-direction: column; gap: 4px; max-width: 250px;">
                                         @foreach($sale->payments->sortBy('payment_date')->values() as $idx => $pay)
-                                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; background: rgba(16, 185, 129, 0.09); border: 1px solid rgba(16, 185, 129, 0.22); border-radius: 6px; padding: 2px 6px; font-size: 11px;" title="{{ $pay->remarks ? $pay->remarks : ($pay->transaction_ref ? 'Ref: '.$pay->transaction_ref : '') }}">
-                                                <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.22); border-radius: 6px; padding: 3px 8px; font-size: 11px;" title="{{ $pay->remarks ? $pay->remarks : ($pay->transaction_ref ? 'Ref: '.$pay->transaction_ref : '') }}">
+                                                <div style="display: flex; align-items: center; gap: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                                     <span style="color: #94A3B8; font-size: 9.5px; font-weight: 800;">#{{ $idx + 1 }}</span>
                                                     <span style="color: #93C5FD; font-size: 10.5px; font-weight: 600;">
                                                         {{ $pay->payment_date ? \Carbon\Carbon::parse($pay->payment_date)->format('d M') : '—' }}
                                                     </span>
                                                     @if($pay->payment_mode)
-                                                        <span style="color: #CBD5E1; font-size: 9.5px; background: rgba(255,255,255,0.08); padding: 0 4px; border-radius: 3px;">
+                                                        <span style="color: #CBD5E1; font-size: 9.5px; background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 4px;">
                                                             {{ $pay->payment_mode }}
                                                         </span>
                                                     @endif
                                                 </div>
-                                                <strong style="color: #34D399; font-size: 11px; font-weight: 800; white-space: nowrap;">
+                                                <strong style="color: #34D399; font-size: 11.5px; font-weight: 800; white-space: nowrap;">
                                                     ₹{{ number_format($pay->payment_amount, 2) }}
                                                 </strong>
                                             </div>
                                         @endforeach
                                     </div>
-                                    <div style="margin-top: 4px;">
-                                        <button type="button" class="badge" style="background: rgba(139, 92, 246, 0.20) !important; color: #C4B5FD !important; border: 1px solid rgba(139, 92, 246, 0.40) !important; cursor: pointer; padding: 1px 7px; font-size: 10px;" onclick='openPaymentHistoryModal({{ $sale->id }}, "{{ addslashes($sale->customer->name ?? "Customer") }}", {{ $sale->sale_amount ?? 0 }}, {{ $sale->booking_amount ?? 0 }}, {{ $sale->remaining_amount ?? 0 }}, @json($sale->payments))'>
+                                    <div style="margin-top: 5px;">
+                                        <button type="button" class="badge" style="background: rgba(139, 92, 246, 0.20) !important; color: #C4B5FD !important; border: 1px solid rgba(139, 92, 246, 0.40) !important; cursor: pointer; padding: 3px 8px; font-size: 10.5px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all .2s ease;" onclick='openPaymentHistoryModal({{ $sale->id }}, "{{ addslashes($sale->customer->name ?? "Customer") }}", {{ $sale->sale_amount ?? 0 }}, {{ $sale->booking_amount ?? 0 }}, {{ $sale->remaining_amount ?? 0 }}, @json($sale->payments))'>
                                             <i class="fa-solid fa-receipt"></i> {{ $paymentsCount }} {{ $paymentsCount > 1 ? 'Installments' : 'Payment' }} · Manage
                                         </button>
                                     </div>
                                 @elseif(($sale->booking_amount ?? 0) > 0)
-                                    <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 3px; max-width: 250px;">
-                                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; background: rgba(16, 185, 129, 0.09); border: 1px solid rgba(16, 185, 129, 0.22); border-radius: 6px; padding: 2px 6px; font-size: 11px;">
-                                            <div style="display: flex; align-items: center; gap: 4px;">
+                                    <div style="margin-top: 7px; display: flex; flex-direction: column; gap: 4px; max-width: 250px;">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.22); border-radius: 6px; padding: 3px 8px; font-size: 11px;">
+                                            <div style="display: flex; align-items: center; gap: 5px;">
                                                 <span style="color: #94A3B8; font-size: 9.5px; font-weight: 800;">#1</span>
                                                 <span style="color: #93C5FD; font-size: 10.5px; font-weight: 600;">
                                                     {{ $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date)->format('d M') : 'Initial' }}
                                                 </span>
-                                                <span style="color: #CBD5E1; font-size: 9.5px; background: rgba(255,255,255,0.08); padding: 0 4px; border-radius: 3px;">
+                                                <span style="color: #CBD5E1; font-size: 9.5px; background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 4px;">
                                                     Initial Advance
                                                 </span>
                                             </div>
-                                            <strong style="color: #34D399; font-size: 11px; font-weight: 800; white-space: nowrap;">
+                                            <strong style="color: #34D399; font-size: 11.5px; font-weight: 800; white-space: nowrap;">
                                                 ₹{{ number_format($sale->booking_amount, 2) }}
                                             </strong>
                                         </div>
                                     </div>
-                                    <div style="margin-top: 4px;">
-                                        <button type="button" class="badge" style="background: rgba(139, 92, 246, 0.20) !important; color: #C4B5FD !important; border: 1px solid rgba(139, 92, 246, 0.40) !important; cursor: pointer; padding: 1px 7px; font-size: 10px;" onclick='openPaymentHistoryModal({{ $sale->id }}, "{{ addslashes($sale->customer->name ?? "Customer") }}", {{ $sale->sale_amount ?? 0 }}, {{ $sale->booking_amount ?? 0 }}, {{ $sale->remaining_amount ?? 0 }}, @json($sale->payments))'>
+                                    <div style="margin-top: 5px;">
+                                        <button type="button" class="badge" style="background: rgba(139, 92, 246, 0.20) !important; color: #C4B5FD !important; border: 1px solid rgba(139, 92, 246, 0.40) !important; cursor: pointer; padding: 3px 8px; font-size: 10.5px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all .2s ease;" onclick='openPaymentHistoryModal({{ $sale->id }}, "{{ addslashes($sale->customer->name ?? "Customer") }}", {{ $sale->sale_amount ?? 0 }}, {{ $sale->booking_amount ?? 0 }}, {{ $sale->remaining_amount ?? 0 }}, @json($sale->payments))'>
                                             <i class="fa-solid fa-plus"></i> Add Next Installment
                                         </button>
                                     </div>
                                 @elseif(($sale->sale_amount ?? 0) > 0)
-                                    <div style="margin-top: 4px;">
-                                        <button type="button" class="badge" style="background: rgba(59, 130, 246, 0.20) !important; color: #93C5FD !important; border: 1px solid rgba(59, 130, 246, 0.40) !important; cursor: pointer; padding: 1px 7px; font-size: 10px;" onclick='openPaymentHistoryModal({{ $sale->id }}, "{{ addslashes($sale->customer->name ?? "Customer") }}", {{ $sale->sale_amount ?? 0 }}, {{ $sale->booking_amount ?? 0 }}, {{ $sale->remaining_amount ?? 0 }}, @json($sale->payments))'>
+                                    <div style="margin-top: 5px;">
+                                        <button type="button" class="badge" style="background: rgba(59, 130, 246, 0.20) !important; color: #93C5FD !important; border: 1px solid rgba(59, 130, 246, 0.40) !important; cursor: pointer; padding: 3px 8px; font-size: 10.5px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; transition: all .2s ease;" onclick='openPaymentHistoryModal({{ $sale->id }}, "{{ addslashes($sale->customer->name ?? "Customer") }}", {{ $sale->sale_amount ?? 0 }}, {{ $sale->booking_amount ?? 0 }}, {{ $sale->remaining_amount ?? 0 }}, @json($sale->payments))'>
                                             <i class="fa-solid fa-plus"></i> Record Payment
                                         </button>
                                     </div>
