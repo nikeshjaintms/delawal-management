@@ -900,7 +900,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             </div>
             <div>
                 <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Total Project Cost</div>
-                <div style="font-size: 17px; font-weight: 800; color: #FBBF24; line-height: 1.2; margin-top: 2px;">₹{{ number_format($grandTotalProjectCost ?? $totalExpenses, 2) }}</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px;">₹{{ number_format($grandTotalProjectCost ?? $totalExpenses, 2) }}</div>
             </div>
         </div>
 
@@ -910,7 +910,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             </div>
             <div>
                 <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">PO &amp; Materials</div>
-                <div style="font-size: 17px; font-weight: 800; color: #C4B5FD; line-height: 1.2; margin-top: 2px;">₹{{ number_format($poExpensesTotal, 2) }}</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px;">₹{{ number_format($poExpensesTotal, 2) }}</div>
             </div>
         </div>
 
@@ -920,7 +920,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             </div>
             <div>
                 <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Direct Site Expenses</div>
-                <div style="font-size: 17px; font-weight: 800; color: #60A5FA; line-height: 1.2; margin-top: 2px;">₹{{ number_format($directExpensesTotal, 2) }}</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px;">₹{{ number_format($directExpensesTotal, 2) }}</div>
             </div>
         </div>
 
@@ -930,7 +930,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             </div>
             <div>
                 <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Contractors</div>
-                <div style="font-size: 17px; font-weight: 800; color: #FB7185; line-height: 1.2; margin-top: 2px;">₹{{ number_format($contractorPaymentsTotal ?? 0, 2) }}</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px;">₹{{ number_format($contractorPaymentsTotal ?? 0, 2) }}</div>
             </div>
         </div>
 
@@ -940,7 +940,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             </div>
             <div>
                 <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Brokers</div>
-                <div style="font-size: 17px; font-weight: 800; color: #D8B4FE; line-height: 1.2; margin-top: 2px;">₹{{ number_format($brokerCommissionsTotal ?? 0, 2) }}</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px;">₹{{ number_format($brokerCommissionsTotal ?? 0, 2) }}</div>
             </div>
         </div>
 
@@ -950,7 +950,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             </div>
             <div>
                 <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Land Acquisition</div>
-                <div style="font-size: 17px; font-weight: 800; color: #5EEAD4; line-height: 1.2; margin-top: 2px;">₹{{ number_format($landPaymentsTotal ?? 0, 2) }}</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px;">₹{{ number_format($landPaymentsTotal ?? 0, 2) }}</div>
             </div>
         </div>
     </div>
@@ -1004,14 +1004,14 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                         <tr>
                             <th style="width: 45px; white-space: nowrap;">#</th>
                             <th style="white-space: nowrap;">Date</th>
-                            <th style="min-width: 180px;">Expense Title / Details</th>
-                            <th style="white-space: nowrap; min-width: 160px;">Source / Type</th>
+                            <th style="min-width: 170px;">Expense Title / Details</th>
+                            <th style="white-space: nowrap; min-width: 150px;">Source / Type</th>
                             <th style="white-space: nowrap;">Category</th>
                             <th style="white-space: nowrap;">Paid To / Vendor</th>
                             <th style="white-space: nowrap;">Amount</th>
                             <th style="white-space: nowrap;">Mode</th>
                             <th style="text-align: center; white-space: nowrap;">Status</th>
-                            <th style="text-align: right; white-space: nowrap; width: 120px;">Action</th>
+                            <th style="text-align: right; white-space: nowrap; width: 130px; padding-right: 18px !important;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1068,7 +1068,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                                         <i class="fa-solid fa-circle-dot"></i> {{ ucfirst($exp->approval_status ?? 'Pending') }}
                                     </span>
                                 </td>
-                                <td style="text-align: right; white-space: nowrap;">
+                                <td style="text-align: right; white-space: nowrap; padding-right: 18px !important;">
                                     <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
                                         <a href="{{ route('expenses.detail-pdf', $exp->id) }}" target="_blank" class="btn-action-icon btn-action-pdf" title="Download Voucher PDF">
                                             <i class="fa-solid fa-file-pdf"></i>
@@ -1118,7 +1118,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                             <th style="white-space: nowrap;">Mode &amp; Bank</th>
                             <th style="white-space: nowrap;">Ref / Bill No</th>
                             <th style="min-width: 130px;">Type / Remarks</th>
-                            <th style="text-align: right; white-space: nowrap; width: 100px;">Action</th>
+                            <th style="text-align: right; white-space: nowrap; width: 100px; padding-right: 18px !important;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1169,7 +1169,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                                         <div style="font-size: 11px; color: #94A3B8; margin-top: 2px;">{{ \Illuminate\Support\Str::limit($cp->remarks, 35) }}</div>
                                     @endif
                                 </td>
-                                <td style="text-align: right; white-space: nowrap;">
+                                <td style="text-align: right; white-space: nowrap; padding-right: 18px !important;">
                                     <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
                                         @if($cp->contractor_id)
                                             <a href="{{ route('contractors.show', $cp->contractor_id) }}" class="btn-action-icon btn-action-view" title="Contractor Profile">
@@ -1216,7 +1216,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                             <th style="white-space: nowrap;">Commission Amount</th>
                             <th style="white-space: nowrap;">Status</th>
                             <th style="min-width: 130px;">Remarks</th>
-                            <th style="text-align: right; white-space: nowrap; width: 80px;">Action</th>
+                            <th style="text-align: right; white-space: nowrap; width: 90px; padding-right: 18px !important;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1263,7 +1263,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                                 <td style="color: #94A3B8; font-size: 11.5px;">
                                     {{ $bc->remarks ?: '—' }}
                                 </td>
-                                <td style="text-align: right; white-space: nowrap;">
+                                <td style="text-align: right; white-space: nowrap; padding-right: 18px !important;">
                                     <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
                                         @if($bc->broker_id)
                                             <a href="{{ route('brokers.show', $bc->broker_id) }}" class="btn-action-icon btn-action-view" title="Broker Profile">
@@ -1305,7 +1305,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                             <th style="white-space: nowrap;">Payment Mode &amp; Bank</th>
                             <th style="white-space: nowrap;">Ref No</th>
                             <th style="min-width: 130px;">Remarks</th>
-                            <th style="text-align: right; white-space: nowrap; width: 80px;">Action</th>
+                            <th style="text-align: right; white-space: nowrap; width: 90px; padding-right: 18px !important;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1342,7 +1342,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                                 <td style="color: #94A3B8; font-size: 11.5px;">
                                     {{ $lp->remarks ?: 'Land Payment' }}
                                 </td>
-                                <td style="text-align: right; white-space: nowrap;">
+                                <td style="text-align: right; white-space: nowrap; padding-right: 18px !important;">
                                     <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
                                         @if($lp->property_master_id)
                                             <a href="{{ route('property-masters.show', $lp->property_master_id) }}" class="btn-action-icon btn-action-view" title="Land Master Profile">
@@ -1432,13 +1432,13 @@ function toggleProjectShowTab(tab) {
             <table class="premium-table">
                 <thead>
                     <tr>
-                        <th style="min-width: 190px;"><i class="fa-solid fa-user-gear" style="color: #60A5FA; margin-right: 5px;"></i>Contractor Name</th>
+                        <th style="min-width: 180px;"><i class="fa-solid fa-user-gear" style="color: #60A5FA; margin-right: 5px;"></i>Contractor Name</th>
                         <th style="white-space: nowrap;"><i class="fa-solid fa-phone" style="color: #34D399; margin-right: 5px;"></i>Mobile</th>
                         <th style="white-space: nowrap;"><i class="fa-solid fa-id-card" style="color: #FBBF24; margin-right: 5px;"></i>Aadhar Card</th>
                         <th style="white-space: nowrap;"><i class="fa-solid fa-credit-card" style="color: #A78BFA; margin-right: 5px;"></i>PAN Card</th>
                         <th style="min-width: 160px;"><i class="fa-solid fa-building-columns" style="color: #38BDF8; margin-right: 5px;"></i>Bank Details</th>
                         <th style="white-space: nowrap; text-align: center;"><i class="fa-solid fa-circle-check" style="color: #10B981; margin-right: 5px;"></i>Status</th>
-                        <th style="text-align: right; white-space: nowrap; width: 140px;">Action</th>
+                        <th style="text-align: right; white-space: nowrap; width: 160px; padding-right: 18px !important;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1493,12 +1493,12 @@ function toggleProjectShowTab(tab) {
                                     <i class="fa-solid fa-circle" style="font-size: 6px;"></i> {{ ucfirst($con->status) }}
                                 </span>
                             </td>
-                            <td style="text-align: right; white-space: nowrap;">
-                                <div style="display: inline-flex; gap: 6px; justify-content: flex-end;">
-                                    <a href="{{ route('contractors.show', $con) }}" class="btn-action-icon btn-action-view" style="width: auto; padding: 4px 10px; font-size: 12px; font-weight: 700; gap: 5px;" title="View Contractor Profile">
+                            <td style="text-align: right; white-space: nowrap; padding-right: 18px !important;">
+                                <div style="display: inline-flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                                    <a href="{{ route('contractors.show', $con) }}" class="btn-action-icon btn-action-view" style="width: auto; height: 32px; padding: 0 12px; font-size: 12px; font-weight: 700; gap: 5px;" title="View Contractor Profile">
                                         <i class="fa-regular fa-eye"></i> View
                                     </a>
-                                    <a href="{{ route('contractors.edit', $con) }}" class="btn-action-icon btn-action-edit" style="width: auto; padding: 4px 10px; font-size: 12px; font-weight: 700; gap: 5px;" title="Edit Contractor">
+                                    <a href="{{ route('contractors.edit', $con) }}" class="btn-action-icon btn-action-edit" style="width: auto; height: 32px; padding: 0 12px; font-size: 12px; font-weight: 700; gap: 5px;" title="Edit Contractor">
                                         <i class="fa-solid fa-pen-to-square"></i> Edit
                                     </a>
                                 </div>
@@ -1758,6 +1758,83 @@ document.addEventListener('keydown', function(e) {
     border-color: #C084FC;
     color: #FFFFFF;
     transform: translateY(-1px);
+}
+
+/* ── Premium Responsive Tables & Outflows ── */
+.table-responsive-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    background: rgba(10, 14, 23, 0.65) !important;
+    margin-bottom: 16px;
+}
+
+/* Custom subtle scrollbar */
+.table-responsive-wrapper::-webkit-scrollbar {
+    height: 6px;
+}
+.table-responsive-wrapper::-webkit-scrollbar-track {
+    background: rgba(10, 14, 23, 0.50);
+    border-radius: 4px;
+}
+.table-responsive-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.20);
+    border-radius: 4px;
+}
+.table-responsive-wrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.premium-table {
+    width: 100% !important;
+    min-width: 960px;
+    border-collapse: collapse !important;
+    text-align: left;
+    font-size: 13px !important;
+}
+
+.premium-table th {
+    padding: 13px 16px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #94A3B8 !important;
+    font-weight: 800 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    white-space: nowrap !important;
+}
+
+.premium-table td {
+    padding: 13px 16px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    font-size: 13px !important;
+    color: #E2E8F0 !important;
+    font-weight: 500;
+    vertical-align: middle !important;
+    white-space: nowrap;
+}
+
+.premium-table th:last-child,
+.premium-table td:last-child {
+    padding-right: 20px !important;
+    text-align: right !important;
+}
+
+.premium-table td strong {
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+}
+
+.premium-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.premium-table tbody tr:last-child td {
+    border-bottom: none !important;
 }
 
 /* ── Modern Table Action Buttons ── */
