@@ -1202,6 +1202,15 @@ class PropertyMasterController extends Controller
                     }
                 }
 
+                // Cross fallback: When price is given in Excel but rate is not, use price as rate
+                if (($rateVal <= 0 || $rawRate === '') && $priceVal > 0) {
+                    $rateVal = $priceVal;
+                }
+                // When rate is given in Excel but price is not, use rate as price
+                if (($priceVal <= 0 || $rawPrice === '') && $rateVal > 0) {
+                    $priceVal = $rateVal;
+                }
+
                 // 6. Status
                 $status = 'available';
                 if (!empty($rawStatus) && in_array($rawStatus, $validStatuses)) {

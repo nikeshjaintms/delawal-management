@@ -247,9 +247,26 @@
                             @endif
                         </td>
                         <td>
-                            <span class="badge {{ $property->status === 'active' ? 'badge-active' : 'badge-inactive' }}">
-                                {{ ucfirst($property->status) }}
-                            </span>
+                            @php
+                                $st = strtolower(trim($property->status ?? 'active'));
+                            @endphp
+                            @if(in_array($st, ['active', 'available', 'approved']))
+                                <span class="badge badge-active">
+                                    <i class="fa-solid fa-circle-dot" style="font-size: 8px; margin-right: 4px;"></i> {{ ucfirst($st) }}
+                                </span>
+                            @elseif(in_array($st, ['booked', 'pending', 'reserved', 'under_development', 'development']))
+                                <span class="badge badge-partial">
+                                    <i class="fa-solid fa-clock" style="font-size: 8px; margin-right: 4px;"></i> {{ ucfirst(str_replace('_', ' ', $st)) }}
+                                </span>
+                            @elseif(in_array($st, ['sold', 'closed']))
+                                <span class="badge badge-sold" style="background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important;">
+                                    <i class="fa-solid fa-check-double" style="font-size: 8px; margin-right: 4px;"></i> {{ ucfirst($st) }}
+                                </span>
+                            @else
+                                <span class="badge badge-inactive">
+                                    <i class="fa-solid fa-circle-xmark" style="font-size: 8px; margin-right: 4px;"></i> {{ ucfirst($st) }}
+                                </span>
+                            @endif
                         </td>
                         <td style="text-align: right;">
                             <div class="table-action-cell">

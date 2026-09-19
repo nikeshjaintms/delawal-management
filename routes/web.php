@@ -83,8 +83,8 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('tenants/{tenant}/pdf', [TenantController::class, 'downloadPdf'])->name('tenants.detail-pdf')->middleware(['permission:tenant_view']);
     Route::resource('tenants', TenantController::class)->middleware(['permission:tenant_view']);
 
-    Route::resource('property-types', PropertyTypeController::class)->middleware(['permission:property_type_view']);
     Route::resource('payment-modes', PaymentModeController::class)->middleware(['permission:payment_mode_view']);
+    Route::post('expense-categories/quick-store', [ExpenseCategoryController::class, 'quickStore'])->name('expense-categories.quick-store')->middleware(['auth']);
     Route::resource('expense-categories', ExpenseCategoryController::class)->middleware(['permission:expense_category_view']);
 
     // ── Property Management ──────────────────────────────────────────
@@ -158,6 +158,8 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('stock-outwards/{stock_outward}/print', [\App\Http\Controllers\StockOutwardController::class, 'print'])->name('stock-outwards.print')->middleware(['permission:inventory_view']);
 
     // ── Inventory & Expenses ──────────────────────────────────────────
+    Route::get('expenses/project-wise', [ExpenseController::class, 'projectWise'])->name('expenses.project-wise')->middleware(['permission:expense_view']);
+    Route::get('expenses/project-wise/export-pdf', [ExpenseController::class, 'exportProjectWisePdf'])->name('expenses.project-wise.pdf')->middleware(['permission:expense_view']);
     Route::get('expenses/export-pdf', [ExpenseController::class, 'exportPdf'])->name('expenses.pdf')->middleware(['permission:expense_view']);
     Route::get('expenses/{expense}/pdf', [ExpenseController::class, 'downloadPdf'])->name('expenses.detail-pdf')->middleware(['permission:expense_view']);
     Route::resource('expenses', ExpenseController::class)->middleware(['permission:expense_view']);

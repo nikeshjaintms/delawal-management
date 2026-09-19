@@ -122,7 +122,16 @@ class BookingController extends Controller
 
     public function index(Request $request)
     {
-        $query = Booking::with(['firm', 'property', 'properties', 'customer', 'broker', 'paymentMode']);
+        $query = Booking::with([
+            'firm',
+            'property.project',
+            'property.propertyMaster',
+            'properties.project',
+            'properties.propertyMaster',
+            'customer',
+            'broker',
+            'paymentMode'
+        ]);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();

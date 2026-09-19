@@ -74,10 +74,10 @@
 .badge { display: inline-block; padding: 4px 12px; font-size: 11px; font-weight: 700; border-radius: 20px; text-transform: uppercase; }
 .badge-active { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
 .badge-inactive { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
-    .badge-available { background: rgba(34,197,94,0.1);  color: #16803D; }
-    .badge-booked    { background: rgba(234,179,8,0.12);  color: #92710A; }
-    .badge-sold      { background: rgba(239,68,68,0.1);   color: #B91C1C; }
-    .badge-rented    { background: rgba(59,130,246,0.1);  color: #1D4ED8; }
+    .badge-available { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
+    .badge-booked    { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+    .badge-sold      { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+    .badge-rented    { background: rgba(168, 85, 247, 0.18) !important; color: #D8B4FE !important; border: 1px solid rgba(168, 85, 247, 0.35) !important; }
     .price-chip {
         display: inline-flex;
         align-items: center;
@@ -405,18 +405,37 @@
                             @endif
                         </td>
                         <td>
-                            <span class="badge badge-{{ $property->status }}">{{ ucfirst($property->status) }}</span>
-                            @if(strtolower($property->status ?? '') === 'booked')
-                                @php
-                                    $activeB = ($property->relationLoaded('bookings') ? $property->bookings->where('status', '!=', 'cancelled')->first() : null)
-                                        ?: ($property->relationLoaded('bookingsList') ? $property->bookingsList->where('status', '!=', 'cancelled')->first() : null)
-                                        ?: $property->active_booking;
-                                @endphp
-                                @if($activeB)
-                                    <div style="font-size: 11px; color: #FBBF24; font-weight: 600; margin-top: 3px;" title="Booked by {{ $activeB->customer->name ?? 'Customer' }}">
-                                        <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name ?? 'Client' }}
+                            @php
+                                $st = strtolower(trim($property->status ?? 'available'));
+                                $activeB = ($property->relationLoaded('bookings') ? $property->bookings->where('status', '!=', 'cancelled')->first() : null)
+                                    ?: ($property->relationLoaded('bookingsList') ? $property->bookingsList->where('status', '!=', 'cancelled')->first() : null)
+                                    ?: $property->active_booking;
+                                $activeSale = ($property->relationLoaded('sales') ? $property->sales->where('sale_status', '!=', 'cancelled')->first() : null)
+                                    ?: ($property->relationLoaded('sales') && $property->sales->isNotEmpty() ? $property->sales->first() : null);
+                            @endphp
+
+                            @if($st === 'sold' || $activeSale)
+                                <span class="badge badge-sold">Sold</span>
+                                @if($activeSale && $activeSale->customer)
+                                    <div style="font-size: 11px; color: #F87171; font-weight: 600; margin-top: 3px;" title="Sold to {{ $activeSale->customer->name }}">
+                                        <i class="fa-solid fa-user-tag" style="font-size: 10px;"></i> {{ $activeSale->customer->name }}
+                                    </div>
+                                @elseif($activeB && $activeB->customer)
+                                    <div style="font-size: 11px; color: #F87171; font-weight: 600; margin-top: 3px;" title="Buyer: {{ $activeB->customer->name }}">
+                                        <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name }}
                                     </div>
                                 @endif
+                            @elseif($st === 'booked' || $activeB)
+                                <span class="badge badge-booked">Booked</span>
+                                @if($activeB && $activeB->customer)
+                                    <div style="font-size: 11px; color: #FBBF24; font-weight: 600; margin-top: 3px;" title="Booked by {{ $activeB->customer->name }}">
+                                        <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name }}
+                                    </div>
+                                @endif
+                            @elseif($st === 'rented')
+                                <span class="badge badge-rented">Rented</span>
+                            @else
+                                <span class="badge badge-available">{{ ucfirst($st) }}</span>
                             @endif
                         </td>
                         <td>

@@ -1187,8 +1187,8 @@
                         </td>
                         <td>
                             <div style="font-size: 13px;">
-                                <strong style="color: #FBBF24;">₹{{ number_format($plot->purchase_rate ?: 0, 2) }}</strong>
-                                @if($plot->price && $plot->price != $plot->purchase_rate)
+                                <strong style="color: #FBBF24;">₹{{ number_format($plot->purchase_rate ?: ($plot->price ?: 0), 2) }}</strong>
+                                @if($plot->price && $plot->purchase_rate && $plot->price != $plot->purchase_rate)
                                     <small style="color: #94A3B8; display: block;">Sell: ₹{{ number_format($plot->price, 2) }}</small>
                                 @endif
                             </div>
@@ -1203,20 +1203,45 @@
                             @endif
                         </td>
                         <td>
-                            <span class="badge badge-{{ $plot->status }}">
-                                <i class="fa-solid fa-circle-dot"></i> {{ ucfirst($plot->status) }}
-                            </span>
-                            @if(strtolower($plot->status ?? '') === 'booked')
-                                @php
-                                    $activeB = ($plot->relationLoaded('bookings') ? $plot->bookings->where('status', '!=', 'cancelled')->first() : null)
-                                        ?: ($plot->relationLoaded('bookingsList') ? $plot->bookingsList->where('status', '!=', 'cancelled')->first() : null)
-                                        ?: $plot->active_booking;
-                                @endphp
-                                @if($activeB)
-                                    <div style="font-size: 11px; color: #FBBF24; font-weight: 600; margin-top: 3px;" title="Booked by {{ $activeB->customer->name ?? 'Customer' }}">
-                                        <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name ?? 'Client' }}
+                            @php
+                                $st = strtolower(trim($plot->status ?? 'available'));
+                                $activeB = ($plot->relationLoaded('bookings') ? $plot->bookings->where('status', '!=', 'cancelled')->first() : null)
+                                    ?: ($plot->relationLoaded('bookingsList') ? $plot->bookingsList->where('status', '!=', 'cancelled')->first() : null)
+                                    ?: $plot->active_booking;
+                                $activeSale = ($plot->relationLoaded('sales') ? $plot->sales->where('sale_status', '!=', 'cancelled')->first() : null)
+                                    ?: ($plot->relationLoaded('sales') && $plot->sales->isNotEmpty() ? $plot->sales->first() : null);
+                            @endphp
+
+                            @if($st === 'sold' || $activeSale)
+                                <span class="badge badge-sold">
+                                    <i class="fa-solid fa-circle-check"></i> Sold
+                                </span>
+                                @if($activeSale && $activeSale->customer)
+                                    <div style="font-size: 11px; color: #F87171; font-weight: 600; margin-top: 3px;" title="Sold to {{ $activeSale->customer->name }}">
+                                        <i class="fa-solid fa-user-tag" style="font-size: 10px;"></i> {{ $activeSale->customer->name }}
+                                    </div>
+                                @elseif($activeB && $activeB->customer)
+                                    <div style="font-size: 11px; color: #F87171; font-weight: 600; margin-top: 3px;" title="Buyer: {{ $activeB->customer->name }}">
+                                        <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name }}
                                     </div>
                                 @endif
+                            @elseif($st === 'booked' || $activeB)
+                                <span class="badge badge-booked">
+                                    <i class="fa-solid fa-handshake"></i> Booked
+                                </span>
+                                @if($activeB && $activeB->customer)
+                                    <div style="font-size: 11px; color: #FBBF24; font-weight: 600; margin-top: 3px;" title="Booked by {{ $activeB->customer->name }}">
+                                        <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name }}
+                                    </div>
+                                @endif
+                            @elseif($st === 'rented')
+                                <span class="badge badge-rented">
+                                    <i class="fa-solid fa-key"></i> Rented
+                                </span>
+                            @else
+                                <span class="badge badge-available">
+                                    <i class="fa-solid fa-circle-dot"></i> Available
+                                </span>
                             @endif
                         </td>
                         <td style="text-align: right;">

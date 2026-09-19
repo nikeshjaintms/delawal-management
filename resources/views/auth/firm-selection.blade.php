@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Firm & Financial Year — Delawala Management</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v=2" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}?v=2">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}?v=2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Pinyon+Script&display=swap" rel="stylesheet">
@@ -38,11 +43,10 @@
             position: absolute;
             inset: 0;
             background: linear-gradient(
-                90deg,
-                rgba(10, 20, 45, 0.82) 0%,
-                rgba(10, 20, 45, 0.58) 38%,
-                rgba(10, 20, 45, 0.22) 68%,
-                rgba(0, 0, 0, 0.05) 100%
+                135deg,
+                rgba(15, 23, 42, 0.88) 0%,
+                rgba(10, 15, 30, 0.94) 50%,
+                rgba(5, 8, 18, 0.98) 100%
             );
             z-index: 1;
         }
@@ -64,37 +68,30 @@
         }
 
         /* ════════════════════════════════════════
-           CARD WRAPPER
+           CARD CONTAINER
          ════════════════════════════════════════ */
         .card-wrap {
             position: relative;
-            z-index: 10;
-            margin-left: clamp(24px, 6vw, 90px);
+            z-index: 2;
             width: 100%;
-            max-width: 456px;
-            animation: cardIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
-        }
-
-        @keyframes cardIn {
-            from { opacity: 0; transform: translateY(24px) scale(0.97); }
-            to   { opacity: 1; transform: translateY(0)   scale(1); }
+            max-width: 480px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
 
         /* ════════════════════════════════════════
            GLASS CARD
          ════════════════════════════════════════ */
         .login-card {
-            background: rgba(255, 255, 255, 0.13);
-            backdrop-filter: blur(22px) saturate(160%);
-            -webkit-backdrop-filter: blur(22px) saturate(160%);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            border-radius: 22px;
-            padding: 32px 40px 28px;
-            box-shadow:
-                0 28px 72px rgba(0, 0, 0, 0.32),
-                0 4px 18px rgba(0, 0, 0, 0.18),
-                inset 0 1px 0 rgba(255, 255, 255, 0.26);
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+            border-radius: 24px;
+            padding: 36px 42px 32px;
             position: relative;
+            overflow: hidden;
         }
 
         /* Blue top accent stripe */
@@ -121,6 +118,15 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 24px;
+        }
+
+        .logo-img {
+            max-height: 64px;
+            max-width: 200px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
         }
 
         .logo-script {
@@ -293,10 +299,32 @@
 
             {{-- ── Logo ── --}}
             <div class="logo-wrap">
-                <div class="logo-text-wrap">
-                    <div class="logo-script">Delawala</div>
-                    <div class="logo-script-sub">Management ERP</div>
-                </div>
+                @if(file_exists(public_path('assets/logos/logo 1.png')))
+                    <img src="{{ asset('assets/logos/logo 1.png') }}"
+                         alt="Delawala Management"
+                         class="logo-img"
+                         onerror="this.style.display='none';document.getElementById('logoFallback').style.display='block';">
+                    <div id="logoFallback" style="display:none;" class="logo-text-wrap">
+                        <div class="logo-script">Delawala</div>
+                        <div class="logo-script-sub">Management ERP</div>
+                    </div>
+                @elseif(file_exists(public_path('images/logo.png')))
+                    <img src="{{ asset('images/logo.png') }}?v={{ filemtime(public_path('images/logo.png')) }}"
+                         alt="Delawala Management"
+                         class="logo-img"
+                         onerror="this.style.display='none';document.getElementById('logoFallback').style.display='block';">
+                    <div id="logoFallback" style="display:none;" class="logo-text-wrap">
+                        <div class="logo-script">Delawala</div>
+                        <div class="logo-script-sub">Management ERP</div>
+                    </div>
+                @elseif(file_exists(public_path('images/logo.jpeg')))
+                    <img src="{{ asset('images/logo.jpeg') }}" alt="Delawala Management" class="logo-img">
+                @else
+                    <div class="logo-text-wrap">
+                        <div class="logo-script">Delawala</div>
+                        <div class="logo-script-sub">Management ERP</div>
+                    </div>
+                @endif
             </div>
 
             <h3 style="color:#ffffff; font-size: 18px; font-weight:700; text-align:center; margin-bottom: 24px;">

@@ -78,6 +78,16 @@ class Property extends Model
         return $this->belongsToMany(Contractor::class, 'contractor_property', 'property_id', 'contractor_id')->withTimestamps();
     }
 
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    public function expensesList()
+    {
+        return $this->belongsToMany(Expense::class, 'expense_property')->withTimestamps();
+    }
+
     public function bookings()
     {
         return $this->hasMany(Booking::class);

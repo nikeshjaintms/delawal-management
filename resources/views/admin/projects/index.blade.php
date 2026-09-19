@@ -358,9 +358,26 @@
                         <td style="white-space: nowrap !important;">{{ ucfirst($project->project_type) }}</td>
                         <td style="white-space: nowrap !important;">{{ $project->city ?? '-' }}</td>
                         <td>
-                            <span class="badge {{ $project->status === 'active' ? 'badge-active' : 'badge-inactive' }}">
-                                {{ ucfirst($project->status) }}
-                            </span>
+                            @php
+                                $pst = strtolower(trim($project->status ?? 'active'));
+                            @endphp
+                            @if(in_array($pst, ['active', 'approved', 'running', 'ongoing']))
+                                <span class="badge badge-active">
+                                    <i class="fa-solid fa-circle-dot" style="font-size: 8px; margin-right: 4px;"></i> {{ ucfirst($pst) }}
+                                </span>
+                            @elseif(in_array($pst, ['pending', 'planning', 'upcoming', 'under_development', 'development', 'in_progress']))
+                                <span class="badge badge-partial">
+                                    <i class="fa-solid fa-clock" style="font-size: 8px; margin-right: 4px;"></i> {{ ucfirst(str_replace('_', ' ', $pst)) }}
+                                </span>
+                            @elseif(in_array($pst, ['completed', 'finished']))
+                                <span class="badge badge-sold" style="background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important;">
+                                    <i class="fa-solid fa-check-double" style="font-size: 8px; margin-right: 4px;"></i> {{ ucfirst($pst) }}
+                                </span>
+                            @else
+                                <span class="badge badge-inactive">
+                                    <i class="fa-solid fa-circle-xmark" style="font-size: 8px; margin-right: 4px;"></i> {{ ucfirst($pst) }}
+                                </span>
+                            @endif
                         </td>
                         <td style="text-align: right;">
                             <div class="table-action-buttons">

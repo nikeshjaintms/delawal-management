@@ -15,7 +15,7 @@
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     border-radius: 24px !important; padding: 32px !important;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 28px;
-    max-width: 900px; margin-left: auto; margin-right: auto;
+    max-width: 950px; margin-left: auto; margin-right: auto;
 }
 
 .exp-hero { display: flex; align-items: flex-start; gap: 20px; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.10); flex-wrap: wrap; }
@@ -52,11 +52,12 @@
 .detail-value { font-size: 14.5px; font-weight: 700; color: #FFFFFF !important; word-break: break-word; }
 .detail-value.empty { color: #94A3B8 !important; font-weight: 400; font-style: italic; }
 
-.amount-big { font-size: 22px; font-weight: 800; color: #F87171 !important; }
+.amount-big { font-size: 24px; font-weight: 800; color: #F87171 !important; }
 
 .cat-chip { background: rgba(245, 158, 11, 0.15) !important; color: #FBBF24 !important; padding: 4px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.30) !important; display: inline-block; white-space: nowrap; }
+.type-chip { background: rgba(99, 102, 241, 0.15) !important; color: #A5B4FC !important; padding: 4px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 700; border: 1px solid rgba(99, 102, 241, 0.30) !important; display: inline-block; white-space: nowrap; }
 .mode-chip { background: rgba(255, 255, 255, 0.08) !important; color: #E2E8F0 !important; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-block; border: 1px solid rgba(255, 255, 255, 0.10); white-space: nowrap !important; }
-.bill-chip { background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-block; border: 1px solid rgba(59, 130, 246, 0.30); white-space: nowrap !important; }
+.ref-chip { background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-block; border: 1px solid rgba(59, 130, 246, 0.30); white-space: nowrap !important; }
 
 .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap !important; }
 .status-pending  { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
@@ -77,7 +78,7 @@
 .meta-item { font-size: 12.5px; color: #CBD5E1 !important; display: flex; align-items: center; gap: 6px; font-weight: 500; }
 .meta-item i { color: #60A5FA !important; }
 
-.form-actions { display: flex; align-items: center; gap: 14px; margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
+.form-actions { display: flex; align-items: center; gap: 14px; margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); flex-wrap: wrap; }
 
 .btn-gold {
     background: #2563EB !important; color: #FFFFFF !important; padding: 11px 24px;
@@ -106,18 +107,18 @@
 <div class="crud-header">
     <div class="crud-title">
         <h2>Expense Details</h2>
-        <p>Full record of this expense entry.</p>
+        <p>Comprehensive record of this expense voucher.</p>
     </div>
 </div>
 
 <div class="card-box">
-    {{-- Hero --}}
+    {{-- Hero Summary --}}
     <div class="exp-hero">
         <div class="exp-icon"><i class="fa-solid fa-receipt"></i></div>
         <div class="exp-hero-info">
-            <h3>{{ $expense->expense_title }}</h3>
+            <h3>{{ $expense->expense_title ?? $expense->expense_category }}</h3>
             <p>
-                {{ \Carbon\Carbon::parse($expense->expense_date)->format('d M Y') }}
+                {{ \Carbon\Carbon::parse($expense->expense_date)->format('d F Y') }}
                 @if($expense->expense_category) &nbsp;·&nbsp; {{ $expense->expense_category }} @endif
             </p>
             <div class="hero-badges">
@@ -131,7 +132,7 @@
                     {{ $st }}
                 </span>
                 @if($expense->payment_mode)
-                    <span class="mode-chip">{{ $expense->payment_mode }}</span>
+                    <span class="mode-chip"><i class="fa-solid fa-wallet"></i> {{ $expense->payment_mode }}</span>
                 @endif
                 @if($expense->expense_category)
                     <span class="cat-chip">{{ $expense->expense_category }}</span>
@@ -140,23 +141,19 @@
         </div>
     </div>
 
-    {{-- Expense Info --}}
-    <div class="section-title"><i class="fa-solid fa-circle-info"></i> Expense Information</div>
+    {{-- 1. Classification & Hierarchy --}}
+    <div class="section-title"><i class="fa-solid fa-sitemap"></i> 1. Expense Classification &amp; Hierarchy</div>
     <div class="detail-grid">
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
+            <div class="detail-label"><i class="fa-solid fa-building"></i> Firm(s)</div>
             <div class="detail-value">{{ $expense->firm_names }}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-tag"></i> Expense Title</div>
-            <div class="detail-value">{{ $expense->expense_title }}</div>
         </div>
         <div class="detail-item">
             <div class="detail-label"><i class="fa-regular fa-calendar"></i> Expense Date</div>
             <div class="detail-value">{{ \Carbon\Carbon::parse($expense->expense_date)->format('d M Y') }}</div>
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-tags"></i> Category</div>
+            <div class="detail-label"><i class="fa-solid fa-tag"></i> Expense Category</div>
             @if($expense->expense_category)
                 <div class="detail-value"><span class="cat-chip">{{ $expense->expense_category }}</span></div>
             @else
@@ -164,36 +161,54 @@
             @endif
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-building"></i> Property</div>
-            @if($expense->property)
+            <div class="detail-label"><i class="fa-solid fa-city"></i> Project</div>
+            @if($expense->project ?? $expense->property?->project)
+                @php $proj = $expense->project ?? $expense->property->project; @endphp
                 <div class="detail-value">
-                    {{ $expense->property->property_name }}
+                    <a href="{{ route('projects.show', $proj->id) }}" style="color:#60A5FA;text-decoration:none;font-weight:700;">
+                        {{ $proj->project_name }}
+                    </a>
+                    @if($proj->propertyMaster)
+                        <span style="color:#93C5FD;font-size:12.5px;"> ({{ $proj->propertyMaster->property_name }})</span>
+                    @endif
+                </div>
+            @else
+                <div class="detail-value empty">General / Not project-specific</div>
+            @endif
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-building-circle-check"></i> Property / Unit(s)</div>
+            @if($expense->relationLoaded('properties') && $expense->properties->isNotEmpty())
+                <div class="detail-value" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px;">
+                    @foreach($expense->properties as $prop)
+                        <a href="{{ route('properties.show', $prop->id) }}" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); padding: 3px 8px; border-radius: 6px; color:#60A5FA; text-decoration:none; font-weight:700; font-size:12.5px;">
+                            <i class="fa-solid fa-house" style="font-size: 11px;"></i> {{ $prop->property_name }}
+                            @if($prop->unit_no)
+                                <span style="color:#93C5FD; font-size:11.5px;">(Unit {{ $prop->unit_no }})</span>
+                            @endif
+                        </a>
+                    @endforeach
+                </div>
+            @elseif($expense->property)
+                <div class="detail-value">
+                    <a href="{{ route('properties.show', $expense->property->id) }}" style="color:#60A5FA;text-decoration:none;font-weight:700;">
+                        {{ $expense->property->property_name }}
+                    </a>
+                    @if($expense->property->unit_no)
+                        <span style="color:#93C5FD;font-size:12.5px;"> (Unit {{ $expense->property->unit_no }})</span>
+                    @endif
                     @if($expense->property->property_code)
-                        <span style="color:#60A5FA;font-size:13px;"> ({{ $expense->property->property_code }})</span>
+                        <span style="color:#CBD5E1;font-size:12px;"> · {{ $expense->property->property_code }}</span>
                     @endif
                 </div>
             @else
                 <div class="detail-value empty">General / Not property-specific</div>
             @endif
         </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-city"></i> Project</div>
-            @if($expense->project ?? $expense->property?->project)
-                @php $proj = $expense->project ?? $expense->property->project; @endphp
-                <div class="detail-value">
-                    {{ $proj->project_name }}
-                    @if($proj->propertyMaster)
-                        <span style="color:#60A5FA;font-size:13px;"> ({{ $proj->propertyMaster->property_name }})</span>
-                    @endif
-                </div>
-            @else
-                <div class="detail-value empty">General / Standalone</div>
-            @endif
-        </div>
     </div>
 
-    {{-- Payment Details --}}
-    <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Payment Details</div>
+    {{-- 2. Payment Details --}}
+    <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> 2. Amount &amp; Payment Details</div>
     <div class="detail-grid-3">
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Amount</div>
@@ -204,7 +219,7 @@
             @if($expense->payment_mode)
                 <div class="detail-value"><span class="mode-chip">{{ $expense->payment_mode }}</span></div>
             @else
-                <div class="detail-value empty">Not set</div>
+                <div class="detail-value empty">Not specified</div>
             @endif
         </div>
         <div class="detail-item">
@@ -225,25 +240,58 @@
             @endif
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-file-invoice"></i> Bill / Invoice No</div>
-            @if($expense->bill_no)
-                <div class="detail-value"><span class="bill-chip">{{ $expense->bill_no }}</span></div>
+            <div class="detail-label"><i class="fa-solid fa-hashtag"></i> Reference Number</div>
+            @if($expense->reference_no)
+                <div class="detail-value"><span class="ref-chip">{{ $expense->reference_no }}</span></div>
             @else
                 <div class="detail-value empty">Not provided</div>
             @endif
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-shield-halved"></i> Approval Status</div>
-            <div class="detail-value">
-                @php $st = $expense->approval_status ?? 'Pending'; @endphp
-                <span class="status-badge status-{{ strtolower($st) }}">{{ $st }}</span>
-            </div>
+            <div class="detail-label"><i class="fa-solid fa-building-columns"></i> Payment Account</div>
+            @if($expense->payment_account)
+                <div class="detail-value" style="color:#60A5FA;">{{ $expense->payment_account }}</div>
+            @else
+                <div class="detail-value empty">Not provided</div>
+            @endif
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-file-invoice"></i> Bill / Invoice No</div>
+            @if($expense->bill_no)
+                <div class="detail-value"><span class="ref-chip">{{ $expense->bill_no }}</span></div>
+            @else
+                <div class="detail-value empty">Not provided</div>
+            @endif
         </div>
     </div>
 
-    {{-- Bill File --}}
+    {{-- 3. Description & Notes --}}
+    <div class="section-title"><i class="fa-solid fa-align-left"></i> 3. Description &amp; Notes</div>
+    <div class="detail-grid">
+        <div class="detail-item {{ empty($expense->notes) && empty($expense->remarks) ? 'detail-item-full' : '' }}">
+            <div class="detail-label"><i class="fa-solid fa-file-lines"></i> Description</div>
+            @if($expense->description)
+                <div class="detail-value" style="font-weight:400;font-size:14px;line-height:1.7;color:#CBD5E1 !important;">
+                    {!! nl2br(e($expense->description)) !!}
+                </div>
+            @else
+                <div class="detail-value empty">No description entered</div>
+            @endif
+        </div>
+
+        @if($expense->notes || $expense->remarks)
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-note-sticky"></i> Notes / Remarks</div>
+            <div class="detail-value" style="font-weight:400;font-size:14px;line-height:1.7;color:#CBD5E1 !important;">
+                {!! nl2br(e($expense->notes ?: $expense->remarks)) !!}
+            </div>
+        </div>
+        @endif
+    </div>
+
+    {{-- 4. Attached File --}}
     @if($expense->bill_file)
-        <div class="section-title"><i class="fa-solid fa-paperclip"></i> Attached Bill / Receipt</div>
+        <div class="section-title"><i class="fa-solid fa-paperclip"></i> 4. Attached Bill / Invoice / Receipt</div>
         <div class="bill-file-box">
             @php $ext = pathinfo($expense->bill_file, PATHINFO_EXTENSION); @endphp
             @if(in_array(strtolower($ext), ['jpg','jpeg','png']))
@@ -252,26 +300,18 @@
                 <i class="fa-solid fa-file-pdf"></i>
             @endif
             <div>
-                <div style="font-size:12px;color:#94A3B8;margin-bottom:3px;">Attached file</div>
+                <div style="font-size:12px;color:#94A3B8;margin-bottom:3px;">Attached File ({{ basename($expense->bill_file) }})</div>
                 <a href="{{ asset('storage/'.$expense->bill_file) }}" target="_blank">
                     <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:11px;"></i>
-                    View / Download Bill
+                    View / Download Attachment
                 </a>
             </div>
         </div>
     @endif
 
-    {{-- Remarks --}}
-    @if($expense->remarks)
-        <div class="section-title"><i class="fa-solid fa-note-sticky"></i> Remarks</div>
-        <div class="detail-item">
-            <div class="detail-value" style="font-weight:400;font-size:14px;line-height:1.7;color:#CBD5E1 !important;">{{ $expense->remarks }}</div>
-        </div>
-    @endif
-
     <div class="meta-info">
-        <div class="meta-item"><i class="fa-regular fa-calendar-plus"></i> Created: {{ $expense->created_at->format('d M Y, h:i A') }}</div>
-        <div class="meta-item"><i class="fa-regular fa-calendar-check"></i> Updated: {{ $expense->updated_at->format('d M Y, h:i A') }}</div>
+        <div class="meta-item"><i class="fa-regular fa-calendar-plus"></i> Created: {{ $expense->created_at ? $expense->created_at->format('d M Y, h:i A') : '—' }}</div>
+        <div class="meta-item"><i class="fa-regular fa-calendar-check"></i> Updated: {{ $expense->updated_at ? $expense->updated_at->format('d M Y, h:i A') : '—' }}</div>
     </div>
 
     <div class="form-actions">
@@ -288,7 +328,7 @@
               style="margin-left:auto;" id="del-show-{{ $expense->id }}">
             @csrf @method('DELETE')
             <button type="button" class="btn-danger"
-                onclick="confirmDelete({{ $expense->id }}, '{{ addslashes($expense->expense_title) }}')">
+                onclick="confirmDelete({{ $expense->id }}, '{{ addslashes($expense->expense_title ?? $expense->expense_category) }}')">
                 <i class="fa-regular fa-trash-can"></i> Delete
             </button>
         </form>

@@ -255,8 +255,8 @@
             <td>{{ $plot->project->project_name ?? '-' }}</td>
             <td>{{ $plot->size ? number_format($plot->size, 2).' '.($plot->size_unit ?? '') : '-' }}</td>
             <td>{{ $plot->facing ?: '-' }}</td>
-            <td class="r">₹{{ number_format($plot->purchase_rate ?: 0, 2) }}</td>
-            <td class="r">₹{{ number_format($plot->price ?: 0, 2) }}</td>
+            <td class="r">₹{{ number_format($plot->purchase_rate ?: ($plot->price ?: 0), 2) }}</td>
+            <td class="r">₹{{ number_format($plot->price ?: ($plot->purchase_rate ?: 0), 2) }}</td>
             <td class="c">
                 @if($plot->status === 'available')
                     <span class="badge badge-success">Available</span>

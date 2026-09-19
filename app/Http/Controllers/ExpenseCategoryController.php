@@ -112,12 +112,45 @@ class ExpenseCategoryController extends Controller
         $firmId = $user ? $user->firm_id : session('firm_id');
 
         $expenseCategory->load('firms');
-        if (!$isAdmin && !$expenseCategory->firms->contains($firmId)) {
-            abort(403);
+        $expenseCategory->delete();
+        return redirect()->route('expense-categories.index')->with('success', 'Expense category deleted successfully.');
+    }
+
+    public function quickStore(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $user = Auth::user();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+        $firmIds = $request->input('firm_ids', (array) ($request->firm_id ?? $firmId));
+
+        $name = trim($request->name);
+        $category = ExpenseCategory::where('name', $name)->first();
+        if (!$category) {
+            $category = ExpenseCategory::create([
+                'name' => $name,
+                'description' => $request->description ?: 'Created via Quick Add',
+                'status' => 'active',
+                'firm_id' => reset($firmIds) ?: 1,
+            ]);
         }
 
-        $expenseCategory->delete();
+        if (!empty($firmIds)) {
+            $category->firms()->syncWithoutDetaching($firmIds);
+        } elseif ($firmId) {
+            $category->firms()->syncWithoutDetaching([$firmId]);
+        }
 
-        return redirect()->route('expense-categories.index')->with('success', 'Expense category deleted successfully.');
+        return response()->json([
+            'success' => true,
+            'category' => [
+                'id' => $category->id,
+                'name' => $category->name,
+            ],
+            'message' => 'Expense category added successfully.'
+        ]);
     }
 }

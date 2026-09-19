@@ -38,12 +38,12 @@
         .amount-title { font-size:13px; color:#64748B; font-weight:600; }
         .amount-value { font-size:24px; font-weight:800; color:#e05c00; }
 
-        /* ── Remarks Box ── */
-        .terms-box { background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:12px 16px; margin-bottom:24px; font-size:10.5px; color:#475569; }
+        /* ── Description & Remarks Box ── */
+        .terms-box { background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:12px 16px; margin-bottom:18px; font-size:11px; color:#334155; line-height:1.5; }
         .terms-box strong { color:#0F1F35; }
 
         /* ── Signatures ── */
-        .auth-block { margin-top:40px; padding-top:14px; display:flex; justify-content:space-between; page-break-inside:avoid; }
+        .auth-block { margin-top:36px; padding-top:14px; display:flex; justify-content:space-between; page-break-inside:avoid; }
         .auth-col { width:200px; text-align:center; }
         .auth-line { border-top:1.5px solid #0F1F35; margin-top:46px; padding-top:5px; font-size:10px; font-weight:700; color:#0F1F35; }
 
@@ -70,7 +70,7 @@
     <div>
         <h2>Voucher #EXP-{{ str_pad($expense->id, 5, '0', STR_PAD_LEFT) }}</h2>
         <div style="font-size:11px; color:#94A3B8;">
-            Expense: {{ $expense->expense_title }}
+            Expense: {{ $expense->expense_title ?? $expense->expense_category }}
         </div>
     </div>
     <div>
@@ -91,10 +91,6 @@
     <div class="grid-col">
         <div class="col-heading">&#9632; Expense &amp; Classification</div>
         <div class="info-row">
-            <span class="info-label">Title:</span>
-            <span class="info-value">{{ $expense->expense_title }}</span>
-        </div>
-        <div class="info-row">
             <span class="info-label">Category:</span>
             <span class="info-value">{{ $expense->expenseCategory->name ?? ($expense->expense_category ?: 'General') }}</span>
         </div>
@@ -107,6 +103,14 @@
             <span class="info-value">{{ $expense->payment_mode ?: '-' }}</span>
         </div>
         <div class="info-row">
+            <span class="info-label">Reference No:</span>
+            <span class="info-value">{{ $expense->reference_no ?: '-' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Payment Account:</span>
+            <span class="info-value">{{ $expense->payment_account ?: '-' }}</span>
+        </div>
+        <div class="info-row">
             <span class="info-label">Bill / Invoice No:</span>
             <span class="info-value">{{ $expense->bill_no ?: '-' }}</span>
         </div>
@@ -116,8 +120,8 @@
     <div class="grid-col">
         <div class="col-heading">&#9632; Payee &amp; Cost Center</div>
         <div class="info-row">
-            <span class="info-label">Paid To / Beneficiary:</span>
-            <span class="info-value">{{ $expense->paid_to ?: '-' }}</span>
+            <span class="info-label">Paid To / Payee:</span>
+            <span class="info-value">{{ $expense->paid_to ?: ($expense->vendor->name ?? '-') }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Associated Firm(s):</span>
@@ -128,23 +132,36 @@
         </div>
         <div class="info-row">
             <span class="info-label">Project:</span>
-            <span class="info-value">{{ $expense->project->project_name ?? '-' }}</span>
+            <span class="info-value">{{ $expense->project->project_name ?? ($expense->property->project->project_name ?? 'General') }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Property / Unit:</span>
-            <span class="info-value">{{ $expense->property->property_name ?? '-' }}</span>
+            <span class="info-value">
+                @if($expense->relationLoaded('properties') && $expense->properties->isNotEmpty())
+                    {{ $expense->properties->map(fn($p) => $p->property_name . ($p->unit_no ? ' (Unit '.$p->unit_no.')' : ''))->implode(', ') }}
+                @else
+                    {{ $expense->property->property_name ?? 'General' }}{{ $expense->property && $expense->property->unit_no ? ' (Unit '.$expense->property->unit_no.')' : '' }}
+                @endif
+            </span>
         </div>
         <div class="info-row">
             <span class="info-label">Created At:</span>
-            <span class="info-value">{{ $expense->created_at->format('d M Y, h:i A') }}</span>
+            <span class="info-value">{{ $expense->created_at ? $expense->created_at->format('d M Y, h:i A') : '—' }}</span>
         </div>
     </div>
 </div>
 
-@if($expense->remarks)
+@if($expense->description)
 <div class="terms-box">
-    <strong>Remarks / Audit Notes:</strong><br>
-    {{ $expense->remarks }}
+    <strong>Description / Purpose:</strong><br>
+    {!! nl2br(e($expense->description)) !!}
+</div>
+@endif
+
+@if($expense->notes || $expense->remarks)
+<div class="terms-box">
+    <strong>Internal Notes / Remarks:</strong><br>
+    {!! nl2br(e($expense->notes ?: $expense->remarks)) !!}
 </div>
 @endif
 

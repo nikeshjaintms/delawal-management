@@ -676,7 +676,6 @@ class AcquisitionBatchController extends Controller
                 }
             }
 
-            // 6. Purchase Rate and Price
             $rawRate = isset($columnMap['purchase_rate']) && isset($row[$columnMap['purchase_rate']]) ? trim((string)$row[$columnMap['purchase_rate']]) : '';
             $cleanedRate = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawRate));
             $purchaseRate = ($cleanedRate !== '' && is_numeric($cleanedRate)) ? (float)$cleanedRate : $defaultPurchaseRate;
@@ -684,6 +683,13 @@ class AcquisitionBatchController extends Controller
             $rawPrice = isset($columnMap['price']) && isset($row[$columnMap['price']]) ? trim((string)$row[$columnMap['price']]) : '';
             $cleanedPrice = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawPrice));
             $price = ($cleanedPrice !== '' && is_numeric($cleanedPrice)) ? (float)$cleanedPrice : $purchaseRate;
+
+            if (($purchaseRate <= 0 || $rawRate === '') && $price > 0) {
+                $purchaseRate = $price;
+            }
+            if (($price <= 0 || $rawPrice === '') && $purchaseRate > 0) {
+                $price = $purchaseRate;
+            }
 
             // 7. Location, City, Address
             $rawLoc = isset($columnMap['location']) && isset($row[$columnMap['location']]) ? trim((string)$row[$columnMap['location']]) : '';

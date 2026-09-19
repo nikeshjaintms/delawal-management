@@ -177,11 +177,12 @@
 .pk-purple { background: rgba(167, 139, 250, 0.20); color: #C4B5FD; }
 .pk-green  { background: rgba(16, 185, 129, 0.20); color: #34D399; }
 .pk-amber  { background: rgba(245, 158, 11, 0.20); color: #FBBF24; }
+.pk-red    { background: rgba(239, 68, 68, 0.20); color: #F87171; }
 .pk-rose   { background: rgba(244, 63, 94, 0.20); color: #FB7185; }
 
 .pk-info { display: flex; flex-direction: column; }
 .pk-label { font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; }
-.pk-val { font-size: 16px; font-weight: 800; color: #FFFFFF; line-height: 1.2; margin-top: 2px; }
+.pk-val { font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px; }
 
 /* ── Buttons & Badges ── */
 .btn-primary-custom, a.btn-primary-custom, button.btn-primary-custom, .btn-gold {
@@ -213,6 +214,113 @@
 }
 .btn-excel-custom:hover {
     background: #10B981 !important; color: #FFFFFF !important;
+}
+
+.btn-action-expense {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 7px 14px; min-height: 36px; border-radius: 9px;
+    font-size: 12.5px; font-weight: 700; text-decoration: none !important;
+    background: rgba(59, 130, 246, 0.16) !important;
+    border: 1px solid rgba(59, 130, 246, 0.40) !important;
+    color: #60A5FA !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-action-expense:hover {
+    background: rgba(59, 130, 246, 0.30) !important;
+    border-color: #60A5FA !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.btn-action-po {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 7px 14px; min-height: 36px; border-radius: 9px;
+    font-size: 12.5px; font-weight: 700; text-decoration: none !important;
+    background: rgba(139, 92, 246, 0.16) !important;
+    border: 1px solid rgba(139, 92, 246, 0.40) !important;
+    color: #C4B5FD !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-action-po:hover {
+    background: rgba(139, 92, 246, 0.30) !important;
+    border-color: #C4B5FD !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+}
+
+.btn-action-contractor {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 7px 14px; min-height: 36px; border-radius: 9px;
+    font-size: 12.5px; font-weight: 700; text-decoration: none !important;
+    background: rgba(244, 63, 94, 0.16) !important;
+    border: 1px solid rgba(244, 63, 94, 0.40) !important;
+    color: #FB7185 !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-action-contractor:hover {
+    background: rgba(244, 63, 94, 0.30) !important;
+    border-color: #FB7185 !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.25);
+}
+
+.btn-action-broker {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 7px 14px; min-height: 36px; border-radius: 9px;
+    font-size: 12.5px; font-weight: 700; text-decoration: none !important;
+    background: rgba(168, 85, 247, 0.16) !important;
+    border: 1px solid rgba(168, 85, 247, 0.40) !important;
+    color: #D8B4FE !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-action-broker:hover {
+    background: rgba(168, 85, 247, 0.30) !important;
+    border-color: #D8B4FE !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+}
+
+.btn-action-land {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 7px 14px; min-height: 36px; border-radius: 9px;
+    font-size: 12.5px; font-weight: 700; text-decoration: none !important;
+    background: rgba(20, 184, 166, 0.16) !important;
+    border: 1px solid rgba(20, 184, 166, 0.40) !important;
+    color: #5EEAD4 !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-action-land:hover {
+    background: rgba(20, 184, 166, 0.30) !important;
+    border-color: #5EEAD4 !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.25);
+}
+
+.btn-action-view {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 7px 14px; min-height: 36px; border-radius: 9px;
+    font-size: 12.5px; font-weight: 700; text-decoration: none !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    color: #E2E8F0 !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-action-view:hover {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #FFFFFF !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    transform: translateY(-1px);
 }
 
 .tbl-actions-wrap {
@@ -283,8 +391,10 @@
     text-transform: uppercase;
 }
 .badge-active, .badge-available { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
-.badge-inactive, .badge-sold { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
-.badge-booked { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.badge-booked   { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.badge-sold     { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+.badge-rented   { background: rgba(168, 85, 247, 0.18) !important; color: #D8B4FE !important; border: 1px solid rgba(168, 85, 247, 0.35) !important; }
+.badge-inactive, .badge-blocked { background: rgba(148, 163, 184, 0.18) !important; color: #94A3B8 !important; border: 1px solid rgba(148, 163, 184, 0.35) !important; }
 
 .section-title {
     font-size: 18px;
@@ -488,7 +598,8 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
 @php
     $totalPlots = $project->properties->count();
     $availPlots = $project->properties->where('status', 'available')->count();
-    $bookedPlots = $project->properties->whereIn('status', ['booked', 'sold'])->count();
+    $bookedPlots = $project->properties->where('status', 'booked')->count();
+    $soldPlots = $project->properties->where('status', 'sold')->count();
     $linkedMasters = $project->propertyMasters->isNotEmpty() ? $project->propertyMasters : ($project->propertyMaster ? collect([$project->propertyMaster]) : collect([]));
 @endphp
 
@@ -590,15 +701,22 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
         <div class="pk-card">
             <div class="pk-icon pk-amber"><i class="fa-solid fa-handshake"></i></div>
             <div class="pk-info">
-                <span class="pk-label">Booked / Sold</span>
+                <span class="pk-label">Booked Plots</span>
                 <span class="pk-val">{{ $bookedPlots }} Plots</span>
+            </div>
+        </div>
+        <div class="pk-card">
+            <div class="pk-icon pk-red"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="pk-info">
+                <span class="pk-label">Sold Plots</span>
+                <span class="pk-val">{{ $soldPlots }} Plots</span>
             </div>
         </div>
         <div class="pk-card">
             <div class="pk-icon pk-rose"><i class="fa-solid fa-receipt"></i></div>
             <div class="pk-info">
-                <span class="pk-label">Total Expenses</span>
-                <span class="pk-val" style="color: #FB7185;">₹{{ number_format($totalExpenses ?? 0, 2) }}</span>
+                <span class="pk-label">Total Outflows</span>
+                <span class="pk-val">₹{{ number_format($grandTotalProjectCost ?? ($totalExpenses ?? 0), 2) }}</span>
             </div>
         </div>
     </div>
@@ -659,28 +777,59 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                             @endif
                         </td>
                         <td>
-                            <strong style="color: #FBBF24; font-size: 14px;">₹{{ number_format($property->purchase_rate ?: ($property->propertyMaster?->purchase_rate ?? 0), 2) }}</strong>
-                            @if($property->purchase_date)
+                            <strong style="color: #FBBF24; font-size: 14px;">₹{{ number_format($property->purchase_rate ?: ($property->price ?: ($property->propertyMaster?->purchase_rate ?? 0)), 2) }}</strong>
+                            @if($property->price && $property->purchase_rate && $property->price != $property->purchase_rate)
+                                <small style="color: #94A3B8; display: block; font-size: 11px;">Sell: ₹{{ number_format($property->price, 2) }}</small>
+                            @elseif($property->purchase_date)
                                 <small style="color: #94A3B8; display: block; font-size: 11px;">{{ \Carbon\Carbon::parse($property->purchase_date)->format('d M Y') }}</small>
                             @endif
                         </td>
                         <td>{{ $property->formatted_size }}</td>
                         <td>{{ $property->facing ?: '-' }}</td>
                         <td>
-                            <span class="badge badge-{{ strtolower($property->status ?? 'available') }}">
-                                <i class="fa-solid fa-circle-dot"></i> {{ ucfirst($property->status ?? 'Available') }}
-                            </span>
-                            @if(strtolower($property->status ?? '') === 'booked')
-                                @php
-                                    $activeB = ($property->relationLoaded('bookings') ? $property->bookings->where('status', '!=', 'cancelled')->first() : null)
-                                        ?: ($property->relationLoaded('bookingsList') ? $property->bookingsList->where('status', '!=', 'cancelled')->first() : null)
-                                        ?: $property->active_booking;
-                                @endphp
-                                @if($activeB)
-                                    <div style="font-size: 11px; color: #FBBF24; font-weight: 600; margin-top: 3px;" title="Booked by {{ $activeB->customer->name ?? 'Customer' }}">
-                                        <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name ?? 'Client' }}
+                            @php
+                                $st = strtolower(trim($property->status ?? 'available'));
+                                $activeB = ($property->relationLoaded('bookings') ? $property->bookings->where('status', '!=', 'cancelled')->first() : null)
+                                    ?: ($property->relationLoaded('bookingsList') ? $property->bookingsList->where('status', '!=', 'cancelled')->first() : null)
+                                    ?: $property->active_booking;
+                                $activeSale = ($property->relationLoaded('sales') ? $property->sales->where('sale_status', '!=', 'cancelled')->first() : null)
+                                    ?: ($property->relationLoaded('sales') && $property->sales->isNotEmpty() ? $property->sales->first() : null);
+                            @endphp
+
+                            @if($st === 'sold' || $activeSale)
+                                <span class="badge badge-sold">
+                                    <i class="fa-solid fa-circle-check"></i> Sold
+                                </span>
+                                @if($activeSale && $activeSale->customer)
+                                    <div style="font-size: 11px; color: #F87171; font-weight: 600; margin-top: 3px;" title="Sold to {{ $activeSale->customer->name }}">
+                                        <i class="fa-solid fa-user-tag" style="font-size: 10px;"></i> {{ $activeSale->customer->name }}
+                                    </div>
+                                @elseif($activeB && $activeB->customer)
+                                    <div style="font-size: 11px; color: #F87171; font-weight: 600; margin-top: 3px;" title="Buyer: {{ $activeB->customer->name }}">
+                                        <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name }}
                                     </div>
                                 @endif
+                            @elseif($st === 'booked' || $activeB)
+                                <span class="badge badge-booked">
+                                    <i class="fa-solid fa-handshake"></i> Booked
+                                </span>
+                                @if($activeB && $activeB->customer)
+                                    <div style="font-size: 11px; color: #FBBF24; font-weight: 600; margin-top: 3px;" title="Booked by {{ $activeB->customer->name }}">
+                                        <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name }}
+                                    </div>
+                                @endif
+                            @elseif($st === 'rented')
+                                <span class="badge badge-rented">
+                                    <i class="fa-solid fa-key"></i> Rented
+                                </span>
+                            @elseif($st === 'blocked' || $st === 'inactive')
+                                <span class="badge badge-inactive">
+                                    <i class="fa-solid fa-ban"></i> {{ ucfirst($st) }}
+                                </span>
+                            @else
+                                <span class="badge badge-available">
+                                    <i class="fa-solid fa-circle-dot"></i> Available
+                                </span>
                             @endif
                         </td>
                         <td style="text-align: right; white-space: nowrap;">
@@ -708,7 +857,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
 </div>
 
 <!-- ================================================================
-     PROJECT EXPENSES & MATERIAL PROCUREMENT SECTION
+     PROJECT EXPENSES & ALL OUTFLOWS SECTION
 ================================================================ -->
 <div class="card-box" style="margin-top: 24px;">
     <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10); padding-bottom: 14px;">
@@ -717,32 +866,41 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                 <i class="fa-solid fa-receipt"></i>
             </div>
             <div>
-                <h3 style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin: 0;">Project Expenses &amp; Material Procurement</h3>
-                <p style="font-size: 12.5px; color: #94A3B8; margin: 2px 0 0 0;">Combined financial ledger of site expenses, materials, and purchase orders ({{ $projectExpenses->count() }} records).</p>
+                <h3 style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin: 0;">Project Expenses, Procurement &amp; Outgoing Payments</h3>
+                <p style="font-size: 12.5px; color: #94A3B8; margin: 2px 0 0 0;">Auto-aggregated financial ledger of site expenses, materials, contractor payments, broker commissions, and land acquisition ({{ $projectExpenses->count() }} direct/PO &bull; {{ isset($contractorPayments) ? $contractorPayments->count() : 0 }} contractors &bull; {{ isset($brokerCommissions) ? $brokerCommissions->count() : 0 }} brokers &bull; {{ isset($landPayments) ? $landPayments->count() : 0 }} land payments).</p>
             </div>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-            <a href="{{ route('expenses.index', ['filter_project' => $project->id]) }}" class="btn-secondary-custom" style="padding: 7px 14px; min-height: 36px; font-size: 12.5px;">
-                <i class="fa-solid fa-table-list"></i> Full Ledger View
+            <a href="{{ route('expenses.create', ['project_id' => $project->id]) }}" class="btn-action-expense">
+                <i class="fa-solid fa-plus"></i> Add Expense
             </a>
-            <a href="{{ route('purchase-orders.create', ['project_id' => $project->id]) }}" class="btn-secondary-custom" style="padding: 7px 14px; min-height: 36px; font-size: 12.5px; background: rgba(139, 92, 246, 0.18) !important; border-color: rgba(139, 92, 246, 0.40) !important; color: #C4B5FD !important;">
+            <a href="{{ route('purchase-orders.create', ['project_id' => $project->id]) }}" class="btn-action-po">
                 <i class="fa-solid fa-file-invoice"></i> Create PO
             </a>
-            <a href="{{ route('expenses.create', ['project_id' => $project->id]) }}" class="btn-primary-custom" style="padding: 7px 16px; min-height: 36px; font-size: 12.5px;">
-                <i class="fa-solid fa-plus"></i> Add Project Expense
+            <a href="{{ route('contractors.index') }}" class="btn-action-contractor">
+                <i class="fa-solid fa-helmet-safety"></i> Contractors
+            </a>
+            <a href="{{ route('brokers.index') }}" class="btn-action-broker">
+                <i class="fa-solid fa-handshake"></i> Brokers
+            </a>
+            <a href="{{ route('property-masters.index') }}" class="btn-action-land">
+                <i class="fa-solid fa-mountain-sun"></i> Land Acquisition
+            </a>
+            <a href="{{ route('expenses.project-wise', ['project_id' => $project->id]) }}" class="btn-action-view">
+                <i class="fa-solid fa-layer-group"></i> Project-wise View
             </a>
         </div>
     </div>
 
     <!-- Expense Financial Breakdown KPI Cards -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px;">
         <div style="background: rgba(245, 158, 11, 0.10); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
             <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.20); color: #FBBF24; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
                 <i class="fa-solid fa-calculator"></i>
             </div>
             <div>
                 <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Total Project Cost</div>
-                <div style="font-size: 17px; font-weight: 800; color: #FBBF24; line-height: 1.2; margin-top: 2px;">₹{{ number_format($totalExpenses, 2) }}</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FBBF24; line-height: 1.2; margin-top: 2px;">₹{{ number_format($grandTotalProjectCost ?? $totalExpenses, 2) }}</div>
             </div>
         </div>
 
@@ -751,7 +909,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                 <i class="fa-solid fa-file-invoice"></i>
             </div>
             <div>
-                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">PO &amp; Material Purchases</div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">PO &amp; Materials</div>
                 <div style="font-size: 17px; font-weight: 800; color: #C4B5FD; line-height: 1.2; margin-top: 2px;">₹{{ number_format($poExpensesTotal, 2) }}</div>
             </div>
         </div>
@@ -766,134 +924,505 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             </div>
         </div>
 
-        <div style="background: rgba(16, 185, 129, 0.10); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.20); color: #34D399; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
-                <i class="fa-solid fa-circle-check"></i>
+        <div style="background: rgba(244, 63, 94, 0.10); border: 1px solid rgba(244, 63, 94, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(244, 63, 94, 0.20); color: #FB7185; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-helmet-safety"></i>
             </div>
             <div>
-                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Approved ({{ $projectExpenses->where('approval_status', 'Approved')->count() }} Rec)</div>
-                <div style="font-size: 17px; font-weight: 800; color: #34D399; line-height: 1.2; margin-top: 2px;">₹{{ number_format($approvedExpensesTotal, 2) }}</div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Contractors</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FB7185; line-height: 1.2; margin-top: 2px;">₹{{ number_format($contractorPaymentsTotal ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(168, 85, 247, 0.10); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(168, 85, 247, 0.20); color: #D8B4FE; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-handshake"></i>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Brokers</div>
+                <div style="font-size: 17px; font-weight: 800; color: #D8B4FE; line-height: 1.2; margin-top: 2px;">₹{{ number_format($brokerCommissionsTotal ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(20, 184, 166, 0.10); border: 1px solid rgba(20, 184, 166, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(20, 184, 166, 0.20); color: #5EEAD4; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-mountain-sun"></i>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Land Acquisition</div>
+                <div style="font-size: 17px; font-weight: 800; color: #5EEAD4; line-height: 1.2; margin-top: 2px;">₹{{ number_format($landPaymentsTotal ?? 0, 2) }}</div>
             </div>
         </div>
     </div>
 
-    @if($projectExpenses->count() > 0)
-        <div class="table-responsive-wrapper">
-            <table class="premium-table">
-                <thead>
-                    <tr>
-                        <th style="width: 45px;">#</th>
-                        <th>Date</th>
-                        <th>Expense Title / Details</th>
-                        <th>Source / Type</th>
-                        <th>Category</th>
-                        <th>Paid To / Vendor</th>
-                        <th>Amount</th>
-                        <th>Mode</th>
-                        <th style="text-align: center;">Status</th>
-                        <th style="text-align: right;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($projectExpenses as $idx => $exp)
+    @php
+        $hasExp = $projectExpenses->isNotEmpty();
+        $hasCp = isset($contractorPayments) && $contractorPayments->isNotEmpty();
+        $hasBc = isset($brokerCommissions) && $brokerCommissions->isNotEmpty();
+        $hasLp = isset($landPayments) && $landPayments->isNotEmpty();
+
+        $showDefaultTab = 'expenses';
+        if (!$hasExp && $hasCp) {
+            $showDefaultTab = 'contractors';
+        } elseif (!$hasExp && !$hasCp && $hasBc) {
+            $showDefaultTab = 'brokers';
+        } elseif (!$hasExp && !$hasCp && !$hasBc && $hasLp) {
+            $showDefaultTab = 'land';
+        }
+    @endphp
+
+    {{-- Tabs Navigation --}}
+    <div class="project-outflows-tabbar">
+        <button type="button" id="btn-tab-project-exp" class="tab-pill-btn {{ $showDefaultTab === 'expenses' ? 'active tab-blue' : '' }}" onclick="toggleProjectShowTab('expenses')">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Direct &amp; PO Expenses</span>
+            <span class="tab-badge-count">{{ $projectExpenses->count() }}</span>
+        </button>
+        <button type="button" id="btn-tab-project-cp" class="tab-pill-btn {{ $showDefaultTab === 'contractors' ? 'active tab-rose' : '' }}" onclick="toggleProjectShowTab('contractors')">
+            <i class="fa-solid fa-helmet-safety"></i>
+            <span>Contractor Payments</span>
+            <span class="tab-badge-count">{{ isset($contractorPayments) ? $contractorPayments->count() : 0 }}</span>
+        </button>
+        <button type="button" id="btn-tab-project-bc" class="tab-pill-btn {{ $showDefaultTab === 'brokers' ? 'active tab-purple' : '' }}" onclick="toggleProjectShowTab('brokers')">
+            <i class="fa-solid fa-handshake"></i>
+            <span>Broker Commissions</span>
+            <span class="tab-badge-count">{{ isset($brokerCommissions) ? $brokerCommissions->count() : 0 }}</span>
+        </button>
+        <button type="button" id="btn-tab-project-lp" class="tab-pill-btn {{ $showDefaultTab === 'land' ? 'active tab-teal' : '' }}" onclick="toggleProjectShowTab('land')">
+            <i class="fa-solid fa-mountain-sun"></i>
+            <span>Land Payments</span>
+            <span class="tab-badge-count">{{ isset($landPayments) ? $landPayments->count() : 0 }}</span>
+        </button>
+    </div>
+
+    {{-- Tab 1: Direct & PO Expenses --}}
+    <div id="pane-project-show-expenses" style="{{ $showDefaultTab === 'expenses' ? '' : 'display: none;' }}">
+        @if($hasExp)
+            <div class="table-responsive-wrapper">
+                <table class="premium-table">
+                    <thead>
                         <tr>
-                            <td style="color: #94A3B8; font-weight: 700; font-size: 12px;">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
-                            <td style="color: #CBD5E1; white-space: nowrap;">{{ \Carbon\Carbon::parse($exp->expense_date)->format('d M Y') }}</td>
-                            <td>
-                                <strong style="color: #FFFFFF; font-weight: 700;">{{ $exp->expense_title }}</strong>
-                                @if($exp->remarks)
-                                    <div style="font-size: 11.5px; color: #94A3B8; margin-top: 2px;">{{ \Illuminate\Support\Str::limit($exp->remarks, 50) }}</div>
-                                @endif
-                            </td>
-                            <td>
-                                @if($exp->purchase_order_id && $exp->purchaseOrder)
-                                    <a href="{{ route('purchase-orders.show', $exp->purchase_order_id) }}" 
-                                       style="background: rgba(139, 92, 246, 0.20); color: #C4B5FD; border: 1px solid rgba(139, 92, 246, 0.40); padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                                        <i class="fa-solid fa-file-invoice"></i> PO #{{ $exp->purchaseOrder->po_number }}
-                                    </a>
-                                @else
-                                    <span style="background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.30); padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600;">
-                                        Direct Site Expense
-                                    </span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($exp->expenseCategory)
-                                    <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.30);">
-                                        {{ $exp->expenseCategory->name }}
-                                    </span>
-                                @elseif($exp->expense_category)
-                                    <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.30);">
-                                        {{ $exp->expense_category }}
-                                    </span>
-                                @else
-                                    <span style="color: #94A3B8;">—</span>
-                                @endif
-                            </td>
-                            <td style="color: #CBD5E1;">
-                                {{ $exp->paid_to ?: ($exp->purchaseOrder?->vendor?->vendor_name ?? '—') }}
-                            </td>
-                            <td>
-                                <strong style="color: #F87171; font-size: 14px;">₹{{ number_format($exp->amount, 2) }}</strong>
-                            </td>
-                            <td>
-                                <span style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 2px 7px; border-radius: 5px; font-size: 11.5px;">
-                                    {{ $exp->payment_mode ?: 'Other' }}
-                                </span>
-                            </td>
-                            <td style="text-align: center;">
-                                @php $st = strtolower($exp->approval_status ?? 'pending'); @endphp
-                                <span class="badge badge-{{ $st === 'approved' ? 'active' : ($st === 'rejected' ? 'inactive' : 'booked') }}">
-                                    <i class="fa-solid fa-circle-dot"></i> {{ ucfirst($exp->approval_status ?? 'Pending') }}
-                                </span>
-                            </td>
-                            <td style="text-align: right; white-space: nowrap;">
-                                <div style="display: inline-flex; gap: 6px;">
-                                    <a href="{{ route('expenses.detail-pdf', $exp->id) }}" target="_blank" class="btn-tbl-view" style="background: rgba(252,105,0,0.18) !important; color: #FF8A3D !important; border-color: rgba(252,105,0,0.40) !important; font-size: 11.5px; padding: 3px 8px; height: 28px;" title="Voucher PDF">
-                                        <i class="fa-solid fa-file-pdf"></i>
-                                    </a>
-                                    <a href="{{ route('expenses.show', $exp->id) }}" class="btn-tbl-view" style="font-size: 11.5px; padding: 3px 8px; height: 28px;">
-                                        <i class="fa-regular fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('expenses.edit', $exp->id) }}" class="btn-tbl-edit" style="font-size: 11.5px; padding: 3px 8px; height: 28px;">
-                                        <i class="fa-regular fa-pen-to-square"></i>
-                                    </a>
-                                </div>
-                            </td>
+                            <th style="width: 45px; white-space: nowrap;">#</th>
+                            <th style="white-space: nowrap;">Date</th>
+                            <th style="min-width: 180px;">Expense Title / Details</th>
+                            <th style="white-space: nowrap; min-width: 160px;">Source / Type</th>
+                            <th style="white-space: nowrap;">Category</th>
+                            <th style="white-space: nowrap;">Paid To / Vendor</th>
+                            <th style="white-space: nowrap;">Amount</th>
+                            <th style="white-space: nowrap;">Mode</th>
+                            <th style="text-align: center; white-space: nowrap;">Status</th>
+                            <th style="text-align: right; white-space: nowrap; width: 120px;">Action</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    @else
-        <div style="text-align: center; color: #94A3B8; padding: 32px 0; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.12);">
-            <i class="fa-solid fa-receipt" style="font-size: 32px; color: #FBBF24; margin-bottom: 8px; display: block;"></i>
-            No expenses or purchase orders recorded for this project yet.
-            <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: center;">
-                <a href="{{ route('expenses.create', ['project_id' => $project->id]) }}" class="btn-primary-custom" style="padding: 6px 14px; font-size: 12.5px;">
-                    <i class="fa-solid fa-plus"></i> Add Expense
-                </a>
-                <a href="{{ route('purchase-orders.create', ['project_id' => $project->id]) }}" class="btn-secondary-custom" style="padding: 6px 14px; font-size: 12.5px;">
-                    <i class="fa-solid fa-file-invoice"></i> Create Purchase Order
-                </a>
+                    </thead>
+                    <tbody>
+                        @foreach($projectExpenses as $idx => $exp)
+                            <tr>
+                                <td style="color: #94A3B8; font-weight: 700; font-size: 12px;">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">{{ \Carbon\Carbon::parse($exp->expense_date)->format('d M Y') }}</td>
+                                <td>
+                                    <strong style="color: #FFFFFF !important; font-weight: 700; font-size: 13.5px;">{{ $exp->expense_title }}</strong>
+                                    @if($exp->remarks)
+                                        <div style="font-size: 11.5px; color: #94A3B8; margin-top: 2px;">{{ \Illuminate\Support\Str::limit($exp->remarks, 50) }}</div>
+                                    @endif
+                                </td>
+                                <td style="white-space: nowrap;">
+                                    @if($exp->purchase_order_id && $exp->purchaseOrder)
+                                        <a href="{{ route('purchase-orders.show', $exp->purchase_order_id) }}" 
+                                           class="badge-po-link"
+                                           title="View PO Details">
+                                            <i class="fa-solid fa-file-invoice"></i> PO #{{ $exp->purchaseOrder->po_number }}
+                                        </a>
+                                    @else
+                                        <span class="badge-direct-expense">
+                                            <i class="fa-solid fa-receipt"></i> Direct Site Expense
+                                        </span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($exp->expenseCategory)
+                                        <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.30); white-space: nowrap;">
+                                            {{ $exp->expenseCategory->name }}
+                                        </span>
+                                    @elseif($exp->expense_category)
+                                        <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.30); white-space: nowrap;">
+                                            {{ $exp->expense_category }}
+                                        </span>
+                                    @else
+                                        <span style="color: #64748B;">—</span>
+                                    @endif
+                                </td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">
+                                    {{ $exp->paid_to ?: ($exp->purchaseOrder?->vendor?->vendor_name ?? '—') }}
+                                </td>
+                                <td>
+                                    <strong style="color: #FFFFFF !important; font-size: 14.5px; font-weight: 800; letter-spacing: -0.2px;">₹{{ number_format($exp->amount, 2) }}</strong>
+                                </td>
+                                <td>
+                                    <span style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600; white-space: nowrap;">
+                                        {{ $exp->payment_mode ?: 'Other' }}
+                                    </span>
+                                </td>
+                                <td style="text-align: center; white-space: nowrap;">
+                                    @php $st = strtolower($exp->approval_status ?? 'pending'); @endphp
+                                    <span class="badge badge-{{ $st === 'approved' ? 'active' : ($st === 'rejected' ? 'inactive' : 'booked') }}">
+                                        <i class="fa-solid fa-circle-dot"></i> {{ ucfirst($exp->approval_status ?? 'Pending') }}
+                                    </span>
+                                </td>
+                                <td style="text-align: right; white-space: nowrap;">
+                                    <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                        <a href="{{ route('expenses.detail-pdf', $exp->id) }}" target="_blank" class="btn-action-icon btn-action-pdf" title="Download Voucher PDF">
+                                            <i class="fa-solid fa-file-pdf"></i>
+                                        </a>
+                                        <a href="{{ route('expenses.show', $exp->id) }}" class="btn-action-icon btn-action-view" title="View Expense Details">
+                                            <i class="fa-regular fa-eye"></i>
+                                        </a>
+                                        <a href="{{ route('expenses.edit', $exp->id) }}" class="btn-action-icon btn-action-edit" title="Edit Expense">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        </div>
-    @endif
+        @else
+            <div style="text-align: center; color: #94A3B8; padding: 32px 0; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.12);">
+                <i class="fa-solid fa-receipt" style="font-size: 32px; color: #FBBF24; margin-bottom: 8px; display: block;"></i>
+                No expenses or purchase orders recorded for this project yet.
+                <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: center;">
+                    <a href="{{ route('expenses.create', ['project_id' => $project->id]) }}" class="btn-action-expense">
+                        <i class="fa-solid fa-plus"></i> Add Expense
+                    </a>
+                    <a href="{{ route('purchase-orders.create', ['project_id' => $project->id]) }}" class="btn-action-po">
+                        <i class="fa-solid fa-file-invoice"></i> Create Purchase Order
+                    </a>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    {{-- Tab 2: Contractor Payments Ledger --}}
+    <div id="pane-project-show-contractors" style="{{ $showDefaultTab === 'contractors' ? '' : 'display: none;' }}">
+        @if($hasCp)
+            <div class="table-responsive-wrapper">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px; white-space: nowrap;">#</th>
+                            <th style="white-space: nowrap;">Payment Date</th>
+                            <th style="min-width: 170px;">Contractor Name</th>
+                            <th style="white-space: nowrap;">Work Type</th>
+                            <th style="white-space: nowrap;">Plot / Unit</th>
+                            <th style="white-space: nowrap;">Amount Paid</th>
+                            <th style="white-space: nowrap;">Mode &amp; Bank</th>
+                            <th style="white-space: nowrap;">Ref / Bill No</th>
+                            <th style="min-width: 130px;">Type / Remarks</th>
+                            <th style="text-align: right; white-space: nowrap; width: 100px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($contractorPayments as $idx => $cp)
+                            <tr>
+                                <td style="color: #94A3B8; font-weight: 700; font-size: 12px;">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">{{ \Carbon\Carbon::parse($cp->payment_date)->format('d M Y') }}</td>
+                                <td>
+                                    @if($cp->contractor)
+                                        <a href="{{ route('contractors.show', $cp->contractor_id) }}" style="color: #FFFFFF !important; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                            <i class="fa-solid fa-helmet-safety" style="color: #FB7185; font-size: 12px;"></i>
+                                            {{ $cp->contractor->contractor_name }}
+                                        </a>
+                                    @else
+                                        <span style="color: #64748B;">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge" style="background: rgba(244, 63, 94, 0.15); color: #FDA4AF; border: 1px solid rgba(244, 63, 94, 0.30); white-space: nowrap;">
+                                        {{ $cp->contractor->work_type ?? 'Contractor Work' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @if($cp->property)
+                                        <span style="background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.30); padding: 2px 7px; border-radius: 5px; font-size: 11px; white-space: nowrap;">
+                                            <i class="fa-solid fa-house"></i> {{ $cp->property->property_name }}
+                                        </span>
+                                    @else
+                                        <span style="color: #94A3B8; font-size: 11.5px;">Project-Wide</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <strong style="color: #FFFFFF !important; font-size: 14.5px; font-weight: 800; letter-spacing: -0.2px;">₹{{ number_format($cp->amount, 2) }}</strong>
+                                </td>
+                                <td>
+                                    <span style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 2px 7px; border-radius: 5px; font-size: 11.5px; white-space: nowrap;">
+                                        {{ $cp->payment_mode ?: 'Cash' }} {{ $cp->bank_name ? '· ' . $cp->bank_name : '' }}
+                                    </span>
+                                </td>
+                                <td style="color: #94A3B8; font-size: 11.5px; white-space: nowrap;">
+                                    {{ $cp->reference_no ?: ($cp->bill_no ?: '—') }}
+                                </td>
+                                <td>
+                                    <span style="background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.30); padding: 2px 7px; border-radius: 5px; font-size: 11px; font-weight: 600; white-space: nowrap;">
+                                        {{ $cp->payment_type ?: 'Paid' }}
+                                    </span>
+                                    @if($cp->remarks)
+                                        <div style="font-size: 11px; color: #94A3B8; margin-top: 2px;">{{ \Illuminate\Support\Str::limit($cp->remarks, 35) }}</div>
+                                    @endif
+                                </td>
+                                <td style="text-align: right; white-space: nowrap;">
+                                    <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                        @if($cp->contractor_id)
+                                            <a href="{{ route('contractors.show', $cp->contractor_id) }}" class="btn-action-icon btn-action-view" title="Contractor Profile">
+                                                <i class="fa-regular fa-eye"></i>
+                                            </a>
+                                        @endif
+                                        @if($cp->document_file)
+                                            <a href="{{ asset('storage/' . $cp->document_file) }}" target="_blank" class="btn-action-icon btn-action-pdf" title="Receipt Document">
+                                                <i class="fa-solid fa-paperclip"></i>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div style="text-align: center; color: #94A3B8; padding: 32px 0; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.12);">
+                <i class="fa-solid fa-helmet-safety" style="font-size: 32px; color: #FB7185; margin-bottom: 8px; display: block;"></i>
+                No contractor payments recorded for this project yet.
+                <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: center;">
+                    <a href="{{ route('contractors.index') }}" class="btn-primary-custom" style="padding: 6px 14px; font-size: 12.5px; background: #E11D48 !important; border-color: #FB7185 !important;">
+                        <i class="fa-solid fa-helmet-safety"></i> Manage Contractors &amp; Payments
+                    </a>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    {{-- Tab 3: Broker Commissions Ledger --}}
+    <div id="pane-project-show-brokers" style="{{ $showDefaultTab === 'brokers' ? '' : 'display: none;' }}">
+        @if($hasBc)
+            <div class="table-responsive-wrapper">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px; white-space: nowrap;">#</th>
+                            <th style="white-space: nowrap;">Payment Date</th>
+                            <th style="min-width: 170px;">Broker Name</th>
+                            <th style="white-space: nowrap;">Property / Booking</th>
+                            <th style="white-space: nowrap;">Commission Type</th>
+                            <th style="white-space: nowrap;">Commission Amount</th>
+                            <th style="white-space: nowrap;">Status</th>
+                            <th style="min-width: 130px;">Remarks</th>
+                            <th style="text-align: right; white-space: nowrap; width: 80px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($brokerCommissions as $idx => $bc)
+                            <tr>
+                                <td style="color: #94A3B8; font-weight: 700; font-size: 12px;">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">{{ $bc->payment_date ? \Carbon\Carbon::parse($bc->payment_date)->format('d M Y') : ($bc->created_at ? $bc->created_at->format('d M Y') : '—') }}</td>
+                                <td>
+                                    @if($bc->broker)
+                                        <a href="{{ route('brokers.show', $bc->broker_id) }}" style="color: #FFFFFF !important; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                            <i class="fa-solid fa-handshake" style="color: #D8B4FE; font-size: 12px;"></i>
+                                            {{ $bc->broker->name }}
+                                        </a>
+                                    @else
+                                        <span style="color: #64748B;">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($bc->property)
+                                        <span style="background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.30); padding: 2px 7px; border-radius: 5px; font-size: 11px; white-space: nowrap;">
+                                            <i class="fa-solid fa-house"></i> {{ $bc->property->property_name }}
+                                        </span>
+                                    @elseif($bc->booking && $bc->booking->property)
+                                        <span style="background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.30); padding: 2px 7px; border-radius: 5px; font-size: 11px; white-space: nowrap;">
+                                            <i class="fa-solid fa-house"></i> {{ $bc->booking->property->property_name }}
+                                        </span>
+                                    @else
+                                        <span style="color: #94A3B8; font-size: 11.5px;">Project Sale</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge" style="background: rgba(168, 85, 247, 0.15); color: #E9D5FF; border: 1px solid rgba(168, 85, 247, 0.30); white-space: nowrap;">
+                                        {{ $bc->commission_type ?: 'Percentage' }} {{ $bc->commission_value ? '('.$bc->commission_value.'%)' : '' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style="color: #FFFFFF !important; font-size: 14.5px; font-weight: 800; letter-spacing: -0.2px;">₹{{ number_format($bc->commission_amount, 2) }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge badge-active">
+                                        {{ ucfirst($bc->payment_status ?: 'Paid') }}
+                                    </span>
+                                </td>
+                                <td style="color: #94A3B8; font-size: 11.5px;">
+                                    {{ $bc->remarks ?: '—' }}
+                                </td>
+                                <td style="text-align: right; white-space: nowrap;">
+                                    <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                        @if($bc->broker_id)
+                                            <a href="{{ route('brokers.show', $bc->broker_id) }}" class="btn-action-icon btn-action-view" title="Broker Profile">
+                                                <i class="fa-regular fa-eye"></i>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div style="text-align: center; color: #94A3B8; padding: 32px 0; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.12);">
+                <i class="fa-solid fa-handshake" style="font-size: 32px; color: #D8B4FE; margin-bottom: 8px; display: block;"></i>
+                No broker commissions recorded for this project yet.
+                <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: center;">
+                    <a href="{{ route('brokers.index') }}" class="btn-primary-custom" style="padding: 6px 14px; font-size: 12.5px; background: #9333EA !important; border-color: #C084FC !important;">
+                        <i class="fa-solid fa-handshake"></i> Manage Brokers &amp; Commissions
+                    </a>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    {{-- Tab 4: Land Acquisition Payments Ledger --}}
+    <div id="pane-project-show-land" style="{{ $showDefaultTab === 'land' ? '' : 'display: none;' }}">
+        @if($hasLp)
+            <div class="table-responsive-wrapper">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px; white-space: nowrap;">#</th>
+                            <th style="white-space: nowrap;">Payment Date</th>
+                            <th style="min-width: 170px;">Land / Property Master</th>
+                            <th style="white-space: nowrap;">Seller Name</th>
+                            <th style="white-space: nowrap;">Amount Paid</th>
+                            <th style="white-space: nowrap;">Payment Mode &amp; Bank</th>
+                            <th style="white-space: nowrap;">Ref No</th>
+                            <th style="min-width: 130px;">Remarks</th>
+                            <th style="text-align: right; white-space: nowrap; width: 80px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($landPayments as $idx => $lp)
+                            <tr>
+                                <td style="color: #94A3B8; font-weight: 700; font-size: 12px;">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">{{ $lp->payment_date ? \Carbon\Carbon::parse($lp->payment_date)->format('d M Y') : '—' }}</td>
+                                <td>
+                                    @if($lp->propertyMaster)
+                                        <a href="{{ route('property-masters.show', $lp->property_master_id) }}" style="color: #FFFFFF !important; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                            <i class="fa-solid fa-mountain-sun" style="color: #5EEAD4; font-size: 12px;"></i>
+                                            {{ $lp->propertyMaster->property_name }}
+                                        </a>
+                                    @else
+                                        <span style="color: #64748B;">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span style="color: #CBD5E1; font-weight: 600;">
+                                        {{ $lp->propertyMaster?->seller_name ?? ($lp->propertyMaster?->seller?->name ?? '—') }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style="color: #FFFFFF !important; font-size: 14.5px; font-weight: 800; letter-spacing: -0.2px;">₹{{ number_format($lp->amount, 2) }}</strong>
+                                </td>
+                                <td>
+                                    <span style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 2px 7px; border-radius: 5px; font-size: 11.5px; white-space: nowrap;">
+                                        {{ $lp->payment_mode ?: 'Cash' }} {{ $lp->bank_name ? '· ' . $lp->bank_name : '' }}
+                                    </span>
+                                </td>
+                                <td style="color: #94A3B8; font-size: 11.5px; white-space: nowrap;">
+                                    {{ $lp->reference_no ?: '—' }}
+                                </td>
+                                <td style="color: #94A3B8; font-size: 11.5px;">
+                                    {{ $lp->remarks ?: 'Land Payment' }}
+                                </td>
+                                <td style="text-align: right; white-space: nowrap;">
+                                    <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                        @if($lp->property_master_id)
+                                            <a href="{{ route('property-masters.show', $lp->property_master_id) }}" class="btn-action-icon btn-action-view" title="Land Master Profile">
+                                                <i class="fa-regular fa-eye"></i>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div style="text-align: center; color: #94A3B8; padding: 32px 0; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.12);">
+                <i class="fa-solid fa-mountain-sun" style="font-size: 32px; color: #5EEAD4; margin-bottom: 8px; display: block;"></i>
+                No land acquisition payments recorded for this project yet.
+                <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: center;">
+                    <a href="{{ route('property-masters.index') }}" class="btn-primary-custom" style="padding: 6px 14px; font-size: 12.5px; background: #0D9488 !important; border-color: #2DD4BF !important;">
+                        <i class="fa-solid fa-mountain-sun"></i> Manage Land &amp; Property Masters
+                    </a>
+                </div>
+            </div>
+        @endif
+    </div>
 </div>
+
+<script>
+function toggleProjectShowTab(tab) {
+    const btnExp = document.getElementById('btn-tab-project-exp');
+    const btnCp = document.getElementById('btn-tab-project-cp');
+    const btnBc = document.getElementById('btn-tab-project-bc');
+    const btnLp = document.getElementById('btn-tab-project-lp');
+
+    const paneExp = document.getElementById('pane-project-show-expenses');
+    const paneCp = document.getElementById('pane-project-show-contractors');
+    const paneBc = document.getElementById('pane-project-show-brokers');
+    const paneLp = document.getElementById('pane-project-show-land');
+
+    [btnExp, btnCp, btnBc, btnLp].forEach(b => {
+        if (b) {
+            b.classList.remove('active', 'tab-blue', 'tab-rose', 'tab-purple', 'tab-teal');
+        }
+    });
+
+    [paneExp, paneCp, paneBc, paneLp].forEach(p => {
+        if (p) p.style.display = 'none';
+    });
+
+    if (tab === 'expenses') {
+        if (btnExp) btnExp.classList.add('active', 'tab-blue');
+        if (paneExp) paneExp.style.display = 'block';
+    } else if (tab === 'contractors') {
+        if (btnCp) btnCp.classList.add('active', 'tab-rose');
+        if (paneCp) paneCp.style.display = 'block';
+    } else if (tab === 'brokers') {
+        if (btnBc) btnBc.classList.add('active', 'tab-purple');
+        if (paneBc) paneBc.style.display = 'block';
+    } else if (tab === 'land') {
+        if (btnLp) btnLp.classList.add('active', 'tab-teal');
+        if (paneLp) paneLp.style.display = 'block';
+    }
+}
+</script>
 
 <!-- ================================================================
      PROJECT CONTRACTORS SECTION
-================================================================ -->
+=============================================================== -->
 <div class="card-box" style="margin-top: 24px;">
-    <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10); padding-bottom: 12px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-helmet-safety" style="font-size: 18px; color: #FBBF24;"></i>
+    <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10); padding-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.35); color: #FBBF24; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                <i class="fa-solid fa-helmet-safety"></i>
+            </div>
             <div>
-                <h3 style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin: 0;">Assigned Project Contractors</h3>
+                <h3 style="font-size: 16.5px; font-weight: 800; color: #FFFFFF; margin: 0;">Assigned Project Contractors</h3>
                 <p style="font-size: 12.5px; color: #94A3B8; margin: 2px 0 0 0;">Specialist agencies and contractors engaged on this project ({{ $project->contractors->count() }} active/registered).</p>
             </div>
         </div>
-        <a href="{{ route('contractors.create', ['project_id' => $project->id]) }}" class="btn-primary-custom" style="padding: 7px 16px; min-height: 36px; font-size: 13px;">
+        <a href="{{ route('contractors.create', ['project_id' => $project->id]) }}" class="btn-gold" style="padding: 7px 18px; min-height: 38px; font-size: 13px;">
             <i class="fa-solid fa-plus"></i> Add Contractor
         </a>
     </div>
@@ -903,60 +1432,73 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             <table class="premium-table">
                 <thead>
                     <tr>
-                        <th>Contractor Name</th>
-                        <th>Mobile</th>
-                        <th>Aadhar Card</th>
-                        <th>PAN Card</th>
-                        <th>Bank Details</th>
-                        <th>Status</th>
-                        <th style="text-align: right;">Action</th>
+                        <th style="min-width: 190px;"><i class="fa-solid fa-user-gear" style="color: #60A5FA; margin-right: 5px;"></i>Contractor Name</th>
+                        <th style="white-space: nowrap;"><i class="fa-solid fa-phone" style="color: #34D399; margin-right: 5px;"></i>Mobile</th>
+                        <th style="white-space: nowrap;"><i class="fa-solid fa-id-card" style="color: #FBBF24; margin-right: 5px;"></i>Aadhar Card</th>
+                        <th style="white-space: nowrap;"><i class="fa-solid fa-credit-card" style="color: #A78BFA; margin-right: 5px;"></i>PAN Card</th>
+                        <th style="min-width: 160px;"><i class="fa-solid fa-building-columns" style="color: #38BDF8; margin-right: 5px;"></i>Bank Details</th>
+                        <th style="white-space: nowrap; text-align: center;"><i class="fa-solid fa-circle-check" style="color: #10B981; margin-right: 5px;"></i>Status</th>
+                        <th style="text-align: right; white-space: nowrap; width: 140px;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($project->contractors as $con)
                         <tr>
                             <td>
-                                <strong style="color: #FFFFFF; font-weight: 700;">{{ $con->contractor_name }}</strong>
-                                @if($con->address)
-                                    <div style="font-size: 11.5px; color: #94A3B8; margin-top: 2px;">{{ $con->address }}</div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.30); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-user-gear"></i>
+                                    </div>
+                                    <div>
+                                        <strong style="color: #FFFFFF !important; font-weight: 700; font-size: 13.5px; display: block;">{{ $con->contractor_name }}</strong>
+                                        @if($con->address)
+                                            <div style="font-size: 11.5px; color: #94A3B8; margin-top: 2px;">{{ $con->address }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="white-space: nowrap;">
+                                @if($con->mobile)
+                                    <span style="color: #E2E8F0; font-weight: 600; font-size: 12.5px;"><i class="fa-solid fa-phone" style="font-size: 10px; color: #60A5FA; margin-right: 4px;"></i>{{ $con->mobile }}</span>
+                                @else
+                                    <span style="color: #64748B;">—</span>
                                 @endif
                             </td>
-                            <td>{{ $con->mobile ?: '—' }}</td>
-                            <td>
+                            <td style="white-space: nowrap;">
                                 @if($con->aadhar_no)
-                                    <span style="font-family: monospace; font-size: 12px; color: #FBBF24;">{{ $con->aadhar_no }}</span>
+                                    <span style="background: rgba(245, 158, 11, 0.12); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.25); padding: 3px 8px; border-radius: 5px; font-family: monospace; font-size: 11.5px; font-weight: 700;">{{ $con->aadhar_no }}</span>
                                 @else
-                                    <span style="color: #94A3B8;">—</span>
+                                    <span style="color: #64748B;">—</span>
                                 @endif
                             </td>
-                            <td>
+                            <td style="white-space: nowrap;">
                                 @if($con->pan_no)
-                                    <span style="font-family: monospace; font-size: 12px; color: #34D399;">{{ $con->pan_no }}</span>
+                                    <span style="background: rgba(16, 185, 129, 0.12); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.25); padding: 3px 8px; border-radius: 5px; font-family: monospace; font-size: 11.5px; font-weight: 700;">{{ $con->pan_no }}</span>
                                 @else
-                                    <span style="color: #94A3B8;">—</span>
+                                    <span style="color: #64748B;">—</span>
                                 @endif
                             </td>
                             <td>
                                 @if($con->bank_name || $con->account_number)
-                                    <div style="color: #FFFFFF; font-weight: 600;">{{ $con->bank_name ?: 'Bank' }}</div>
+                                    <div style="color: #FFFFFF !important; font-weight: 600; font-size: 12.5px;">{{ $con->bank_name ?: 'Bank Account' }}</div>
                                     @if($con->account_number)
-                                        <div style="font-size: 11.5px; color: #94A3B8; font-family: monospace;">A/C: {{ $con->account_number }}</div>
+                                        <div style="font-size: 11.5px; color: #94A3B8; font-family: monospace; margin-top: 1px;">A/C: {{ $con->account_number }}</div>
                                     @endif
                                 @else
-                                    <span style="color: #94A3B8;">—</span>
+                                    <span style="color: #64748B;">—</span>
                                 @endif
                             </td>
-                            <td>
-                                <span class="badge badge-{{ $con->status }}" style="padding: 4px 10px; font-size: 11px; font-weight: 800; border-radius: 20px; text-transform: uppercase;">
+                            <td style="text-align: center; white-space: nowrap;">
+                                <span class="badge badge-{{ $con->status === 'active' ? 'active' : 'inactive' }}" style="padding: 4px 10px; font-size: 11px; font-weight: 800; border-radius: 6px; text-transform: uppercase;">
                                     <i class="fa-solid fa-circle" style="font-size: 6px;"></i> {{ ucfirst($con->status) }}
                                 </span>
                             </td>
-                            <td style="text-align: right;">
-                                <div style="display: inline-flex; gap: 6px;">
-                                    <a href="{{ route('contractors.show', $con) }}" class="btn-tbl-view" style="font-size: 12px; padding: 4px 10px;">
+                            <td style="text-align: right; white-space: nowrap;">
+                                <div style="display: inline-flex; gap: 6px; justify-content: flex-end;">
+                                    <a href="{{ route('contractors.show', $con) }}" class="btn-action-icon btn-action-view" style="width: auto; padding: 4px 10px; font-size: 12px; font-weight: 700; gap: 5px;" title="View Contractor Profile">
                                         <i class="fa-regular fa-eye"></i> View
                                     </a>
-                                    <a href="{{ route('contractors.edit', $con) }}" class="btn-tbl-edit" style="font-size: 12px; padding: 4px 10px;">
+                                    <a href="{{ route('contractors.edit', $con) }}" class="btn-action-icon btn-action-edit" style="width: auto; padding: 4px 10px; font-size: 12px; font-weight: 700; gap: 5px;" title="Edit Contractor">
                                         <i class="fa-solid fa-pen-to-square"></i> Edit
                                     </a>
                                 </div>
@@ -971,7 +1513,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             <i class="fa-solid fa-helmet-safety" style="font-size: 28px; color: #FBBF24; margin-bottom: 8px; display: block;"></i>
             No contractors assigned to this project yet.
             <div style="margin-top: 10px;">
-                <a href="{{ route('contractors.create', ['project_id' => $project->id]) }}" class="btn-primary-custom" style="padding: 6px 14px; font-size: 12.5px; display: inline-flex;">
+                <a href="{{ route('contractors.create', ['project_id' => $project->id]) }}" class="btn-gold" style="padding: 6px 16px; font-size: 12.5px; display: inline-flex;">
                     <i class="fa-solid fa-plus"></i> Assign Contractor
                 </a>
             </div>
@@ -1112,4 +1654,160 @@ document.addEventListener('keydown', function(e) {
     }
 });
 </script>
+
+<style>
+/* ── Outflows Tabs Segmented Control ── */
+.project-outflows-tabbar {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: rgba(10, 15, 26, 0.70);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    padding: 6px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+.tab-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #94A3B8;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+}
+.tab-pill-btn:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+.tab-badge-count {
+    background: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+    padding: 1px 7px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 800;
+}
+/* Active Tab Themes */
+.tab-pill-btn.active.tab-blue {
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+    border-color: #60A5FA !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.45);
+}
+.tab-pill-btn.active.tab-rose {
+    background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%) !important;
+    border-color: #FB7185 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 16px rgba(225, 29, 72, 0.45);
+}
+.tab-pill-btn.active.tab-purple {
+    background: linear-gradient(135deg, #9333EA 0%, #7E22CE 100%) !important;
+    border-color: #C084FC !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 16px rgba(147, 51, 234, 0.45);
+}
+.tab-pill-btn.active.tab-teal {
+    background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%) !important;
+    border-color: #2DD4BF !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 16px rgba(13, 148, 136, 0.45);
+}
+
+/* ── Badges ── */
+.badge-direct-expense {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93C5FD;
+    border: 1px solid rgba(59, 130, 246, 0.30);
+    padding: 4px 9px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.badge-po-link {
+    background: rgba(139, 92, 246, 0.18);
+    color: #DDD6FE;
+    border: 1px solid rgba(139, 92, 246, 0.38);
+    padding: 4px 9px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+}
+.badge-po-link:hover {
+    background: rgba(139, 92, 246, 0.30);
+    border-color: #C084FC;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+}
+
+/* ── Modern Table Action Buttons ── */
+.btn-action-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12.5px;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid transparent;
+}
+.btn-action-icon:hover {
+    transform: translateY(-2px);
+}
+.btn-action-pdf {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+    color: #F87171 !important;
+}
+.btn-action-pdf:hover {
+    background: rgba(239, 68, 68, 0.28) !important;
+    border-color: #EF4444 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+.btn-action-view {
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-color: rgba(16, 185, 129, 0.35) !important;
+    color: #34D399 !important;
+}
+.btn-action-view:hover {
+    background: rgba(16, 185, 129, 0.28) !important;
+    border-color: #10B981 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+.btn-action-edit {
+    background: rgba(59, 130, 246, 0.15) !important;
+    border-color: rgba(59, 130, 246, 0.35) !important;
+    color: #60A5FA !important;
+}
+.btn-action-edit:hover {
+    background: rgba(59, 130, 246, 0.28) !important;
+    border-color: #3B82F6 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+}
+</style>
 @endsection

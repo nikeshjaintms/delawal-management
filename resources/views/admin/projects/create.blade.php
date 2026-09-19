@@ -396,7 +396,7 @@ function loadPropertiesAndPlots(propertyIds) {
                             <div style="font-size: 12.5px; line-height: 1.3;">
                                 <strong style="color: #FFFFFF; display: block; font-size: 13px;">${plot.property_name}</strong>
                                 <code style="font-size: 11px; color: #60A5FA; display: block; margin: 1px 0;">${plot.property_code}</code>
-                                <span style="color: #94A3B8; font-size: 11px;">₹${parseFloat(plot.purchase_rate || pm.purchase_rate || 0).toLocaleString('en-IN')}${sizeStr}${facingStr}</span>
+                                <span style="color: #94A3B8; font-size: 11px;">₹${parseFloat(plot.purchase_rate || plot.price || pm.purchase_rate || 0).toLocaleString('en-IN')}${sizeStr}${facingStr}</span>
                             </div>
                         </label>
                         `;

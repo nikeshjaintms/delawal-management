@@ -1176,12 +1176,6 @@ class PropertyController extends Controller
                     $purchaseRate = (float) $cleanRate;
                 }
             }
-            if ($purchaseRate === null && $propertyMasterId) {
-                $pmObj = $propertyMasters->firstWhere('id', $propertyMasterId);
-                if ($pmObj && $pmObj->purchase_rate) {
-                    $purchaseRate = (float) $pmObj->purchase_rate;
-                }
-            }
 
             // Price Validation
             $price = null;
@@ -1192,8 +1186,21 @@ class PropertyController extends Controller
                 } else {
                     $price = (float) $cleanPrice;
                 }
-            } elseif ($purchaseRate !== null) {
+            }
+
+            // Cross-fallback: If price is given but rate is not, use price as rate; if rate is given but price is not, use rate as price
+            if ($purchaseRate === null && $price !== null) {
+                $purchaseRate = $price;
+            } elseif ($price === null && $purchaseRate !== null) {
                 $price = $purchaseRate;
+            } elseif ($purchaseRate === null && $propertyMasterId) {
+                $pmObj = $propertyMasters->firstWhere('id', $propertyMasterId);
+                if ($pmObj && $pmObj->purchase_rate) {
+                    $purchaseRate = (float) $pmObj->purchase_rate;
+                    if ($price === null) {
+                        $price = $purchaseRate;
+                    }
+                }
             }
 
             // Facing Validation
@@ -1381,6 +1388,14 @@ class PropertyController extends Controller
                     $targetPropertyTypeId = $fallbackPt->id;
                 }
 
+                $rawPrice = isset($row['price']) && $row['price'] !== null && $row['price'] !== '' ? (float)$row['price'] : null;
+                $rawRate = isset($row['purchase_rate']) && $row['purchase_rate'] !== null && $row['purchase_rate'] !== '' ? (float)$row['purchase_rate'] : null;
+                if ($rawRate === null && $rawPrice !== null) {
+                    $rawRate = $rawPrice;
+                } elseif ($rawPrice === null && $rawRate !== null) {
+                    $rawPrice = $rawRate;
+                }
+
                 $propertyData = [
                     'firm_id' => $row['firm_id'],
                     'property_master_id' => $row['property_master_id'] ?? null,
@@ -1394,9 +1409,9 @@ class PropertyController extends Controller
                     'address' => $row['address'] ?: null,
                     'size' => $row['size'] ?: null,
                     'size_unit' => $row['size_unit'] ?: null,
-                    'purchase_rate' => $row['purchase_rate'] ?? null,
+                    'purchase_rate' => $rawRate,
                     'purchase_date' => date('Y-m-d'),
-                    'price' => $row['price'] ?: null,
+                    'price' => $rawPrice,
                     'unit_no' => $row['unit_no'] ?: null,
                     'floor_no' => $row['floor_no'] ?: null,
                     'facing' => $row['facing'] ?: null,

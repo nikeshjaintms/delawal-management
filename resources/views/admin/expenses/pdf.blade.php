@@ -93,15 +93,14 @@
         <tr>
             <th style="width:24px;">#</th>
             <th>Date</th>
-            <th>Title / Description</th>
             <th>Category</th>
-            <th>Paid To / Vendor</th>
+            <th>Paid To / Payee</th>
             <th>Project / Property</th>
             <th>Firm(s)</th>
             <th>Mode</th>
-            <th>Bill / Ref</th>
+            <th>Ref / Bill</th>
             <th class="r">Amount</th>
-            <th class="c">Approval Status</th>
+            <th class="c">Status</th>
         </tr>
     </thead>
     <tbody>
@@ -109,9 +108,8 @@
         <tr>
             <td style="color:#9CA3AF;">{{ $i+1 }}</td>
             <td style="white-space:nowrap;">{{ $item->expense_date ? \Carbon\Carbon::parse($item->expense_date)->format('d M Y') : '-' }}</td>
-            <td><strong>{{ $item->expense_title }}</strong></td>
-            <td>{{ $item->expenseCategory->name ?? ($item->expense_category ?: '-') }}</td>
-            <td>{{ $item->paid_to ?: '-' }}</td>
+            <td><strong>{{ $item->expense_category ?: ($item->expenseCategory->name ?? '-') }}</strong></td>
+            <td>{{ $item->paid_to ?: ($item->vendor->name ?? '-') }}</td>
             <td>
                 @if($item->project)
                     <span>{{ $item->project->project_name }}</span>
@@ -126,7 +124,7 @@
                 {{ $fNames }}
             </td>
             <td>{{ $item->payment_mode ?: '-' }}</td>
-            <td>{{ $item->bill_no ?: '-' }}</td>
+            <td>{{ $item->reference_no ?: ($item->bill_no ?: '-') }}</td>
             <td class="r">₹{{ number_format($item->amount, 2) }}</td>
             <td class="c">
                 @if($item->approval_status === 'Approved')
@@ -139,13 +137,13 @@
             </td>
         </tr>
         @empty
-        <tr><td colspan="11" style="text-align:center;padding:20px;color:#64748B;">No expense records found.</td></tr>
+        <tr><td colspan="10" style="text-align:center;padding:20px;color:#64748B;">No expense records found.</td></tr>
         @endforelse
     </tbody>
     @if($expenses->count() > 0)
     <tfoot>
         <tr>
-            <td colspan="9" style="font-size:11px;">Total ({{ $expenses->count() }} vouchers)</td>
+            <td colspan="8" style="font-size:11px;">Total ({{ $expenses->count() }} vouchers)</td>
             <td class="r">₹{{ number_format($totalExpenseAmount, 2) }}</td>
             <td></td>
         </tr>

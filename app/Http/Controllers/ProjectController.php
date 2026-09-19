@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProjectRequest;
+use App\Models\BrokerCommission;
+use App\Models\ContractorPayment;
 use App\Models\Project;
 use App\Models\Property;
 use App\Models\PropertyMaster;
+use App\Models\PropertyMasterPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -161,6 +164,7 @@ class ProjectController extends Controller
             'properties.propertyMaster',
             'properties.bookings.customer',
             'properties.bookingsList.customer',
+            'properties.sales.customer',
             'contractors',
             'vendors',
             'expenses' => function ($q) {
@@ -180,6 +184,45 @@ class ProjectController extends Controller
         $approvedExpensesTotal = (float) $projectExpenses->where('approval_status', 'Approved')->sum('amount');
         $pendingExpensesTotal = (float) $projectExpenses->where('approval_status', 'Pending')->sum('amount');
 
+        // Contractor Payments tied to this project
+        $contractorPayments = ContractorPayment::with(['contractor', 'property', 'paymentMode'])
+            ->where(function ($q) use ($project) {
+                $q->where('project_id', $project->id)
+                  ->orWhereHas('property', fn($p) => $p->where('project_id', $project->id))
+                  ->orWhereHas('contractor', fn($c) => $c->where('project_id', $project->id)->orWhereHas('projects', fn($cp) => $cp->where('projects.id', $project->id)));
+            })
+            ->orderBy('payment_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+        $contractorPaymentsTotal = (float) $contractorPayments->sum('amount');
+
+        // Broker Commissions tied to this project
+        $brokerCommissions = BrokerCommission::with(['broker', 'property', 'booking', 'customer'])
+            ->where(function ($q) use ($project) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $project->id))
+                  ->orWhereHas('booking.property', fn($bp) => $bp->where('project_id', $project->id));
+            })
+            ->orderBy('payment_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+        $brokerCommissionsTotal = (float) $brokerCommissions->sum('commission_amount');
+
+        // Land Acquisition / Property Master Payments tied to this project
+        $propertyMasterIds = $project->propertyMasters->pluck('id')->toArray();
+        if ($project->property_id && !in_array($project->property_id, $propertyMasterIds)) {
+            $propertyMasterIds[] = $project->property_id;
+        }
+        $landPayments = !empty($propertyMasterIds)
+            ? PropertyMasterPayment::with(['propertyMaster', 'paymentMode'])
+                ->whereIn('property_master_id', $propertyMasterIds)
+                ->orderBy('payment_date', 'desc')
+                ->orderBy('id', 'desc')
+                ->get()
+            : collect();
+        $landPaymentsTotal = (float) $landPayments->sum('amount');
+
+        $grandTotalProjectCost = $totalExpenses + $contractorPaymentsTotal + $brokerCommissionsTotal + $landPaymentsTotal;
+
         $projectPOs = $project->purchaseOrders;
         $poTotalAmount = (float) $projectPOs->sum('grand_total');
 
@@ -191,6 +234,13 @@ class ProjectController extends Controller
             'directExpensesTotal',
             'approvedExpensesTotal',
             'pendingExpensesTotal',
+            'contractorPayments',
+            'contractorPaymentsTotal',
+            'brokerCommissions',
+            'brokerCommissionsTotal',
+            'landPayments',
+            'landPaymentsTotal',
+            'grandTotalProjectCost',
             'projectPOs',
             'poTotalAmount'
         ));
@@ -503,9 +553,22 @@ class ProjectController extends Controller
         $poExpensesTotal = (float) $projectExpenses->whereNotNull('purchase_order_id')->sum('amount');
         $directExpensesTotal = (float) $projectExpenses->whereNull('purchase_order_id')->sum('amount');
 
+        $contractorPayments = ContractorPayment::with(['contractor', 'property', 'paymentMode'])
+            ->where(function ($q) use ($project) {
+                $q->where('project_id', $project->id)
+                  ->orWhereHas('property', fn($p) => $p->where('project_id', $project->id))
+                  ->orWhereHas('contractor', fn($c) => $c->where('project_id', $project->id)->orWhereHas('projects', fn($cp) => $cp->where('projects.id', $project->id)));
+            })
+            ->orderBy('payment_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+        $contractorPaymentsTotal = (float) $contractorPayments->sum('amount');
+        $grandTotalProjectCost = $totalExpenses + $contractorPaymentsTotal;
+
         return view('admin.projects.show-pdf', compact(
             'project', 'totalPlots', 'availablePlots', 'bookedPlots', 'soldPlots', 'totalValue', 'totalArea',
-            'projectExpenses', 'totalExpenses', 'poExpensesTotal', 'directExpensesTotal'
+            'projectExpenses', 'totalExpenses', 'poExpensesTotal', 'directExpensesTotal',
+            'contractorPayments', 'contractorPaymentsTotal', 'grandTotalProjectCost'
         ));
     }
 

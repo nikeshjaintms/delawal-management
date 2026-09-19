@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — Delawala Management</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v=2" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}?v=2">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}?v=2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Pinyon+Script&display=swap" rel="stylesheet">
@@ -430,7 +435,16 @@
 
             {{-- ── Logo ── --}}
             <div class="logo-wrap">
-                @if(file_exists(public_path('images/logo.png')))
+                @if(file_exists(public_path('assets/logos/logo 1.png')))
+                    <img src="{{ asset('assets/logos/logo 1.png') }}"
+                         alt="Delawala Management"
+                         class="logo-img"
+                         onerror="this.style.display='none';document.getElementById('logoFallback').style.display='block';">
+                    <div id="logoFallback" style="display:none;" class="logo-text-wrap">
+                        <div class="logo-script">Delawala</div>
+                        <div class="logo-script-sub">Properties</div>
+                    </div>
+                @elseif(file_exists(public_path('images/logo.png')))
                     <img src="{{ asset('images/logo.png') }}?v={{ filemtime(public_path('images/logo.png')) }}"
                          alt="Delawala Management"
                          class="logo-img"

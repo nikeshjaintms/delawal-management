@@ -26,63 +26,32 @@ class ExpenseRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = null;
-        if ($this->route()) {
-            foreach ($this->route()->parameters() as $param) {
-                if (is_object($param)) {
-                    $id = $param->id;
-                    break;
-                } elseif (is_numeric($param)) {
-                    $id = $param;
-                    break;
-                }
-            }
-        }
-        $firmId = auth()->check() ? auth()->user()->firm_id : 0;
-
         $rules = [
-            'firm_ids'             => 'nullable|array',
-            'firm_ids.*'           => 'exists:firms,id',
-            'firm_id'              => 'nullable|exists:firms,id',
-            'expense_title'       => 'required|string|max:255',
+            'firm_ids'            => 'nullable|array',
+            'firm_ids.*'          => 'exists:firms,id',
+            'firm_id'             => 'nullable|exists:firms,id',
+            'project_id'          => 'nullable|exists:projects,id',
+            'property_ids'        => 'nullable|array',
+            'property_ids.*'      => 'exists:properties,id',
+            'property_id'         => 'nullable|exists:properties,id',
+            'expense_date'        => 'required|date',
             'expense_category_id' => 'nullable',
             'expense_category'    => 'nullable|string|max:255',
-            'property_id'         => 'nullable|exists:properties,id',
-            'vendor_id'           => 'nullable',
+            'expense_type'        => 'nullable|string|in:Project,Property,Office,Other',
+            'expense_title'       => 'nullable|string|max:255',
+            'description'         => 'nullable|string|max:2000',
             'amount'              => 'required|numeric|min:0.01',
             'payment_mode'        => 'nullable|string|max:255',
+            'reference_no'        => 'nullable|string|max:255',
+            'payment_account'     => 'nullable|string|max:255',
+            'vendor_id'           => 'nullable',
             'paid_to'             => 'nullable|string|max:255',
             'bill_no'             => 'nullable|string|max:255',
-            'bill_file'           => 'nullable|file|max:5120',
+            'bill_file'           => 'nullable|file|max:5120|mimes:pdf,jpg,jpeg,png',
             'approval_status'     => 'required|in:Pending,Approved,Rejected',
-            'remarks'             => 'nullable|string|max:1000',
+            'remarks'             => 'nullable|string|max:2000',
+            'notes'               => 'nullable|string|max:2000',
         ];
-
-        // Replace placeholders in unique rules dynamically
-        foreach ($rules as $field => $rule) {
-            if (is_string($rule)) {
-                $replaced = str_replace('{ID}', $id ?: 'NULL', $rule);
-                $replaced = str_replace('{FIRM_ID}', $firmId, $replaced);
-                
-                // Dynamic Password rule for users
-                if ($field === 'password') {
-                    if ($this->isMethod('post')) {
-                        $replaced = 'required|string|min:6|same:confirm_password';
-                    } else {
-                        $replaced = 'nullable|string|min:6|same:confirm_password';
-                    }
-                }
-                if ($field === 'confirm_password') {
-                    if ($this->isMethod('post')) {
-                        $replaced = 'required';
-                    } else {
-                        $replaced = 'nullable';
-                    }
-                }
-                
-                $rules[$field] = $replaced;
-            }
-        }
 
         return $rules;
     }
@@ -91,18 +60,27 @@ class ExpenseRequest extends FormRequest
     {
         return [
             'firm_id'             => 'Firm',
-            'expense_title'       => 'Expense Title',
+            'firm_ids'            => 'Firm(s)',
+            'project_id'          => 'Project',
+            'property_ids'        => 'Property / Unit(s)',
+            'property_id'         => 'Property / Unit',
             'expense_date'        => 'Expense Date',
             'expense_category_id' => 'Expense Category',
-            'property_id'         => 'Property',
-            'vendor_id'           => 'Vendor / Payee',
+            'expense_category'    => 'Expense Category',
+            'expense_type'        => 'Expense Type',
+            'expense_title'       => 'Expense Title',
+            'description'         => 'Description',
             'amount'              => 'Amount',
             'payment_mode'        => 'Payment Mode',
+            'reference_no'        => 'Reference Number',
+            'payment_account'     => 'Payment Account',
+            'vendor_id'           => 'Vendor / Payee',
             'paid_to'             => 'Paid To',
             'bill_no'             => 'Bill / Invoice No',
-            'bill_file'           => 'Bill File',
+            'bill_file'           => 'Attachment',
             'approval_status'     => 'Approval Status',
             'remarks'             => 'Remarks',
+            'notes'               => 'Notes',
         ];
     }
 
