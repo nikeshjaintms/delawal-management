@@ -164,13 +164,13 @@
     <div class="grid-col">
         <div class="col-heading">&#9632; Seller &amp; Payment Details</div>
         <div class="info-row">
-            <span class="info-label">Vendor:</span>
-            <span class="info-value">{{ $propertyMaster->seller_name ?: ($propertyMaster->vendor->name ?? '-') }}</span>
+            <span class="info-label">Seller:</span>
+            <span class="info-value">{{ $propertyMaster->seller->name ?? ($propertyMaster->seller_name ?: ($propertyMaster->vendor->name ?? '-')) }}</span>
         </div>
-        @if($propertyMaster->vendor)
+        @if($propertyMaster->seller && ($propertyMaster->seller->mobile || $propertyMaster->seller->phone))
         <div class="info-row">
-            <span class="info-label">Vendor Link:</span>
-            <span class="info-value">{{ $propertyMaster->vendor->name }} ({{ $propertyMaster->vendor->phone ?? '-' }})</span>
+            <span class="info-label">Seller Contact:</span>
+            <span class="info-value">{{ $propertyMaster->seller->mobile ?: $propertyMaster->seller->phone }}</span>
         </div>
         @endif
         <div class="info-row">

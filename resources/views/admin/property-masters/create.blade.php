@@ -533,7 +533,7 @@
                             <span class="input-luxury-addon text-blue">₹</span>
                             <input type="number" step="0.01" name="paid_amount" id="paid_amount" value="{{ old('paid_amount') }}" placeholder="0.00" oninput="recalculatePayment()">
                         </div>
-                        <small style="color: #BFDBFE; font-size: 11.5px; margin-top: 4px; display: block;">Amount paid to vendor/seller so far</small>
+                        <small style="color: #BFDBFE; font-size: 11.5px; margin-top: 4px; display: block;">Amount paid to seller so far</small>
                         @error('paid_amount') <span class="invalid-feedback">{{ $message }}</span> @enderror
                     </div>
 
@@ -569,18 +569,18 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label"><i class="fa-solid fa-user-tie"></i> Vendor</label>
-                        <select name="vendor_id" id="vendor_id" class="form-control">
-                            <option value="">— Select Vendor —</option>
-                            @if(isset($vendors))
-                                @foreach($vendors as $v)
-                                    <option value="{{ $v->id }}" {{ old('vendor_id') == $v->id ? 'selected' : '' }}>
-                                        {{ $v->name }} {{ ($v->mobile ?: $v->phone) ? '(' . ($v->mobile ?: $v->phone) . ')' : '' }}
+                        <label class="form-label"><i class="fa-solid fa-user-tie"></i> Seller</label>
+                        <select name="seller_id" id="seller_id" class="form-control">
+                            <option value="">— Select Seller —</option>
+                            @if(isset($sellers))
+                                @foreach($sellers as $s)
+                                    <option value="{{ $s->id }}" {{ old('seller_id') == $s->id ? 'selected' : '' }}>
+                                        {{ $s->name }} {{ ($s->mobile ?: $s->phone) ? '(' . ($s->mobile ?: $s->phone) . ')' : '' }}
                                     </option>
                                 @endforeach
                             @endif
                         </select>
-                        @error('vendor_id') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                        @error('seller_id') <span class="invalid-feedback">{{ $message }}</span> @enderror
                     </div>
                 </div>
 

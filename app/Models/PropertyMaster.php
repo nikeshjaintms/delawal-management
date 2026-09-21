@@ -197,7 +197,6 @@ class PropertyMaster extends Model
     {
         return $this->belongsTo(Broker::class);
     }
-
     public function firm()
     {
         return $this->belongsTo(Firm::class);

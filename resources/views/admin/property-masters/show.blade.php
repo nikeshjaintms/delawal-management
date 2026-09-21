@@ -777,12 +777,14 @@
                 <span class="pm-value">{{ $propertyMaster->purchase_date ? date('d M, Y', strtotime($propertyMaster->purchase_date)) : '—' }}</span>
             </div>
             <div class="pm-item">
-                <span class="pm-label"><i class="fa-solid fa-user-tie"></i> Vendor</span>
+                <span class="pm-label"><i class="fa-solid fa-user-tie"></i> Seller</span>
                 <span class="pm-value">
-                    @if($propertyMaster->vendor)
-                        {{ $propertyMaster->vendor->name }}
+                    @if($propertyMaster->seller)
+                        {{ $propertyMaster->seller->name }}
                     @elseif($propertyMaster->seller_name)
                         {{ $propertyMaster->seller_name }}
+                    @elseif($propertyMaster->vendor)
+                        {{ $propertyMaster->vendor->name }}
                     @else
                         <span style="color: #94A3B8;">—</span>
                     @endif
