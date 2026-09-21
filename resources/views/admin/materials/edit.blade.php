@@ -172,23 +172,27 @@
             <div class="section-title"><i class="fa-solid fa-calculator"></i> 3. Quantity &amp; Price Details</div>
 
             <div class="form-row-4">
+                @php
+                    $standardUnits = ['Truck', 'Brass', 'Ton', 'Kg', 'Gram', 'Bags', 'Nos', 'Sq.Ft', 'CBM', 'Box', 'Litres', 'Metres', 'Sheets', 'Coils'];
+                    $currentUnit = old('unit', $material->unit ?? '');
+                    $isCustomUnit = $currentUnit && !in_array($currentUnit, $standardUnits);
+                @endphp
                 <div class="form-group">
-                    <label class="form-label" for="unit">Unit of Measure <span>*</span></label>
-                    <input type="text" name="unit" id="unit" value="{{ old('unit', $material->unit) }}" class="form-control @error('unit') is-invalid @enderror" autocomplete="off" placeholder="e.g. Kg, Ton, Bag, Nos, Brass" list="unit-list" required>
-                    <datalist id="unit-list">
-                        <option value="Kg">
-                        <option value="Ton">
-                        <option value="Bags">
-                        <option value="Nos">
-                        <option value="Brass">
-                        <option value="CBM">
-                        <option value="Sq.Ft">
-                        <option value="Box">
-                        <option value="Metres">
-                        <option value="Litres">
-                        <option value="Coils">
-                        <option value="Sheets">
-                    </datalist>
+                    <label class="form-label" for="unit_select">Unit of Measure <span>*</span></label>
+                    <select id="unit_select" class="form-control @error('unit') is-invalid @enderror" required onchange="handleUnitChange(this.value)">
+                        <option value="">— Select Unit —</option>
+                        @foreach($standardUnits as $u)
+                            <option value="{{ $u }}" {{ $currentUnit == $u ? 'selected' : '' }}>{{ $u }}</option>
+                        @endforeach
+                        <option value="__custom__" {{ $isCustomUnit ? 'selected' : '' }}>➕ + Custom Unit</option>
+                    </select>
+
+                    <div id="custom_unit_box" style="margin-top: 8px; display: {{ $isCustomUnit ? 'block' : 'none' }};">
+                        <input type="text" id="custom_unit_input" value="{{ $currentUnit }}" class="form-control" placeholder="Type custom unit (e.g. Tanker, Drums)..." oninput="handleCustomUnitInput(this.value)">
+                        <div class="form-hint" style="color: #60A5FA !important;"><i class="fa-solid fa-check"></i> Custom unit will be saved.</div>
+                    </div>
+
+                    <input type="hidden" name="unit" id="unit" value="{{ $currentUnit }}">
                     @error('unit')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
 
@@ -376,6 +380,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const unitSelect = document.getElementById('unit_select');
+    const customUnitBox = document.getElementById('custom_unit_box');
+    const customUnitInput = document.getElementById('custom_unit_input');
+
+    window.handleUnitChange = function(val) {
+        if (val === '__custom__') {
+            if (customUnitBox) customUnitBox.style.display = 'block';
+            if (customUnitInput) {
+                customUnitInput.focus();
+                if (unitInput) unitInput.value = customUnitInput.value;
+            }
+        } else {
+            if (customUnitBox) customUnitBox.style.display = 'none';
+            if (unitInput) unitInput.value = val;
+        }
+    };
+
+    window.handleCustomUnitInput = function(val) {
+        if (unitInput) unitInput.value = val;
+    };
+
+    function setUnitValue(val) {
+        if (!unitSelect || !unitInput) return;
+        unitInput.value = val;
+        const matchingOpt = Array.from(unitSelect.options).find(o => o.value.toLowerCase() === (val || '').toLowerCase());
+        if (matchingOpt && matchingOpt.value !== '__custom__') {
+            unitSelect.value = matchingOpt.value;
+            if (customUnitBox) customUnitBox.style.display = 'none';
+        } else if (val) {
+            unitSelect.value = '__custom__';
+            if (customUnitBox) customUnitBox.style.display = 'block';
+            if (customUnitInput) customUnitInput.value = val;
+        } else {
+            unitSelect.value = '';
+            if (customUnitBox) customUnitBox.style.display = 'none';
+        }
+    }
+
     if (presetSelect) {
         presetSelect.addEventListener('change', function() {
             if (presetSelect.value === '__custom__') {
@@ -387,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedOpt && selectedOpt.value !== '') {
                 nameInput.value = selectedOpt.getAttribute('data-name') || '';
                 specInput.value = selectedOpt.getAttribute('data-spec') || '';
-                unitInput.value = selectedOpt.getAttribute('data-unit') || '';
+                setUnitValue(selectedOpt.getAttribute('data-unit') || '');
             }
         });
     }

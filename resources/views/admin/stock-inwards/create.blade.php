@@ -465,7 +465,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                         <input type="hidden" name="items[${rowIndex}][qty_ordered]" value="${item.qty_ordered}">
                                         <input type="hidden" name="items[${rowIndex}][discount_pct]" class="discount-pct-input" value="${item.discount_pct}">
                                         <input type="hidden" name="items[${rowIndex}][gst_pct]" class="gst-pct-input" value="${item.gst_pct}">
-                                        <input type="hidden" name="items[${rowIndex}][rate]" class="rate-input" value="${item.rate}">
                                     </td>
                                     <td style="text-align:right;">${item.qty_ordered} ${item.unit}</td>
                                     <td style="text-align:right;">${item.qty_received} ${item.unit}</td>
@@ -476,7 +475,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                     <td>
                                         <input type="number" name="items[${rowIndex}][qty_damaged]" class="form-control qty-dmg-input" value="0" step="0.001" min="0" required style="height:34px !important; padding:4px 8px !important;">
                                     </td>
-                                    <td style="text-align:right;">₹${item.rate}</td>
+                                    <td>
+                                        <input type="number" name="items[${rowIndex}][rate]" class="form-control rate-input" value="${parseFloat(item.rate) || 0}" step="0.01" min="0" placeholder="0.00" style="height:34px !important; padding:4px 8px !important; text-align:right; width:100%;">
+                                    </td>
                                     <td style="text-align:right; font-weight:700;"><span class="line-total-span">₹0.00</span></td>
                                 </tr>
                             `;
@@ -548,7 +549,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         });
 
         itemsRows.addEventListener('input', function(e) {
-            if (e.target.classList.contains('qty-rec-input') || e.target.classList.contains('qty-dmg-input')) {
+            if (e.target.classList.contains('qty-rec-input') || e.target.classList.contains('qty-dmg-input') || e.target.classList.contains('rate-input')) {
                 calculateTotals();
             }
         });

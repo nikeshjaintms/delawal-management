@@ -148,7 +148,7 @@ class PurchaseOrderController extends Controller
             'items'            => 'required|array|min:1',
             'items.*.material_id' => 'required|exists:materials,id',
             'items.*.qty'         => 'required|numeric|min:0.01',
-            'items.*.rate'        => 'required|numeric|min:0.00',
+            'items.*.rate'        => 'nullable|numeric|min:0.00',
             'items.*.discount_pct'=> 'nullable|numeric|min:0|max:100',
             'items.*.gst_pct'     => 'nullable|numeric|min:0|max:100',
         ]);
@@ -230,7 +230,7 @@ class PurchaseOrderController extends Controller
 
             foreach ($request->items as $itemData) {
                 $qty = (float)$itemData['qty'];
-                $rate = (float)$itemData['rate'];
+                $rate = (float)($itemData['rate'] ?? 0);
                 $discPct = (float)($itemData['discount_pct'] ?? 0);
                 $gstPct = (float)($itemData['gst_pct'] ?? 0);
 
@@ -329,7 +329,7 @@ class PurchaseOrderController extends Controller
             'items'            => 'required|array|min:1',
             'items.*.material_id' => 'required|exists:materials,id',
             'items.*.qty'         => 'required|numeric|min:0.01',
-            'items.*.rate'        => 'required|numeric|min:0.00',
+            'items.*.rate'        => 'nullable|numeric|min:0.00',
             'items.*.discount_pct'=> 'nullable|numeric|min:0|max:100',
             'items.*.gst_pct'     => 'nullable|numeric|min:0|max:100',
         ]);
@@ -391,7 +391,7 @@ class PurchaseOrderController extends Controller
 
             foreach ($request->items as $itemData) {
                 $qty = (float)$itemData['qty'];
-                $rate = (float)$itemData['rate'];
+                $rate = (float)($itemData['rate'] ?? 0);
                 $discPct = (float)($itemData['discount_pct'] ?? 0);
                 $gstPct = (float)($itemData['gst_pct'] ?? 0);
 

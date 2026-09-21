@@ -348,7 +348,7 @@ input[type=number] {
                     <tr>
                         <th style="width:30%;">Material <span style="color:#F87171;">*</span></th>
                         <th style="width:10%;">Qty <span style="color:#F87171;">*</span></th>
-                        <th style="width:12%;">Rate <span style="color:#F87171;">*</span></th>
+                        <th style="width:12%;">Rate <span style="color:#94A3B8; font-size:11px; font-weight:normal;">(Opt)</span></th>
                         <th style="width:10%;">Disc %</th>
                         <th style="width:10%;">GST %</th>
                         <th style="width:12%;">GST Amount</th>
@@ -378,7 +378,7 @@ input[type=number] {
                             <div class="stock-badge" style="font-size:11.5px; margin-top:4px; color:#60A5FA; font-weight:600;"></div>
                         </td>
                         <td><input type="number" name="items[{{ $index }}][qty]" class="form-control qty-input" value="{{ $item['qty'] ?? 1 }}" step="0.01" min="0.01" autocomplete="off" required></td>
-                        <td><input type="number" name="items[{{ $index }}][rate]" class="form-control rate-input" value="{{ $item['rate'] ?? '0.00' }}" step="0.01" min="0.00" autocomplete="off" required></td>
+                        <td><input type="number" name="items[{{ $index }}][rate]" class="form-control rate-input" value="{{ $item['rate'] ?? '0.00' }}" step="0.01" min="0.00" placeholder="0.00" autocomplete="off"></td>
                         <td><input type="number" name="items[{{ $index }}][discount_pct]" class="form-control discount-pct-input" value="{{ $item['discount_pct'] ?? 0 }}" step="0.01" min="0" max="100" autocomplete="off"></td>
                         <td><input type="number" name="items[{{ $index }}][gst_pct]" class="form-control gst-pct-input" value="{{ $item['gst_pct'] ?? 18 }}" step="0.01" min="0" max="100" autocomplete="off"></td>
                         <td><input type="text" class="form-control gst-amount-input" value="{{ $item['gst_amount'] ?? '0.00' }}" style="background:rgba(255,255,255,0.06) !important; cursor:default;" readonly></td>
@@ -576,7 +576,7 @@ input[type=number] {
                         <div class="stock-badge" style="font-size:11.5px; margin-top:4px; color:#60A5FA; font-weight:600;"></div>
                     </td>
                     <td><input type="number" name="items[${rowCount}][qty]" class="form-control qty-input" value="1" step="0.01" min="0.01" autocomplete="off" required></td>
-                    <td><input type="number" name="items[${rowCount}][rate]" class="form-control rate-input" value="0.00" step="0.01" min="0.00" autocomplete="off" required></td>
+                    <td><input type="number" name="items[${rowCount}][rate]" class="form-control rate-input" value="0.00" step="0.01" min="0.00" placeholder="0.00" autocomplete="off"></td>
                     <td><input type="number" name="items[${rowCount}][discount_pct]" class="form-control discount-pct-input" value="0" step="0.01" min="0" max="100" autocomplete="off"></td>
                     <td><input type="number" name="items[${rowCount}][gst_pct]" class="form-control gst-pct-input" value="18" step="0.01" min="0" max="100" autocomplete="off"></td>
                     <td><input type="text" class="form-control gst-amount-input" value="0.00" style="background:rgba(255,255,255,0.06) !important; cursor:default;" readonly></td>

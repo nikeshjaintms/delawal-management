@@ -16,6 +16,12 @@ class MaterialRequest extends FormRequest
     protected function prepareForValidation()
     {
         $inputs = $this->all();
+        if (empty($inputs['unit']) && !empty($inputs['unit_select']) && $inputs['unit_select'] !== '__custom__') {
+            $inputs['unit'] = $inputs['unit_select'];
+        } elseif (!empty($inputs['custom_unit'])) {
+            $inputs['unit'] = $inputs['custom_unit'];
+        }
+
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
                 $inputs[$key] = trim($value);
