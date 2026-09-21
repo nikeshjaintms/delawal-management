@@ -133,14 +133,43 @@ class Project extends Model
     }
 
     /**
-     * Get property address dynamically from parent PropertyMaster.
+     * Get the highest existing plot sequence number for this project.
      */
-    public function getDisplayAddressAttribute(): string
+    public function getHighestPlotSequenceNumber(): int
     {
-        if ($this->propertyMaster && !empty($this->propertyMaster->full_address)) {
-            return $this->propertyMaster->full_address;
+        $plots = Property::where('project_id', $this->id)->get();
+        if ($plots->isEmpty()) {
+            return 0;
         }
-        $parts = array_filter([$this->address, $this->city, $this->state, $this->pincode ? ('- ' . $this->pincode) : null]);
-        return count($parts) ? implode(', ', $parts) : '-';
+
+        $maxNumber = 0;
+        foreach ($plots as $plot) {
+            if (is_numeric($plot->unit_no) && (int) $plot->unit_no > $maxNumber) {
+                $maxNumber = (int) $plot->unit_no;
+            }
+            if (preg_match('/(\d+)\s*$/', (string) $plot->property_name, $m)) {
+                $num = (int) $m[1];
+                if ($num > $maxNumber) {
+                    $maxNumber = $num;
+                }
+            }
+            if (preg_match('/-(\d+)$/', (string) $plot->property_code, $m)) {
+                $num = (int) $m[1];
+                if ($num > $maxNumber) {
+                    $maxNumber = $num;
+                }
+            }
+        }
+
+        return $maxNumber;
+    }
+
+    /**
+     * Get the next starting plot sequence number for this project.
+     */
+    public function getNextPlotSequenceNumber(): int
+    {
+        return $this->getHighestPlotSequenceNumber() + 1;
     }
 }
+

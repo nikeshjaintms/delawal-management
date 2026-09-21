@@ -105,6 +105,12 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::post('property-masters/{propertyMaster}/payments', [PropertyMasterController::class, 'storePayment'])->name('property-masters.payments.store')->middleware(['permission:property_edit']);
     Route::delete('property-masters/{propertyMaster}/payments/{payment}', [PropertyMasterController::class, 'destroyPayment'])->name('property-masters.payments.destroy')->middleware(['permission:property_edit']);
 
+    Route::get('projects/plots/template', [\App\Http\Controllers\ProjectController::class, 'downloadPlotsTemplate'])->name('projects.plots.template')->middleware(['permission:project_view']);
+    Route::post('projects/{project}/import-plots', [\App\Http\Controllers\ProjectController::class, 'importPlots'])->name('projects.import-plots')->middleware(['permission:project_edit']);
+    Route::post('projects/{project}/add-plot', [\App\Http\Controllers\ProjectController::class, 'addSinglePlot'])->name('projects.add-plot')->middleware(['permission:project_edit']);
+    Route::post('projects/{project}/bulk-generate-plots', [\App\Http\Controllers\ProjectController::class, 'bulkGeneratePlots'])->name('projects.bulk-generate-plots')->middleware(['permission:project_edit']);
+    Route::put('projects/{project}/plots/{property}', [\App\Http\Controllers\ProjectController::class, 'updatePlot'])->name('projects.plots.update')->middleware(['permission:project_edit']);
+    Route::delete('projects/{project}/plots/{property}', [\App\Http\Controllers\ProjectController::class, 'destroyPlot'])->name('projects.plots.destroy')->middleware(['permission:project_edit']);
     Route::get('projects/properties-and-plots', [\App\Http\Controllers\ProjectController::class, 'getPropertiesAndPlots'])->name('projects.properties-and-plots')->middleware(['permission:project_view']);
     Route::get('projects/export-pdf', [\App\Http\Controllers\ProjectController::class, 'exportPdf'])->name('projects.pdf')->middleware(['permission:project_view']);
     Route::get('projects/{project}/pdf', [\App\Http\Controllers\ProjectController::class, 'downloadPdf'])->name('projects.detail-pdf')->middleware(['permission:project_view']);

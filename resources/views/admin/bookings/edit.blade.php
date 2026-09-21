@@ -194,20 +194,14 @@ textarea.form-control { resize: vertical; min-height: 85px; }
         <div class="form-group" style="margin-bottom: 22px;">
             <label class="form-label" for="entity_selector">Project / Property Master <span>*</span></label>
             <select id="entity_selector" class="form-control @error('property_master_id') is-invalid @enderror @error('project_id') is-invalid @enderror" required onchange="onEntitySelectionChange()">
-                <option value="">-- Select Project or Standalone Property --</option>
-                
-                @if($projects->isNotEmpty())
-                    <optgroup label="🏢 PROJECTS / SCHEMES (Merged Properties)">
+                <option value="">-- Select Project or Standalone Property --</option                @if($projects->isNotEmpty())
+                    <optgroup label="🏢 PROJECTS / SCHEMES">
                         @foreach($projects as $proj)
                             @php
-                                $linkedPmIds = $proj->propertyMasters->pluck('id')->toArray();
-                                if ($proj->property_id && !in_array($proj->property_id, $linkedPmIds)) {
-                                    $linkedPmIds[] = $proj->property_id;
-                                }
-                                $projPlotCount = $properties->filter(fn($p) => $p->project_id == $proj->id || in_array($p->property_master_id, $linkedPmIds))->count();
-                                $projPlotsPrice = $properties->filter(fn($p) => $p->project_id == $proj->id || in_array($p->property_master_id, $linkedPmIds))->sum('price');
+                                $projPlotCount = $properties->filter(fn($p) => $p->project_id == $proj->id)->count();
+                                $projPlotsPrice = $properties->filter(fn($p) => $p->project_id == $proj->id)->sum('price');
                                 $projMastersPrice = $proj->propertyMasters->sum('purchase_price') ?: $projPlotsPrice;
-                                $projMastersCount = count($linkedPmIds);
+                                $projMastersCount = $proj->propertyMasters->count();
                                 $isSel = ($selectedEntityType === 'project' && $selectedEntityId == $proj->id);
                             @endphp
                             <option value="project:{{ $proj->id }}"
@@ -218,9 +212,8 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                     data-price="{{ $projMastersPrice ?: $projPlotsPrice }}"
                                     data-plots-count="{{ $projPlotCount }}"
                                     data-properties-count="{{ $projMastersCount }}"
-                                    data-master-ids='@json($linkedPmIds)'
                                     {{ $isSel ? 'selected' : '' }}>
-                                🏢 Project: {{ $proj->project_name }} @if($proj->project_code)[{{ $proj->project_code }}]@endif — ({{ $projMastersCount > 0 ? $projMastersCount . ' Properties, ' : '' }}{{ $projPlotCount }} Plots)
+                                🏢 Project: {{ $proj->project_name }} @if($proj->project_code)[{{ $proj->project_code }}]@endif — ({{ $projPlotCount }} Project Plots)
                             </option>
                         @endforeach
                     </optgroup>
@@ -230,9 +223,9 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                     <optgroup label="🏡 STANDALONE PROPERTIES / LAND (No Project)">
                         @foreach($standalonePropertyMasters as $pm)
                             @php
-                                $pmPrice = $pm->purchase_price ?: ($pm->plots->sum('price') ?: 0);
+                                $pmPrice = $pm->purchase_price ?: ($pm->plots->filter(fn($p) => empty($p->project_id))->sum('price') ?: 0);
                                 $pmArea = $pm->total_area ? ($pm->total_area . ' ' . ($pm->area_unit ?? 'Sq.Ft')) : '';
-                                $pmPlotsCount = $pm->plots->count();
+                                $pmPlotsCount = $pm->plots->filter(fn($p) => empty($p->project_id))->count();
                                 $isSel = ($selectedEntityType === 'property' && $selectedEntityId == $pm->id);
                             @endphp
                             <option value="property:{{ $pm->id }}"
@@ -243,7 +236,6 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                     data-price="{{ $pmPrice }}"
                                     data-area="{{ $pmArea }}"
                                     data-plots-count="{{ $pmPlotsCount }}"
-                                    data-master-ids='[{{ $pm->id }}]'
                                     {{ $isSel ? 'selected' : '' }}>
                                 🏡 Property: {{ $pm->property_name }} @if($pm->property_code)[{{ $pm->property_code }}]@endif @if($pmArea)— Area: {{ $pmArea }}@endif ({{ $pmPlotsCount }} Plots)
                             </option>
@@ -932,7 +924,6 @@ textarea.form-control { resize: vertical; min-height: 85px; }
             const isEntitySelected = opt && opt.value;
             const type = isEntitySelected ? opt.dataset.type : null;
             const entityId = isEntitySelected ? String(opt.dataset.id) : null;
-            const masterIds = isEntitySelected ? JSON.parse(opt.dataset.masterIds || '[]').map(String) : [];
 
             const cards = document.querySelectorAll('.plot-card-item');
             const noPlotsMsg = document.getElementById('no_plots_msg');
@@ -949,9 +940,9 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 if (!isEntitySelected) {
                     matchesEntity = true;
                 } else if (type === 'project') {
-                    matchesEntity = (cardProjectId === entityId) || (cardMasterId && masterIds.includes(cardMasterId));
+                    matchesEntity = (cardProjectId === entityId);
                 } else if (type === 'property') {
-                    matchesEntity = (cardMasterId === entityId);
+                    matchesEntity = (cardMasterId === entityId && (!cardProjectId || cardProjectId === 'null' || cardProjectId === '0' || cardProjectId === ''));
                 }
 
                 const matchesQuery = (!query || name.includes(query) || unitNo.includes(query) || code.includes(query));
@@ -980,7 +971,6 @@ textarea.form-control { resize: vertical; min-height: 85px; }
             const isEntitySelected = opt && opt.value;
             const type = isEntitySelected ? opt.dataset.type : null;
             const entityId = isEntitySelected ? String(opt.dataset.id) : null;
-            const masterIds = isEntitySelected ? JSON.parse(opt.dataset.masterIds || '[]').map(String) : [];
 
             let visibleCount = 0;
 
@@ -995,9 +985,9 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 if (!isEntitySelected) {
                     matches = true;
                 } else if (type === 'project') {
-                    matches = (cardProjectId === entityId) || (cardMasterId && masterIds.includes(cardMasterId)) || isAlreadySelected;
+                    matches = (cardProjectId === entityId) || isAlreadySelected;
                 } else if (type === 'property') {
-                    matches = (cardMasterId === entityId) || isAlreadySelected;
+                    matches = (cardMasterId === entityId && (!cardProjectId || cardProjectId === 'null' || cardProjectId === '0' || cardProjectId === '')) || isAlreadySelected;
                 }
 
                 if (matches) {
