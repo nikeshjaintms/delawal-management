@@ -565,65 +565,70 @@ class ProjectController extends Controller
      */
     public function downloadPlotsTemplate()
     {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Project Plots Template');
-
         $headers = [
-            'A1' => 'Plot / Unit No *',
-            'B1' => 'Plot Name *',
-            'C1' => 'Size (Numeric)',
-            'D1' => 'Size Unit (sq.ft / sq.yard)',
-            'E1' => 'Facing Direction (East/West/North/South)',
-            'F1' => 'Purchase / Cost Rate (₹)',
-            'G1' => 'Selling Price (₹)',
-            'H1' => 'Status (available/booked/sold)',
+            'Plot / Unit No *',
+            'Plot Name *',
+            'Size (Numeric)',
+            'Size Unit (sq.ft / sq.yard)',
+            'Facing Direction (East/West/North/South)',
+            'Purchase / Cost Rate (₹)',
+            'Selling Price (₹)',
+            'Status (available/booked/sold)',
         ];
 
-        foreach ($headers as $cell => $val) {
-            $sheet->setCellValue($cell, $val);
-        }
-
-        // Sample Rows
         $sampleData = [
             ['1', 'Plot 1', '1200', 'sq.ft', 'East', '1500', '2200', 'available'],
             ['2', 'Plot 2', '1500', 'sq.ft', 'North', '1500', '2200', 'available'],
             ['3', 'Plot 3', '1800', 'sq.yard', 'West', '13500', '18000', 'available'],
         ];
 
-        $rowIdx = 2;
-        foreach ($sampleData as $r) {
-            $colLetter = 'A';
-            foreach ($r as $val) {
-                $sheet->setCellValue($colLetter . $rowIdx, $val);
-                $colLetter++;
+        if (class_exists('\PhpOffice\PhpSpreadsheet\Spreadsheet')) {
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Project Plots Template');
+
+            $allRows = array_merge([$headers], $sampleData);
+            $sheet->fromArray($allRows, null, 'A1');
+
+            $headerStyle = [
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '1E293B']
+                ],
+                'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER, 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER],
+            ];
+            $sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
+            $sheet->getRowDimension(1)->setRowHeight(28);
+
+            foreach (range('A', 'H') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
             }
-            $rowIdx++;
+
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $fileName = 'project_plots_import_template.xlsx';
+
+            return response()->streamDownload(function () use ($writer) {
+                $writer->save('php://output');
+            }, $fileName, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Cache-Control' => 'max-age=0',
+            ]);
         }
 
-        // Styling
-        $headerStyle = [
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '1E293B']
-            ],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-        ];
-        $sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
-        $sheet->getRowDimension(1)->setRowHeight(28);
-
-        foreach (range('A', 'H') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        $writer = new Xlsx($spreadsheet);
-        $fileName = 'project_plots_import_template.xlsx';
-
-        return response()->streamDownload(function () use ($writer) {
-            $writer->save('php://output');
+        // Fallback to CSV with UTF-8 BOM
+        $fileName = 'project_plots_import_template.csv';
+        return response()->streamDownload(function () use ($headers, $sampleData) {
+            $handle = fopen('php://output', 'w');
+            fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
+            fputcsv($handle, $headers);
+            foreach ($sampleData as $row) {
+                fputcsv($handle, $row);
+            }
+            fclose($handle);
         }, $fileName, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
             'Cache-Control' => 'max-age=0',
         ]);
     }
@@ -944,10 +949,17 @@ class ProjectController extends Controller
                     $propertyTypeId = $ptObj->id;
                 }
 
-                // 8. Plot Code
-                $plotCode = !empty($rawCode) ? $rawCode : ('P-' . $projPrefix . '-' . preg_replace('/[^A-Za-z0-9]/', '', $cleanUnit));
-                if (Property::where('firm_id', $firmId)->where('property_code', $plotCode)->exists()) {
-                    $plotCode .= '-' . Str::random(3);
+                // 8. Plot Code (Clean format: P-1, P-2, etc.)
+                if (!empty($rawCode)) {
+                    $plotCode = trim($rawCode);
+                    if (preg_match('/^P(\d+)$/i', $plotCode, $m)) {
+                        $plotCode = 'P-' . $m[1];
+                    }
+                } elseif (!empty($cleanUnit)) {
+                    $cleanNum = preg_replace('/[^A-Za-z0-9]/', '', (string)$cleanUnit);
+                    $plotCode = 'P-' . $cleanNum;
+                } else {
+                    $plotCode = 'P-' . ($r - $dataStartRowIndex + 1);
                 }
 
                 // 9. Description
@@ -1002,12 +1014,15 @@ class ProjectController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $projPrefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $project->project_name), 0, 4)) ?: 'PRJ';
         $unitNo = $request->unit_no ?: (string) $project->getNextPlotSequenceNumber();
-        $plotCode = 'P-' . $projPrefix . '-' . str_pad($unitNo, 3, '0', STR_PAD_LEFT);
-
-        if (Property::where('firm_id', $project->firm_id)->where('property_code', $plotCode)->exists()) {
-            $plotCode .= '-' . Str::random(3);
+        if ($request->filled('property_code')) {
+            $plotCode = trim($request->property_code);
+            if (preg_match('/^P(\d+)$/i', $plotCode, $m)) {
+                $plotCode = 'P-' . $m[1];
+            }
+        } else {
+            $cleanNum = preg_replace('/[^A-Za-z0-9]/', '', (string) $unitNo);
+            $plotCode = 'P-' . $cleanNum;
         }
 
         $purchaseRate = $request->filled('purchase_rate') ? $request->purchase_rate : 0;
@@ -1084,7 +1099,6 @@ class ProjectController extends Controller
         $customList = $request->unit_numbers_list;
         $parsedUnits = PropertyMaster::parseUnitNumbersString($customList);
         $prefix = $request->plot_prefix !== null ? $request->plot_prefix : 'Plot ';
-        $projPrefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $project->project_name), 0, 4)) ?: 'PRJ';
 
         $purchaseRate = $request->filled('purchase_rate') ? $request->purchase_rate : 0;
         $price = $request->filled('price') ? $request->price : $purchaseRate;
@@ -1114,14 +1128,12 @@ class ProjectController extends Controller
 
         $generatedUnits = [];
 
-        DB::transaction(function () use ($project, $parsedUnits, $prefix, $projPrefix, $purchaseRate, $price, $sizeUnit, $targetTypeId, $facing, $request, &$generatedUnits) {
+        DB::transaction(function () use ($project, $parsedUnits, $prefix, $purchaseRate, $price, $sizeUnit, $targetTypeId, $facing, $request, &$generatedUnits) {
             if (!empty($parsedUnits)) {
                 // Generate by parsed list (e.g. 1-10, 30, 35)
                 foreach ($parsedUnits as $cleanUnit) {
-                    $plotCode = 'P-' . $projPrefix . '-' . str_pad($cleanUnit, 3, '0', STR_PAD_LEFT);
-                    if (Property::where('firm_id', $project->firm_id)->where('property_code', $plotCode)->exists()) {
-                        $plotCode .= '-' . Str::random(3);
-                    }
+                    $cleanNum = preg_replace('/[^A-Za-z0-9]/', '', (string) $cleanUnit);
+                    $plotCode = 'P-' . $cleanNum;
 
                     Property::create([
                         'firm_id' => $project->firm_id,
@@ -1152,11 +1164,7 @@ class ProjectController extends Controller
 
                 for ($i = 0; $i < $count; $i++) {
                     $num = $startNum + $i;
-                    $plotCode = 'P-' . $projPrefix . '-' . str_pad($num, 3, '0', STR_PAD_LEFT);
-
-                    if (Property::where('firm_id', $project->firm_id)->where('property_code', $plotCode)->exists()) {
-                        $plotCode .= '-' . Str::random(3);
-                    }
+                    $plotCode = 'P-' . $num;
 
                     Property::create([
                         'firm_id' => $project->firm_id,

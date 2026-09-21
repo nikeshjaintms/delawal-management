@@ -1258,65 +1258,71 @@ class PropertyMasterController extends Controller
      */
     public function downloadPlotTemplate()
     {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Plots Import Template');
-
         $headers = [
-            'A1' => 'Plot / Unit No *',
-            'B1' => 'Plot Name *',
-            'C1' => 'Size (Numeric)',
-            'D1' => 'Size Unit (sq.ft / sq.yard)',
-            'E1' => 'Facing Direction (East/West/North/South)',
-            'F1' => 'Purchase Rate (₹)',
-            'G1' => 'Selling Price (₹)',
-            'H1' => 'Status (available/booked/sold)',
+            'Plot / Unit No *',
+            'Plot Name *',
+            'Size (Numeric)',
+            'Size Unit (sq.ft / sq.yard)',
+            'Facing Direction (East/West/North/South)',
+            'Purchase Rate (₹)',
+            'Selling Price (₹)',
+            'Status (available/booked/sold)',
         ];
 
-        foreach ($headers as $cell => $val) {
-            $sheet->setCellValue($cell, $val);
-        }
-
-        // Sample Rows
         $sampleData = [
             ['1', 'Plot 1', '1200', 'sq.ft', 'East', '1500', '2200', 'available'],
             ['2', 'Plot 2', '1500', 'sq.ft', 'North', '1500', '2200', 'available'],
             ['3', 'Plot 3', '1800', 'sq.yard', 'West', '13500', '18000', 'available'],
         ];
 
-        $rowIdx = 2;
-        foreach ($sampleData as $r) {
-            $colLetter = 'A';
-            foreach ($r as $val) {
-                $sheet->setCellValue($colLetter . $rowIdx, $val);
-                $colLetter++;
+        if (class_exists('\PhpOffice\PhpSpreadsheet\Spreadsheet')) {
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Plots Import Template');
+
+            $allRows = array_merge([$headers], $sampleData);
+            $sheet->fromArray($allRows, null, 'A1');
+
+            $headerStyle = [
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '1E293B']
+                ],
+                'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER, 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER],
+            ];
+            $sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
+            $sheet->getRowDimension(1)->setRowHeight(28);
+
+            foreach (range('A', 'H') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
             }
-            $rowIdx++;
+
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $fileName = 'plots_import_template.xlsx';
+
+            return response()->streamDownload(function () use ($writer) {
+                $writer->save('php://output');
+            }, $fileName, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Cache-Control' => 'max-age=0',
+            ]);
         }
 
-        // Styling
-        $headerStyle = [
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '1E293B']
-            ],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-        ];
-        $sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
-        $sheet->getRowDimension(1)->setRowHeight(28);
-
-        foreach (range('A', 'H') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        $writer = new Xlsx($spreadsheet);
-        $fileName = 'plots_import_template.xlsx';
-
-        return response()->streamDownload(function () use ($writer) {
-            $writer->save('php://output');
+        // Fallback to CSV with UTF-8 BOM
+        $fileName = 'plots_import_template.csv';
+        return response()->streamDownload(function () use ($headers, $sampleData) {
+            $handle = fopen('php://output', 'w');
+            fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
+            fputcsv($handle, $headers);
+            foreach ($sampleData as $row) {
+                fputcsv($handle, $row);
+            }
+            fclose($handle);
         }, $fileName, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+            'Cache-Control' => 'max-age=0',
         ]);
     }
 
