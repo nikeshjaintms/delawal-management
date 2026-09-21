@@ -42,13 +42,19 @@
 }
 .btn-emerald:hover { background: #059669 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(16, 185, 129, 0.50); }
 
-/* Nature Tabs */
+/* ── Nature Tabs Bar (Premium Segmented Glass Control) ── */
 .nature-tabs-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 22px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-    padding-bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: rgba(15, 23, 42, 0.80) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    padding: 6px 8px;
+    border-radius: 16px;
+    border: 1.5px solid rgba(255, 255, 255, 0.14) !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
     flex-wrap: wrap;
 }
 .nature-tab {
@@ -59,17 +65,19 @@
     border-radius: 12px;
     font-size: 13.5px;
     font-weight: 700;
-    color: #CBD5E1 !important;
+    color: #E2E8F0 !important;
     text-decoration: none !important;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(30, 41, 59, 0.60);
+    border: 1px solid rgba(255, 255, 255, 0.10);
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     letter-spacing: 0.2px;
 }
 .nature-tab:hover {
     color: #FFFFFF !important;
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateY(-1px);
+    background: rgba(51, 65, 85, 0.85);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 .nature-tab i {
     font-size: 14px;
@@ -78,23 +86,53 @@
 .nature-tab:hover i {
     transform: scale(1.12);
 }
+
+.nature-tab .tab-icon-all { color: #A5B4FC; }
+.nature-tab .tab-icon-taken { color: #60A5FA; }
+.nature-tab .tab-icon-given { color: #34D399; }
+
+.nature-tab.active-all,
+.nature-tab.active-taken,
+.nature-tab.active-given {
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+.nature-tab.active-all i,
+.nature-tab.active-taken i,
+.nature-tab.active-given i {
+    color: #FFFFFF !important;
+}
+
 .nature-tab.active-all {
     background: linear-gradient(135deg, #4F46E5 0%, #3B82F6 100%) !important;
     color: #FFFFFF !important;
-    border: 1px solid rgba(255, 255, 255, 0.25) !important;
     box-shadow: 0 6px 20px rgba(79, 70, 229, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.30) !important;
 }
 .nature-tab.active-taken {
     background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
     color: #FFFFFF !important;
-    border: 1px solid rgba(255, 255, 255, 0.25) !important;
     box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.30) !important;
 }
 .nature-tab.active-given {
     background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
     color: #FFFFFF !important;
-    border: 1px solid rgba(255, 255, 255, 0.25) !important;
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.30) !important;
+}
+
+.tab-badge {
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.16);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.nature-tab.active-all .tab-badge,
+.nature-tab.active-taken .tab-badge,
+.nature-tab.active-given .tab-badge {
+    background: rgba(0, 0, 0, 0.25) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    color: #FFFFFF !important;
 }
 
 .card-box {
@@ -316,13 +354,13 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
 @endphp
 <div class="nature-tabs-bar">
     <a href="{{ route('loans.index', array_merge(request()->except('loan_nature', 'page'), ['loan_nature' => 'all'])) }}" class="nature-tab {{ $currentNature === 'all' || empty($currentNature) ? 'active-all' : '' }}">
-        <i class="fa-solid fa-layer-group"></i> All Loans
+        <i class="fa-solid fa-layer-group tab-icon-all"></i> All Loans <span class="tab-badge">{{ $countAll ?? 0 }}</span>
     </a>
     <a href="{{ route('loans.index', array_merge(request()->except('loan_nature', 'page'), ['loan_nature' => 'taken'])) }}" class="nature-tab {{ $currentNature === 'taken' ? 'active-taken' : '' }}">
-        <i class="fa-solid fa-hand-holding-dollar"></i> Loan Taken (Liability)
+        <i class="fa-solid fa-hand-holding-dollar tab-icon-taken"></i> Loan Taken (Liability) <span class="tab-badge">{{ $countTaken ?? 0 }}</span>
     </a>
     <a href="{{ route('loans.index', array_merge(request()->except('loan_nature', 'page'), ['loan_nature' => 'given'])) }}" class="nature-tab {{ $currentNature === 'given' ? 'active-given' : '' }}">
-        <i class="fa-solid fa-handshake-angle"></i> Loan Given (Receivable)
+        <i class="fa-solid fa-handshake-angle tab-icon-given"></i> Loan Given (Receivable) <span class="tab-badge">{{ $countGiven ?? 0 }}</span>
     </a>
 </div>
 

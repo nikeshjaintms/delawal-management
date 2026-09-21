@@ -203,11 +203,22 @@ class LoanController extends Controller
         $totalGiven   = (clone $summaryQuery)->where('loan_nature', 'given')->sum('loan_amount');
         $pendingGiven = (clone $summaryQuery)->where('loan_nature', 'given')->sum('pending_amount');
         
+        $baseCountQuery = Loan::query();
+        if (!$isAdmin) {
+            $baseCountQuery->forFirms([$firmId]);
+        } elseif ($request->filled('firm_ids') || $request->filled('firm_id')) {
+            $firmIds = $request->input('firm_ids', (array)$request->firm_id);
+            $baseCountQuery->forFirms($firmIds);
+        }
+        $countAll   = (clone $baseCountQuery)->count();
+        $countTaken = (clone $baseCountQuery)->where(function($q) { $q->where('loan_nature', 'taken')->orWhereNull('loan_nature'); })->count();
+        $countGiven = (clone $baseCountQuery)->where('loan_nature', 'given')->count();
+
         $firms        = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
         return view('admin.loans.index', array_merge(
             $this->dropdowns($request->firm_id),
-            compact('loans', 'firms', 'totalLoan', 'totalPaid', 'totalTaken', 'pendingTaken', 'totalGiven', 'pendingGiven')
+            compact('loans', 'firms', 'totalLoan', 'totalPaid', 'totalTaken', 'pendingTaken', 'totalGiven', 'pendingGiven', 'countAll', 'countTaken', 'countGiven')
         ));
     }
 
