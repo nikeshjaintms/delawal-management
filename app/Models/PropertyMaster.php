@@ -206,12 +206,14 @@ class PropertyMaster extends Model
     {
         return $this
             ->hasMany(Property::class, 'property_master_id')
+            ->whereNull('project_id')
             ->orderByRaw('CAST(COALESCE(NULLIF(unit_no, ""), id) AS UNSIGNED) ASC, id ASC');
     }
 
     public function bulkPlots()
     {
-        return $this->hasMany(Property::class, 'property_master_id');
+        return $this->hasMany(Property::class, 'property_master_id')
+            ->whereNull('project_id');
     }
 
     public function projects()

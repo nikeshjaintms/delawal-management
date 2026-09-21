@@ -78,12 +78,14 @@ class Project extends Model
     public function properties()
     {
         return $this->hasMany(Property::class, 'project_id')
+            ->whereNull('property_master_id')
             ->orderByRaw('CAST(COALESCE(NULLIF(unit_no, ""), id) AS UNSIGNED) ASC, id ASC');
     }
 
     public function bulks()
     {
         return $this->hasMany(Property::class, 'project_id')
+            ->whereNull('property_master_id')
             ->orderByRaw('CAST(COALESCE(NULLIF(unit_no, ""), id) AS UNSIGNED) ASC, id ASC');
     }
 

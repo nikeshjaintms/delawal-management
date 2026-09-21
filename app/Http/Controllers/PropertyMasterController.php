@@ -695,7 +695,7 @@ class PropertyMasterController extends Controller
         $plot = Property::create([
             'firm_id' => $propertyMaster->firm_id,
             'property_master_id' => $propertyMaster->id,
-            'project_id' => $request->project_id ?: null,
+            'project_id' => null,
             'property_type_id' => $targetTypeId,
             'property_name' => $request->property_name,
             'property_code' => $plotCode,
@@ -712,14 +712,6 @@ class PropertyMasterController extends Controller
             'status' => $request->status,
             'description' => $request->description,
         ]);
-
-        // If a project is selected, ensure the project is also linked in pivot table
-        if ($request->project_id) {
-            $project = Project::find($request->project_id);
-            if ($project) {
-                $project->propertyMasters()->syncWithoutDetaching([$propertyMaster->id]);
-            }
-        }
 
         return redirect()
             ->route('property-masters.show', $propertyMaster->id)
@@ -792,7 +784,7 @@ class PropertyMasterController extends Controller
                     Property::create([
                         'firm_id' => $propertyMaster->firm_id,
                         'property_master_id' => $propertyMaster->id,
-                        'project_id' => $request->project_id ?: null,
+                        'project_id' => null,
                         'property_type_id' => $targetTypeId,
                         'property_name' => trim($prefix . ' ' . $cleanUnit),
                         'property_code' => $plotCode,
@@ -827,7 +819,7 @@ class PropertyMasterController extends Controller
                     Property::create([
                         'firm_id' => $propertyMaster->firm_id,
                         'property_master_id' => $propertyMaster->id,
-                        'project_id' => $request->project_id ?: null,
+                        'project_id' => null,
                         'property_type_id' => $targetTypeId,
                         'property_name' => trim($prefix . ' ' . $num),
                         'property_code' => $plotCode,
@@ -845,13 +837,6 @@ class PropertyMasterController extends Controller
                         'description' => 'Bulk generated under ' . $propertyMaster->property_name,
                     ]);
                     $generatedUnits[] = $num;
-                }
-            }
-
-            if ($request->project_id) {
-                $project = Project::find($request->project_id);
-                if ($project) {
-                    $project->propertyMasters()->syncWithoutDetaching([$propertyMaster->id]);
                 }
             }
         });
@@ -1242,7 +1227,7 @@ class PropertyMasterController extends Controller
                 $plot = Property::create([
                     'firm_id' => $firmId,
                     'property_master_id' => $propertyMaster->id,
-                    'project_id' => $projectId ?: null,
+                    'project_id' => null,
                     'property_type_id' => $propertyTypeId,
                     'property_name' => $plotName,
                     'property_code' => $plotCode,
@@ -1262,13 +1247,6 @@ class PropertyMasterController extends Controller
 
                 $createdCount++;
                 $createdPlots[] = $plot;
-            }
-
-            if ($projectId) {
-                $project = Project::find($projectId);
-                if ($project) {
-                    $project->propertyMasters()->syncWithoutDetaching([$propertyMaster->id]);
-                }
             }
         });
 

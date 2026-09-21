@@ -147,15 +147,8 @@ class ProjectController extends Controller
                 $project->syncPropertyMasters($propertyMasterIds);
             }
 
-            // Assign selected plots to this project
-            if ($request->filled('selected_plot_ids') && is_array($request->selected_plot_ids)) {
-                Property::whereIn('id', $request->selected_plot_ids)
-                    ->where('firm_id', $firmId)
-                    ->update(['project_id' => $project->id]);
-            }
-
             return redirect()->route('projects.show', $project->id)
-                ->with('success', 'Project created successfully with selected plots.');
+                ->with('success', 'Project created successfully.');
         });
     }
 
@@ -342,29 +335,8 @@ class ProjectController extends Controller
             // Sync multiple property masters
             $project->syncPropertyMasters($propertyMasterIds);
 
-            if ($request->has('selected_plot_ids')) {
-                $selectedIds = (array) $request->selected_plot_ids;
-
-                // Unassign any available plots that were removed from the project
-                Property::where('project_id', $project->id)
-                    ->whereNotIn('id', $selectedIds)
-                    ->where('status', 'available')
-                    ->update(['project_id' => null]);
-
-                // Assign newly selected plots
-                if (!empty($selectedIds)) {
-                    Property::whereIn('id', $selectedIds)
-                        ->update(['project_id' => $project->id]);
-                }
-            } else {
-                // If nothing was checked, unassign all available plots
-                Property::where('project_id', $project->id)
-                    ->where('status', 'available')
-                    ->update(['project_id' => null]);
-            }
-
             return redirect()->route('projects.show', $project->id)
-                ->with('success', 'Project and plot assignments updated successfully.');
+                ->with('success', 'Project details updated successfully.');
         });
     }
 

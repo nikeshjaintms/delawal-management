@@ -207,33 +207,6 @@
             </div>
         </div>
 
-        <!-- ── Interactive Multi-Property Plot Selection Section ── -->
-        <div class="plots-selector-box" id="plotsSelectorSection" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-                <div>
-                    <strong style="font-size: 15px; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-layer-group" style="color: #60A5FA;"></i>
-                        Plots Inventory for this Project
-                    </strong>
-                    <span style="font-size: 12.5px; color: #94A3B8; display: block; margin-top: 2px;">
-                        Currently assigned plots are pre-checked. Check or uncheck plots to adjust project inventory.
-                    </span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                    <button type="button" class="btn-toggle-all" onclick="toggleAllPlotsAcrossProperties()" style="padding: 6px 14px; font-size: 12.5px; background: rgba(59, 130, 246, 0.20); border-color: #3B82F6; color: #93C5FD;">
-                        <i class="fa-solid fa-check-double"></i> Select All Available Plots
-                    </button>
-                    <div class="selection-summary-bar" style="margin-bottom: 0;">
-                        <span><i class="fa-solid fa-circle-check" style="color: #34D399; margin-right: 4px;"></i> Selected: <span id="selectedCountBadge" style="color: #FBBF24;">0</span> plots</span>
-                    </div>
-                </div>
-            </div>
-
-            <div id="propertiesPlotsContainer">
-                <!-- Dynamically populated properties and plots -->
-            </div>
-        </div>
-
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="project_type">Project Type <span>*</span></label>
@@ -325,9 +298,6 @@
 </div>
 
 <script>
-const currentProjectId = {{ $project->id }};
-const initialAssignedPlotIds = @json($assignedPlotIds);
-
 document.addEventListener('DOMContentLoaded', function() {
     onPropertyMastersChange();
 });
@@ -340,143 +310,32 @@ function getSelectedPropertyIds() {
 
 function onPropertyMastersChange() {
     const propertyIds = getSelectedPropertyIds();
-    loadPropertiesAndPlots(propertyIds);
+    loadPropertyAddressSummary(propertyIds);
 }
 
-function loadPropertiesAndPlots(propertyIds) {
-    const section = document.getElementById('plotsSelectorSection');
-    const container = document.getElementById('propertiesPlotsContainer');
+function loadPropertyAddressSummary(propertyIds) {
     const addrBox = document.getElementById('propertyAddressBox');
     const addrDisplay = document.getElementById('propertyAddressDisplay');
 
     if (!propertyIds || propertyIds.length === 0) {
-        section.style.display = 'none';
         if (addrBox) addrBox.style.display = 'none';
-        container.innerHTML = '';
         return;
     }
 
-    container.innerHTML = '<div style="color: #94A3B8; padding: 16px; text-align: center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading plots from selected Property Masters...</div>';
-    section.style.display = 'block';
-
-    fetch('/projects/properties-and-plots?property_ids=' + propertyIds.join(',') + '&project_id=' + currentProjectId)
+    fetch('/projects/properties-and-plots?property_ids=' + propertyIds.join(','))
         .then(response => response.json())
         .then(data => {
-            if (!data.success || !data.properties || data.properties.length === 0) {
-                container.innerHTML = '<div style="color: #94A3B8; padding: 14px; font-size: 13.5px; text-align: center;">No plots found for selected Property Masters.</div>';
-                updateSelectedCount();
-                return;
-            }
-
-            if (addrBox && addrDisplay) {
-                const addrs = data.properties.map(p => `<strong>${p.property_name}:</strong> ${p.full_address || p.address || p.city || '—'}`).join('<br>');
-                addrDisplay.innerHTML = addrs;
-                addrBox.style.display = 'block';
-            }
-
-            let html = '';
-            data.properties.forEach(pm => {
-                const plots = pm.plots || [];
-                html += `
-                <div class="property-selection-card">
-                    <div class="property-selection-header">
-                        <div>
-                            <strong style="color: #FFFFFF; font-size: 14.5px;">${pm.property_name}</strong>
-                            <code style="background: rgba(59, 130, 246, 0.18); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.35); padding: 2px 6px; border-radius: 4px; font-size: 11.5px; margin-left: 6px;">${pm.property_code}</code>
-                            <span style="color: #94A3B8; font-size: 12px; margin-left: 8px;">(${plots.length} plots)</span>
-                        </div>
-                        <div>
-                            <button type="button" class="btn-toggle-all" onclick="togglePropertyPlotsSelection(${pm.id})">
-                                Select All in Property (${plots.length})
-                            </button>
-                        </div>
-                    </div>
-                    <div class="plots-grid" id="pm_plots_${pm.id}">
-                `;
-
-                if (plots.length === 0) {
-                    html += '<div style="grid-column: 1/-1; color: #94A3B8; font-size: 12.5px; padding: 6px;">No available plots found under this Property Master.</div>';
-                } else {
-                    plots.forEach(plot => {
-                        const isAssigned = (plot.project_id == currentProjectId) || initialAssignedPlotIds.includes(plot.id);
-                        const isCheckedStr = isAssigned ? 'checked' : '';
-                        const selectedClass = isAssigned ? 'selected' : '';
-                        const sizeStr = plot.size ? ` • ${plot.size} ${plot.size_unit || ''}` : '';
-                        const facingStr = plot.facing ? ` • ${plot.facing}` : '';
-
-                        html += `
-                        <label class="plot-check-label ${selectedClass}" id="label_plot_${plot.id}">
-                            <input type="checkbox" name="selected_plot_ids[]" value="${plot.id}" class="plot-check-input pm-chk-${pm.id} all-plots-chk" ${isCheckedStr} onchange="onPlotCheckChange(this, ${plot.id})">
-                            <div style="font-size: 12.5px; line-height: 1.3;">
-                                <strong style="color: #FFFFFF; display: block; font-size: 13px;">${plot.property_name}</strong>
-                                <code style="font-size: 11px; color: #60A5FA; display: block; margin: 1px 0;">${plot.property_code}</code>
-                                <span style="color: #94A3B8; font-size: 11px;">₹${parseFloat(plot.purchase_rate || plot.price || pm.purchase_rate || 0).toLocaleString('en-IN')}${sizeStr}${facingStr}</span>
-                            </div>
-                        </label>
-                        `;
-                    });
+            if (data.success && data.properties && data.properties.length > 0) {
+                if (addrBox && addrDisplay) {
+                    const addrs = data.properties.map(p => `<strong>${p.property_name}:</strong> ${p.full_address || p.address || p.city || '—'}`).join('<br>');
+                    addrDisplay.innerHTML = addrs;
+                    addrBox.style.display = 'block';
                 }
-
-                html += `</div></div>`;
-            });
-
-            container.innerHTML = html;
-            updateSelectedCount();
+            }
         })
         .catch(err => {
             console.error(err);
-            container.innerHTML = '<div style="color: #EF4444; padding: 10px;">Error loading plots.</div>';
         });
-}
-
-function onPlotCheckChange(chk, plotId) {
-    const label = document.getElementById('label_plot_' + plotId);
-    if (chk.checked) {
-        label.classList.add('selected');
-    } else {
-        label.classList.remove('selected');
-    }
-    updateSelectedCount();
-}
-
-function togglePropertyPlotsSelection(pmId) {
-    const checkboxes = document.querySelectorAll('.pm-chk-' + pmId);
-    const allChecked = Array.from(checkboxes).every(c => c.checked);
-
-    checkboxes.forEach(c => {
-        c.checked = !allChecked;
-        const label = document.getElementById('label_plot_' + c.value);
-        if (label) {
-            if (!allChecked) label.classList.add('selected');
-            else label.classList.remove('selected');
-        }
-    });
-
-    updateSelectedCount();
-}
-
-function toggleAllPlotsAcrossProperties() {
-    const checkboxes = document.querySelectorAll('.all-plots-chk');
-    const allChecked = Array.from(checkboxes).every(c => c.checked);
-
-    checkboxes.forEach(c => {
-        c.checked = !allChecked;
-        const label = document.getElementById('label_plot_' + c.value);
-        if (label) {
-            if (!allChecked) label.classList.add('selected');
-            else label.classList.remove('selected');
-        }
-    });
-
-    updateSelectedCount();
-}
-
-function updateSelectedCount() {
-    const checked = document.querySelectorAll('input[name="selected_plot_ids[]"]:checked');
-    const badge = document.getElementById('selectedCountBadge');
-    if (badge) {
-        badge.textContent = checked.length;
-    }
 }
 </script>
 @endsection
