@@ -956,7 +956,7 @@ class ProjectController extends Controller
                 $plot = Property::create([
                     'firm_id' => $firmId,
                     'project_id' => $project->id,
-                    'property_master_id' => $project->property_id ?: null,
+                    'property_master_id' => null,
                     'property_type_id' => $propertyTypeId,
                     'property_name' => $plotName,
                     'property_code' => $plotCode,
@@ -1038,7 +1038,7 @@ class ProjectController extends Controller
         $plot = Property::create([
             'firm_id' => $project->firm_id,
             'project_id' => $project->id,
-            'property_master_id' => $project->property_id ?: null,
+            'property_master_id' => null,
             'property_type_id' => $targetTypeId,
             'property_name' => $request->property_name,
             'property_code' => $plotCode,
@@ -1126,7 +1126,7 @@ class ProjectController extends Controller
                     Property::create([
                         'firm_id' => $project->firm_id,
                         'project_id' => $project->id,
-                        'property_master_id' => $project->property_id ?: null,
+                        'property_master_id' => null,
                         'property_type_id' => $targetTypeId,
                         'property_name' => trim($prefix . ' ' . $cleanUnit),
                         'property_code' => $plotCode,
@@ -1161,7 +1161,7 @@ class ProjectController extends Controller
                     Property::create([
                         'firm_id' => $project->firm_id,
                         'project_id' => $project->id,
-                        'property_master_id' => $project->property_id ?: null,
+                        'property_master_id' => null,
                         'property_type_id' => $targetTypeId,
                         'property_name' => trim($prefix . ' ' . $num),
                         'property_code' => $plotCode,
