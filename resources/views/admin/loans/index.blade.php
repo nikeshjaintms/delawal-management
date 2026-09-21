@@ -130,6 +130,77 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
 }
 .action-link.emi:hover { background: rgba(99, 102, 241, 0.30) !important; color: #FFFFFF !important; }
 
+.action-link.pay {
+    padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    text-decoration: none !important; display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid rgba(16, 185, 129, 0.40) !important; color: #34D399 !important;
+    background: rgba(16, 185, 129, 0.15) !important; transition: all .2s ease; cursor: pointer;
+}
+.action-link.pay:hover { background: rgba(16, 185, 129, 0.30) !important; color: #FFFFFF !important; transform: translateY(-1px); }
+
+.action-link.paid {
+    padding: 5px 10px; border-radius: 8px; font-size: 11.5px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 4px;
+    border: 1px solid rgba(16, 185, 129, 0.30) !important; color: #34D399 !important;
+    background: rgba(16, 185, 129, 0.12) !important;
+}
+
+/* ── Quick Pay Modal ── */
+.modal {
+    display: none; position: fixed; inset: 0; width: 100vw; height: 100vh;
+    background: rgba(8, 12, 22, 0.75); backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); z-index: 9999;
+    justify-content: center; align-items: center; padding: 20px;
+}
+.modal.active { display: flex; }
+.modal-box {
+    background: rgba(20, 27, 41, 0.95) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 20px !important; padding: 28px !important;
+    max-width: 480px; width: 100%;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6) !important;
+    color: #FFFFFF !important; animation: modalScaleIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes modalScaleIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+.modal-header h3 { font-size: 18px; font-weight: 800; color: #FFFFFF !important; margin: 0; display: flex; align-items: center; gap: 8px; }
+.modal-close { background: none; border: none; font-size: 24px; color: #94A3B8; cursor: pointer; line-height: 1; }
+.modal-close:hover { color: #FFFFFF; }
+.form-group-modal { margin-bottom: 16px; }
+.form-label-modal { display: block; font-size: 13px; font-weight: 700; color: #CBD5E1; margin-bottom: 6px; }
+.form-label-modal span { color: #F87171; }
+.form-control-modal {
+    width: 100%; padding: 10px 14px; background: rgba(16, 22, 34, 0.85);
+    border: 1.5px solid rgba(255, 255, 255, 0.15); border-radius: 10px;
+    font-size: 14px; color: #FFFFFF; outline: none; box-sizing: border-box;
+}
+.form-control-modal:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); }
+select.form-control-modal option { background: #101622; color: #FFFFFF; }
+
+.btn-green-modal {
+    background: #10B981 !important; color: #FFFFFF !important; padding: 11px 20px;
+    border-radius: 10px; font-size: 14px; font-weight: 700; border: 1px solid #34D399 !important;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all .25s ease; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35); flex: 1;
+}
+.btn-green-modal:hover { background: #059669 !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.50); }
+
+.btn-outline-modal {
+    display: inline-flex; align-items: center; justify-content: center; padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.08) !important; color: #FFFFFF !important; font-size: 13.5px;
+    font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px;
+    cursor: pointer; transition: all .25s ease;
+}
+.btn-outline-modal:hover { background: rgba(255, 255, 255, 0.15) !important; }
+
 .alert-success { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; color: #34D399 !important; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .pagination-wrapper { margin-top: 24px; display: flex; justify-content: center; }
 </style>
@@ -295,14 +366,14 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     </td>
                     <td style="text-align:right;font-weight:700;color:#FBBF24 !important;">₹{{ number_format($loan->loan_amount,2) }}</td>
                     <td style="text-align:right;color:#F87171 !important;font-weight:700;">
-                        @if($loan->loan_type === 'Business Loan' && $loan->emi_amount)
+                        @if($loan->has_emi && $loan->emi_amount)
                             ₹{{ number_format($loan->emi_amount,2) }}
                         @else
-                            <span style="color:#94A3B8;">—</span>
+                            <span style="color:#94A3B8;font-size:11.5px;font-weight:600;background:rgba(255,255,255,0.06);padding:3px 8px;border-radius:6px;">No EMI</span>
                         @endif
                     </td>
                     <td style="font-size:12.5px;color:#CBD5E1;">
-                        @if($loan->loan_type === 'Business Loan' && $loan->total_emi_months)
+                        @if($loan->has_emi && $loan->total_emi_months)
                             {{ $loan->total_emi_months }} mo
                         @else
                             <span style="color:#94A3B8;">—</span>
@@ -321,13 +392,21 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     <td>
                         <div class="action-buttons-wrap">
                             <a href="{{ route('loans.show', $loan->id) }}" class="btn-view"><i class="fa fa-eye"></i> View</a>
-                            @if($loan->loan_type === 'Business Loan')
+                            @if($loan->has_emi && $loan->emiSchedules->count() > 0)
                                 <a href="{{ route('loans.emi-schedule', $loan->id) }}" class="action-link emi"><i class="fa-solid fa-calendar-days"></i> EMI</a>
+                            @else
+                                @if($loan->pending_amount > 0)
+                                    <button type="button" class="action-link pay" onclick="openIndexPayModal({{ $loan->id }}, '{{ addslashes($loan->loan_type === 'Personal Loan' ? $loan->person_name : ($loan->bank_name ?? 'Loan')) }}', {{ (float)$loan->loan_amount }}, {{ (float)$loan->paid_amount }}, {{ (float)$loan->pending_amount }})">
+                                        <i class="fa-solid fa-money-bill-wave"></i> Pay
+                                    </button>
+                                @else
+                                    <span class="action-link paid"><i class="fa-solid fa-circle-check"></i> Paid</span>
+                                @endif
                             @endif
                             <a href="{{ route('loans.edit', $loan->id) }}" class="btn-edit"><i class="fa fa-edit"></i> Edit</a>
                             <form action="{{ route('loans.destroy', $loan->id) }}" method="POST" style="display:inline;" id="del-loan-{{ $loan->id }}">
                                 @csrf @method('DELETE')
-                                <button type="button" class="btn-delete" onclick="confirmDelete({{ $loan->id }},'{{ addslashes($loan->loan_type === 'Personal Loan' ? $loan->person_name : $loan->bank_name) }}')">
+                                <button type="button" class="btn-delete" onclick="confirmDelete({{ $loan->id }},'{{ addslashes($loan->loan_type === 'Personal Loan' ? $loan->person_name : ($loan->bank_name ?? 'Loan')) }}')">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </form>
@@ -350,12 +429,100 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
     @endif
 </div>
 
+{{-- Quick Pay Modal --}}
+<div class="modal" id="indexPayModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-money-bill-wave" style="color:#34D399;"></i> Record Loan Payment</h3>
+            <button type="button" class="modal-close" onclick="closeIndexPayModal()">&times;</button>
+        </div>
+        <form method="POST" id="indexPayForm" action="">
+            @csrf
+            <div style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
+                <div style="font-size:14px;font-weight:700;color:#FFFFFF;margin-bottom:8px;" id="modalLoanName">Loan Name</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#CBD5E1;margin-bottom:4px;">
+                    <span>Total Loan Amount:</span>
+                    <strong style="color:#FFFFFF;" id="modalTotalAmt">₹0.00</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#CBD5E1;margin-bottom:4px;">
+                    <span>Already Paid:</span>
+                    <strong style="color:#34D399;" id="modalPaidAmt">₹0.00</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:#CBD5E1;">
+                    <span>Pending Balance:</span>
+                    <strong style="color:#F87171;" id="modalPendingAmt">₹0.00</strong>
+                </div>
+            </div>
+
+            <div class="form-group-modal">
+                <label class="form-label-modal">Payment Amount (₹) <span>*</span></label>
+                <input type="number" step="0.01" name="paid_amount" id="modalInputPaidAmount" class="form-control-modal" placeholder="0.00" required>
+            </div>
+
+            <div class="form-group-modal">
+                <label class="form-label-modal">Payment Date <span>*</span></label>
+                <input type="date" name="payment_date" value="{{ date('Y-m-d') }}" class="form-control-modal" required>
+            </div>
+
+            <div class="form-group-modal">
+                <label class="form-label-modal">Payment Mode</label>
+                <select name="payment_mode_id" class="form-control-modal">
+                    <option value="">— Select Payment Mode —</option>
+                    @if(isset($paymentModes))
+                        @foreach($paymentModes as $pm)
+                            <option value="{{ $pm->id }}">{{ $pm->name }}</option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+
+            <div class="form-group-modal">
+                <label class="form-label-modal">Reference / UTR / Cheque No.</label>
+                <input type="text" name="reference_no" class="form-control-modal" placeholder="Optional reference number">
+            </div>
+
+            <div class="form-group-modal">
+                <label class="form-label-modal">Remarks</label>
+                <textarea name="remarks" class="form-control-modal" rows="2" placeholder="Optional notes..."></textarea>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
+                <button type="submit" class="btn-green-modal"><i class="fa-solid fa-check"></i> Submit Payment</button>
+                <button type="button" class="btn-outline-modal" onclick="closeIndexPayModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function confirmDelete(id,name){
     Swal.fire({title:'Delete Loan?',html:'Delete loan from <strong>'+name+'</strong>?<br><small style="color:#64748B;">All EMI schedules and history will also be deleted.</small>',icon:'warning',showCancelButton:true,confirmButtonColor:'#EF4444',cancelButtonColor:'#64748B',confirmButtonText:'Yes, Delete',cancelButtonText:'Cancel',customClass:{popup:'swal-loan-popup'}})
     .then(r=>{if(r.isConfirmed)document.getElementById('del-loan-'+id).submit();});
 }
+
+function openIndexPayModal(loanId, loanName, totalAmt, paidAmt, pendingAmt) {
+    document.getElementById('indexPayForm').action = "{{ url('loans') }}/" + loanId + "/record-payment";
+    document.getElementById('modalLoanName').innerText = loanName;
+    document.getElementById('modalTotalAmt').innerText = '₹' + parseFloat(totalAmt).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('modalPaidAmt').innerText = '₹' + parseFloat(paidAmt).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('modalPendingAmt').innerText = '₹' + parseFloat(pendingAmt).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    
+    const amountInput = document.getElementById('modalInputPaidAmount');
+    amountInput.value = '';
+    amountInput.max = pendingAmt;
+    amountInput.placeholder = 'Max: ₹' + parseFloat(pendingAmt).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    
+    document.getElementById('indexPayModal').classList.add('active');
+}
+
+function closeIndexPayModal() {
+    document.getElementById('indexPayModal').classList.remove('active');
+}
+
+document.getElementById('indexPayModal').addEventListener('click', function(e) {
+    if (e.target === this) closeIndexPayModal();
+});
 </script>
 <style>.swal-loan-popup{font-family:'Outfit',sans-serif!important;border-radius:14px!important;}</style>
 @endsection

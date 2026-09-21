@@ -9,11 +9,15 @@ class Loan extends Model
     use \App\Traits\HasFirms;
 
     protected $fillable = [
-        'firm_id', 'bank_name', 'loan_type', 'property_id', 'customer_id',
+        'firm_id', 'bank_name', 'loan_type', 'has_emi', 'property_id', 'customer_id',
         'loan_amount', 'interest_rate', 'emi_amount',
         'loan_start_date', 'loan_end_date', 'total_emi_months',
         'paid_amount', 'pending_amount', 'loan_status', 'remarks',
         'person_name', 'mobile_number', 'relationship', 'payment_mode_id',
+    ];
+
+    protected $casts = [
+        'has_emi' => 'boolean',
     ];
 
     public function firm()
@@ -39,5 +43,10 @@ class Loan extends Model
     public function emiSchedules()
     {
         return $this->hasMany(LoanEmiSchedule::class)->orderBy('emi_date');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(LoanPayment::class)->orderBy('payment_date', 'desc');
     }
 }

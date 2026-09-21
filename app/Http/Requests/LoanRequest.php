@@ -48,17 +48,19 @@ class LoanRequest extends FormRequest
             'firm_ids.*'       => 'exists:firms,id',
             'firm_id'          => 'nullable|exists:firms,id',
             'loan_type'        => 'required|in:Business Loan,Personal Loan',
+            'has_emi'          => 'nullable|boolean',
             
             // Business Loan Validation
             'bank_name'        => 'required_if:loan_type,Business Loan|nullable|string|max:255',
             'property_id'      => 'nullable|exists:properties,id',
             'customer_id'      => 'nullable|exists:customers,id',
             'loan_amount'      => 'required|numeric|min:0.01',
-            'interest_rate'    => 'required_if:loan_type,Business Loan|nullable|numeric|min:0|max:100',
-            'total_emi_months' => 'required_if:loan_type,Business Loan|nullable|integer|min:1',
-            'emi_amount'       => 'required_if:loan_type,Business Loan|nullable|numeric|min:0',
+            'paid_amount'      => 'nullable|numeric|min:0',
+            'interest_rate'    => 'nullable|numeric|min:0|max:100',
+            'total_emi_months' => 'required_if:has_emi,1,true|nullable|integer|min:1',
+            'emi_amount'       => 'required_if:has_emi,1,true|nullable|numeric|min:0',
             'loan_start_date'  => 'required|date',
-            'loan_end_date'    => 'required_if:loan_type,Business Loan|nullable|date|after_or_equal:loan_start_date',
+            'loan_end_date'    => 'nullable|date|after_or_equal:loan_start_date',
             'loan_status'      => 'required|in:Active,Completed,Closed,Cancelled',
             'remarks'          => 'nullable|string|max:1000',
             

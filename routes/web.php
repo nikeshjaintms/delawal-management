@@ -41,6 +41,13 @@ use App\Http\Controllers\StockReportController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\Agriculture\AgriDashboardController;
+use App\Http\Controllers\Agriculture\AgriFarmController;
+use App\Http\Controllers\Agriculture\AgriLabourController;
+use App\Http\Controllers\Agriculture\AgriLabourPaymentController;
+use App\Http\Controllers\Agriculture\AgriExpenseController;
+use App\Http\Controllers\Agriculture\AgriIncomeController;
+use App\Http\Controllers\Agriculture\AgriReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -187,11 +194,43 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('emi-schedules', [LoanController::class, 'emiScheduleIndex'])->name('emi-schedules.index')->middleware(['permission:loan_view']);
     Route::get('loans/{loan}/emi-schedule', [LoanController::class, 'emiSchedule'])->name('loans.emi-schedule')->middleware(['permission:loan_view']);
     Route::post('loans/{loan}/emi-schedule/{emi}/pay', [LoanController::class, 'emiPay'])->name('loans.emi-pay')->middleware(['permission:loan_view']);
+    Route::post('loans/{loan}/record-payment', [LoanController::class, 'recordPayment'])->name('loans.record-payment')->middleware(['permission:loan_view']);
+    Route::delete('loans/{loan}/payments/{payment}', [LoanController::class, 'destroyPayment'])->name('loans.payments.destroy')->middleware(['permission:loan_view']);
 
     // ── Loan Report ──────────────────────────────────────────────────
     Route::get('loan-report', [LoanReportController::class, 'index'])->name('loan-report.index')->middleware(['permission:loan_report_view']);
     Route::get('loan-report/export-pdf', [LoanReportController::class, 'exportPdf'])->name('loan-report.pdf')->middleware(['permission:loan_report_export']);
     Route::get('loan-report/export-excel', [LoanReportController::class, 'exportExcel'])->name('loan-report.excel')->middleware(['permission:loan_report_export']);
+
+    // ── Agriculture Module ────────────────────────────────────────────
+    Route::prefix('agriculture')->name('agriculture.')->middleware(['permission:agriculture_view'])->group(function () {
+        Route::get('/', [AgriDashboardController::class, 'index'])->name('dashboard');
+        Route::get('dashboard', [AgriDashboardController::class, 'index'])->name('dashboard.index');
+
+        // AJAX helper endpoints
+        Route::get('ajax/property-details/{property}', [AgriFarmController::class, 'ajaxPropertyDetails'])->name('ajax.property-details');
+        Route::get('ajax/project-details/{project}', [AgriFarmController::class, 'ajaxProjectDetails'])->name('ajax.project-details');
+        Route::get('ajax/labour-details/{labour}', [AgriLabourController::class, 'ajaxLabourDetails'])->name('ajax.labour-details');
+
+        // Farms / Land Details
+        Route::resource('farms', AgriFarmController::class);
+
+        // Labour Management
+        Route::resource('labours', AgriLabourController::class);
+
+        // Labour Payments & Wage Logs
+        Route::resource('labour-payments', AgriLabourPaymentController::class)->except(['edit', 'update']);
+
+        // Agriculture Expenses
+        Route::resource('expenses', AgriExpenseController::class);
+
+        // Agriculture Incomes
+        Route::resource('incomes', AgriIncomeController::class);
+
+        // Agriculture Reports
+        Route::get('reports', [AgriReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/print', [AgriReportController::class, 'printReport'])->name('reports.print');
+    });
 
     // ── GST / Accounts ───────────────────────────────────────────────
     Route::resource('ledgers', LedgerController::class)->middleware(['permission:ledger_view']);

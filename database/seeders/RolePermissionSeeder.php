@@ -71,6 +71,7 @@ class RolePermissionSeeder extends Seeder
             'Ledger'              => 'ledger',
             'Credit Note'         => 'credit_note',
             'Debit Note'          => 'debit_note',
+            'Agriculture'         => 'agriculture',
         ];
 
         $actions = ['view', 'add', 'edit', 'delete', 'print', 'export'];

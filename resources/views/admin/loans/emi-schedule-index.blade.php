@@ -92,7 +92,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
 <div class="crud-header">
     <div class="crud-title">
         <h2>EMI Schedules</h2>
-        <p>View month-wise EMI status and record payments for Business Loans.</p>
+        <p>View month-wise EMI status and record payments for Loans with EMI schedules.</p>
     </div>
 </div>
 
@@ -190,7 +190,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                 <tr>
                     <td colspan="13" style="padding:40px;text-align:center;color:#CBD5E1;">
                         <i class="fa-solid fa-calendar-days" style="font-size:28px;opacity:0.3;display:block;margin-bottom:8px;"></i>
-                        No Business Loans found for EMI Schedules.
+                        No Loans with active EMI schedules found.
                     </td>
                 </tr>
                 @endforelse

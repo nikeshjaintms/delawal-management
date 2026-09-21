@@ -102,29 +102,45 @@ class LoanController extends Controller
         $loan->refresh();
         $schedules = $loan->emiSchedules;
 
-        $totalPaid = $schedules->sum('paid_amount');
-        $pending   = $loan->loan_amount - $totalPaid;
+        if ($loan->has_emi && $schedules->count() > 0) {
+            $totalPaid = $schedules->sum('paid_amount');
+            $pending   = $loan->loan_amount - $totalPaid;
 
-        if ($pending <= 0) {
-            foreach ($schedules as $e) {
-                if (in_array($e->emi_status, ['Pending', 'Partial', 'Overdue'])) {
-                    $e->update([
-                        'emi_status'     => 'Paid',
-                        'pending_amount' => 0.00,
-                    ]);
+            if ($pending <= 0) {
+                foreach ($schedules as $e) {
+                    if (in_array($e->emi_status, ['Pending', 'Partial', 'Overdue'])) {
+                        $e->update([
+                            'emi_status'     => 'Paid',
+                            'pending_amount' => 0.00,
+                        ]);
+                    }
                 }
+                $status = 'Completed';
+            } else {
+                $allPaid = $schedules->every(fn($e) => $e->emi_status === 'Paid');
+                $status  = $allPaid ? 'Completed' : $loan->loan_status;
             }
-            $status = 'Completed';
-        } else {
-            $allPaid = $schedules->every(fn($e) => $e->emi_status === 'Paid');
-            $status  = $allPaid ? 'Completed' : $loan->loan_status;
-        }
 
-        $loan->update([
-            'paid_amount'    => $totalPaid,
-            'pending_amount' => max(0, $pending),
-            'loan_status'    => $status,
-        ]);
+            $loan->update([
+                'paid_amount'    => $totalPaid,
+                'pending_amount' => max(0, $pending),
+                'loan_status'    => $status,
+            ]);
+        } else {
+            $paymentsCount = $loan->payments()->count();
+            if ($paymentsCount > 0) {
+                $totalPaid = (float)$loan->payments()->sum('amount');
+            } else {
+                $totalPaid = (float)$loan->paid_amount;
+            }
+            $pending = round(max(0, (float)$loan->loan_amount - $totalPaid), 2);
+            $status = ($pending <= 0) ? 'Completed' : ($loan->loan_status === 'Completed' ? 'Active' : $loan->loan_status);
+            $loan->update([
+                'paid_amount'    => $totalPaid,
+                'pending_amount' => $pending,
+                'loan_status'    => $status,
+            ]);
+        }
     }
 
     public function index(Request $request)
@@ -197,31 +213,52 @@ class LoanController extends Controller
         $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $firmId));
         $primaryFirmId = reset($firmIds) ?: $firmId;
 
+        $hasEmi = $request->boolean('has_emi');
+        $paidAmount = $request->filled('paid_amount') ? (float)$request->paid_amount : 0;
+        $loanAmount = (float)$request->loan_amount;
+        $pendingAmount = max(0, $loanAmount - $paidAmount);
+        $status = ($pendingAmount <= 0) ? 'Completed' : $request->loan_status;
+
         $loan = Loan::create([
             'firm_id'         => $primaryFirmId,
             'bank_name'       => $request->loan_type === 'Business Loan' ? $request->bank_name : null,
             'loan_type'       => $request->loan_type,
+            'has_emi'         => $hasEmi,
             'property_id'     => $request->property_id ?: null,
             'customer_id'     => $request->customer_id ?: null,
-            'loan_amount'     => $request->loan_amount,
-            'interest_rate'   => $request->interest_rate,
-            'emi_amount'      => $request->emi_amount,
+            'loan_amount'     => $loanAmount,
+            'interest_rate'   => $hasEmi ? $request->interest_rate : null,
+            'emi_amount'      => $hasEmi ? $request->emi_amount : null,
             'loan_start_date' => $request->loan_start_date,
-            'loan_end_date'   => $request->loan_end_date,
-            'total_emi_months'=> $request->total_emi_months,
-            'paid_amount'     => 0,
-            'pending_amount'  => $request->loan_amount,
-            'loan_status'     => $request->loan_status,
+            'loan_end_date'   => $hasEmi ? $request->loan_end_date : null,
+            'total_emi_months'=> $hasEmi ? $request->total_emi_months : null,
+            'paid_amount'     => $paidAmount,
+            'pending_amount'  => $pendingAmount,
+            'loan_status'     => $status,
             'remarks'         => $request->remarks,
             'person_name'     => $request->loan_type === 'Personal Loan' ? $request->person_name : null,
             'mobile_number'   => $request->loan_type === 'Personal Loan' ? $request->mobile_number : null,
             'relationship'    => $request->loan_type === 'Personal Loan' ? $request->relationship : null,
-            'payment_mode_id' => $request->loan_type === 'Personal Loan' ? $request->payment_mode_id : null,
+            'payment_mode_id' => $request->payment_mode_id ?: null,
         ]);
 
         $loan->syncFirms($firmIds);
         
-        if ($loan->total_emi_months > 0 && $loan->emi_amount > 0) {
+        if (!$hasEmi && $paidAmount > 0) {
+            \App\Models\LoanPayment::create([
+                'loan_id'         => $loan->id,
+                'firm_id'         => $primaryFirmId,
+                'payment_mode_id' => $request->payment_mode_id ?: null,
+                'amount'          => $paidAmount,
+                'payment_date'    => $request->loan_start_date ?: now()->toDateString(),
+                'payment_mode'    => $loan->paymentMode?->name ?? 'Direct Payment',
+                'reference_no'    => null,
+                'remarks'         => 'Initial payment recorded during loan creation',
+                'created_by'      => Auth::id(),
+            ]);
+        }
+
+        if ($hasEmi && $loan->total_emi_months > 0 && $loan->emi_amount > 0) {
             $this->generateEmiSchedule($loan, $firmIds);
             return redirect()->route('loans.show', $loan->id)
                 ->with('success', $loan->loan_type . ' added and EMI schedule generated successfully.');
@@ -233,18 +270,84 @@ class LoanController extends Controller
 
     public function show(Loan $loan)
     {
-        $loan->load(['firms', 'firm', 'property', 'customer', 'paymentMode', 'emiSchedules.firms', 'emiSchedules.firm']);
+        $loan->load(['firms', 'firm', 'property', 'customer', 'paymentMode', 'emiSchedules.firms', 'emiSchedules.firm', 'payments.paymentMode', 'payments.creator']);
         $this->authorise($loan);
 
-        $today = now()->toDateString();
-        foreach ($loan->emiSchedules as $emi) {
-            if ($emi->emi_status === 'Pending' && $emi->emi_date < $today) {
-                $emi->update(['emi_status' => 'Overdue']);
+        if ($loan->has_emi && $loan->emiSchedules->count() > 0) {
+            $today = now()->toDateString();
+            foreach ($loan->emiSchedules as $emi) {
+                if ($emi->emi_status === 'Pending' && $emi->emi_date < $today) {
+                    $emi->update(['emi_status' => 'Overdue']);
+                }
             }
+            $loan->refresh()->load(['firms', 'firm', 'emiSchedules.firms', 'emiSchedules.firm', 'payments.paymentMode', 'payments.creator']);
         }
-        $loan->refresh()->load(['firms', 'firm', 'emiSchedules.firms', 'emiSchedules.firm']);
 
-        return view('admin.loans.show', compact('loan'));
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $loan->firm_id ?? ($user ? $user->firm_id : session('firm_id'));
+        $pmQuery = \App\Models\PaymentMode::where('status', 'active')->orderBy('name');
+        if ($firmId && (!$user || !$isAdmin)) {
+            $pmQuery->whereHas('firms', function($q) use ($firmId) {
+                $q->where('firms.id', $firmId);
+            });
+        }
+        $paymentModes = $pmQuery->get();
+
+        return view('admin.loans.show', compact('loan', 'paymentModes'));
+    }
+
+    public function recordPayment(Request $request, Loan $loan)
+    {
+        $this->authorise($loan);
+
+        $request->validate([
+            'paid_amount'     => 'required|numeric|min:0.01',
+            'payment_date'    => 'required|date',
+            'payment_mode'    => 'nullable|string|max:100',
+            'payment_mode_id' => 'nullable|exists:payment_modes,id',
+            'reference_no'    => 'nullable|string|max:100',
+            'remarks'         => 'nullable|string|max:500',
+        ]);
+
+        $amount = (float) $request->paid_amount;
+        $paymentModeName = $request->payment_mode;
+        if (!$paymentModeName && $request->filled('payment_mode_id')) {
+            $paymentModeName = \App\Models\PaymentMode::find($request->payment_mode_id)?->name;
+        }
+
+        \App\Models\LoanPayment::create([
+            'loan_id'         => $loan->id,
+            'firm_id'         => $loan->firm_id,
+            'payment_mode_id' => $request->payment_mode_id ?: null,
+            'amount'          => $amount,
+            'payment_date'    => $request->payment_date,
+            'payment_mode'    => $paymentModeName,
+            'reference_no'    => $request->reference_no,
+            'remarks'         => $request->remarks,
+            'created_by'      => Auth::id(),
+        ]);
+
+        $this->recalculateLoan($loan);
+        $loan->refresh();
+
+        return redirect()->back()
+            ->with('success', 'Payment of ₹' . number_format($amount, 2) . ' recorded successfully. Pending balance: ₹' . number_format($loan->pending_amount, 2));
+    }
+
+    public function destroyPayment(Loan $loan, \App\Models\LoanPayment $payment)
+    {
+        $this->authorise($loan);
+
+        if ($payment->loan_id != $loan->id) {
+            abort(404);
+        }
+
+        $payment->delete();
+        $this->recalculateLoan($loan);
+
+        return redirect()->back()
+            ->with('success', 'Payment record deleted successfully.');
     }
 
     public function edit(Loan $loan)
@@ -267,35 +370,47 @@ class LoanController extends Controller
         $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $loan->firm_id ?? $firmId));
         $primaryFirmId = reset($firmIds) ?: $loan->firm_id;
 
+        $hasEmi = $request->boolean('has_emi');
+        $loanAmount = (float)$request->loan_amount;
+
+        $paidAmount = $request->filled('paid_amount') ? (float)$request->paid_amount : $loan->paid_amount;
+        $pendingAmount = max(0, $loanAmount - $paidAmount);
+        $status = ($pendingAmount <= 0) ? 'Completed' : $request->loan_status;
+
         $loan->update([
             'firm_id'         => $primaryFirmId,
             'bank_name'       => $request->loan_type === 'Business Loan' ? $request->bank_name : null,
             'loan_type'       => $request->loan_type,
+            'has_emi'         => $hasEmi,
             'property_id'     => $request->property_id ?: null,
             'customer_id'     => $request->customer_id ?: null,
-            'loan_amount'     => $request->loan_amount,
-            'interest_rate'   => $request->interest_rate,
-            'emi_amount'      => $request->emi_amount,
+            'loan_amount'     => $loanAmount,
+            'interest_rate'   => $hasEmi ? $request->interest_rate : null,
+            'emi_amount'      => $hasEmi ? $request->emi_amount : null,
             'loan_start_date' => $request->loan_start_date,
-            'loan_end_date'   => $request->loan_end_date,
-            'total_emi_months'=> $request->total_emi_months,
-            'loan_status'     => $request->loan_status,
+            'loan_end_date'   => $hasEmi ? $request->loan_end_date : null,
+            'total_emi_months'=> $hasEmi ? $request->total_emi_months : null,
+            'loan_status'     => $status,
             'remarks'         => $request->remarks,
             'person_name'     => $request->loan_type === 'Personal Loan' ? $request->person_name : null,
             'mobile_number'   => $request->loan_type === 'Personal Loan' ? $request->mobile_number : null,
             'relationship'    => $request->loan_type === 'Personal Loan' ? $request->relationship : null,
-            'payment_mode_id' => $request->loan_type === 'Personal Loan' ? $request->payment_mode_id : null,
+            'payment_mode_id' => $request->payment_mode_id ?: null,
         ]);
 
         $loan->syncFirms($firmIds);
 
-        if ($request->boolean('regenerate_emi') || ($loan->emiSchedules()->count() == 0 && $loan->total_emi_months > 0 && $loan->emi_amount > 0)) {
-            $this->generateEmiSchedule($loan, $firmIds);
-            $loan->update(['paid_amount' => 0, 'pending_amount' => $request->loan_amount]);
-        }
-
-        if ($loan->total_emi_months <= 0 || $loan->emi_amount <= 0) {
+        if (!$hasEmi) {
             $loan->emiSchedules()->delete();
+            $loan->update([
+                'paid_amount'    => $paidAmount,
+                'pending_amount' => $pendingAmount,
+            ]);
+        } else {
+            if ($request->boolean('regenerate_emi') || ($loan->emiSchedules()->count() == 0 && $loan->total_emi_months > 0 && $loan->emi_amount > 0)) {
+                $this->generateEmiSchedule($loan, $firmIds);
+                $loan->update(['paid_amount' => 0, 'pending_amount' => $loanAmount]);
+            }
         }
 
         return redirect()->route('loans.show', $loan->id)
@@ -314,7 +429,11 @@ class LoanController extends Controller
 
     public function emiScheduleIndex(Request $request)
     {
-        $query = Loan::with(['firm', 'property', 'customer', 'emiSchedules']);
+        $query = Loan::with(['firm', 'property', 'customer', 'emiSchedules'])
+            ->where(function($q) {
+                $q->where('has_emi', true)
+                  ->orWhereHas('emiSchedules');
+            });
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();

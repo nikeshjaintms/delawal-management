@@ -133,6 +133,11 @@ class Contractor extends Model
         return '—';
     }
 
+    public function getNameAttribute(): string
+    {
+        return $this->contractor_name ?? '';
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

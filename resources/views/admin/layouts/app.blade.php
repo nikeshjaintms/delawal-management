@@ -2552,11 +2552,53 @@
             </ul>
         </li>
 
-        {{-- 7. Reports --}}
+        {{-- 7. Agriculture Management --}}
+        @if($authUser->hasPermission('agriculture_view'))
+        <li class="menu-item">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ str_starts_with($currentRoute ?? '', 'agriculture.') ? 'parent-active' : '' }}" data-label="7. Agriculture">
+                <i class="fa-solid fa-wheat-awn" style="color: #34D399;"></i><span>7. Agriculture</span>
+                <i class="fa-solid fa-chevron-right submenu-arrow"></i>
+            </a>
+            <ul class="submenu-list">
+                <li class="submenu-item">
+                    <a href="{{ route('agriculture.dashboard') }}" class="submenu-link {{ ($currentRoute == 'agriculture.dashboard' || $currentRoute == 'agriculture.dashboard.index') ? 'active' : '' }}">
+                        <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{{ route('agriculture.farms.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'agriculture.farms.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-tractor"></i><span>Farms / Land</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{{ route('agriculture.labours.index') }}" class="submenu-link {{ (str_starts_with($currentRoute ?? '', 'agriculture.labours.') || str_starts_with($currentRoute ?? '', 'agriculture.labour-payments.')) ? 'active' : '' }}">
+                        <i class="fa-solid fa-people-carry-box"></i><span>Labour Management</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{{ route('agriculture.expenses.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'agriculture.expenses.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-receipt"></i><span>Expenses</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{{ route('agriculture.incomes.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'agriculture.incomes.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-arrow-trend-up"></i><span>Income</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{{ route('agriculture.reports.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'agriculture.reports.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-file-invoice-dollar"></i><span>Reports</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        @endif
+
+        {{-- 8. Reports --}}
         @if($authUser->hasPermission('reports_view'))
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="7. Reports">
-                <i class="fa-solid fa-chart-column"></i><span>7. Reports</span>
+            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="8. Reports">
+                <i class="fa-solid fa-chart-column"></i><span>8. Reports</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">
