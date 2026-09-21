@@ -190,12 +190,14 @@ class PropertyController extends Controller
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         $firmId = $isAdmin ? $request->firm_id : (auth()->user() ? auth()->user()->firm_id : session('firm_id'));
 
-        $propertyMasterId = $request->property_master_id;
-        if (empty($propertyMasterId) && $request->filled('project_id')) {
-            $proj = \App\Models\Project::find($request->project_id);
-            if ($proj && $proj->property_id) {
-                $propertyMasterId = $proj->property_id;
-            }
+        $projectId = $request->filled('project_id') ? $request->project_id : null;
+        $propertyMasterId = $request->filled('property_master_id') ? $request->property_master_id : null;
+
+        // Mutual exclusivity: A plot belongs exclusively to a Project OR a Property Master
+        if ($projectId) {
+            $propertyMasterId = null;
+        } elseif ($propertyMasterId) {
+            $projectId = null;
         }
 
         $mainImagePath = null;
@@ -284,14 +286,21 @@ class PropertyController extends Controller
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         $firmId = $isAdmin ? $request->firm_id : $property->firm_id;
 
-        $propertyMasterId = $request->property_master_id;
-        if (empty($propertyMasterId) && $request->filled('project_id')) {
-            $proj = \App\Models\Project::find($request->project_id);
-            if ($proj && $proj->property_id) {
-                $propertyMasterId = $proj->property_id;
+        $projectId = $request->filled('project_id') ? $request->project_id : null;
+        $propertyMasterId = $request->filled('property_master_id') ? $request->property_master_id : null;
+
+        if ($projectId) {
+            $propertyMasterId = null;
+        } elseif ($propertyMasterId) {
+            $projectId = null;
+        } elseif (!$projectId && !$propertyMasterId) {
+            if ($property->project_id) {
+                $projectId = $property->project_id;
+                $propertyMasterId = null;
+            } elseif ($property->property_master_id) {
+                $propertyMasterId = $property->property_master_id;
+                $projectId = null;
             }
-        } elseif (empty($propertyMasterId) && empty($request->project_id)) {
-            $propertyMasterId = $property->property_master_id;
         }
 
         $mainImagePath = $property->main_image;
@@ -962,7 +971,7 @@ class PropertyController extends Controller
             if ($contextProject && (empty($projectInput) || strtolower(trim($contextProject->project_name)) === $projKey || strtolower(trim($contextProject->project_code)) === $projKey)) {
                 $projectId = $contextProject->id;
                 $projectName = $contextProject->project_name;
-                $propertyMasterId = $contextProject->property_id;
+                $propertyMasterId = null;
                 $targetFirmId = $contextProject->firm_id;
                 $targetFirmName = $contextProject->firm?->firm_name ?? $targetFirmName;
             } elseif (!empty($projectInput)) {
@@ -970,31 +979,31 @@ class PropertyController extends Controller
                     $projectId = $projectsByKey[$targetFirmId][$projKey];
                     $matchedProj = $projects->firstWhere('id', $projectId);
                     $projectName = $matchedProj?->project_name ?? $projectInput;
-                    $propertyMasterId = $matchedProj?->property_id;
+                    $propertyMasterId = null;
                 } elseif ($contextProject && (strtolower(trim($contextProject->project_name)) === $projKey || strtolower(trim($contextProject->project_code)) === $projKey)) {
                     $projectId = $contextProject->id;
                     $projectName = $contextProject->project_name;
-                    $propertyMasterId = $contextProject->property_id;
+                    $propertyMasterId = null;
                 } else {
                     $firmMatch = $projects->where('firm_id', $targetFirmId)->first(fn($p) => strtolower(trim($p->project_name)) === $projKey || strtolower(trim($p->project_code)) === $projKey);
                     if ($firmMatch) {
                         $projectId = $firmMatch->id;
                         $projectName = $firmMatch->project_name;
-                        $propertyMasterId = $firmMatch->property_id;
+                        $propertyMasterId = null;
                     } else {
                         // Check if projectInput matches a PropertyMaster name or code directly
                         $masterMatch = $propertyMasters->where('firm_id', $targetFirmId)->first(fn($pm) => strtolower(trim($pm->property_name)) === $projKey || strtolower(trim($pm->property_code)) === $projKey);
                         if ($masterMatch) {
                             $propertyMasterId = $masterMatch->id;
                             $propertyMasterName = $masterMatch->property_name;
-                            $projectId = $masterMatch->projects->first()?->id;
-                            $projectName = $masterMatch->projects->first()?->project_name ?? $masterMatch->property_name;
+                            $projectId = null;
+                            $projectName = $masterMatch->property_name;
                         } else {
                             $globalMatch = $projects->first(fn($p) => strtolower(trim($p->project_name)) === $projKey || strtolower(trim($p->project_code)) === $projKey || str_contains(strtolower(trim($p->project_name)), $projKey));
                             if ($globalMatch) {
                                 $projectId = $globalMatch->id;
                                 $projectName = $globalMatch->project_name;
-                                $propertyMasterId = $globalMatch->property_id;
+                                $propertyMasterId = null;
                                 if (empty($firmInput)) {
                                     $targetFirmId = $globalMatch->firm_id;
                                     $targetFirmName = $globalMatch->firm?->firm_name ?? $targetFirmName;
@@ -1010,7 +1019,7 @@ class PropertyController extends Controller
                 if ($defaultProj) {
                     $projectId = $defaultProj->id;
                     $projectName = $defaultProj->project_name;
-                    $propertyMasterId = $defaultProj->property_id;
+                    $propertyMasterId = null;
                 } else {
                     $errors[] = "Row {$r}: Project Name or Property Master is required.";
                 }
@@ -1396,10 +1405,19 @@ class PropertyController extends Controller
                     $rawPrice = $rawRate;
                 }
 
+                $targetProjectId = !empty($row['project_id']) ? $row['project_id'] : null;
+                $targetPropertyMasterId = !empty($row['property_master_id']) ? $row['property_master_id'] : null;
+
+                if ($targetProjectId) {
+                    $targetPropertyMasterId = null;
+                } elseif ($targetPropertyMasterId) {
+                    $targetProjectId = null;
+                }
+
                 $propertyData = [
                     'firm_id' => $row['firm_id'],
-                    'property_master_id' => $row['property_master_id'] ?? null,
-                    'project_id' => $row['project_id'],
+                    'property_master_id' => $targetPropertyMasterId,
+                    'project_id' => $targetProjectId,
                     'property_type_id' => $targetPropertyTypeId,
                     'property_code' => $row['property_code'],
                     'property_name' => $row['property_name'],
@@ -1423,8 +1441,8 @@ class PropertyController extends Controller
                     if ($existingProperty) {
                         $updateFields = [
                             'firm_id' => $row['firm_id'],
-                            'property_master_id' => $row['property_master_id'] ?? $existingProperty->property_master_id,
-                            'project_id' => $row['project_id'],
+                            'property_master_id' => $targetPropertyMasterId,
+                            'project_id' => $targetProjectId,
                             'property_type_id' => $targetPropertyTypeId,
                             'property_code' => $row['property_code'],
                             'property_name' => $row['property_name'],
