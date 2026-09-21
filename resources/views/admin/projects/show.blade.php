@@ -770,11 +770,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
 <div class="breadcrumb-nav">
     <span><i class="fa-solid fa-city" style="color: #60A5FA; margin-right: 6px;"></i>Property Management</span>
     <i class="fa-solid fa-chevron-right separator"></i>
-    @if($project->propertyMaster)
-        <a href="{{ route('property-masters.show', $project->propertyMaster->id) }}">{{ $project->propertyMaster->property_name }}</a>
-        <i class="fa-solid fa-chevron-right separator"></i>
-    @endif
-    <a href="{{ route('projects.index', $project->property_id ? ['property_id' => $project->property_id] : []) }}">Projects</a>
+    <a href="{{ route('projects.index') }}">Projects</a>
     <i class="fa-solid fa-chevron-right separator"></i>
     <span class="active">{{ $project->project_name }}</span>
 </div>
@@ -793,19 +789,9 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                 <i class="fa-regular fa-pen-to-square"></i> Edit Project
             </a>
         @endif
-        @if($project->propertyMasters && $project->propertyMasters->isNotEmpty())
-            <a href="{{ route('property-masters.show', $project->propertyMasters->first()->id) }}" class="btn-secondary-custom">
-                <i class="fa-solid fa-arrow-left"></i> Back to {{ $project->propertyMasters->first()->property_name }}
-            </a>
-        @elseif($project->propertyMaster)
-            <a href="{{ route('property-masters.show', $project->propertyMaster->id) }}" class="btn-secondary-custom">
-                <i class="fa-solid fa-arrow-left"></i> Back to {{ $project->propertyMaster->property_name }}
-            </a>
-        @else
-            <a href="{{ route('projects.index') }}" class="btn-secondary-custom">
-                <i class="fa-solid fa-arrow-left"></i> Back to Projects
-            </a>
-        @endif
+        <a href="{{ route('projects.index') }}" class="btn-secondary-custom">
+            <i class="fa-solid fa-arrow-left"></i> Back to Projects
+        </a>
     </div>
 </div>
 

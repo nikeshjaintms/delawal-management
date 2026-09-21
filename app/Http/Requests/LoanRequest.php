@@ -21,6 +21,9 @@ class LoanRequest extends FormRequest
                 $inputs[$key] = trim($value);
             }
         }
+        if (empty($inputs['loan_nature'])) {
+            $inputs['loan_nature'] = 'taken';
+        }
         if (isset($inputs['firm_ids']) && is_array($inputs['firm_ids']) && !empty($inputs['firm_ids'])) {
             $inputs['firm_id'] = $inputs['firm_ids'][0];
         }
@@ -42,16 +45,17 @@ class LoanRequest extends FormRequest
             }
         }
         $firmId = auth()->check() ? auth()->user()->firm_id : 0;
+        $isGiven = $this->input('loan_nature') === 'given';
 
         $rules = [
             'firm_ids'         => 'nullable|array',
             'firm_ids.*'       => 'exists:firms,id',
             'firm_id'          => 'nullable|exists:firms,id',
-            'loan_type'        => 'required|in:Business Loan,Personal Loan',
+            'loan_nature'      => 'required|in:taken,given',
+            'loan_type'        => 'required|string|max:50',
             'has_emi'          => 'nullable|boolean',
             
-            // Business Loan Validation
-            'bank_name'        => 'required_if:loan_type,Business Loan|nullable|string|max:255',
+            // Financial details
             'property_id'      => 'nullable|exists:properties,id',
             'customer_id'      => 'nullable|exists:customers,id',
             'loan_amount'      => 'required|numeric|min:0.01',
@@ -63,13 +67,20 @@ class LoanRequest extends FormRequest
             'loan_end_date'    => 'nullable|date|after_or_equal:loan_start_date',
             'loan_status'      => 'required|in:Active,Completed,Closed,Cancelled',
             'remarks'          => 'nullable|string|max:1000',
-            
-            // Personal Loan Validation
-            'person_name'      => 'required_if:loan_type,Personal Loan|nullable|string|max:255',
             'mobile_number'    => 'nullable|string|max:30',
             'relationship'     => 'nullable|string|max:100',
             'payment_mode_id'  => 'nullable|exists:payment_modes,id',
         ];
+
+        if ($isGiven) {
+            // For Loan Given: either Customer ID or Person/Borrower Name must be provided
+            $rules['person_name'] = 'nullable|string|max:255';
+            $rules['bank_name']   = 'nullable|string|max:255';
+        } else {
+            // For Loan Taken: Business Loan needs Bank Name, Personal Loan needs Person Name
+            $rules['bank_name']   = 'required_if:loan_type,Business Loan|nullable|string|max:255';
+            $rules['person_name'] = 'required_if:loan_type,Personal Loan|nullable|string|max:255';
+        }
 
         // Replace placeholders in unique rules dynamically
         foreach ($rules as $field => $rule) {

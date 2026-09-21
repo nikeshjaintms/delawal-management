@@ -16,8 +16,97 @@
         border-radius: 24px !important;
         padding: 32px !important;
         box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
-        max-width: 960px;
+        max-width: 980px;
         margin: 0 auto 30px auto;
+    }
+
+    /* ── Loan Nature Switcher (Taken vs Given) ── */
+    .loan-nature-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+    @media(max-width: 640px) { .loan-nature-grid { grid-template-columns: 1fr; } }
+
+    .nature-card {
+        position: relative;
+        display: block;
+        cursor: pointer;
+        user-select: none;
+    }
+    .nature-card input[type="radio"] { display: none; }
+    .nature-card-body {
+        padding: 18px 20px;
+        border-radius: 18px;
+        background: rgba(16, 22, 34, 0.85);
+        border: 2px solid rgba(255, 255, 255, 0.12);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    .nature-card:hover .nature-card-body {
+        border-color: rgba(255, 255, 255, 0.30);
+        transform: translateY(-2px);
+    }
+    .nature-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+        transition: all 0.25s ease;
+    }
+    .nature-icon.taken {
+        background: rgba(59, 130, 246, 0.18);
+        color: #60A5FA;
+        border: 1px solid rgba(59, 130, 246, 0.35);
+    }
+    .nature-icon.given {
+        background: rgba(16, 185, 129, 0.18);
+        color: #34D399;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .nature-title {
+        font-size: 15px;
+        font-weight: 800;
+        color: #FFFFFF;
+        margin-bottom: 4px;
+        letter-spacing: -0.2px;
+    }
+    .nature-desc {
+        font-size: 12px;
+        color: #94A3B8;
+        line-height: 1.35;
+    }
+    .nature-check {
+        margin-left: auto;
+        font-size: 20px;
+        color: rgba(255, 255, 255, 0.20);
+        transition: all 0.25s ease;
+    }
+
+    /* Selected state */
+    .nature-card input[type="radio"]:checked + .nature-card-body {
+        border-color: #3B82F6 !important;
+        background: rgba(37, 99, 235, 0.14) !important;
+        box-shadow: 0 0 24px rgba(37, 99, 235, 0.35);
+    }
+    .nature-card.given-card input[type="radio"]:checked + .nature-card-body {
+        border-color: #10B981 !important;
+        background: rgba(16, 185, 129, 0.14) !important;
+        box-shadow: 0 0 24px rgba(16, 185, 129, 0.35);
+    }
+    .nature-card input[type="radio"]:checked + .nature-card-body .nature-check {
+        color: #60A5FA !important;
+    }
+    .nature-card.given-card input[type="radio"]:checked + .nature-card-body .nature-check {
+        color: #34D399 !important;
     }
 
     .section-title {
@@ -209,48 +298,100 @@
 </style>
 
 <div class="crud-header">
-    <div class="crud-title"><h2>Add Loan</h2><p>Create a new loan record.</p></div>
+    <div class="crud-title">
+        <h2 id="page_heading">Add Loan</h2>
+        <p id="page_subheading">Create a new loan record (Loan Taken / Loan Given).</p>
+    </div>
 </div>
 
 <div class="card-box">
     <form method="POST" action="{{ route('loans.store') }}" id="loanForm">
         @csrf
 
-        {{-- Section 1: Loan Info --}}
+        {{-- Section 0: Select Loan Nature (Taken vs Given) --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-landmark"></i> Loan Information</div>
+            <div class="section-title"><i class="fa-solid fa-arrows-split-up-and-left"></i> 1. Select Loan Category / Nature</div>
+            <div class="loan-nature-grid">
+                <!-- Option A: Loan Taken -->
+                <label class="nature-card" id="card_taken">
+                    <input type="radio" name="loan_nature" id="nature_taken" value="taken" {{ old('loan_nature', 'taken') === 'taken' ? 'checked' : '' }} onchange="handleNatureChange('taken')">
+                    <div class="nature-card-body">
+                        <div class="nature-icon taken"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <div>
+                            <div class="nature-title">Loan Taken (Borrowed)</div>
+                            <div class="nature-desc">We borrowed money from a Bank or Individual Person (Liability)</div>
+                        </div>
+                        <div class="nature-check"><i class="fa-solid fa-circle-check"></i></div>
+                    </div>
+                </label>
+
+                <!-- Option B: Loan Given -->
+                <label class="nature-card given-card" id="card_given">
+                    <input type="radio" name="loan_nature" id="nature_given" value="given" {{ old('loan_nature') === 'given' ? 'checked' : '' }} onchange="handleNatureChange('given')">
+                    <div class="nature-card-body">
+                        <div class="nature-icon given"><i class="fa-solid fa-handshake-angle"></i></div>
+                        <div>
+                            <div class="nature-title">Loan Given (Lent)</div>
+                            <div class="nature-desc">We gave/lent money to Customer, Employee, Relative or Party (Receivable)</div>
+                        </div>
+                        <div class="nature-check"><i class="fa-solid fa-circle-check"></i></div>
+                    </div>
+                </label>
+            </div>
+            @error('loan_nature')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
+
+        {{-- Section 1: Party & Loan Details --}}
+        <div class="form-section">
+            <div class="section-title" id="party_section_title"><i class="fa-solid fa-landmark"></i> 2. Party & Loan Information</div>
             @include('admin.components.firm-select')
+
+            {{-- Row: Loan Type Selection --}}
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Loan Type <span class="req">*</span></label>
+                    <label class="form-label" id="loan_type_label">Loan Type <span class="req">*</span></label>
                     <select name="loan_type" id="loan_type" class="form-control @error('loan_type') is-invalid @enderror" onchange="toggleLoanType()">
-                        <option value="Business Loan" {{ old('loan_type', 'Business Loan') == 'Business Loan' ? 'selected' : '' }}>Business Loan</option>
-                        <option value="Personal Loan" {{ old('loan_type') == 'Personal Loan' ? 'selected' : '' }}>Personal Loan</option>
+                        <!-- Options for Loan Taken -->
+                        <option value="Business Loan" class="opt-taken" {{ old('loan_type', 'Business Loan') == 'Business Loan' ? 'selected' : '' }}>Business Loan (Bank / NBFC)</option>
+                        <option value="Personal Loan" class="opt-taken" {{ old('loan_type') == 'Personal Loan' ? 'selected' : '' }}>Personal Loan (From Individual / Relative)</option>
+                        <!-- Options for Loan Given -->
+                        <option value="Given to Customer" class="opt-given" {{ old('loan_type') == 'Given to Customer' ? 'selected' : '' }}>Loan to Customer (Given)</option>
+                        <option value="Given to Person / Party" class="opt-given" {{ old('loan_type') == 'Given to Person / Party' ? 'selected' : '' }}>Personal Lending / To Party</option>
+                        <option value="Employee Loan" class="opt-given" {{ old('loan_type') == 'Employee Loan' ? 'selected' : '' }}>Employee Loan</option>
+                        <option value="Other Loan Given" class="opt-given" {{ old('loan_type') == 'Other Loan Given' ? 'selected' : '' }}>Other Loan Given</option>
                     </select>
                     @error('loan_type')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
-                <div class="form-group business-loan-only">
+
+                {{-- Bank Name (for Business Loan Taken) --}}
+                <div class="form-group field-bank-name">
                     <label class="form-label">Bank Name <span class="req">*</span></label>
                     <input type="text" name="bank_name" id="bank_name" value="{{ old('bank_name') }}" class="form-control @error('bank_name') is-invalid @enderror" placeholder="e.g. SBI, HDFC Bank, ICICI">
                     @error('bank_name')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
-                <div class="form-group personal-only" style="display:none;">
-                    <label class="form-label">Person Name <span class="req">*</span></label>
+
+                {{-- Borrower / Person Name (for Loan Given or Personal Loan Taken) --}}
+                <div class="form-group field-person-name" style="display:none;">
+                    <label class="form-label" id="person_name_label">Person / Borrower Name <span class="req">*</span></label>
                     <input type="text" name="person_name" id="person_name" value="{{ old('person_name') }}" class="form-control @error('person_name') is-invalid @enderror" placeholder="Enter person's name">
                     @error('person_name')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
-            <div class="form-row business-loan-only">
-                <div class="form-group">
-                    <label class="form-label">Customer <span class="opt">(optional)</span></label>
-                    <select name="customer_id" class="form-control @error('customer_id') is-invalid @enderror">
+
+            {{-- Row: Customer & Property Links --}}
+            <div class="form-row">
+                <div class="form-group field-customer">
+                    <label class="form-label" id="customer_label">Customer <span class="opt">(optional)</span></label>
+                    <select name="customer_id" id="customer_id" class="form-control @error('customer_id') is-invalid @enderror">
                         <option value="">— Select Customer —</option>
                         @foreach($customers as $c)
                             <option value="{{ $c->id }}" {{ old('customer_id')==$c->id?'selected':'' }}>{{ $c->name }} — {{ $c->mobile }}{{ $c->alternate_mobile ? ' / ' . $c->alternate_mobile : '' }}</option>
                         @endforeach
                     </select>
+                    <div class="form-hint" id="customer_hint">Link to existing CRM customer if applicable.</div>
                     @error('customer_id')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
+
                 <div class="form-group">
                     <label class="form-label">Property <span class="opt">(optional)</span></label>
                     <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
@@ -262,21 +403,25 @@
                     @error('property_id')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
-            <div class="form-row business-loan-only">
-                <div class="form-group">
+
+            {{-- Row: Project Display & Personal Details --}}
+            <div class="form-row">
+                <div class="form-group field-project">
                     <label class="form-label" for="project_display">Project</label>
                     <input type="text" id="project_display" class="form-control" readonly placeholder="Auto-determined" style="background:rgba(16, 22, 34, 0.65) !important; cursor:not-allowed; opacity: 0.85;">
                 </div>
-            </div>
-            <div class="form-row personal-only" style="display:none;">
-                <div class="form-group">
+
+                <div class="form-group field-mobile" style="display:none;">
                     <label class="form-label">Mobile Number <span class="opt">(optional)</span></label>
-                    <input type="text" name="mobile_number" value="{{ old('mobile_number') }}" class="form-control @error('mobile_number') is-invalid @enderror" placeholder="Enter mobile number">
+                    <input type="text" name="mobile_number" id="mobile_number" value="{{ old('mobile_number') }}" class="form-control @error('mobile_number') is-invalid @enderror" placeholder="Enter mobile number">
                     @error('mobile_number')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Relationship <span class="opt">(optional)</span></label>
-                    <input type="text" name="relationship" value="{{ old('relationship') }}" class="form-control @error('relationship') is-invalid @enderror" placeholder="e.g. Friend, Brother, Relative">
+            </div>
+
+            <div class="form-row field-relationship" style="display:none;">
+                <div class="form-group" style="grid-column: span 2;">
+                    <label class="form-label" id="relationship_label">Relationship / Purpose <span class="opt">(optional)</span></label>
+                    <input type="text" name="relationship" id="relationship" value="{{ old('relationship') }}" class="form-control @error('relationship') is-invalid @enderror" placeholder="e.g. Friend, Business Partner, Construction Advance, Personal Loan">
                     @error('relationship')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
@@ -288,18 +433,18 @@
                 <input type="checkbox" name="has_emi" id="has_emi" value="1" {{ old('has_emi', '1') == '1' ? 'checked' : '' }} onchange="toggleEmiSection()">
                 <div class="toggle-content">
                     <div class="toggle-title"><i class="fa-solid fa-calculator"></i> Enable EMI Schedule</div>
-                    <div class="toggle-desc">Tick this if the loan has monthly EMI installments. Uncheck if you prefer manual / lumpsum repayment without EMI schedule.</div>
+                    <div class="toggle-desc" id="emi_toggle_desc">Tick this if the loan has monthly EMI installments. Uncheck if you prefer manual / lumpsum repayment without EMI schedule.</div>
                 </div>
                 <div class="switch-ui"></div>
             </label>
         </div>
 
-        {{-- Section 2: Financial Details --}}
+        {{-- Section 3: Financial Details --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Financial Details</div>
+            <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> 3. Financial Details</div>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Loan Amount (₹) <span class="req">*</span></label>
+                    <label class="form-label" id="loan_amount_label">Loan Amount (₹) <span class="req">*</span></label>
                     <input type="number" step="0.01" name="loan_amount" id="loan_amount" value="{{ old('loan_amount') }}" class="form-control @error('loan_amount') is-invalid @enderror" placeholder="0.00" oninput="calcEmi()">
                     @error('loan_amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
@@ -363,11 +508,11 @@
             </div>
         </div>
 
-        {{-- Section 3: Remarks --}}
+        {{-- Section 4: Remarks --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-note-sticky"></i> Remarks</div>
+            <div class="section-title"><i class="fa-solid fa-note-sticky"></i> 4. Remarks & Notes</div>
             <div class="form-group">
-                <textarea name="remarks" class="form-control @error('remarks') is-invalid @enderror" placeholder="Any notes about this loan...">{{ old('remarks') }}</textarea>
+                <textarea name="remarks" class="form-control @error('remarks') is-invalid @enderror" placeholder="Any notes or conditions about this loan...">{{ old('remarks') }}</textarea>
                 @error('remarks')<div class="text-error">{{ $message }}</div>@enderror
             </div>
         </div>
@@ -380,20 +525,92 @@
 </div>
 
 <script>
+function getSelectedNature() {
+    const radios = document.getElementsByName('loan_nature');
+    for (let r of radios) {
+        if (r.checked) return r.value;
+    }
+    return 'taken';
+}
+
+function handleNatureChange(nature) {
+    const isGiven = (nature === 'given');
+    const optsTaken = document.querySelectorAll('.opt-taken');
+    const optsGiven = document.querySelectorAll('.opt-given');
+    const loanTypeSelect = document.getElementById('loan_type');
+    const pageHeading = document.getElementById('page_heading');
+    const pageSub = document.getElementById('page_subheading');
+    const partyTitle = document.getElementById('party_section_title');
+    const emiDesc = document.getElementById('emi_toggle_desc');
+    const loanAmtLabel = document.getElementById('loan_amount_label');
+
+    if (isGiven) {
+        pageHeading.innerText = 'Give Loan / Lending';
+        pageSub.innerText = 'Record money given/lent to a Customer, Person, Employee or Party.';
+        partyTitle.innerHTML = '<i class="fa-solid fa-user-check"></i> 2. Borrower Information';
+        emiDesc.innerText = 'Tick this if borrower will pay monthly EMI installments back to you. Uncheck for direct/lumpsum repayments.';
+        loanAmtLabel.innerHTML = 'Given Loan Amount (₹) <span class="req">*</span>';
+
+        optsTaken.forEach(o => o.style.display = 'none');
+        optsGiven.forEach(o => o.style.display = 'block');
+
+        // Select first given option if current value is taken type
+        if (loanTypeSelect.value === 'Business Loan' || loanTypeSelect.value === 'Personal Loan') {
+            loanTypeSelect.value = 'Given to Customer';
+        }
+    } else {
+        pageHeading.innerText = 'Add Borrowed Loan';
+        pageSub.innerText = 'Record money borrowed from a Bank or Individual Person.';
+        partyTitle.innerHTML = '<i class="fa-solid fa-landmark"></i> 2. Bank / Lender Information';
+        emiDesc.innerText = 'Tick this if the loan has monthly EMI installments. Uncheck if you prefer manual / lumpsum repayment without EMI schedule.';
+        loanAmtLabel.innerHTML = 'Borrowed Loan Amount (₹) <span class="req">*</span>';
+
+        optsTaken.forEach(o => o.style.display = 'block');
+        optsGiven.forEach(o => o.style.display = 'none');
+
+        if (loanTypeSelect.value.startsWith('Given') || loanTypeSelect.value.includes('Employee')) {
+            loanTypeSelect.value = 'Business Loan';
+        }
+    }
+
+    toggleLoanType();
+}
+
 function toggleLoanType() {
+    const nature = getSelectedNature();
     const loanType = document.getElementById('loan_type').value;
-    const businessOnly = document.querySelectorAll('.business-loan-only');
-    const personalOnly = document.querySelectorAll('.personal-only');
+    const bankNameField = document.querySelector('.field-bank-name');
+    const personNameField = document.querySelector('.field-person-name');
+    const mobileField = document.querySelector('.field-mobile');
+    const relField = document.querySelector('.field-relationship');
+    const personNameLabel = document.getElementById('person_name_label');
     const startDateLabel = document.getElementById('start_date_label');
 
-    if (loanType === 'Personal Loan') {
-        businessOnly.forEach(el => el.style.display = 'none');
-        personalOnly.forEach(el => el.style.display = 'block');
-        startDateLabel.innerHTML = 'Loan Date <span class="req">*</span>';
+    if (nature === 'given') {
+        // Loan Given mode
+        bankNameField.style.display = 'none';
+        personNameField.style.display = 'block';
+        mobileField.style.display = 'block';
+        relField.style.display = 'grid';
+        personNameLabel.innerHTML = 'Borrower / Person Name <span class="opt">(or select Customer above)</span>';
+        startDateLabel.innerHTML = 'Loan Given Date <span class="req">*</span>';
     } else {
-        businessOnly.forEach(el => el.style.display = 'block');
-        personalOnly.forEach(el => el.style.display = 'none');
-        startDateLabel.innerHTML = 'Loan Start Date <span class="req">*</span>';
+        // Loan Taken mode
+        if (loanType === 'Personal Loan') {
+            bankNameField.style.display = 'none';
+            personNameField.style.display = 'block';
+            mobileField.style.display = 'block';
+            relField.style.display = 'grid';
+            personNameLabel.innerHTML = 'Lender / Person Name <span class="req">*</span>';
+            startDateLabel.innerHTML = 'Loan Taken Date <span class="req">*</span>';
+        } else {
+            // Business Loan
+            bankNameField.style.display = 'block';
+            personNameField.style.display = 'none';
+            mobileField.style.display = 'none';
+            relField.style.display = 'none';
+            startDateLabel.innerHTML = 'Loan Start Date <span class="req">*</span>';
+        }
     }
     updateSubmitButton();
 }
@@ -416,14 +633,16 @@ function toggleEmiSection() {
 
 function updateSubmitButton() {
     const hasEmi = document.getElementById('has_emi').checked;
-    const loanType = document.getElementById('loan_type').value;
+    const nature = getSelectedNature();
     const submitBtn = document.getElementById('submit_btn');
 
-    if (hasEmi) {
-        submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Loan & Generate EMI';
+    if (nature === 'given') {
+        submitBtn.innerHTML = hasEmi
+            ? '<i class="fa-solid fa-check"></i> Save Given Loan & Generate EMI'
+            : '<i class="fa-solid fa-check"></i> Save Given Loan';
     } else {
-        submitBtn.innerHTML = loanType === 'Personal Loan'
-            ? '<i class="fa-solid fa-check"></i> Save Personal Loan'
+        submitBtn.innerHTML = hasEmi
+            ? '<i class="fa-solid fa-check"></i> Save Loan & Generate EMI'
             : '<i class="fa-solid fa-check"></i> Save Loan';
     }
 }
@@ -441,7 +660,6 @@ function calcEmi() {
         const emi = P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
         document.getElementById('emi_amount').value = emi.toFixed(2);
     } else if (P > 0 && n > 0 && annualRate === 0) {
-        // 0% interest rate
         const emi = P / n;
         document.getElementById('emi_amount').value = emi.toFixed(2);
     }
@@ -471,7 +689,7 @@ function updateProjectMapping() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    toggleLoanType();
+    handleNatureChange(getSelectedNature());
     toggleEmiSection();
     const propSelect = document.getElementById('property_id');
     if (propSelect) {

@@ -171,6 +171,9 @@ class LoanController extends Controller
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
         }
+        if ($request->filled('loan_nature') && in_array($request->loan_nature, ['taken', 'given'])) {
+            $query->where('loan_nature', $request->loan_nature);
+        }
         if ($request->filled('filter_status')) {
             $query->where('loan_status', $request->filter_status);
         }
@@ -190,14 +193,21 @@ class LoanController extends Controller
             $query->whereDate('loan_start_date', '<=', $request->to_date);
         }
 
-        $loans      = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
-        $totalLoan  = (clone $query)->sum('loan_amount');
-        $totalPaid  = (clone $query)->sum('paid_amount');
-        $firms      = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $summaryQuery = clone $query;
+        $loans        = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+        
+        $totalLoan    = (clone $summaryQuery)->sum('loan_amount');
+        $totalPaid    = (clone $summaryQuery)->sum('paid_amount');
+        $totalTaken   = (clone $summaryQuery)->where(function($q) { $q->where('loan_nature', 'taken')->orWhereNull('loan_nature'); })->sum('loan_amount');
+        $pendingTaken = (clone $summaryQuery)->where(function($q) { $q->where('loan_nature', 'taken')->orWhereNull('loan_nature'); })->sum('pending_amount');
+        $totalGiven   = (clone $summaryQuery)->where('loan_nature', 'given')->sum('loan_amount');
+        $pendingGiven = (clone $summaryQuery)->where('loan_nature', 'given')->sum('pending_amount');
+        
+        $firms        = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
         return view('admin.loans.index', array_merge(
             $this->dropdowns($request->firm_id),
-            compact('loans', 'firms', 'totalLoan', 'totalPaid')
+            compact('loans', 'firms', 'totalLoan', 'totalPaid', 'totalTaken', 'pendingTaken', 'totalGiven', 'pendingGiven')
         ));
     }
 
@@ -213,19 +223,38 @@ class LoanController extends Controller
         $firmIds = $request->input('firm_ids', (array)($request->firm_id ?? $firmId));
         $primaryFirmId = reset($firmIds) ?: $firmId;
 
+        $loanNature = $request->input('loan_nature', 'taken');
         $hasEmi = $request->boolean('has_emi');
         $paidAmount = $request->filled('paid_amount') ? (float)$request->paid_amount : 0;
         $loanAmount = (float)$request->loan_amount;
         $pendingAmount = max(0, $loanAmount - $paidAmount);
         $status = ($pendingAmount <= 0) ? 'Completed' : $request->loan_status;
 
+        $bankName = null;
+        $personName = null;
+        $mobileNumber = null;
+        $relationship = null;
+        $customerId = $request->customer_id ?: null;
+
+        if ($loanNature === 'given') {
+            $personName = $request->person_name ?: null;
+            $mobileNumber = $request->mobile_number ?: null;
+            $relationship = $request->relationship ?: null;
+        } else {
+            $bankName = $request->loan_type === 'Business Loan' ? $request->bank_name : null;
+            $personName = $request->loan_type === 'Personal Loan' ? $request->person_name : null;
+            $mobileNumber = $request->loan_type === 'Personal Loan' ? $request->mobile_number : null;
+            $relationship = $request->loan_type === 'Personal Loan' ? $request->relationship : null;
+        }
+
         $loan = Loan::create([
             'firm_id'         => $primaryFirmId,
-            'bank_name'       => $request->loan_type === 'Business Loan' ? $request->bank_name : null,
+            'loan_nature'     => $loanNature,
+            'bank_name'       => $bankName,
             'loan_type'       => $request->loan_type,
             'has_emi'         => $hasEmi,
             'property_id'     => $request->property_id ?: null,
-            'customer_id'     => $request->customer_id ?: null,
+            'customer_id'     => $customerId,
             'loan_amount'     => $loanAmount,
             'interest_rate'   => $hasEmi ? $request->interest_rate : null,
             'emi_amount'      => $hasEmi ? $request->emi_amount : null,
@@ -236,9 +265,9 @@ class LoanController extends Controller
             'pending_amount'  => $pendingAmount,
             'loan_status'     => $status,
             'remarks'         => $request->remarks,
-            'person_name'     => $request->loan_type === 'Personal Loan' ? $request->person_name : null,
-            'mobile_number'   => $request->loan_type === 'Personal Loan' ? $request->mobile_number : null,
-            'relationship'    => $request->loan_type === 'Personal Loan' ? $request->relationship : null,
+            'person_name'     => $personName,
+            'mobile_number'   => $mobileNumber,
+            'relationship'    => $relationship,
             'payment_mode_id' => $request->payment_mode_id ?: null,
         ]);
 
@@ -253,19 +282,21 @@ class LoanController extends Controller
                 'payment_date'    => $request->loan_start_date ?: now()->toDateString(),
                 'payment_mode'    => $loan->paymentMode?->name ?? 'Direct Payment',
                 'reference_no'    => null,
-                'remarks'         => 'Initial payment recorded during loan creation',
+                'remarks'         => $loanNature === 'given' ? 'Initial repayment received during loan given creation' : 'Initial payment recorded during loan creation',
                 'created_by'      => Auth::id(),
             ]);
         }
 
+        $typeLabel = $loanNature === 'given' ? 'Loan Given (Lent)' : ($loan->loan_type ?: 'Loan');
+
         if ($hasEmi && $loan->total_emi_months > 0 && $loan->emi_amount > 0) {
             $this->generateEmiSchedule($loan, $firmIds);
             return redirect()->route('loans.show', $loan->id)
-                ->with('success', $loan->loan_type . ' added and EMI schedule generated successfully.');
+                ->with('success', $typeLabel . ' created and EMI schedule generated successfully.');
         }
 
         return redirect()->route('loans.show', $loan->id)
-            ->with('success', $loan->loan_type . ' added successfully.');
+            ->with('success', $typeLabel . ' created successfully.');
     }
 
     public function show(Loan $loan)
@@ -371,19 +402,38 @@ class LoanController extends Controller
         $primaryFirmId = reset($firmIds) ?: $loan->firm_id;
 
         $hasEmi = $request->boolean('has_emi');
+        $loanNature = $request->input('loan_nature', $loan->loan_nature ?: 'taken');
         $loanAmount = (float)$request->loan_amount;
 
         $paidAmount = $request->filled('paid_amount') ? (float)$request->paid_amount : $loan->paid_amount;
         $pendingAmount = max(0, $loanAmount - $paidAmount);
         $status = ($pendingAmount <= 0) ? 'Completed' : $request->loan_status;
 
+        $bankName = null;
+        $personName = null;
+        $mobileNumber = null;
+        $relationship = null;
+        $customerId = $request->customer_id ?: null;
+
+        if ($loanNature === 'given') {
+            $personName = $request->person_name ?: null;
+            $mobileNumber = $request->mobile_number ?: null;
+            $relationship = $request->relationship ?: null;
+        } else {
+            $bankName = $request->loan_type === 'Business Loan' ? $request->bank_name : null;
+            $personName = $request->loan_type === 'Personal Loan' ? $request->person_name : null;
+            $mobileNumber = $request->loan_type === 'Personal Loan' ? $request->mobile_number : null;
+            $relationship = $request->loan_type === 'Personal Loan' ? $request->relationship : null;
+        }
+
         $loan->update([
             'firm_id'         => $primaryFirmId,
-            'bank_name'       => $request->loan_type === 'Business Loan' ? $request->bank_name : null,
+            'loan_nature'     => $loanNature,
+            'bank_name'       => $bankName,
             'loan_type'       => $request->loan_type,
             'has_emi'         => $hasEmi,
             'property_id'     => $request->property_id ?: null,
-            'customer_id'     => $request->customer_id ?: null,
+            'customer_id'     => $customerId,
             'loan_amount'     => $loanAmount,
             'interest_rate'   => $hasEmi ? $request->interest_rate : null,
             'emi_amount'      => $hasEmi ? $request->emi_amount : null,
@@ -392,9 +442,9 @@ class LoanController extends Controller
             'total_emi_months'=> $hasEmi ? $request->total_emi_months : null,
             'loan_status'     => $status,
             'remarks'         => $request->remarks,
-            'person_name'     => $request->loan_type === 'Personal Loan' ? $request->person_name : null,
-            'mobile_number'   => $request->loan_type === 'Personal Loan' ? $request->mobile_number : null,
-            'relationship'    => $request->loan_type === 'Personal Loan' ? $request->relationship : null,
+            'person_name'     => $personName,
+            'mobile_number'   => $mobileNumber,
+            'relationship'    => $relationship,
             'payment_mode_id' => $request->payment_mode_id ?: null,
         ]);
 
@@ -429,21 +479,34 @@ class LoanController extends Controller
 
     public function emiScheduleIndex(Request $request)
     {
-        $query = Loan::with(['firm', 'property', 'customer', 'emiSchedules'])
-            ->where(function($q) {
-                $q->where('has_emi', true)
-                  ->orWhereHas('emiSchedules');
-            });
+        $baseQuery = Loan::where(function($q) {
+            $q->where('has_emi', true)
+              ->orWhereHas('emiSchedules');
+        });
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
         if (!$isAdmin) {
-            $query->forFirms([$firmId]);
+            $baseQuery->forFirms([$firmId]);
         } elseif ($request->filled('firm_id')) {
-            $query->forFirms([$request->firm_id]);
+            $baseQuery->forFirms([$request->firm_id]);
         }
+
+        // Tab counts for Taken vs Given EMIs
+        $countAll = (clone $baseQuery)->count();
+        $countTaken = (clone $baseQuery)->where('loan_nature', 'taken')->count();
+        $countGiven = (clone $baseQuery)->where('loan_nature', 'given')->count();
+
+        $query = (clone $baseQuery)->with(['firm', 'property', 'customer', 'emiSchedules']);
+
+        // Filter by loan nature (default: taken)
+        $nature = $request->get('loan_nature', 'taken');
+        if (!in_array($nature, ['taken', 'given'])) {
+            $nature = 'taken';
+        }
+        $query->where('loan_nature', $nature);
 
         if ($request->filled('filter_status')) {
             $query->where('loan_status', $request->filter_status);
@@ -473,7 +536,9 @@ class LoanController extends Controller
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.loans.emi-schedule-index', compact('loans', 'firms'));
+        return view('admin.loans.emi-schedule-index', compact(
+            'loans', 'firms', 'countAll', 'countTaken', 'countGiven'
+        ));
     }
 
     public function emiSchedule(Loan $loan)

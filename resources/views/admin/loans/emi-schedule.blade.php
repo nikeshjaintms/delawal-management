@@ -323,10 +323,21 @@ textarea.form-control { resize: vertical; min-height: 75px; }
 }
 </style>
 
+@php
+    $isGiven = ($loan->loan_nature === 'given');
+@endphp
+
 <div class="crud-header">
     <div class="crud-title">
-        <h2>EMI Schedule — {{ $loan->loan_type === 'Personal Loan' ? $loan->person_name : $loan->bank_name }}</h2>
-        <p>Manage month-wise EMI payments and track status.</p>
+        <h2>
+            EMI Schedule — {{ $loan->party_display_name }}
+            @if($isGiven)
+                <span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(16,185,129,0.18);color:#34D399;border:1px solid rgba(16,185,129,0.38);vertical-align:middle;margin-left:8px;"><i class="fa-solid fa-handshake-angle"></i> Loan Given (Receivable)</span>
+            @else
+                <span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(59,130,246,0.18);color:#60A5FA;border:1px solid rgba(59,130,246,0.38);vertical-align:middle;margin-left:8px;"><i class="fa-solid fa-hand-holding-dollar"></i> Loan Taken (Payable)</span>
+            @endif
+        </h2>
+        <p>Manage month-wise EMI {{ $isGiven ? 'collections' : 'payments' }} and track status.</p>
     </div>
     <a href="{{ route('loans.show', $loan->id) }}" class="btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to Loan</a>
 </div>
@@ -342,19 +353,23 @@ textarea.form-control { resize: vertical; min-height: 75px; }
         <div class="info-value">{{ $loan->firm_names }}</div>
     </div>
     <div class="info-item">
+        <div class="info-label">{{ $isGiven ? 'Borrower Party' : 'Bank / Lender' }}</div>
+        <div class="info-value" style="font-size:15px;color:#FFFFFF;">{{ $loan->party_display_name }}</div>
+    </div>
+    <div class="info-item">
         <div class="info-label">Loan Amount</div>
         <div class="info-value val-loan">₹{{ number_format($loan->loan_amount,2) }}</div>
     </div>
     <div class="info-item">
         <div class="info-label">EMI / Month</div>
-        <div class="info-value val-emi">₹{{ number_format($loan->emi_amount,2) }}</div>
+        <div class="info-value val-emi" style="color:{{ $isGiven ? '#34D399' : '#F87171' }} !important;">₹{{ number_format($loan->emi_amount,2) }}</div>
     </div>
     <div class="info-item">
         <div class="info-label">Total EMIs</div>
         <div class="info-value">{{ $loan->total_emi_months }}</div>
     </div>
     <div class="info-item">
-        <div class="info-label">Paid</div>
+        <div class="info-label">{{ $isGiven ? 'Received' : 'Paid' }}</div>
         <div class="info-value val-paid">₹{{ number_format($loan->paid_amount,2) }}</div>
     </div>
     <div class="info-item">
@@ -423,7 +438,7 @@ textarea.form-control { resize: vertical; min-height: 75px; }
 <div class="modal" id="payModal">
     <div class="modal-box">
         <div class="modal-header">
-            <h3><i class="fa-solid fa-wallet" style="color:#60A5FA;"></i> Pay EMI</h3>
+            <h3><i class="fa-solid fa-wallet" style="color:{{ $isGiven ? '#34D399' : '#60A5FA' }};"></i> {{ $isGiven ? 'Record Received EMI' : 'Pay EMI' }}</h3>
             <button type="button" class="modal-close" onclick="closePayModal()">&times;</button>
         </div>
         <form method="POST" id="payForm" action="">
@@ -435,16 +450,16 @@ textarea.form-control { resize: vertical; min-height: 75px; }
                     <strong style="color:#FFFFFF;font-weight:800;">₹<span id="modal_emi"></span></strong>
                 </div>
                 <div class="info-row">
-                    <span>Already Paid:</span>
+                    <span>{{ $isGiven ? 'Already Collected:' : 'Already Paid:' }}</span>
                     <strong style="color:#34D399;font-weight:800;">₹<span id="modal_already_paid"></span></strong>
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Paid Amount (₹) <span>*</span></label>
+                <label class="form-label">{{ $isGiven ? 'Received Amount (₹)' : 'Paid Amount (₹)' }} <span>*</span></label>
                 <input type="number" step="0.01" name="paid_amount" id="paid_amount" class="form-control @error('paid_amount') is-invalid @enderror" required placeholder="0.00">
             </div>
             <div class="form-group">
-                <label class="form-label">Payment Date <span>*</span></label>
+                <label class="form-label">{{ $isGiven ? 'Received Date' : 'Payment Date' }} <span>*</span></label>
                 <input type="date" name="payment_date" value="{{ date('Y-m-d') }}" class="form-control @error('payment_date') is-invalid @enderror" required>
             </div>
             <div class="form-group">
@@ -461,7 +476,7 @@ textarea.form-control { resize: vertical; min-height: 75px; }
                 <textarea name="remarks" class="form-control @error('remarks') is-invalid @enderror" placeholder="Any notes..."></textarea>
             </div>
             <div class="modal-actions">
-                <button type="submit" class="btn-submit"><i class="fa-solid fa-check"></i> Submit Payment</button>
+                <button type="submit" class="btn-submit" style="background:{{ $isGiven ? '#059669' : '#2563EB' }} !important;border-color:{{ $isGiven ? '#10B981' : '#3B82F6' }} !important;"><i class="fa-solid fa-check"></i> {{ $isGiven ? 'Record Collection' : 'Submit Payment' }}</button>
                 <button type="button" class="btn-cancel" onclick="closePayModal()">Cancel</button>
             </div>
         </form>

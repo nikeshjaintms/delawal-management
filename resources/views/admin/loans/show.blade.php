@@ -2,6 +2,9 @@
 @section('title','Loan Details')
 @section('page-title','Loan Management')
 @section('content')
+@php
+    $isGiven = $loan->isGiven();
+@endphp
 <style>
 /* ── Luxury Dark Glass System ── */
 .crud-header { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
@@ -35,18 +38,38 @@
     width: 64px;
     height: 64px;
     border-radius: 16px;
-    background: rgba(59, 130, 246, 0.18) !important;
-    border: 2px solid rgba(59, 130, 246, 0.40) !important;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 26px;
-    color: #60A5FA !important;
     flex-shrink: 0;
+}
+.loan-icon.taken {
+    background: rgba(59, 130, 246, 0.18) !important;
+    border: 2px solid rgba(59, 130, 246, 0.40) !important;
+    color: #60A5FA !important;
+}
+.loan-icon.given {
+    background: rgba(16, 185, 129, 0.18) !important;
+    border: 2px solid rgba(16, 185, 129, 0.40) !important;
+    color: #34D399 !important;
 }
 .loan-hero-info h3 { font-size: 22px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 5px; }
 .loan-hero-info p { font-size: 14px; color: #CBD5E1 !important; margin-bottom: 8px; }
 .hero-badges { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.nature-badge-hero {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.nb-taken { background: rgba(59, 130, 246, 0.20) !important; color: #60A5FA !important; border: 1.5px solid rgba(59, 130, 246, 0.45) !important; }
+.nb-given { background: rgba(16, 185, 129, 0.20) !important; color: #34D399 !important; border: 1.5px solid rgba(16, 185, 129, 0.45) !important; }
 
 .badge-emi-status {
     display: inline-flex;
@@ -118,12 +141,9 @@
 }
 .detail-label i { color: #60A5FA !important; font-size: 12px; }
 
-.detail-value { font-size: 14.5px; font-weight: 700; color: #FFFFFF !important; word-break: break-word; }
-.detail-value.empty { color: #94A3B8 !important; font-weight: 400; font-style: italic; }
-
-.amount-big { font-size: 22px; font-weight: 800; color: #60A5FA !important; }
-.amt-paid { font-size: 16px; font-weight: 800; color: #34D399 !important; }
-.amt-pending { font-size: 18px; font-weight: 800; color: #F87171 !important; }
+.detail-value { font-size: 14.5px; font-weight: 600; color: #FFFFFF !important; word-break: break-word; }
+.detail-value.amount-big { font-size: 22px; font-weight: 800; color: #FBBF24 !important; }
+.detail-value.empty { color: #94A3B8 !important; font-style: italic; font-weight: 400; }
 
 .progress-wrap {
     width: 100%;
@@ -132,32 +152,17 @@
     height: 10px;
     overflow: hidden;
     margin-bottom: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
 }
-.progress-bar { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #3B82F6, #10B981); }
+.progress-bar { height: 100%; background: linear-gradient(90deg, #3B82F6, #10B981); border-radius: 8px; }
 
-.meta-info {
-    margin-top: 24px;
-    padding-top: 18px;
-    border-top: 1px solid rgba(255, 255, 255, 0.10);
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-}
-.meta-item {
-    font-size: 12.5px;
-    color: #CBD5E1 !important;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 500;
-}
-.meta-item i { color: #60A5FA !important; }
+.amt-paid { font-size: 18px; font-weight: 800; color: #34D399 !important; }
+.amt-pending { font-size: 18px; font-weight: 800; color: #F87171 !important; }
 
 .form-actions {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 15px;
     margin-top: 32px;
     padding-top: 24px;
     border-top: 1px solid rgba(255, 255, 255, 0.10);
@@ -167,7 +172,7 @@
 .btn-gold {
     background: #2563EB !important;
     color: #FFFFFF !important;
-    padding: 11px 24px;
+    padding: 10px 22px;
     border-radius: 12px;
     font-size: 14px;
     font-weight: 700;
@@ -190,7 +195,7 @@
 .btn-green {
     background: #10B981 !important;
     color: #FFFFFF !important;
-    padding: 11px 24px;
+    padding: 10px 22px;
     border-radius: 12px;
     font-size: 14px;
     font-weight: 700;
@@ -327,10 +332,16 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
     cursor: pointer; transition: all .2s ease;
 }
 .btn-delete:hover { background: rgba(239, 68, 68, 0.35) !important; color: #FFFFFF !important; transform: scale(1.05); }
+
+.meta-info { display: flex; gap: 20px; font-size: 12px; color: #94A3B8; margin-top: 24px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap; }
+.meta-item { display: flex; align-items: center; gap: 6px; }
 </style>
 
 <div class="crud-header">
-    <div class="crud-title"><h2>Loan Details</h2><p>Complete loan record overview.</p></div>
+    <div class="crud-title">
+        <h2>Loan Details</h2>
+        <p>Complete loan record and repayment overview.</p>
+    </div>
 </div>
 
 @if(session('success'))
@@ -339,17 +350,24 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
 
 <div class="card-box">
     <div class="loan-hero">
-        <div class="loan-icon"><i class="fa-solid fa-landmark"></i></div>
+        <div class="loan-icon {{ $isGiven ? 'given' : 'taken' }}">
+            <i class="fa-solid {{ $isGiven ? 'fa-handshake-angle' : 'fa-hand-holding-dollar' }}"></i>
+        </div>
         <div class="loan-hero-info">
-            <h3>{{ $loan->loan_type === 'Personal Loan' ? $loan->person_name : ($loan->bank_name ?? 'Loan Record') }}</h3>
+            <h3>{{ $loan->party_display_name }}</h3>
             <p>
                 {{ $loan->loan_type }}
                 @if($loan->has_emi && $loan->total_emi_months)
-                    &nbsp;·&nbsp; {{ $loan->total_emi_months }} months
+                    &nbsp;·&nbsp; {{ $loan->total_emi_months }} months EMI
                 @endif
             </p>
             <div class="hero-badges">
-                <span class="amount-big">₹{{ number_format($loan->loan_amount,2) }}</span>
+                @if($isGiven)
+                    <span class="nature-badge-hero nb-given"><i class="fa-solid fa-handshake-angle"></i> Loan Given</span>
+                @else
+                    <span class="nature-badge-hero nb-taken"><i class="fa-solid fa-hand-holding-dollar"></i> Loan Taken</span>
+                @endif
+                <span class="amount-big" style="font-size:18px;font-weight:800;color:#FBBF24;">₹{{ number_format($loan->loan_amount,2) }}</span>
                 <span class="loan-status ls-{{ strtolower($loan->loan_status) }}">{{ $loan->loan_status }}</span>
                 @if($loan->has_emi)
                     <span class="badge-emi-status bes-has-emi"><i class="fa-solid fa-calendar-check"></i> EMI Enabled</span>
@@ -360,49 +378,84 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
         </div>
     </div>
 
-    @if($loan->loan_type === 'Personal Loan')
-        <div class="section-title"><i class="fa-solid fa-circle-info"></i> Loan Information</div>
+    @if($isGiven)
+        {{-- Loan Given Details --}}
+        <div class="section-title"><i class="fa-solid fa-user-check"></i> Borrower Information</div>
         <div class="detail-grid">
             <div class="detail-item">
                 <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
                 <div class="detail-value">{{ $loan->firm_names }}</div>
             </div>
             <div class="detail-item">
-                <div class="detail-label"><i class="fa-solid fa-user"></i> Person Name</div>
-                <div class="detail-value">{{ $loan->person_name }}</div>
-            </div>
-            <div class="detail-item">
-                <div class="detail-label"><i class="fa-solid fa-people-arrows"></i> Relationship</div>
-                <div class="detail-value">{{ $loan->relationship ?? '—' }}</div>
+                <div class="detail-label"><i class="fa-solid fa-user"></i> Borrower / Customer</div>
+                @if($loan->customer)
+                    <div class="detail-value">{{ $loan->customer->name }} <span style="font-size:12px;color:#34D399;">(Registered Customer)</span><div style="font-size:12px;color:#94A3B8;margin-top:3px;">{{ $loan->customer->mobile }}</div></div>
+                @elseif($loan->person_name)
+                    <div class="detail-value">{{ $loan->person_name }}</div>
+                @else
+                    <div class="detail-value empty">—</div>
+                @endif
             </div>
             <div class="detail-item">
                 <div class="detail-label"><i class="fa-solid fa-phone"></i> Mobile Number</div>
-                <div class="detail-value">{{ $loan->mobile_number ?? '—' }}</div>
-            </div>
-        </div>
-    @else
-        <div class="section-title"><i class="fa-solid fa-circle-info"></i> Loan Information</div>
-        <div class="detail-grid">
-            <div class="detail-item">
-                <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
-                <div class="detail-value">{{ $loan->firm_names }}</div>
+                <div class="detail-value">{{ $loan->customer ? $loan->customer->mobile : ($loan->mobile_number ?? '—') }}</div>
             </div>
             <div class="detail-item">
-                <div class="detail-label"><i class="fa-solid fa-landmark"></i> Bank Name</div>
-                <div class="detail-value">{{ $loan->bank_name }}</div>
+                <div class="detail-label"><i class="fa-solid fa-people-arrows"></i> Relationship / Purpose</div>
+                <div class="detail-value">{{ $loan->relationship ?? '—' }}</div>
             </div>
             <div class="detail-item">
                 <div class="detail-label"><i class="fa-solid fa-file-invoice"></i> Loan Type</div>
                 <div class="detail-value">{{ $loan->loan_type }}</div>
             </div>
             <div class="detail-item">
-                <div class="detail-label"><i class="fa-solid fa-user"></i> Customer</div>
-                @if($loan->customer)
-                    <div class="detail-value">{{ $loan->customer->name }}<div style="font-size:12px;color:#94A3B8;margin-top:3px;">{{ $loan->customer->mobile }}</div></div>
+                <div class="detail-label"><i class="fa-solid fa-building"></i> Linked Property</div>
+                @if($loan->property)
+                    <div class="detail-value">{{ $loan->property->property_name }}{{ $loan->property->property_code?' ('.$loan->property->property_code.')':'' }}</div>
                 @else
                     <div class="detail-value empty">Not linked</div>
                 @endif
             </div>
+        </div>
+    @else
+        {{-- Loan Taken Details --}}
+        <div class="section-title"><i class="fa-solid fa-landmark"></i> Bank / Lender Information</div>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-building"></i> Firm</div>
+                <div class="detail-value">{{ $loan->firm_names }}</div>
+            </div>
+            @if($loan->loan_type === 'Personal Loan')
+                <div class="detail-item">
+                    <div class="detail-label"><i class="fa-solid fa-user"></i> Lender Person Name</div>
+                    <div class="detail-value">{{ $loan->person_name }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label"><i class="fa-solid fa-people-arrows"></i> Relationship</div>
+                    <div class="detail-value">{{ $loan->relationship ?? '—' }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label"><i class="fa-solid fa-phone"></i> Mobile Number</div>
+                    <div class="detail-value">{{ $loan->mobile_number ?? '—' }}</div>
+                </div>
+            @else
+                <div class="detail-item">
+                    <div class="detail-label"><i class="fa-solid fa-landmark"></i> Bank Name</div>
+                    <div class="detail-value">{{ $loan->bank_name }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label"><i class="fa-solid fa-file-invoice"></i> Loan Type</div>
+                    <div class="detail-value">{{ $loan->loan_type }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label"><i class="fa-solid fa-user"></i> Customer</div>
+                    @if($loan->customer)
+                        <div class="detail-value">{{ $loan->customer->name }}<div style="font-size:12px;color:#94A3B8;margin-top:3px;">{{ $loan->customer->mobile }}</div></div>
+                    @else
+                        <div class="detail-value empty">Not linked</div>
+                    @endif
+                </div>
+            @endif
             <div class="detail-item">
                 <div class="detail-label"><i class="fa-solid fa-building"></i> Property</div>
                 @if($loan->property)
@@ -419,7 +472,7 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
     @if($loan->has_emi)
         <div class="detail-grid-3">
             <div class="detail-item">
-                <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Loan Amount</div>
+                <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> {{ $isGiven ? 'Given Loan Amount' : 'Loan Amount' }}</div>
                 <div class="detail-value amount-big">₹{{ number_format($loan->loan_amount,2) }}</div>
             </div>
             <div class="detail-item">
@@ -427,7 +480,7 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
                 <div class="detail-value">{{ $loan->interest_rate ? $loan->interest_rate . '% p.a.' : '—' }}</div>
             </div>
             <div class="detail-item">
-                <div class="detail-label"><i class="fa-solid fa-wallet"></i> EMI Amount</div>
+                <div class="detail-label"><i class="fa-solid fa-wallet"></i> Monthly EMI</div>
                 <div class="detail-value" style="color:#F87171;font-size:16px;font-weight:700;">₹{{ number_format($loan->emi_amount,2)}} / month</div>
             </div>
             <div class="detail-item">
@@ -446,11 +499,11 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
     @else
         <div class="detail-grid-3">
             <div class="detail-item">
-                <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Total Loan Amount</div>
+                <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> {{ $isGiven ? 'Given Loan Amount' : 'Total Loan Amount' }}</div>
                 <div class="detail-value amount-big">₹{{ number_format($loan->loan_amount,2) }}</div>
             </div>
             <div class="detail-item">
-                <div class="detail-label"><i class="fa-solid fa-calendar"></i> Loan Date</div>
+                <div class="detail-label"><i class="fa-solid fa-calendar"></i> {{ $isGiven ? 'Given Date' : 'Loan Date' }}</div>
                 <div class="detail-value">{{ $loan->loan_start_date ? \Carbon\Carbon::parse($loan->loan_start_date)->format('d M Y') : '—' }}</div>
             </div>
             <div class="detail-item">
@@ -459,7 +512,7 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
             </div>
             <div class="detail-item">
                 <div class="detail-label"><i class="fa-solid fa-calculator"></i> EMI Option</div>
-                <div class="detail-value"><span class="badge-emi-status bes-no-emi">Disabled (No EMI)</span></div>
+                <div class="detail-value"><span class="badge-emi-status bes-no-emi">Disabled (Direct Repayment)</span></div>
             </div>
             <div class="detail-item">
                 <div class="detail-label"><i class="fa-solid fa-shield-halved"></i> Loan Status</div>
@@ -469,7 +522,7 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
     @endif
 
     {{-- Payment Progress & Outstanding --}}
-    <div class="section-title"><i class="fa-solid fa-chart-line"></i> Payment Progress & Balance</div>
+    <div class="section-title"><i class="fa-solid fa-chart-line"></i> {{ $isGiven ? 'Recovery Progress & Receivable Balance' : 'Payment Progress & Outstanding Balance' }}</div>
     @php $pct = $loan->loan_amount > 0 ? min(100, round(($loan->paid_amount / $loan->loan_amount) * 100)) : 0; @endphp
     <div class="detail-item" style="padding: 22px 24px;">
         <div class="progress-wrap">
@@ -478,12 +531,12 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:10px;">
             <div>
                 <span class="amt-paid">₹{{ number_format($loan->paid_amount,2) }}</span>
-                <span style="color:#94A3B8;font-size:13px;font-weight:600;"> Total Paid</span>
+                <span style="color:#94A3B8;font-size:13px;font-weight:600;"> {{ $isGiven ? 'Total Received / Recovered' : 'Total Paid' }}</span>
             </div>
-            <div style="font-size:14px;font-weight:800;color:#60A5FA;">{{ $pct }}% Completed</div>
+            <div style="font-size:14px;font-weight:800;color:#60A5FA;">{{ $pct }}% {{ $isGiven ? 'Recovered' : 'Completed' }}</div>
             <div>
                 <span class="amt-pending">₹{{ number_format($loan->pending_amount,2) }}</span>
-                <span style="color:#F87171;font-size:13px;font-weight:700;"> Total Pending Balance</span>
+                <span style="color:#F87171;font-size:13px;font-weight:700;"> {{ $isGiven ? 'Pending to Receive' : 'Total Pending Balance' }}</span>
             </div>
         </div>
     </div>
@@ -493,12 +546,12 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
         <div class="detail-item"><div class="detail-value" style="font-weight:400;line-height:1.7;">{{ $loan->remarks }}</div></div>
     @endif
 
-    {{-- Payment History (For all repayments recorded) --}}
+    {{-- Payment History --}}
     <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
-        <span><i class="fa-solid fa-clock-rotate-left"></i> Payment History ({{ $loan->payments->count() }})</span>
+        <span><i class="fa-solid fa-clock-rotate-left"></i> {{ $isGiven ? 'Repayment Receipts History' : 'Payment History' }} ({{ $loan->payments->count() }})</span>
         @if($loan->pending_amount > 0)
         <button type="button" class="btn-green" style="padding:6px 14px;font-size:12.5px;border-radius:8px;" onclick="openDirectPayModal()">
-            <i class="fa-solid fa-plus"></i> Record Payment
+            <i class="fa-solid fa-plus"></i> {{ $isGiven ? 'Record Payment Received' : 'Record Payment' }}
         </button>
         @endif
     </div>
@@ -510,7 +563,7 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
                     <tr>
                         <th>#</th>
                         <th>Payment Date</th>
-                        <th style="text-align:right;">Amount Paid</th>
+                        <th style="text-align:right;">{{ $isGiven ? 'Amount Received' : 'Amount Paid' }}</th>
                         <th>Payment Mode</th>
                         <th>Reference / UTR No.</th>
                         <th>Remarks</th>
@@ -549,7 +602,7 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
     @else
         <div class="detail-item" style="text-align:center;padding:28px 20px;color:#94A3B8;margin-bottom:24px;">
             <i class="fa-solid fa-receipt" style="font-size:28px;opacity:0.35;display:block;margin-bottom:10px;"></i>
-            <span style="font-size:14px;font-weight:500;">No payment transactions recorded yet. Click <strong>"Record Payment"</strong> to record a repayment.</span>
+            <span style="font-size:14px;font-weight:500;">No payment transactions recorded yet. Click <strong>"{{ $isGiven ? 'Record Payment Received' : 'Record Payment' }}"</strong> to record a transaction.</span>
         </div>
     @endif
 
@@ -563,7 +616,9 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
             <a href="{{ route('loans.emi-schedule', $loan->id) }}" class="btn-gold"><i class="fa-solid fa-calendar-days"></i> View EMI Schedule</a>
         @endif
         @if($loan->pending_amount > 0)
-            <button type="button" class="btn-green" onclick="openDirectPayModal()"><i class="fa-solid fa-money-bill-wave"></i> Record Payment</button>
+            <button type="button" class="btn-green" onclick="openDirectPayModal()">
+                <i class="fa-solid {{ $isGiven ? 'fa-hand-holding-dollar' : 'fa-money-bill-wave' }}"></i> {{ $isGiven ? 'Record Payment Received' : 'Record Payment' }}
+            </button>
         @endif
         <a href="{{ route('loans.edit', $loan->id) }}" class="btn-outline"><i class="fa-regular fa-pen-to-square"></i> Edit Loan</a>
         <a href="{{ route('loans.index') }}" class="btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to List</a>
@@ -574,28 +629,28 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
 <div class="modal" id="directPayModal">
     <div class="modal-box">
         <div class="modal-header">
-            <h3><i class="fa-solid fa-money-bill-wave" style="color:#34D399;"></i> Record Loan Payment</h3>
+            <h3><i class="fa-solid fa-money-bill-wave" style="color:#34D399;"></i> {{ $isGiven ? 'Record Repayment Received' : 'Record Loan Payment' }}</h3>
             <button type="button" class="modal-close" onclick="closeDirectPayModal()">&times;</button>
         </div>
         <form method="POST" action="{{ route('loans.record-payment', $loan->id) }}">
             @csrf
             <div style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:#CBD5E1;margin-bottom:4px;">
-                    <span>Total Loan Amount:</span>
+                    <span>{{ $isGiven ? 'Given Loan Amount:' : 'Total Loan Amount:' }}</span>
                     <strong style="color:#FFFFFF;">₹{{ number_format($loan->loan_amount, 2) }}</strong>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:#CBD5E1;margin-bottom:4px;">
-                    <span>Already Paid:</span>
+                    <span>{{ $isGiven ? 'Already Received:' : 'Already Paid:' }}</span>
                     <strong style="color:#34D399;">₹{{ number_format($loan->paid_amount, 2) }}</strong>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px;color:#CBD5E1;">
-                    <span>Current Pending Balance:</span>
+                    <span>{{ $isGiven ? 'Pending to Collect:' : 'Current Pending Balance:' }}</span>
                     <strong style="color:#F87171;">₹{{ number_format($loan->pending_amount, 2) }}</strong>
                 </div>
             </div>
 
             <div class="form-group-modal">
-                <label class="form-label-modal">Payment Amount (₹) <span>*</span></label>
+                <label class="form-label-modal">{{ $isGiven ? 'Received Amount (₹)' : 'Payment Amount (₹)' }} <span>*</span></label>
                 <input type="number" step="0.01" name="paid_amount" class="form-control-modal" placeholder="0.00" max="{{ $loan->pending_amount }}" required>
             </div>
 
@@ -627,7 +682,7 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
             </div>
 
             <div style="display:flex;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
-                <button type="submit" class="btn-green" style="flex:1;justify-content:center;"><i class="fa-solid fa-check"></i> Submit Payment</button>
+                <button type="submit" class="btn-green" style="flex:1;justify-content:center;"><i class="fa-solid fa-check"></i> {{ $isGiven ? 'Save Receipt' : 'Submit Payment' }}</button>
                 <button type="button" class="btn-outline" onclick="closeDirectPayModal()">Cancel</button>
             </div>
         </form>

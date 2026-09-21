@@ -24,13 +24,78 @@
 .crud-title h2 { font-size: 26px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
 .crud-title p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
 
+.header-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+
 .btn-gold {
-    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 22px;
+    background: #2563EB !important; color: #FFFFFF !important; padding: 10px 20px;
     border-radius: 10px; text-decoration: none !important; font-size: 14px; font-weight: 700;
     display: inline-flex; align-items: center; gap: 8px; border: 1px solid #3B82F6 !important;
     cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 16px rgba(37,99,235,0.35);
 }
 .btn-gold:hover { background: #1D4ED8 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(37,99,235,0.50); }
+
+.btn-emerald {
+    background: #10B981 !important; color: #FFFFFF !important; padding: 10px 20px;
+    border-radius: 10px; text-decoration: none !important; font-size: 14px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 8px; border: 1px solid #34D399 !important;
+    cursor: pointer; transition: all .25s ease; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+}
+.btn-emerald:hover { background: #059669 !important; color: #FFFFFF !important; transform: translateY(-2px); box-shadow: 0 6px 22px rgba(16, 185, 129, 0.50); }
+
+/* Nature Tabs */
+.nature-tabs-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+    padding-bottom: 12px;
+    flex-wrap: wrap;
+}
+.nature-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #CBD5E1 !important;
+    text-decoration: none !important;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.2px;
+}
+.nature-tab:hover {
+    color: #FFFFFF !important;
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+}
+.nature-tab i {
+    font-size: 14px;
+    transition: transform 0.2s ease;
+}
+.nature-tab:hover i {
+    transform: scale(1.12);
+}
+.nature-tab.active-all {
+    background: linear-gradient(135deg, #4F46E5 0%, #3B82F6 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.30) !important;
+}
+.nature-tab.active-taken {
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.30) !important;
+}
+.nature-tab.active-given {
+    background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.30) !important;
+}
 
 .card-box {
     background: rgba(20, 27, 41, 0.60) !important;
@@ -53,13 +118,14 @@
 .stat-card:hover { transform: translateY(-3px); border-color: rgba(59, 130, 246, 0.40) !important; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); }
 
 .stat-icon { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
-.stat-icon.gold { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
 .stat-icon.blue { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
 .stat-icon.green { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
-.stat-icon.red { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
+.stat-icon.gold { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.stat-icon.purple { background: rgba(168, 85, 247, 0.18) !important; color: #C084FC !important; border: 1px solid rgba(168, 85, 247, 0.35) !important; }
 
 .stat-body .s-label { font-size: 11px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
 .stat-body .s-value { font-size: 20px; font-weight: 800; color: #FFFFFF !important; }
+.stat-body .s-sub { font-size: 11.5px; color: #CBD5E1; margin-top: 3px; font-weight: 600; }
 
 .filter-bar {
     display: flex !important; gap: 12px !important; align-items: flex-end !important; margin-bottom: 24px !important;
@@ -108,6 +174,30 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
     white-space: nowrap !important;
 }
 .premium-table tbody tr:hover { background: rgba(255, 255, 255, 0.05) !important; }
+
+/* Nature badge in table */
+.nature-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap !important;
+}
+.nb-taken {
+    background: rgba(59, 130, 246, 0.18) !important;
+    color: #60A5FA !important;
+    border: 1px solid rgba(59, 130, 246, 0.35) !important;
+}
+.nb-given {
+    background: rgba(16, 185, 129, 0.18) !important;
+    color: #34D399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+}
 
 .loan-status { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; white-space: nowrap !important; }
 .ls-active { background: rgba(34, 197, 94, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(34, 197, 94, 0.35) !important; }
@@ -208,45 +298,76 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
 <div class="crud-header">
     <div class="crud-title">
         <h2>Loan Management</h2>
-        <p>Track all loans, EMI schedules, and repayments.</p>
+        <p>Track all borrowed loans (Loan Taken) and lent loans (Loan Given).</p>
     </div>
-    <a href="{{ route('loans.create') }}" class="btn-gold"><i class="fa-solid fa-plus"></i> Add Loan</a>
+    <div class="header-buttons">
+        <a href="{{ route('loans.create') }}?nature=taken" class="btn-gold"><i class="fa-solid fa-hand-holding-dollar"></i> + Loan Taken</a>
+        <a href="{{ route('loans.create') }}?nature=given" class="btn-emerald"><i class="fa-solid fa-handshake-angle"></i> + Give Loan</a>
+    </div>
 </div>
 
 @if(session('success'))
     <div class="alert-success"><i class="fa-solid fa-circle-check"></i><span>{{ session('success') }}</span></div>
 @endif
 
-{{-- Stat Cards --}}
+{{-- Category Nature Filter Tabs --}}
 @php
-    $firmId    = $authUser ? $authUser->firm_id : null;
-    $allLoans  = \App\Models\Loan::where('firm_id',$firmId);
-    $activeCount    = (clone $allLoans)->where('loan_status','Active')->count();
-    $completedCount = (clone $allLoans)->where('loan_status','Completed')->count();
-    $totalLoanAmt   = (clone $allLoans)->sum('loan_amount');
-    $totalPendingAmt= (clone $allLoans)->where('loan_status','Active')->sum('pending_amount');
+    $currentNature = request('loan_nature', 'all');
 @endphp
+<div class="nature-tabs-bar">
+    <a href="{{ route('loans.index', array_merge(request()->except('loan_nature', 'page'), ['loan_nature' => 'all'])) }}" class="nature-tab {{ $currentNature === 'all' || empty($currentNature) ? 'active-all' : '' }}">
+        <i class="fa-solid fa-layer-group"></i> All Loans
+    </a>
+    <a href="{{ route('loans.index', array_merge(request()->except('loan_nature', 'page'), ['loan_nature' => 'taken'])) }}" class="nature-tab {{ $currentNature === 'taken' ? 'active-taken' : '' }}">
+        <i class="fa-solid fa-hand-holding-dollar"></i> Loan Taken (Liability)
+    </a>
+    <a href="{{ route('loans.index', array_merge(request()->except('loan_nature', 'page'), ['loan_nature' => 'given'])) }}" class="nature-tab {{ $currentNature === 'given' ? 'active-given' : '' }}">
+        <i class="fa-solid fa-handshake-angle"></i> Loan Given (Receivable)
+    </a>
+</div>
+
+{{-- Stat Cards --}}
 <div class="stat-cards">
     <div class="stat-card">
-        <div class="stat-icon gold"><i class="fa-solid fa-landmark"></i></div>
-        <div class="stat-body"><div class="s-label">Total Loan Amount</div><div class="s-value" style="color:#FBBF24 !important;">₹{{ number_format($totalLoanAmt,2) }}</div></div>
+        <div class="stat-icon blue"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+        <div class="stat-body">
+            <div class="s-label">Loan Taken</div>
+            <div class="s-value" style="color:#60A5FA !important;">₹{{ number_format($totalTaken ?? 0, 2) }}</div>
+            <div class="s-sub">Pending to Pay: <span style="color:#F87171;">₹{{ number_format($pendingTaken ?? 0, 2) }}</span></div>
+        </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon blue"><i class="fa-solid fa-circle-play"></i></div>
-        <div class="stat-body"><div class="s-label">Active Loans</div><div class="s-value">{{ $activeCount }}</div></div>
+        <div class="stat-icon green"><i class="fa-solid fa-handshake-angle"></i></div>
+        <div class="stat-body">
+            <div class="s-label">Loan Given</div>
+            <div class="s-value" style="color:#34D399 !important;">₹{{ number_format($totalGiven ?? 0, 2) }}</div>
+            <div class="s-sub">Pending to Receive: <span style="color:#FBBF24;">₹{{ number_format($pendingGiven ?? 0, 2) }}</span></div>
+        </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
-        <div class="stat-body"><div class="s-label">Completed</div><div class="s-value" style="color:#34D399 !important;">{{ $completedCount }}</div></div>
+        <div class="stat-icon gold"><i class="fa-solid fa-money-bill-transfer"></i></div>
+        <div class="stat-body">
+            <div class="s-label">Total Repaid / Collected</div>
+            <div class="s-value" style="color:#FBBF24 !important;">₹{{ number_format($totalPaid ?? 0, 2) }}</div>
+            <div class="s-sub">Total Paid Amount Across Loans</div>
+        </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon red"><i class="fa-solid fa-hourglass-half"></i></div>
-        <div class="stat-body"><div class="s-label">Pending Amount</div><div class="s-value" style="color:#F87171 !important;">₹{{ number_format($totalPendingAmt,2) }}</div></div>
+        <div class="stat-icon purple"><i class="fa-solid fa-vault"></i></div>
+        <div class="stat-body">
+            <div class="s-label">Total Portfolio Volume</div>
+            <div class="s-value" style="color:#C084FC !important;">₹{{ number_format($totalLoan ?? 0, 2) }}</div>
+            <div class="s-sub">Combined Active & Completed</div>
+        </div>
     </div>
 </div>
 
 <div class="card-box">
     <form method="GET" action="{{ route('loans.index') }}" class="filter-bar">
+        @if(request('loan_nature') && request('loan_nature') !== 'all')
+            <input type="hidden" name="loan_nature" value="{{ request('loan_nature') }}">
+        @endif
+
         @if(auth()->user() && auth()->user()->isAdmin())
         <div class="filter-group">
             <span class="filter-label">Firm</span>
@@ -260,7 +381,7 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
         @endif
         <div class="filter-group">
             <span class="filter-label">Search</span>
-            <input type="text" name="search" value="{{ request('search') }}" class="search-input @error('search') is-invalid @enderror" placeholder="Bank, person, customer, property...">
+            <input type="text" name="search" value="{{ request('search') }}" class="search-input @error('search') is-invalid @enderror" placeholder="Bank, person, customer, borrower...">
         </div>
         <div class="filter-group">
             <span class="filter-label">Loan Type</span>
@@ -268,6 +389,9 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
                 <option value="">All Types</option>
                 <option value="Business Loan" {{ request('filter_loan_type') == 'Business Loan' ? 'selected' : '' }}>Business Loan</option>
                 <option value="Personal Loan" {{ request('filter_loan_type') == 'Personal Loan' ? 'selected' : '' }}>Personal Loan</option>
+                <option value="Given to Customer" {{ request('filter_loan_type') == 'Given to Customer' ? 'selected' : '' }}>Given to Customer</option>
+                <option value="Given to Person / Party" {{ request('filter_loan_type') == 'Given to Person / Party' ? 'selected' : '' }}>Given to Person / Party</option>
+                <option value="Employee Loan" {{ request('filter_loan_type') == 'Employee Loan' ? 'selected' : '' }}>Employee Loan</option>
             </select>
         </div>
         <div class="filter-group">
@@ -316,14 +440,14 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>Category</th>
                     <th>Firm</th>
+                    <th>Lender / Borrower Party</th>
                     <th>Loan Type</th>
-                    <th>Bank / Person</th>
-                    <th>Customer</th>
-                    <th>Property</th>
+                    <th>Property / Project</th>
                     <th style="text-align:right;">Loan Amount</th>
+                    <th style="text-align:right;">Pending</th>
                     <th style="text-align:right;">EMI / mo</th>
-                    <th>EMIs</th>
                     <th>Date</th>
                     <th>Progress</th>
                     <th style="text-align:center;">Status</th>
@@ -333,50 +457,70 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
             <tbody>
                 @forelse($loans as $key => $loan)
                 @php
+                    $isGiven = $loan->isGiven();
                     $pct = $loan->loan_amount > 0 ? round(($loan->paid_amount / $loan->loan_amount) * 100) : 0;
                     $lsCls = 'ls-' . strtolower($loan->loan_status);
                 @endphp
                 <tr>
                     <td>{{ method_exists($loans, 'firstItem') ? ($loans->firstItem() + $key) : ($key + 1) }}</td>
+                    <td>
+                        @if($isGiven)
+                            <span class="nature-badge nb-given"><i class="fa-solid fa-handshake-angle"></i> Loan Given</span>
+                        @else
+                            <span class="nature-badge nb-taken"><i class="fa-solid fa-hand-holding-dollar"></i> Loan Taken</span>
+                        @endif
+                    </td>
                     <td><strong style="color:#FFFFFF !important;">{{ $loan->firm_names }}</strong></td>
+                    <td>
+                        @if($isGiven)
+                            @if($loan->customer)
+                                <div style="font-weight:700;font-size:13.5px;color:#FFFFFF !important;">
+                                    <i class="fa-solid fa-user-tag" style="color:#34D399;font-size:11px;margin-right:4px;"></i>{{ $loan->customer->name }}
+                                </div>
+                                <div style="font-size:11.5px;color:#94A3B8;">Customer: {{ $loan->customer->mobile }}</div>
+                            @elseif($loan->person_name)
+                                <div style="font-weight:700;font-size:13.5px;color:#FFFFFF !important;">{{ $loan->person_name }}</div>
+                                <div style="font-size:11.5px;color:#94A3B8;">{{ $loan->mobile_number ?: ($loan->relationship ?? 'Borrower Party') }}</div>
+                            @else
+                                <span style="color:#94A3B8;">—</span>
+                            @endif
+                        @else
+                            @if($loan->loan_type === 'Personal Loan' && $loan->person_name)
+                                <strong style="color:#FFFFFF !important;">{{ $loan->person_name }}</strong>
+                                <div style="font-size:11.5px;color:#94A3B8;">{{ $loan->relationship ?? 'Lender Person' }}</div>
+                            @elseif($loan->bank_name)
+                                <strong style="color:#FFFFFF !important;">{{ $loan->bank_name }}</strong>
+                                @if($loan->customer)
+                                    <div style="font-size:11.5px;color:#94A3B8;">Cust: {{ $loan->customer->name }}</div>
+                                @endif
+                            @else
+                                <span style="color:#94A3B8;">—</span>
+                            @endif
+                        @endif
+                    </td>
                     <td>
                         <span class="type-chip">{{ $loan->loan_type }}</span>
                     </td>
                     <td>
-                        @if($loan->loan_type === 'Personal Loan')
-                            <strong style="color:#FFFFFF !important;">{{ $loan->person_name }}</strong>
-                            <div style="font-size:11.5px;color:#94A3B8;">{{ $loan->relationship ?? 'Personal' }}</div>
-                        @else
-                            <strong style="color:#FFFFFF !important;">{{ $loan->bank_name }}</strong>
-                        @endif
-                    </td>
-                    <td>
-                        @if($loan->loan_type === 'Business Loan' && $loan->customer)
-                            <div style="font-weight:700;font-size:13.5px;color:#FFFFFF !important;">{{ $loan->customer->name }}</div>
-                            <div style="font-size:11.5px;color:#94A3B8;">{{ $loan->customer->mobile }}</div>
-                        @else <span style="color:#94A3B8;">—</span>
-                        @endif
-                    </td>
-                    <td>
-                        @if($loan->loan_type === 'Business Loan')
-                            <span style="color:#CBD5E1;">{{ $loan->property?->property_name ?? '—' }}</span>
+                        @if($loan->property)
+                            <span style="color:#CBD5E1;">{{ $loan->property->property_name }}</span>
+                            @if($loan->property->project)
+                                <div style="font-size:11px;color:#94A3B8;">Proj: {{ $loan->property->project->project_name }}</div>
+                            @endif
                         @else
                             <span style="color:#94A3B8;">—</span>
                         @endif
                     </td>
                     <td style="text-align:right;font-weight:700;color:#FBBF24 !important;">₹{{ number_format($loan->loan_amount,2) }}</td>
-                    <td style="text-align:right;color:#F87171 !important;font-weight:700;">
+                    <td style="text-align:right;font-weight:700;color:{{ $loan->pending_amount > 0 ? '#F87171' : '#34D399' }} !important;">
+                        ₹{{ number_format($loan->pending_amount, 2) }}
+                    </td>
+                    <td style="text-align:right;color:#60A5FA !important;font-weight:700;">
                         @if($loan->has_emi && $loan->emi_amount)
                             ₹{{ number_format($loan->emi_amount,2) }}
+                            <div style="font-size:11px;color:#94A3B8;font-weight:500;">{{ $loan->total_emi_months }} mos</div>
                         @else
                             <span style="color:#94A3B8;font-size:11.5px;font-weight:600;background:rgba(255,255,255,0.06);padding:3px 8px;border-radius:6px;">No EMI</span>
-                        @endif
-                    </td>
-                    <td style="font-size:12.5px;color:#CBD5E1;">
-                        @if($loan->has_emi && $loan->total_emi_months)
-                            {{ $loan->total_emi_months }} mo
-                        @else
-                            <span style="color:#94A3B8;">—</span>
                         @endif
                     </td>
                     <td style="font-size:12.5px;white-space:nowrap;color:#CBD5E1;">{{ \Carbon\Carbon::parse($loan->loan_start_date)->format('d M Y') }}</td>
@@ -384,7 +528,7 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
                         <div class="progress-wrap">
                             <div class="progress-bar" style="width:{{ $pct }}%;"></div>
                         </div>
-                        <div style="font-size:11.5px;color:#94A3B8;margin-top:4px;font-weight:600;">{{ $pct }}% paid</div>
+                        <div style="font-size:11.5px;color:#94A3B8;margin-top:4px;font-weight:600;">{{ $pct }}% {{ $isGiven ? 'recovered' : 'paid' }}</div>
                     </td>
                     <td style="text-align:center;">
                         <span class="loan-status {{ $lsCls }}">{{ $loan->loan_status }}</span>
@@ -396,17 +540,17 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
                                 <a href="{{ route('loans.emi-schedule', $loan->id) }}" class="action-link emi"><i class="fa-solid fa-calendar-days"></i> EMI</a>
                             @else
                                 @if($loan->pending_amount > 0)
-                                    <button type="button" class="action-link pay" onclick="openIndexPayModal({{ $loan->id }}, '{{ addslashes($loan->loan_type === 'Personal Loan' ? $loan->person_name : ($loan->bank_name ?? 'Loan')) }}', {{ (float)$loan->loan_amount }}, {{ (float)$loan->paid_amount }}, {{ (float)$loan->pending_amount }})">
-                                        <i class="fa-solid fa-money-bill-wave"></i> Pay
+                                    <button type="button" class="action-link pay" onclick="openIndexPayModal({{ $loan->id }}, '{{ addslashes($loan->party_display_name) }}', {{ (float)$loan->loan_amount }}, {{ (float)$loan->paid_amount }}, {{ (float)$loan->pending_amount }}, '{{ $loan->loan_nature }}')">
+                                        <i class="fa-solid {{ $isGiven ? 'fa-hand-holding-dollar' : 'fa-money-bill-wave' }}"></i> {{ $isGiven ? 'Receive' : 'Pay' }}
                                     </button>
                                 @else
-                                    <span class="action-link paid"><i class="fa-solid fa-circle-check"></i> Paid</span>
+                                    <span class="action-link paid"><i class="fa-solid fa-circle-check"></i> {{ $isGiven ? 'Collected' : 'Paid' }}</span>
                                 @endif
                             @endif
                             <a href="{{ route('loans.edit', $loan->id) }}" class="btn-edit"><i class="fa fa-edit"></i> Edit</a>
                             <form action="{{ route('loans.destroy', $loan->id) }}" method="POST" style="display:inline;" id="del-loan-{{ $loan->id }}">
                                 @csrf @method('DELETE')
-                                <button type="button" class="btn-delete" onclick="confirmDelete({{ $loan->id }},'{{ addslashes($loan->loan_type === 'Personal Loan' ? $loan->person_name : ($loan->bank_name ?? 'Loan')) }}')">
+                                <button type="button" class="btn-delete" onclick="confirmDelete({{ $loan->id }},'{{ addslashes($loan->party_display_name) }}')">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </form>
@@ -429,11 +573,11 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
     @endif
 </div>
 
-{{-- Quick Pay Modal --}}
+{{-- Quick Payment Modal --}}
 <div class="modal" id="indexPayModal">
     <div class="modal-box">
         <div class="modal-header">
-            <h3><i class="fa-solid fa-money-bill-wave" style="color:#34D399;"></i> Record Loan Payment</h3>
+            <h3><i class="fa-solid fa-money-bill-wave" style="color:#34D399;"></i> <span id="modalHeaderTitle">Record Payment</span></h3>
             <button type="button" class="modal-close" onclick="closeIndexPayModal()">&times;</button>
         </div>
         <form method="POST" id="indexPayForm" action="">
@@ -445,7 +589,7 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
                     <strong style="color:#FFFFFF;" id="modalTotalAmt">₹0.00</strong>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#CBD5E1;margin-bottom:4px;">
-                    <span>Already Paid:</span>
+                    <span id="modalPaidLabel">Already Paid:</span>
                     <strong style="color:#34D399;" id="modalPaidAmt">₹0.00</strong>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:#CBD5E1;">
@@ -455,7 +599,7 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
             </div>
 
             <div class="form-group-modal">
-                <label class="form-label-modal">Payment Amount (₹) <span>*</span></label>
+                <label class="form-label-modal" id="modalInputAmountLabel">Payment Amount (₹) <span>*</span></label>
                 <input type="number" step="0.01" name="paid_amount" id="modalInputPaidAmount" class="form-control-modal" placeholder="0.00" required>
             </div>
 
@@ -487,7 +631,7 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
             </div>
 
             <div style="display:flex;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
-                <button type="submit" class="btn-green-modal"><i class="fa-solid fa-check"></i> Submit Payment</button>
+                <button type="submit" class="btn-green-modal" id="modalSubmitBtn"><i class="fa-solid fa-check"></i> Submit Payment</button>
                 <button type="button" class="btn-outline-modal" onclick="closeIndexPayModal()">Cancel</button>
             </div>
         </form>
@@ -497,22 +641,28 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function confirmDelete(id,name){
-    Swal.fire({title:'Delete Loan?',html:'Delete loan from <strong>'+name+'</strong>?<br><small style="color:#64748B;">All EMI schedules and history will also be deleted.</small>',icon:'warning',showCancelButton:true,confirmButtonColor:'#EF4444',cancelButtonColor:'#64748B',confirmButtonText:'Yes, Delete',cancelButtonText:'Cancel',customClass:{popup:'swal-loan-popup'}})
+    Swal.fire({title:'Delete Loan?',html:'Delete loan for <strong>'+name+'</strong>?<br><small style="color:#64748B;">All EMI schedules and payment history will also be deleted.</small>',icon:'warning',showCancelButton:true,confirmButtonColor:'#EF4444',cancelButtonColor:'#64748B',confirmButtonText:'Yes, Delete',cancelButtonText:'Cancel',customClass:{popup:'swal-loan-popup'}})
     .then(r=>{if(r.isConfirmed)document.getElementById('del-loan-'+id).submit();});
 }
 
-function openIndexPayModal(loanId, loanName, totalAmt, paidAmt, pendingAmt) {
+function openIndexPayModal(loanId, loanName, totalAmt, paidAmt, pendingAmt, nature) {
     document.getElementById('indexPayForm').action = "{{ url('loans') }}/" + loanId + "/record-payment";
     document.getElementById('modalLoanName').innerText = loanName;
     document.getElementById('modalTotalAmt').innerText = '₹' + parseFloat(totalAmt).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     document.getElementById('modalPaidAmt').innerText = '₹' + parseFloat(paidAmt).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     document.getElementById('modalPendingAmt').innerText = '₹' + parseFloat(pendingAmt).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    
+
+    const isGiven = (nature === 'given');
+    document.getElementById('modalHeaderTitle').innerText = isGiven ? 'Record Repayment Received' : 'Record Loan Payment';
+    document.getElementById('modalPaidLabel').innerText = isGiven ? 'Already Collected:' : 'Already Paid:';
+    document.getElementById('modalInputAmountLabel').innerHTML = (isGiven ? 'Received Amount (₹)' : 'Payment Amount (₹)') + ' <span>*</span>';
+    document.getElementById('modalSubmitBtn').innerHTML = isGiven ? '<i class="fa-solid fa-check"></i> Record Received Amount' : '<i class="fa-solid fa-check"></i> Submit Payment';
+
     const amountInput = document.getElementById('modalInputPaidAmount');
     amountInput.value = '';
     amountInput.max = pendingAmt;
     amountInput.placeholder = 'Max: ₹' + parseFloat(pendingAmt).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    
+
     document.getElementById('indexPayModal').classList.add('active');
 }
 
@@ -526,4 +676,3 @@ document.getElementById('indexPayModal').addEventListener('click', function(e) {
 </script>
 <style>.swal-loan-popup{font-family:'Outfit',sans-serif!important;border-radius:14px!important;}</style>
 @endsection
-
