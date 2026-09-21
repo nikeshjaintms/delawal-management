@@ -386,10 +386,10 @@
         </a>
     </div>
 
-    <!-- Properties & Bookings -->
+    <!-- Projects & Bookings -->
     <div class="kpi-section-header" style="margin-top:10px;">
         <div style="width:4px;height:18px;background:#EA580C;border-radius:3px;flex-shrink:0;"></div>
-        <h3>Property Portfolio</h3>
+        <h3>Project Overview</h3>
         <div class="kpi-section-divider"></div>
     </div>
 
@@ -421,10 +421,10 @@
             </div>
             <div class="kpi-deco deco-green"></div>
         </a>
-        <a href="{{ route('property-masters.index') }}" class="kpi-card">
-            <div class="kpi-icon-box ik-purple"><i class="fa-solid fa-city"></i></div>
+        <a href="{{ route('projects.index') }}" class="kpi-card">
+            <div class="kpi-icon-box ik-purple"><i class="fa-solid fa-layer-group"></i></div>
             <div class="kpi-info">
-                <span class="kpi-label">Total Properties</span>
+                <span class="kpi-label">Total Project Plots</span>
                 <span class="kpi-value">{{ number_format($totalProperties) }}</span>
                 <span class="kpi-badge bk-purple">All Units</span>
             </div>
@@ -520,10 +520,10 @@
     </div>
 
     <div class="summary-grid">
-        <!-- Property Status Summary -->
+        <!-- Project Status Summary -->
         <div class="summary-card">
             <div class="summary-title">
-                <i class="fa-solid fa-house-circle-check" style="color:#10B981;"></i> Property Portfolio
+                <i class="fa-solid fa-city" style="color:#10B981;"></i> Project Overview
             </div>
             <div class="chip-row">
                 <a href="{{ route('property-availability.index') }}" class="chip ch-green">
@@ -538,7 +538,7 @@
                 <a href="{{ route('rentals.index') }}" class="chip ch-sky">
                     <span class="chip-num">{{ $rentedProperties }}</span> Rented
                 </a>
-                <a href="{{ route('property-masters.index') }}" class="chip ch-blue">
+                <a href="{{ route('projects.index') }}" class="chip ch-blue">
                     <span class="chip-num">{{ $totalProperties }}</span> Total Units
                 </a>
             </div>
@@ -684,7 +684,7 @@
                 <div class="section-header">
                     <div class="section-title">
                         <div class="section-title-icon" style="background:rgba(245,158,11,0.1);"><i class="fa-solid fa-chart-pie" style="color:#F59E0B;"></i></div>
-                        Property Status
+                        Project Plots Status
                     </div>
                 </div>
                 <div>

@@ -65,9 +65,9 @@ class PropertySaleController extends Controller
 
             // If any of the properties is an entire PropertyMaster, cascade to its plots
             foreach ($properties as $property) {
-                if ($property->property_master_id && $property->unit_no === null) {
+                if ($property->property_master_id && $property->unit_no === null && empty($property->project_id)) {
                     $pm = \App\Models\PropertyMaster::find($property->property_master_id);
-                    if ($pm) {
+                    if ($pm && $pm->all_projects->isEmpty()) {
                         $pmStatus = ($targetStatus === 'available') ? 'active' : $targetStatus;
                         $pm->update(['status' => $pmStatus]);
                         $pm->plots()->update(['status' => $targetStatus]);

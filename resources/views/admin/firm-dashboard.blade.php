@@ -289,10 +289,10 @@
             </div>
             <div class="kpi-deco deco-green"></div>
         </a>
-        <a href="{{ route('property-masters.index') }}" class="kpi-card">
-            <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-building"></i></div>
+        <a href="{{ route('projects.index') }}" class="kpi-card">
+            <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-layer-group"></i></div>
             <div class="kpi-info">
-                <span class="kpi-label">Total Properties</span>
+                <span class="kpi-label">Total Project Plots</span>
                 <span class="kpi-value">{{ number_format($totalProperties) }}</span>
                 <span class="kpi-badge bk-blue">All units</span>
             </div>

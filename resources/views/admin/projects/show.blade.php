@@ -499,13 +499,75 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
 }
 
+.tbl-actions-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    vertical-align: middle;
+}
+
+.btn-tbl-edit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    background: rgba(37, 99, 235, 0.20) !important;
+    color: #60A5FA !important;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid rgba(59, 130, 246, 0.40) !important;
+    border-radius: 8px;
+    cursor: pointer;
+    box-sizing: border-box;
+    line-height: 1;
+    text-decoration: none !important;
+    transition: all 0.18s ease;
+}
+.btn-tbl-edit:hover {
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+    border-color: #3B82F6 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.btn-tbl-view {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #E2E8F0 !important;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 8px;
+    cursor: pointer;
+    box-sizing: border-box;
+    line-height: 1;
+    text-decoration: none !important;
+    transition: all 0.18s ease;
+}
+.btn-tbl-view:hover {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #FFFFFF !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    transform: translateY(-1px);
+}
+
 .btn-tbl-del {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
+    width: 32px;
     height: 32px;
-    padding: 0 10px;
+    padding: 0;
     background: rgba(239, 68, 68, 0.15) !important;
     color: #F87171 !important;
     font-size: 12px;
@@ -515,12 +577,21 @@
     cursor: pointer;
     box-sizing: border-box;
     line-height: 1;
-    transition: all 0.15s ease;
+    transition: all 0.18s ease;
 }
 .btn-tbl-del:hover {
     background: #EF4444 !important;
     color: #FFFFFF !important;
     border-color: #EF4444 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+.btn-tbl-del-placeholder {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    visibility: hidden;
 }
 
 .badge {
@@ -925,11 +996,8 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                     <th style="width: 60px;">#</th>
                     <th>Plot Name</th>
                     <th>Code</th>
-                    <th>Type</th>
-                    <th>Purchase Rate</th>
                     <th>Selling Price</th>
                     <th>Size (Area)</th>
-                    <th>Facing</th>
                     <th>Status</th>
                     <th style="text-align: right;">Action</th>
                 </tr>
@@ -951,15 +1019,6 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                         </td>
                         <td><code class="code-chip">{{ $property->property_code }}</code></td>
                         <td>
-                            <span style="color: #CBD5E1; font-size: 12.5px;">{{ $property->propertyType->name ?? 'Plot' }}</span>
-                        </td>
-                        <td>
-                            <strong style="color: #FBBF24; font-size: 13.5px;">₹{{ number_format($property->purchase_rate ?: 0, 2) }}</strong>
-                            @if($property->purchase_date)
-                                <small style="color: #94A3B8; display: block; font-size: 11px;">{{ \Carbon\Carbon::parse($property->purchase_date)->format('d M Y') }}</small>
-                            @endif
-                        </td>
-                        <td>
                             <strong style="color: #34D399; font-size: 13.5px;">₹{{ number_format($property->price ?: ($property->purchase_rate ?: 0), 2) }}</strong>
                         </td>
                         <td>
@@ -969,7 +1028,6 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                                 <span style="color: #94A3B8;">—</span>
                             @endif
                         </td>
-                        <td>{{ $property->facing ?: '—' }}</td>
                         <td>
                             @php
                                 $st = strtolower(trim($property->status ?? 'available'));
@@ -1016,7 +1074,7 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                                 </span>
                             @endif
                         </td>
-                        <td style="text-align: right; white-space: nowrap;">
+                        <td style="text-align: right; white-space: nowrap; width: 190px;">
                             <div class="tbl-actions-wrap">
                                 <button type="button" class="btn-tbl-edit" onclick="openQuickEditPlotModal({{ $property->id }}, '{{ addslashes($property->property_name) }}', '{{ addslashes($property->property_code) }}', '{{ $property->size }}', '{{ $property->size_unit }}', '{{ $property->facing }}', '{{ $property->purchase_rate }}', '{{ $property->price }}', '{{ $property->status }}', '{{ addslashes($property->description ?? '') }}')">
                                     <i class="fa-regular fa-pen-to-square"></i> Edit
@@ -1025,20 +1083,22 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                                     <i class="fa-regular fa-eye"></i> View
                                 </a>
                                 @if(!in_array($property->status, ['booked', 'sold']))
-                                    <form action="{{ route('projects.plots.destroy', [$project->id, $property->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove plot \'{{ addslashes($property->property_name) }}\' from this project?');" style="display: inline;">
+                                    <form action="{{ route('projects.plots.destroy', [$project->id, $property->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove plot \'{{ addslashes($property->property_name) }}\' from this project?');" style="display: inline; margin: 0;">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn-tbl-del" title="Delete Plot">
                                             <i class="fa-solid fa-trash-can"></i>
                                         </button>
                                     </form>
+                                @else
+                                    <span class="btn-tbl-del-placeholder"></span>
                                 @endif
                             </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="10" style="text-align: center; color: #94A3B8; padding: 36px 0;">
+                        <td colspan="7" style="text-align: center; color: #94A3B8; padding: 36px 0;">
                             <i class="fa-solid fa-boxes-stacked" style="font-size: 32px; color: #60A5FA; margin-bottom: 8px; display: block;"></i>
                             No plots added to this project yet. Click <strong>Import Excel</strong>, <strong>Bulk Generate</strong>, or <strong>Add Plot</strong> above to start adding plots!
                         </td>

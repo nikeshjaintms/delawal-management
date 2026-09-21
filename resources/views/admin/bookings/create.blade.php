@@ -165,27 +165,31 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                             @php
                                 $projPlotCount = $properties->filter(fn($p) => $p->project_id == $proj->id)->count();
                                 $projPlotsPrice = $properties->filter(fn($p) => $p->project_id == $proj->id)->sum('price');
+                                $projMasterIds = $proj->propertyMasters->pluck('id')->toArray();
+                                if ($proj->property_id && !in_array($proj->property_id, $projMasterIds)) {
+                                    $projMasterIds[] = $proj->property_id;
+                                }
                                 $isSel = old('project_id', request('project_id')) == $proj->id;
                             @endphp
                             <option value="project:{{ $proj->id }}"
-                                    data-type="project"
-                                    data-id="{{ $proj->id }}"
-                                    data-name="{{ $proj->project_name }}"
-                                    data-code="{{ $proj->project_code }}"
-                                    data-price="{{ $projPlotsPrice }}"
-                                    data-plots-count="{{ $projPlotCount }}"
-                                    data-properties-count="0"
-                                    data-master-ids='[]'
-                                    {{ $isSel ? 'selected' : '' }}>
+                                     data-type="project"
+                                     data-id="{{ $proj->id }}"
+                                     data-name="{{ $proj->project_name }}"
+                                     data-code="{{ $proj->project_code }}"
+                                     data-price="{{ $projPlotsPrice }}"
+                                     data-plots-count="{{ $projPlotCount }}"
+                                     data-properties-count="{{ count($projMasterIds) }}"
+                                     data-master-ids='@json($projMasterIds)'
+                                     {{ $isSel ? 'selected' : '' }}>
                                 🏢 Project: {{ $proj->project_name }} @if($proj->project_code)[{{ $proj->project_code }}]@endif ({{ $projPlotCount }} Project Plots)
                             </option>
                         @endforeach
                     </optgroup>
                 @endif
 
-                @if($standalonePropertyMasters->isNotEmpty() || $propertyMasters->isNotEmpty())
-                    <optgroup label="🏡 PROPERTIES / LAND ACQUISITION">
-                        @foreach($propertyMasters as $pm)
+                @if($standalonePropertyMasters->isNotEmpty())
+                    <optgroup label="🏡 STANDALONE PROPERTIES / LAND (No Project)">
+                        @foreach($standalonePropertyMasters as $pm)
                             @php
                                 $pmPlotsCount = $properties->filter(fn($p) => $p->property_master_id == $pm->id && empty($p->project_id))->count();
                                 $pmPrice = $pm->purchase_price ?: ($properties->filter(fn($p) => $p->property_master_id == $pm->id && empty($p->project_id))->sum('price') ?: 0);
@@ -202,7 +206,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                     data-plots-count="{{ $pmPlotsCount }}"
                                     data-master-ids='[{{ $pm->id }}]'
                                     {{ $isSel ? 'selected' : '' }}>
-                                🏡 Property: {{ $pm->property_name }} @if($pm->property_code)[{{ $pm->property_code }}]@endif @if($pmArea)— Area: {{ $pmArea }}@endif ({{ $pmPlotsCount }} Property Plots)
+                                🏡 Property: {{ $pm->property_name }} @if($pm->property_code)[{{ $pm->property_code }}]@endif @if($pmArea)— Area: {{ $pmArea }}@endif ({{ $pmPlotsCount }} Plots)
                             </option>
                         @endforeach
                     </optgroup>

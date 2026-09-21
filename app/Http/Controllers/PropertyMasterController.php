@@ -25,6 +25,7 @@ class PropertyMasterController extends Controller
 {
     public function index(Request $request)
     {
+        Property::syncAllStatuses();
         $isAdmin = auth()->user() && auth()->user()->isAdmin();
         $query = PropertyMaster::with(['firm', 'projects'])->withCount(['projects', 'plots']);
 
@@ -240,7 +241,7 @@ class PropertyMasterController extends Controller
             $propPrefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $propertyMaster->property_name), 0, 4)) ?: 'PROP';
             $unitCount = count($parsedUnits);
             $unitPrice = ($unitCount > 0 && $purchasePrice > 0) ? round($purchasePrice / $unitCount, 2) : ($propertyMaster->purchase_rate ?: 0);
-            $unitArea = ($unitCount > 0 && $propertyMaster->total_area > 0) ? round($propertyMaster->total_area / $unitCount, 2) : null;
+            $unitArea = null;
 
             // Resolve PropertyType ID
             $propTypeName = $propertyMaster->property_type ?: 'Plot';
@@ -267,7 +268,7 @@ class PropertyMasterController extends Controller
                     'property_name' => trim($unitPrefix . ' ' . $cleanUnit),
                     'property_code' => $plotCode,
                     'unit_no' => $cleanUnit,
-                    'size' => $unitArea,
+                    'size' => null,
                     'size_unit' => $propertyMaster->area_unit ?: 'sq.ft',
                     'location' => $propertyMaster->location,
                     'city' => $propertyMaster->city,
@@ -480,7 +481,7 @@ class PropertyMasterController extends Controller
             $propPrefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $propertyMaster->property_name), 0, 4)) ?: 'PROP';
             $unitCount = count($parsedUnits);
             $unitPrice = ($unitCount > 0 && $purchasePrice > 0) ? round($purchasePrice / $unitCount, 2) : ($propertyMaster->purchase_rate ?: 0);
-            $unitArea = ($unitCount > 0 && $propertyMaster->total_area > 0) ? round($propertyMaster->total_area / $unitCount, 2) : null;
+            $unitArea = null;
 
             foreach ($parsedUnits as $unitNo) {
                 $cleanUnit = trim((string) $unitNo);
@@ -499,7 +500,7 @@ class PropertyMasterController extends Controller
                     'property_name' => trim($unitPrefix . ' ' . $cleanUnit),
                     'property_code' => $plotCode,
                     'unit_no' => $cleanUnit,
-                    'size' => $unitArea,
+                    'size' => null,
                     'size_unit' => $propertyMaster->area_unit ?: 'sq.ft',
                     'location' => $propertyMaster->location,
                     'city' => $propertyMaster->city,

@@ -20,6 +20,8 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        Property::syncAllStatuses();
+
         // ══════════════════════════════════════════════════════════
         //  FIRM SESSION DASHBOARD
         // ══════════════════════════════════════════════════════════
@@ -44,12 +46,12 @@ class DashboardController extends Controller
         $totalUsers          = \App\Models\User::count();
         $activeUsers         = \App\Models\User::where('status', 'active')->count();
         $totalCustomers      = Customer::count();
-        $totalProperties     = Property::count();
-        $availableProperties = Property::where('status', 'available')->count();
-        $bookedProperties    = Property::where('status', 'booked')->count();
-        $soldProperties      = Property::where('status', 'sold')->count();
-        $rentedProperties    = Property::where('status', 'rented')->count();
-        $totalBookings       = Booking::count();
+        $totalProperties     = Property::whereNotNull('project_id')->count();
+        $availableProperties = Property::whereNotNull('project_id')->where('status', 'available')->count();
+        $bookedProperties    = Property::whereNotNull('project_id')->where('status', 'booked')->count();
+        $soldProperties      = Property::whereNotNull('project_id')->where('status', 'sold')->count();
+        $rentedProperties    = Property::whereNotNull('project_id')->where('status', 'rented')->count();
+        $totalBookings       = Property::whereNotNull('project_id')->where('status', 'booked')->count();
         
         // Comprehensive revenue calculation from all modules
         $paymentReceived     = Payment::sum('payment_amount') ?: 0;
@@ -93,16 +95,16 @@ class DashboardController extends Controller
             ->whereYear('created_at',  now()->year)
             ->count();
 
-        // ── Properties ─────────────────────────────────────────────
-        $totalProperties     = Property::where('firm_id', $firmId)->count();
-        $availableProperties = Property::where('firm_id', $firmId)->where('status', 'available')->count();
-        $soldProperties      = Property::where('firm_id', $firmId)->where('status', 'sold')->count();
-        $bookedProperties    = Property::where('firm_id', $firmId)->where('status', 'booked')->count();
-        $rentedProperties    = Property::where('firm_id', $firmId)->where('status', 'rented')->count();
-        $portfolioVal        = Property::where('firm_id', $firmId)->sum('price') ?: 0;
+        // ── Properties (Project Plots Only) ────────────────────────
+        $totalProperties     = Property::where('firm_id', $firmId)->whereNotNull('project_id')->count();
+        $availableProperties = Property::where('firm_id', $firmId)->whereNotNull('project_id')->where('status', 'available')->count();
+        $soldProperties      = Property::where('firm_id', $firmId)->whereNotNull('project_id')->where('status', 'sold')->count();
+        $bookedProperties    = Property::where('firm_id', $firmId)->whereNotNull('project_id')->where('status', 'booked')->count();
+        $rentedProperties    = Property::where('firm_id', $firmId)->whereNotNull('project_id')->where('status', 'rented')->count();
+        $portfolioVal        = Property::where('firm_id', $firmId)->whereNotNull('project_id')->sum('price') ?: 0;
 
         // ── Sales / Bookings ───────────────────────────────────────
-        $totalBookings = Booking::where('firm_id', $firmId)->count();
+        $totalBookings = Property::where('firm_id', $firmId)->whereNotNull('project_id')->where('status', 'booked')->count();
         $totalSalesAmt = PropertySale::where('firm_id', $firmId)->sum('grand_total') ?: 0;
 
         // ── Payments & Revenue ─────────────────────────────────────

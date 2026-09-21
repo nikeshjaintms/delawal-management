@@ -20,11 +20,12 @@ class AdminDashboardController extends Controller
         $totalUsers = \App\Models\User::count();
         $activeUsers = \App\Models\User::where('status', 'active')->count();
         $totalCustomers = Customer::count();
-        $totalProperties = Property::count();
-        $availableProperties = Property::where('status', 'available')->count();
-        $soldProperties = Property::where('status', 'sold')->count();
-        $rentedProperties = Property::where('status', 'rented')->count();
-        $totalBookings = PropertySale::count();
+        $totalProperties = Property::whereNotNull('project_id')->count();
+        $availableProperties = Property::whereNotNull('project_id')->where('status', 'available')->count();
+        $bookedProperties = Property::whereNotNull('project_id')->where('status', 'booked')->count();
+        $soldProperties = Property::whereNotNull('project_id')->where('status', 'sold')->count();
+        $rentedProperties = Property::whereNotNull('project_id')->where('status', 'rented')->count();
+        $totalBookings = Property::whereNotNull('project_id')->where('status', 'booked')->count();
         $totalReceivedAmt = Payment::sum('payment_amount') ?: 0;
         $totalExpenses = Expense::sum('amount') ?: 0;
         $netProfit = $totalReceivedAmt - $totalExpenses;
@@ -33,12 +34,15 @@ class AdminDashboardController extends Controller
         $totalPendingAmt = PropertySale::sum('remaining_amount') ?: 0;
         $recentCustomers = Customer::latest()->limit(5)->get();
         $recentPayments = Payment::with(['customer', 'property'])->latest()->limit(5)->get();
+        $totalProjects = \App\Models\Project::count();
+        $activeProjects = \App\Models\Project::where('status', 'active')->count();
 
         return view('admin.dashboard', compact(
             'totalFirms', 'activeFirms', 'inactiveFirms', 'totalUsers', 'activeUsers',
-            'totalCustomers', 'totalProperties', 'availableProperties', 'soldProperties',
-            'rentedProperties', 'totalBookings', 'totalReceivedAmt', 'totalExpenses', 'netProfit',
-            'totalPendingAmt', 'recentCustomers', 'recentPayments'
+            'totalCustomers', 'totalProperties', 'availableProperties', 'bookedProperties',
+            'soldProperties', 'rentedProperties', 'totalBookings', 'totalReceivedAmt',
+            'totalExpenses', 'netProfit', 'totalPendingAmt', 'recentCustomers',
+            'recentPayments', 'totalProjects', 'activeProjects'
         ));
     }
 }

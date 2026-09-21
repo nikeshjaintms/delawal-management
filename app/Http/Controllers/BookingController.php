@@ -79,9 +79,9 @@ class BookingController extends Controller
             $removedProps = Property::whereIn('id', $removedPropIds)->get();
             Property::whereIn('id', $removedPropIds)->update(['status' => 'available']);
             foreach ($removedProps as $oldProp) {
-                if ($oldProp->property_master_id && $oldProp->unit_no === null) {
+                if ($oldProp->property_master_id && $oldProp->unit_no === null && empty($oldProp->project_id)) {
                     $oldPm = \App\Models\PropertyMaster::find($oldProp->property_master_id);
-                    if ($oldPm) {
+                    if ($oldPm && $oldPm->all_projects->isEmpty()) {
                         $oldPm->update(['status' => 'active']);
                         $oldPm->plots()->update(['status' => 'available']);
                     }
@@ -97,9 +97,9 @@ class BookingController extends Controller
         if ($booking->status === 'cancelled') {
             Property::whereIn('id', $propertyIds)->update(['status' => 'available']);
             foreach ($properties as $property) {
-                if ($property->property_master_id && $property->unit_no === null) {
+                if ($property->property_master_id && $property->unit_no === null && empty($property->project_id)) {
                     $pm = \App\Models\PropertyMaster::find($property->property_master_id);
-                    if ($pm) {
+                    if ($pm && $pm->all_projects->isEmpty()) {
                         $pm->update(['status' => 'active']);
                         $pm->plots()->update(['status' => 'available']);
                     }
@@ -109,9 +109,9 @@ class BookingController extends Controller
             // For any active booking (pending, confirmed, booked, etc.)
             Property::whereIn('id', $propertyIds)->update(['status' => 'booked']);
             foreach ($properties as $property) {
-                if ($property->property_master_id && $property->unit_no === null) {
+                if ($property->property_master_id && $property->unit_no === null && empty($property->project_id)) {
                     $pm = \App\Models\PropertyMaster::find($property->property_master_id);
-                    if ($pm) {
+                    if ($pm && $pm->all_projects->isEmpty()) {
                         $pm->update(['status' => 'booked']);
                         $pm->plots()->update(['status' => 'booked']);
                     }
@@ -174,6 +174,7 @@ class BookingController extends Controller
 
     public function create()
     {
+        Property::syncAllStatuses();
         return view('admin.bookings.create', $this->dropdowns());
     }
 

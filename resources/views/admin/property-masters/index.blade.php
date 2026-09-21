@@ -248,9 +248,14 @@
                         </td>
                         <td>
                             @php
+                                $hasProjects = $property->all_projects && $property->all_projects->isNotEmpty();
                                 $st = strtolower(trim($property->status ?? 'active'));
                             @endphp
-                            @if(in_array($st, ['active', 'available', 'approved']))
+                            @if($hasProjects)
+                                <span class="badge badge-active">
+                                    <i class="fa-solid fa-circle-dot" style="font-size: 8px; margin-right: 4px;"></i> Active
+                                </span>
+                            @elseif(in_array($st, ['active', 'available', 'approved']))
                                 <span class="badge badge-active">
                                     <i class="fa-solid fa-circle-dot" style="font-size: 8px; margin-right: 4px;"></i> {{ ucfirst($st) }}
                                 </span>
