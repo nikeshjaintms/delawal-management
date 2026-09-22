@@ -19,12 +19,12 @@
 /* KPI Row */
 .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px; }
 .kpi-card {
-    background: rgba(20, 27, 41, 0.60) !important;
-    backdrop-filter: blur(20px) saturate(160%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(24, 33, 54, 0.92) 100%) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
     border-radius: 16px !important; padding: 14px 18px !important;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25) !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35) !important;
     display: flex; align-items: center; gap: 14px;
 }
 .kpi-icon {
@@ -36,31 +36,31 @@
 .kpi-info .kpi-val { font-size: 16.5px; font-weight: 700; color: #FFFFFF !important; margin: 0; line-height: 1.2; white-space: nowrap; }
 
 .card-box {
-    background: rgba(20, 27, 41, 0.60) !important;
-    backdrop-filter: blur(20px) saturate(160%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.94) 0%, rgba(20, 28, 48, 0.97) 100%) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
     border-radius: 24px !important; padding: 24px !important;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 28px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important; margin-bottom: 28px;
 }
 
 .filter-bar {
     display: flex !important; gap: 12px !important; align-items: flex-end !important; margin-bottom: 24px !important;
-    background: rgba(255, 255, 255, 0.04) !important; padding: 16px 20px !important;
-    border-radius: 16px !important; border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    background: rgba(10, 15, 28, 0.65) !important; padding: 16px 20px !important;
+    border-radius: 16px !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;
     width: 100% !important; flex-wrap: nowrap !important; overflow-x: auto !important;
 }
 .filter-group { display: flex; flex-direction: column; gap: 6px; }
-.filter-label { font-size: 11px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: 0.8px; }
+.filter-label { font-size: 11px; font-weight: 800; color: #CBD5E1 !important; text-transform: uppercase; letter-spacing: 0.8px; }
 .filter-control, .search-input {
-    padding: 10px 14px !important; background: rgba(16, 22, 34, 0.65) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 10px !important;
+    padding: 10px 14px !important; background: rgba(10, 15, 28, 0.90) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.16) !important; border-radius: 10px !important;
     font-size: 13.5px; color: #FFFFFF !important; outline: none; transition: all .2s ease;
     min-width: 130px;
 }
-select.filter-control option { background: #101622 !important; color: #FFFFFF !important; }
+select.filter-control option { background: #0F172A !important; color: #FFFFFF !important; }
 .search-input { min-width: 180px; }
-.search-input::placeholder { color: #94A3B8 !important; }
+.search-input::placeholder { color: #64748B !important; }
 
 .btn-search {
     background: #2563EB !important; color: #FFFFFF !important; padding: 10px 20px !important;

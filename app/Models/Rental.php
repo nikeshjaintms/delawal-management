@@ -52,4 +52,9 @@ class Rental extends Model
     {
         return $this->hasMany(RentalPayment::class);
     }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'rental_id');
+    }
 }

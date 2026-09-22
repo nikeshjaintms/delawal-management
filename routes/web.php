@@ -171,10 +171,15 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('stock-outwards/{stock_outward}/print', [\App\Http\Controllers\StockOutwardController::class, 'print'])->name('stock-outwards.print')->middleware(['permission:inventory_view']);
 
     // ── Inventory & Expenses ──────────────────────────────────────────
+    Route::get('expenses/property', [ExpenseController::class, 'propertyExpenses'])->name('expenses.property')->middleware(['permission:expense_view']);
+    Route::get('expenses/general', [ExpenseController::class, 'generalExpenses'])->name('expenses.general')->middleware(['permission:expense_view']);
+    Route::get('expenses/rental', [ExpenseController::class, 'rentalExpenses'])->name('expenses.rental')->middleware(['permission:expense_view']);
+    Route::get('expenses/personal', [ExpenseController::class, 'personalExpenses'])->name('expenses.personal')->middleware(['permission:expense_view']);
     Route::get('expenses/project-wise', [ExpenseController::class, 'projectWise'])->name('expenses.project-wise')->middleware(['permission:expense_view']);
     Route::get('expenses/project-wise/export-pdf', [ExpenseController::class, 'exportProjectWisePdf'])->name('expenses.project-wise.pdf')->middleware(['permission:expense_view']);
     Route::get('expenses/export-pdf', [ExpenseController::class, 'exportPdf'])->name('expenses.pdf')->middleware(['permission:expense_view']);
     Route::get('expenses/{expense}/pdf', [ExpenseController::class, 'downloadPdf'])->name('expenses.detail-pdf')->middleware(['permission:expense_view']);
+    Route::get('expenses/rental-property-info/{property}', [ExpenseController::class, 'getRentalPropertyInfo'])->name('expenses.rental-property-info')->middleware(['permission:expense_view']);
     Route::resource('expenses', ExpenseController::class)->middleware(['permission:expense_view']);
     Route::any('material-categories/{any?}', function () {
         return redirect()->route('materials.index');

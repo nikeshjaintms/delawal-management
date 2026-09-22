@@ -69,7 +69,7 @@
         <div class="sum-body"><div class="s-label">Total Debit</div><div class="s-value" style="color:#DC2626;">₹{{ number_format($totalDebit,2) }}</div></div>
     </div>
     <div class="sum-card">
-        <div class="sum-icon green"><i class="fa-solid fa-arrow-down-to-bracket"></i></div>
+        <div class="sum-icon green"><i class="fa-solid fa-download"></i></div>
         <div class="sum-body"><div class="s-label">Total Credit</div><div class="s-value" style="color:#16803D;">₹{{ number_format($totalCredit,2) }}</div></div>
     </div>
     <div class="sum-card">

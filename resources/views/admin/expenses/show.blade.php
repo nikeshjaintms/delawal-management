@@ -207,6 +207,77 @@
         </div>
     </div>
 
+    {{-- Rental Management & Tenant Recovery Details --}}
+    @if($expense->rental_id || $expense->tenant_id || $expense->expense_type === 'Rental' || $expense->is_tenant_recoverable)
+    <div class="section-title" style="color: #38BDF8 !important;"><i class="fa-solid fa-house-user"></i> Rental Management &amp; Tenant Recovery</div>
+    <div class="detail-grid" style="background: rgba(15, 23, 42, 0.60); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px; padding: 18px; margin-bottom: 20px;">
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-file-contract"></i> Linked Rental Agreement</div>
+            @if($expense->rental)
+                <div class="detail-value">
+                    <a href="{{ route('rentals.show', $expense->rental->id) }}" style="color: #60A5FA; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px;"></i>
+                        {{ $expense->rental->agreement_no ?: 'AGR-'.$expense->rental->id }}
+                    </a>
+                    <span style="font-size: 11.5px; color: #10B981; font-weight: 700; margin-left: 6px;">[{{ ucfirst($expense->rental->rental_status) }}]</span>
+                </div>
+            @else
+                <div class="detail-value empty">Direct Property Expense (No Agreement Linked)</div>
+            @endif
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-user"></i> Tenant Profile</div>
+            @php $tenantObj = $expense->tenant ?? $expense->rental?->tenant; @endphp
+            @if($tenantObj)
+                <div class="detail-value" style="color: #FFFFFF;">
+                    {{ $tenantObj->name }}
+                    @if($tenantObj->phone)
+                        <span style="font-size: 12px; color: #60A5FA;">(📞 {{ $tenantObj->phone }})</span>
+                    @endif
+                </div>
+            @elseif($expense->rental && $expense->rental->tenant_name)
+                <div class="detail-value">{{ $expense->rental->tenant_name }} {{ $expense->rental->tenant_mobile ? '('.$expense->rental->tenant_mobile.')' : '' }}</div>
+            @else
+                <div class="detail-value empty">No Tenant Linked</div>
+            @endif
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-hand-holding-dollar"></i> Tenant Recovery</div>
+            <div class="detail-value">
+                @if($expense->is_tenant_recoverable)
+                    <span style="color: #34D399; font-weight: 800;">₹{{ number_format($expense->recovery_amount ?: $expense->amount, 2) }}</span>
+                    <span style="font-size: 11px; color: #CBD5E1; margin-left: 6px;">(Recoverable)</span>
+                @else
+                    <span style="color: #94A3B8; font-weight: 500;">Non-Recoverable (Owner/Firm Expense)</span>
+                @endif
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-clock-rotate-left"></i> Recovery Status</div>
+            <div class="detail-value">
+                @if($expense->is_tenant_recoverable)
+                    @php
+                        $rSt = $expense->recovery_status ?: 'Pending';
+                        $rColor = match($rSt) {
+                            'Recovered' => '#34D399',
+                            'Partially Recovered' => '#60A5FA',
+                            'Deducted from Deposit' => '#C084FC',
+                            'Waived' => '#94A3B8',
+                            default => '#FBBF24',
+                        };
+                    @endphp
+                    <span style="color: {{ $rColor }}; font-weight: 800; font-size: 13.5px;">{{ $rSt }}</span>
+                @else
+                    <span class="detail-value empty">N/A</span>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- 2. Payment Details --}}
     <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> 2. Amount &amp; Payment Details</div>
     <div class="detail-grid-3">

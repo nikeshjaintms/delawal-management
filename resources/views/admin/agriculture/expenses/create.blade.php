@@ -16,18 +16,23 @@
 }
 .btn-back:hover { background: rgba(255, 255, 255, 0.15) !important; color: #FFFFFF !important; }
 
-.glass-card {
-    background: rgba(20, 27, 41, 0.60) !important;
-    backdrop-filter: blur(20px) saturate(160%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+.card-box {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.94) 0%, rgba(20, 28, 48, 0.97) 100%) !important;
+    backdrop-filter: blur(28px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
     border-radius: 24px !important; padding: 32px !important;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important; margin-bottom: 30px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important; margin-bottom: 30px;
+}
+.card-box:hover {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.94) 0%, rgba(20, 28, 48, 0.97) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    transform: none !important;
 }
 
 .section-divider {
-    font-size: 13px; font-weight: 800; color: #60A5FA !important; text-transform: uppercase;
-    letter-spacing: 1px; margin: 28px 0 18px 0; display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 800; color: #38BDF8 !important; text-transform: uppercase;
+    letter-spacing: 0.8px; margin: 28px 0 18px 0; display: flex; align-items: center; gap: 10px;
 }
 .section-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.10); }
 
@@ -35,20 +40,20 @@
 .form-group { display: flex; flex-direction: column; gap: 8px; }
 .form-group.full-width { grid-column: 1 / -1; }
 
-.form-label { font-size: 13px; font-weight: 700; color: #CBD5E1 !important; display: flex; align-items: center; gap: 4px; }
+.form-label { font-size: 13px; font-weight: 700; color: #E2E8F0 !important; display: flex; align-items: center; gap: 4px; }
 .form-label .req { color: #F87171; font-weight: 800; }
 
 .form-control-glass {
-    width: 100%; padding: 12px 16px !important; background: rgba(16, 22, 34, 0.65) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.15) !important; border-radius: 12px !important;
+    width: 100%; padding: 12px 16px !important; background: rgba(10, 15, 28, 0.90) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.16) !important; border-radius: 12px !important;
     font-size: 14px; color: #FFFFFF !important; outline: none; transition: all .25s ease;
     box-sizing: border-box;
 }
 .form-control-glass:focus {
-    border-color: #3B82F6 !important; background: rgba(16, 22, 34, 0.85) !important;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+    border-color: #3B82F6 !important; background: rgba(10, 15, 28, 0.98) !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25) !important;
 }
-select.form-control-glass option { background: #101622 !important; color: #FFFFFF !important; }
+select.form-control-glass option { background: #0F172A !important; color: #FFFFFF !important; }
 
 .btn-submit {
     background: #2563EB !important; color: #FFFFFF !important; padding: 14px 32px;
@@ -67,7 +72,7 @@ select.form-control-glass option { background: #101622 !important; color: #FFFFF
     <a href="{{ route('agriculture.expenses.index') }}" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Back to Expenses</a>
 </div>
 
-<div class="glass-card">
+<div class="card-box">
     <form method="POST" action="{{ route('agriculture.expenses.store') }}" enctype="multipart/form-data">
         @csrf
 
@@ -93,9 +98,9 @@ select.form-control-glass option { background: #101622 !important; color: #FFFFF
         <div class="section-divider"><i class="fa-solid fa-tractor"></i> 1. Farm & Categorization</div>
         <div class="form-grid">
             <div class="form-group">
-                <label class="form-label">Select Farm / Land <span class="req">*</span></label>
-                <select name="farm_id" class="form-control-glass" required>
-                    <option value="">-- Choose Farm --</option>
+                <label class="form-label">Select Farm / Land <span class="opt" style="font-weight: 500; color: #94A3B8; font-size: 12px;">(optional)</span></label>
+                <select name="farm_id" class="form-control-glass">
+                    <option value="">-- None / General Farm (Optional) --</option>
                     @foreach($farms as $f)
                         <option value="{{ $f->id }}" {{ old('farm_id') == $f->id ? 'selected' : '' }}>
                             {{ $f->farm_name }} ({{ $f->village ?: 'Direct' }})

@@ -448,8 +448,21 @@ class PurchaseOrderController extends Controller
     public function destroy(PurchaseOrder $purchaseOrder)
     {
         $this->authorise($purchaseOrder);
-        $purchaseOrder->delete();
-        return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order deleted successfully.');
+
+        DB::transaction(function () use ($purchaseOrder) {
+            // Delete linked synced expense if exists
+            if ($purchaseOrder->expense) {
+                $purchaseOrder->expense->delete();
+            }
+            // Delete PO items
+            $purchaseOrder->items()->delete();
+            // Detach assigned contractors
+            $purchaseOrder->contractors()->detach();
+            // Delete purchase order
+            $purchaseOrder->delete();
+        });
+
+        return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order #' . $purchaseOrder->po_number . ' deleted successfully.');
     }
 
     public function downloadPdf(PurchaseOrder $purchaseOrder)

@@ -97,7 +97,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         @csrf @method('PUT')
         @include('admin.components.firm-select', ['model' => $stockInward])
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-arrow-down-to-bracket"></i> Inward Details</div>
+            <div class="section-title"><i class="fa-solid fa-download"></i> Inward Details</div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="material_id">Material <span>*</span></label>

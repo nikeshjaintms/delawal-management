@@ -348,19 +348,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     <td style="text-align:right; font-weight:700; color: #34D399;">₹{{ number_format($po->grand_total, 2) }}</td>
                     <td style="text-align:right;">
                         <div class="table-action-buttons">
-                            @if($authUser->hasPermission('purchase_order_view'))
+                            @if($authUser->hasPermission('purchase_order_view') || $authUser->isAdmin())
                             <a href="{{ route('purchase-orders.show', $po->id) }}" class="btn-view"><i class="fa-solid fa-eye"></i> View</a>
                             @endif
                             
-                            @if($authUser->hasPermission('purchase_order_edit') && in_array($po->status, ['Draft', 'Pending']))
+                            @if($authUser->hasPermission('purchase_order_edit') || $authUser->isAdmin())
                             <a href="{{ route('purchase-orders.edit', $po->id) }}" class="btn-edit"><i class="fa-solid fa-pen-to-square"></i> Edit</a>
                             @endif
 
-                            @if($authUser->hasPermission('purchase_order_print'))
+                            @if($authUser->hasPermission('purchase_order_print') || $authUser->isAdmin())
                             <a href="{{ route('purchase-orders.print', $po->id) }}" target="_blank" class="btn-print"><i class="fa-solid fa-print"></i> Print</a>
                             @endif
 
-                            @if($authUser->hasPermission('purchase_order_delete') && $po->status === 'Draft')
+                            @if($authUser->hasPermission('purchase_order_delete') || $authUser->isAdmin())
                             <form action="{{ route('purchase-orders.destroy', $po->id) }}" method="POST" style="display:inline;" id="del-po-{{ $po->id }}">
                                 @csrf @method('DELETE')
                                 <button type="button" class="btn-delete" onclick="confirmDel({{ $po->id }},'{{ addslashes($po->po_number) }}','del-po-')"><i class="fa-solid fa-trash-can"></i> Delete</button>

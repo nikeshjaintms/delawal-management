@@ -431,10 +431,29 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
         <a href="{{ route('expenses.project-wise.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important; border: 1px solid #F87171 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.40);">
             <i class="fa-solid fa-file-pdf"></i> Export PDF
         </a>
-        <a href="{{ route('expenses.create', request('project_id') ? ['project_id' => request('project_id')] : []) }}" class="btn-gold">
-            <i class="fa-solid fa-plus"></i> Add Expense
+        <a href="{{ route('expenses.create', array_merge(['type' => 'Project'], request('project_id') ? ['project_id' => request('project_id')] : [])) }}" class="btn-gold">
+            <i class="fa-solid fa-plus"></i> Add Project Expense
         </a>
     </div>
+</div>
+
+{{-- 5 Expense Type Nav Tabs --}}
+<div class="expense-nav-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+    <a href="{{ route('expenses.property') }}" class="expense-nav-tab" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 12px; background: rgba(16, 22, 34, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); color: #94A3B8; font-size: 13.5px; font-weight: 700; text-decoration: none !important;">
+        <i class="fa-solid fa-building"></i> Property Expenses
+    </a>
+    <a href="{{ route('expenses.project-wise') }}" class="expense-nav-tab active" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 12px; background: linear-gradient(135deg, #2563EB, #1D4ED8) !important; border: 1px solid #3B82F6 !important; color: #FFFFFF !important; font-size: 13.5px; font-weight: 700; text-decoration: none !important; box-shadow: 0 4px 18px rgba(37, 99, 235, 0.40);">
+        <i class="fa-solid fa-city"></i> Project Expenses
+    </a>
+    <a href="{{ route('expenses.general') }}" class="expense-nav-tab" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 12px; background: rgba(16, 22, 34, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); color: #94A3B8; font-size: 13.5px; font-weight: 700; text-decoration: none !important;">
+        <i class="fa-solid fa-briefcase"></i> General Expenses
+    </a>
+    <a href="{{ route('expenses.rental') }}" class="expense-nav-tab" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 12px; background: rgba(16, 22, 34, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); color: #94A3B8; font-size: 13.5px; font-weight: 700; text-decoration: none !important;">
+        <i class="fa-solid fa-house-user"></i> Rental Expenses
+    </a>
+    <a href="{{ route('expenses.personal') }}" class="expense-nav-tab" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 12px; background: rgba(16, 22, 34, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); color: #94A3B8; font-size: 13.5px; font-weight: 700; text-decoration: none !important;">
+        <i class="fa-solid fa-user"></i> Personal Expenses
+    </a>
 </div>
 
 @if(session('success'))

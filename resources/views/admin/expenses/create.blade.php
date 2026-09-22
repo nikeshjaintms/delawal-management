@@ -99,6 +99,44 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     box-shadow: 0 4px 14px rgba(37, 99, 235, 0.40);
 }
 
+/* ── 4 Distinct Expense Type Selector Bar ── */
+.expense-type-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+@media (max-width: 768px) {
+    .expense-type-bar { grid-template-columns: repeat(2, 1fr); }
+}
+.type-btn {
+    padding: 13px 16px;
+    border-radius: 14px;
+    background: rgba(16, 22, 34, 0.65);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    color: #94A3B8;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all .25s ease;
+    font-family: inherit;
+}
+.type-btn:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+.type-btn.active {
+    background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
+    border-color: #3B82F6 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.40);
+}
+
 /* Category Quick Modal */
 .cat-modal-backdrop {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -144,7 +182,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 <div class="crud-header">
     <div class="crud-title">
         <h2>Add Expense</h2>
-        <p>Record a new expense voucher with hierarchy and payment details.</p>
+        <p>Record a new expense voucher under the selected expense type.</p>
     </div>
 </div>
 
@@ -152,9 +190,69 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     <form method="POST" action="{{ route('expenses.store') }}" enctype="multipart/form-data" id="expense-form">
         @csrf
 
+        {{-- Top Selector: 4 Distinct Expense Types --}}
+        @php
+            $currType = old('expense_type', $selectedType ?? 'Property');
+        @endphp
+        <input type="hidden" name="expense_type" id="expense_type_input" value="{{ $currType }}">
+
+        <div class="expense-type-bar">
+            <button type="button" class="type-btn {{ $currType === 'Property' ? 'active' : '' }}" onclick="selectExpenseType('Property')">
+                <i class="fa-solid fa-building"></i> <span>Property Expense</span>
+            </button>
+            <button type="button" class="type-btn {{ $currType === 'General' ? 'active' : '' }}" onclick="selectExpenseType('General')">
+                <i class="fa-solid fa-briefcase"></i> <span>General Expense</span>
+            </button>
+            <button type="button" class="type-btn {{ $currType === 'Rental' ? 'active' : '' }}" onclick="selectExpenseType('Rental')">
+                <i class="fa-solid fa-house-user"></i> <span>Rental Expense</span>
+            </button>
+            <button type="button" class="type-btn {{ $currType === 'Personal' ? 'active' : '' }}" onclick="selectExpenseType('Personal')">
+                <i class="fa-solid fa-user"></i> <span>Personal Expense</span>
+            </button>
+        </div>
+
+        {{-- Category Quick Chips for Rental --}}
+        <div id="rental-category-chips" style="{{ $currType === 'Rental' ? '' : 'display: none;' }} margin-bottom: 22px;">
+            <label class="form-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                <i class="fa-solid fa-bolt text-warning" style="color: #F59E0B !important;"></i>
+                <span>Quick Rental Expense Categories:</span>
+                <span class="opt">(Click to select)</span>
+            </label>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                @php
+                    $rentalChips = [
+                        ['cat' => 'Property Maintenance', 'icon' => 'fa-screwdriver-wrench'],
+                        ['cat' => 'Repairs & Renovation', 'icon' => 'fa-hammer'],
+                        ['cat' => 'Electricity Bill', 'icon' => 'fa-bolt'],
+                        ['cat' => 'Water Bill', 'icon' => 'fa-droplet'],
+                        ['cat' => 'Society Maintenance', 'icon' => 'fa-building'],
+                        ['cat' => 'Property Tax', 'icon' => 'fa-landmark'],
+                        ['cat' => 'Plumbing Work', 'icon' => 'fa-faucet-drip'],
+                        ['cat' => 'Painting & Whitewash', 'icon' => 'fa-paint-roller'],
+                        ['cat' => 'Carpentry Work', 'icon' => 'fa-ruler-combined'],
+                        ['cat' => 'Deep Cleaning', 'icon' => 'fa-broom'],
+                        ['cat' => 'Agreement & Legal', 'icon' => 'fa-file-signature'],
+                        ['cat' => 'Brokerage / Commission', 'icon' => 'fa-handshake'],
+                        ['cat' => 'Security & Guard', 'icon' => 'fa-shield-halved'],
+                        ['cat' => 'Pest Control', 'icon' => 'fa-bug'],
+                        ['cat' => 'Appliance Repair', 'icon' => 'fa-tv'],
+                    ];
+                @endphp
+                @foreach($rentalChips as $chip)
+                    <button type="button" class="rental-chip-btn"
+                            onclick="setRentalCategory('{{ $chip['cat'] }}')"
+                            style="background: rgba(30, 41, 59, 0.70); border: 1px solid rgba(255, 255, 255, 0.12); color: #E2E8F0; padding: 6px 12px; border-radius: 20px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .2s ease;">
+                        <i class="fa-solid {{ $chip['icon'] }}" style="color: #60A5FA;"></i>
+                        <span>{{ $chip['cat'] }}</span>
+                    </button>
+                @endforeach
+            </div>
+            <input type="hidden" name="expense_subcategory" id="expense_subcategory" value="{{ old('expense_subcategory') }}">
+        </div>
+
         {{-- Section 1: Classification & Hierarchy --}}
-        <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-sitemap"></i> 1. Expense Classification &amp; Hierarchy (Firm &rarr; Project &rarr; Property)</div>
+        <div class="form-section" id="section-classification">
+            <div class="section-title"><i class="fa-solid fa-sitemap"></i> <span id="section-classification-title">{{ $currType === 'Rental' ? '1. Rental Property & Agreement Allocation' : ($currType === 'Property' ? '1. Property Expense Classification' : '1. Expense Classification & Allocation') }}</span></div>
             
             {{-- Firm selector --}}
             @include('admin.components.firm-select')
@@ -192,10 +290,10 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                 </div>
             </div>
 
-            <div class="form-row">
-                {{-- Project --}}
-                <div class="form-group">
-                    <label class="form-label" for="project_id">Project <span class="opt">(Optional - Project-wise Expense / Filter)</span></label>
+            <div class="form-row" id="project-property-row" style="{{ in_array($currType, ['General', 'Personal']) ? 'display:none;' : '' }}">
+                {{-- Project (Hidden in Rental Mode or shown for filtering) --}}
+                <div class="form-group" id="project-field-wrapper" style="{{ $currType === 'Rental' ? 'display:none;' : '' }}">
+                    <label class="form-label" for="project_id">Project <span class="opt">(Project-wise Expense / Filter)</span></label>
                     <select name="project_id" id="project_id" class="form-control @error('project_id') is-invalid @enderror">
                         <option value="">— All Projects / General —</option>
                         @if(isset($projects))
@@ -211,13 +309,16 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                     @error('project_id')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
 
-                {{-- Property / Unit Multi-Select --}}
-                <div class="form-group">
-                    <label class="form-label" for="property_ids">Property / Unit <span class="opt">(Optional - Multi-Select Enabled)</span></label>
+                {{-- Property / Unit Multi-Select or Single Select --}}
+                <div class="form-group" id="property-field-wrapper" style="{{ $currType === 'Rental' ? 'grid-column: 1 / -1;' : '' }}">
+                    <label class="form-label" for="property_ids" id="property-label">
+                        <span id="property-label-text">{{ $currType === 'Rental' ? 'Rental Property / Unit' : 'Property / Unit' }}</span>
+                        <span class="opt" id="property-label-opt">{{ $currType === 'Rental' ? '(Selecting a property auto-fetches Tenant & Agreement)' : '(Multi-Select Enabled)' }}</span>
+                    </label>
                     @php
                         $selectedPropIds = (array) old('property_ids', request('property_ids') ?: (request('property_id') ? [request('property_id')] : (old('property_id') ? [old('property_id')] : ($selectedPropertyIds ?? ($selectedPropertyId ? [$selectedPropertyId] : [])))));
                     @endphp
-                    <select name="property_ids[]" id="property_ids" class="form-control select2-multi @error('property_ids') is-invalid @enderror" multiple data-placeholder="Search and select property / unit(s)...">
+                    <select name="property_ids[]" id="property_ids" class="form-control select2-multi @error('property_ids') is-invalid @enderror" multiple data-placeholder="Search and select property / unit...">
                         @if(isset($properties))
                             @foreach($properties as $prop)
                                 <option value="{{ $prop->id }}"
@@ -235,6 +336,132 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                     @error('property_ids.*')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
+
+            {{-- Rental Connection & Auto-Fetch Details Card --}}
+            <div id="rental-connection-card" style="{{ $currType === 'Rental' ? '' : 'display:none;' }} margin-top: 20px; background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(59, 130, 246, 0.35); border-radius: 18px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(37,99,235,0.25); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                            <i class="fa-solid fa-house-user"></i>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: #FFFFFF;">Rental Management Connection</h4>
+                            <p style="margin: 2px 0 0; font-size: 12px; color: #94A3B8;">Auto-synced with active Lease Agreement &amp; Tenant Profile</p>
+                        </div>
+                    </div>
+                    <div id="rental-sync-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #93C5FD;">
+                        <i class="fa-solid fa-circle-notch fa-spin" id="rental-spinner" style="display: none;"></i>
+                        <span id="rental-status-text">Select a Property to Auto-Fetch Details</span>
+                    </div>
+                </div>
+
+                <div class="form-row" style="margin-bottom: 16px;">
+                    {{-- Rental Agreement Selector --}}
+                    <div class="form-group">
+                        <label class="form-label" for="rental_id">Linked Rental Agreement <span class="opt">(Auto-Selected)</span></label>
+                        <select name="rental_id" id="rental_id" class="form-control @error('rental_id') is-invalid @enderror" onchange="handleRentalAgreementChange(this)">
+                            <option value="">— No Agreement / Direct Property Expense —</option>
+                            @if(isset($rentals))
+                                @foreach($rentals as $r)
+                                    <option value="{{ $r->id }}"
+                                            data-property-id="{{ $r->property_id }}"
+                                            data-tenant-id="{{ $r->tenant_id }}"
+                                            data-tenant-name="{{ $r->tenant_name ?? $r->tenant?->name }}"
+                                            data-tenant-phone="{{ $r->tenant_mobile ?? $r->tenant?->phone }}"
+                                            data-rent="{{ $r->rent_amount }}"
+                                            data-deposit="{{ $r->security_deposit }}"
+                                            data-status="{{ $r->rental_status }}"
+                                            data-firm-id="{{ $r->firm_id }}"
+                                            data-start="{{ $r->start_date ? (is_string($r->start_date) ? $r->start_date : $r->start_date->format('d M Y')) : '' }}"
+                                            data-end="{{ $r->end_date ? (is_string($r->end_date) ? $r->end_date : $r->end_date->format('d M Y')) : '' }}"
+                                            {{ old('rental_id', $selectedRentalId ?? '') == $r->id ? 'selected' : '' }}>
+                                        {{ $r->agreement_no ?: 'AGR-'.$r->id }} ({{ $r->tenant_name ?? $r->tenant?->name ?? 'Tenant' }}) · {{ $r->property?->property_name }} [{{ ucfirst($r->rental_status) }}]
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                        @error('rental_id')<div class="text-error">{{ $message }}</div>@enderror
+                    </div>
+
+                    {{-- Tenant Selector --}}
+                    <div class="form-group">
+                        <label class="form-label" for="tenant_id">Tenant <span class="opt">(Auto-Populated)</span></label>
+                        <select name="tenant_id" id="tenant_id" class="form-control @error('tenant_id') is-invalid @enderror">
+                            <option value="">— Select Tenant (Optional) —</option>
+                            @if(isset($tenants))
+                                @foreach($tenants as $t)
+                                    <option value="{{ $t->id }}"
+                                            data-phone="{{ $t->phone }}"
+                                            data-firm-id="{{ $t->firm_id }}"
+                                            {{ old('tenant_id', $selectedTenantId ?? '') == $t->id ? 'selected' : '' }}>
+                                        {{ $t->name }} {{ $t->phone ? '('.$t->phone.')' : '' }}
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                        @error('tenant_id')<div class="text-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+
+                {{-- Visual Info Snapshot Box --}}
+                <div id="rental-snapshot-box" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; background: rgba(0,0,0,0.30); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.06);">
+                    <div>
+                        <div style="font-size: 11px; text-transform: uppercase; color: #94A3B8; font-weight: 700; letter-spacing: 0.5px;">Active Tenant</div>
+                        <div id="snap-tenant-name" style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-top: 2px;">—</div>
+                        <div id="snap-tenant-phone" style="font-size: 12px; color: #60A5FA;">—</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; text-transform: uppercase; color: #94A3B8; font-weight: 700; letter-spacing: 0.5px;">Agreement No</div>
+                        <div id="snap-agreement-no" style="font-size: 14px; font-weight: 800; color: #38BDF8; margin-top: 2px;">—</div>
+                        <div id="snap-rental-status" style="font-size: 11.5px; color: #10B981; font-weight: 700;">—</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; text-transform: uppercase; color: #94A3B8; font-weight: 700; letter-spacing: 0.5px;">Rent &amp; Deposit</div>
+                        <div id="snap-rent-amt" style="font-size: 14px; font-weight: 800; color: #F59E0B; margin-top: 2px;">₹ 0.00 / mo</div>
+                        <div id="snap-deposit-amt" style="font-size: 11.5px; color: #94A3B8;">Dep: ₹ 0.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; text-transform: uppercase; color: #94A3B8; font-weight: 700; letter-spacing: 0.5px;">Lease Period</div>
+                        <div id="snap-lease-period" style="font-size: 12.5px; font-weight: 600; color: #CBD5E1; margin-top: 3px;">—</div>
+                    </div>
+                </div>
+
+                {{-- Tenant Recovery Configuration Box --}}
+                <div style="margin-top: 18px; padding-top: 16px; border-top: 1px dashed rgba(255,255,255,0.12);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0;">
+                            <input type="checkbox" name="is_tenant_recoverable" id="is_tenant_recoverable" value="1"
+                                   {{ old('is_tenant_recoverable') ? 'checked' : '' }}
+                                   onchange="toggleRecoveryFields(this.checked)"
+                                   style="width: 18px; height: 18px; accent-color: #2563EB; cursor: pointer;">
+                            <span style="font-size: 13.5px; font-weight: 700; color: #FFFFFF;">
+                                <i class="fa-solid fa-hand-holding-dollar" style="color: #34D399; margin-right: 4px;"></i>
+                                Billable / Recoverable from Tenant
+                            </span>
+                        </label>
+                        <span style="font-size: 12px; color: #94A3B8;">(Tracks whether tenant must reimburse this expense or be deducted from deposit)</span>
+                    </div>
+
+                    <div id="recovery-fields-row" class="form-row" style="{{ old('is_tenant_recoverable') ? '' : 'display:none;' }} margin-top: 14px;">
+                        <div class="form-group">
+                            <label class="form-label" for="recovery_amount">Recoverable Amount (₹) <span class="req">*</span></label>
+                            <input type="number" step="0.01" min="0" name="recovery_amount" id="recovery_amount"
+                                   value="{{ old('recovery_amount') }}" class="form-control"
+                                   placeholder="0.00 (Defaults to expense amount)">
+                            <span class="form-hint">Amount tenant is expected to pay back.</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="recovery_status">Recovery Status <span class="req">*</span></label>
+                            <select name="recovery_status" id="recovery_status" class="form-control">
+                                @foreach(['Pending', 'Recovered', 'Partially Recovered', 'Waived', 'Deducted from Deposit'] as $st)
+                                    <option value="{{ $st }}" {{ old('recovery_status', 'Pending') == $st ? 'selected' : '' }}>{{ $st }}</option>
+                                @endforeach
+                            </select>
+                            <span class="form-hint">Current reimbursement stage.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         {{-- Section 2: Amount & Payment Details --}}
@@ -247,7 +474,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                     <label class="form-label" for="amount">Amount (₹) <span class="req">*</span></label>
                     <input type="number" step="0.01" min="0.01" name="amount" id="amount"
                            value="{{ old('amount') }}" class="form-control @error('amount') is-invalid @enderror"
-                           placeholder="0.00" required>
+                           placeholder="0.00" oninput="handleAmountInput(this.value)" required>
                     @error('amount')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
 
@@ -269,9 +496,9 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                     <label class="form-label" for="paid_to">Paid To / Vendor <span class="opt">(Payee Name or Vendor)</span></label>
                     <div style="display: flex; gap: 8px;">
                         <input type="text" name="paid_to" id="paid_to" value="{{ old('paid_to') }}"
-                               class="form-control @error('paid_to') is-invalid @enderror"
-                               placeholder="Vendor or payee name"
-                               list="vendors-datalist">
+                                class="form-control @error('paid_to') is-invalid @enderror"
+                                placeholder="Vendor, contractor, or tenant name"
+                                list="vendors-datalist">
                         <datalist id="vendors-datalist">
                             @if(isset($vendors))
                                 @foreach($vendors as $ven)
@@ -328,7 +555,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                     <label class="form-label" for="expense_title">Expense Title <span class="opt">(Optional Short Title)</span></label>
                     <input type="text" name="expense_title" id="expense_title"
                            value="{{ old('expense_title') }}" class="form-control @error('expense_title') is-invalid @enderror"
-                           placeholder="e.g. Site Maintenance Work, Cement Purchase (Auto-generated if empty)">
+                           placeholder="e.g. Society Maintenance, AC Repair (Auto-generated if empty)">
                     @error('expense_title')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
             </div>
@@ -395,12 +622,260 @@ function showFileName(input) {
     }
 }
 
+function handleAmountInput(val) {
+    const recCheck = document.getElementById('is_tenant_recoverable');
+    const recAmt = document.getElementById('recovery_amount');
+    if (recCheck && recCheck.checked && recAmt && (!recAmt.value || recAmt.dataset.userEdited !== 'true')) {
+        recAmt.value = val;
+    }
+}
+
+function toggleRecoveryFields(checked) {
+    const row = document.getElementById('recovery-fields-row');
+    const recAmt = document.getElementById('recovery_amount');
+    const amt = document.getElementById('amount');
+    if (row) {
+        row.style.display = checked ? 'grid' : 'none';
+    }
+    if (checked && recAmt && !recAmt.value && amt && amt.value) {
+        recAmt.value = amt.value;
+    }
+}
+
+function setRentalCategory(catName) {
+    const catSelect = document.getElementById('expense_category');
+    const subInput = document.getElementById('expense_subcategory');
+    const titleInput = document.getElementById('expense_title');
+    
+    if (subInput) subInput.value = catName;
+
+    if (catSelect) {
+        let opt = Array.from(catSelect.options).find(o => o.value.toLowerCase() === catName.toLowerCase());
+        if (!opt) {
+            opt = document.createElement('option');
+            opt.value = catName;
+            opt.textContent = catName;
+            const newOpt = catSelect.querySelector('option[value="__new__"]');
+            if (newOpt) catSelect.insertBefore(opt, newOpt);
+            else catSelect.appendChild(opt);
+        }
+        catSelect.value = opt.value;
+    }
+
+    if (titleInput && (!titleInput.value || titleInput.dataset.userEdited !== 'true')) {
+        const propSelect = document.getElementById('property_ids');
+        let propName = '';
+        if (propSelect) {
+            const selectedOpt = propSelect.options[propSelect.selectedIndex];
+            if (selectedOpt && selectedOpt.value) {
+                propName = selectedOpt.textContent.trim().split('·')[0].split('[')[0].trim();
+            }
+        }
+        titleInput.value = propName ? `${catName} - ${propName}` : `${catName} Expense`;
+    }
+
+    // Highlight selected chip
+    document.querySelectorAll('.rental-chip-btn').forEach(btn => {
+        if (btn.innerText.includes(catName)) {
+            btn.style.background = '#2563EB';
+            btn.style.borderColor = '#3B82F6';
+            btn.style.color = '#FFFFFF';
+        } else {
+            btn.style.background = 'rgba(30, 41, 59, 0.70)';
+            btn.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+            btn.style.color = '#E2E8F0';
+        }
+    });
+}
+
+function handleRentalAgreementChange(select) {
+    const selectedOpt = select.options[select.selectedIndex];
+    if (!selectedOpt || !selectedOpt.value) {
+        updateRentalSnapshot(null);
+        return;
+    }
+
+    const tId = selectedOpt.getAttribute('data-tenant-id');
+    const tName = selectedOpt.getAttribute('data-tenant-name');
+    const tPhone = selectedOpt.getAttribute('data-tenant-phone');
+    const rent = selectedOpt.getAttribute('data-rent');
+    const deposit = selectedOpt.getAttribute('data-deposit');
+    const status = selectedOpt.getAttribute('data-status');
+    const fId = selectedOpt.getAttribute('data-firm-id');
+    const start = selectedOpt.getAttribute('data-start');
+    const end = selectedOpt.getAttribute('data-end');
+    const agrNo = selectedOpt.textContent.trim().split('(')[0].trim();
+
+    // Auto set tenant
+    const tenantSelect = document.getElementById('tenant_id');
+    if (tenantSelect && tId) {
+        tenantSelect.value = tId;
+    }
+
+    // Auto sync firm if available
+    const firmSelect = document.getElementById('firm_ids') || document.querySelector('[name="firm_id"]');
+    if (firmSelect && fId) {
+        if (firmSelect.multiple) {
+            $(firmSelect).val([fId]).trigger('change');
+        } else {
+            firmSelect.value = fId;
+        }
+    }
+
+    updateRentalSnapshot({
+        tenant_name: tName,
+        tenant_phone: tPhone,
+        agreement_no: agrNo,
+        rental_status: status,
+        rent_amount: rent,
+        security_deposit: deposit,
+        lease_period: (start && end) ? `${start} → ${end}` : (start ? `From ${start}` : '—')
+    });
+}
+
+function updateRentalSnapshot(info) {
+    const nameEl = document.getElementById('snap-tenant-name');
+    const phoneEl = document.getElementById('snap-tenant-phone');
+    const agrEl = document.getElementById('snap-agreement-no');
+    const stEl = document.getElementById('snap-rental-status');
+    const rentEl = document.getElementById('snap-rent-amt');
+    const depEl = document.getElementById('snap-deposit-amt');
+    const leaseEl = document.getElementById('snap-lease-period');
+    const badgeText = document.getElementById('rental-status-text');
+
+    if (info) {
+        if (nameEl) nameEl.textContent = info.tenant_name || '—';
+        if (phoneEl) phoneEl.textContent = info.tenant_phone ? `📞 ${info.tenant_phone}` : '';
+        if (agrEl) agrEl.textContent = info.agreement_no || '—';
+        if (stEl) {
+            stEl.textContent = (info.rental_status || 'Active').toUpperCase();
+            stEl.style.color = (info.rental_status === 'active' || !info.rental_status) ? '#10B981' : '#F59E0B';
+        }
+        if (rentEl) rentEl.textContent = info.rent_amount ? `₹ ${parseFloat(info.rent_amount).toLocaleString('en-IN')} / mo` : '₹ 0.00 / mo';
+        if (depEl) depEl.textContent = info.security_deposit ? `Dep: ₹ ${parseFloat(info.security_deposit).toLocaleString('en-IN')}` : 'Dep: ₹ 0.00';
+        if (leaseEl) leaseEl.textContent = info.lease_period || '—';
+        if (badgeText) badgeText.textContent = '✅ Connected to Rental Agreement';
+    } else {
+        if (nameEl) nameEl.textContent = '—';
+        if (phoneEl) phoneEl.textContent = '—';
+        if (agrEl) agrEl.textContent = '—';
+        if (stEl) stEl.textContent = '—';
+        if (rentEl) rentEl.textContent = '₹ 0.00 / mo';
+        if (depEl) depEl.textContent = 'Dep: ₹ 0.00';
+        if (leaseEl) leaseEl.textContent = '—';
+        if (badgeText) badgeText.textContent = 'No Agreement Selected';
+    }
+}
+
+function fetchRentalInfoForProperty(propertyId) {
+    if (!propertyId) {
+        updateRentalSnapshot(null);
+        return;
+    }
+
+    const spinner = document.getElementById('rental-spinner');
+    const badgeText = document.getElementById('rental-status-text');
+    if (spinner) spinner.style.display = 'inline-block';
+    if (badgeText) badgeText.textContent = 'Fetching Rental & Tenant Info...';
+
+    const url = '{{ url("expenses/rental-property-info") }}/' + propertyId;
+
+    fetch(url, {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (spinner) spinner.style.display = 'none';
+
+        if (data.success) {
+            const rentalSelect = document.getElementById('rental_id');
+            const tenantSelect = document.getElementById('tenant_id');
+
+            // Populate rental agreements dropdown for this property
+            if (rentalSelect && data.rentals && data.rentals.length > 0) {
+                rentalSelect.innerHTML = '<option value="">— Select Agreement —</option>';
+                data.rentals.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r.id;
+                    opt.textContent = `${r.agreement_no || 'AGR-' + r.id} (${r.tenant_name || 'Tenant'}) [${r.rental_status}]`;
+                    opt.setAttribute('data-tenant-id', r.tenant_id || '');
+                    opt.setAttribute('data-tenant-name', r.tenant_name || '');
+                    opt.setAttribute('data-tenant-phone', r.tenant_phone || '');
+                    opt.setAttribute('data-rent', r.rent_amount || '0');
+                    opt.setAttribute('data-deposit', r.security_deposit || '0');
+                    opt.setAttribute('data-status', r.rental_status || '');
+                    opt.setAttribute('data-firm-id', r.firm_id || '');
+                    opt.setAttribute('data-start', r.start_date || '');
+                    opt.setAttribute('data-end', r.end_date || '');
+                    rentalSelect.appendChild(opt);
+                });
+
+                if (data.active_rental) {
+                    rentalSelect.value = data.active_rental.id;
+                }
+            }
+
+            // Populate/select tenant
+            if (data.active_rental && data.active_rental.tenant_id && tenantSelect) {
+                tenantSelect.value = data.active_rental.tenant_id;
+            }
+
+            // Sync Firm
+            if (data.property && data.property.firm_id) {
+                const firmSelect = document.getElementById('firm_ids') || document.querySelector('[name="firm_id"]');
+                if (firmSelect) {
+                    if (firmSelect.multiple) {
+                        $(firmSelect).val(data.property.firm_ids || [data.property.firm_id]).trigger('change');
+                    } else {
+                        firmSelect.value = data.property.firm_id;
+                    }
+                }
+            }
+
+            if (data.active_rental) {
+                updateRentalSnapshot({
+                    tenant_name: data.active_rental.tenant_name,
+                    tenant_phone: data.active_rental.tenant_phone,
+                    agreement_no: data.active_rental.agreement_no || 'AGR-' + data.active_rental.id,
+                    rental_status: data.active_rental.rental_status,
+                    rent_amount: data.active_rental.rent_amount,
+                    security_deposit: data.active_rental.security_deposit,
+                    lease_period: (data.active_rental.start_date && data.active_rental.end_date) ? `${data.active_rental.start_date} → ${data.active_rental.end_date}` : 'Active Agreement'
+                });
+            } else {
+                updateRentalSnapshot(null);
+                if (badgeText) badgeText.textContent = 'ℹ️ No active rental on this property';
+            }
+        }
+    })
+    .catch(err => {
+        if (spinner) spinner.style.display = 'none';
+        if (badgeText) badgeText.textContent = 'Error connecting to rental database';
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const firmSelect    = document.getElementById('firm_ids') || document.querySelector('[name="firm_id"]');
     const projectSelect = document.getElementById('project_id');
     const propSelect    = document.getElementById('property_ids') || document.getElementById('property_id');
     const paidToInput   = document.getElementById('paid_to');
     const vendorIdInput = document.getElementById('vendor_id');
+    const recoveryAmtInput = document.getElementById('recovery_amount');
+    const titleInput = document.getElementById('expense_title');
+
+    if (recoveryAmtInput) {
+        recoveryAmtInput.addEventListener('input', function() {
+            this.dataset.userEdited = 'true';
+        });
+    }
+    if (titleInput) {
+        titleInput.addEventListener('input', function() {
+            this.dataset.userEdited = 'true';
+        });
+    }
 
     const allProjectOptions = projectSelect ? Array.from(projectSelect.querySelectorAll('option')).slice(1) : [];
     const allPropOptions    = propSelect ? Array.from(propSelect.querySelectorAll('option')) : [];
@@ -408,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Select2 on property_ids if not already done
     if (propSelect && $.fn.select2) {
         $(propSelect).select2({
-            placeholder: "Search and select property / unit(s)...",
+            placeholder: "Search and select property / unit...",
             allowClear: true,
             width: '100%'
         });
@@ -515,18 +990,39 @@ document.addEventListener('DOMContentLoaded', function() {
     if (propSelect) {
         $(propSelect).on('change', function() {
             const selectedVals = $(this).val() || [];
-            if (Array.isArray(selectedVals) && selectedVals.length === 1 && projectSelect && !projectSelect.value) {
+            const typeInput = document.getElementById('expense_type_input');
+            const isRental = typeInput && typeInput.value === 'Rental';
+
+            if (Array.isArray(selectedVals) && selectedVals.length > 0) {
                 const firstVal = selectedVals[0];
-                const matchedOpt = allPropOptions.find(o => o.value === firstVal);
-                if (matchedOpt) {
-                    const pId = matchedOpt.getAttribute('data-project-id');
-                    if (pId) {
-                        projectSelect.value = pId;
-                        filterPropertiesByProject();
+                if (isRental) {
+                    fetchRentalInfoForProperty(firstVal);
+                }
+
+                if (projectSelect && !projectSelect.value) {
+                    const matchedOpt = allPropOptions.find(o => o.value === firstVal);
+                    if (matchedOpt) {
+                        const pId = matchedOpt.getAttribute('data-project-id');
+                        if (pId) {
+                            projectSelect.value = pId;
+                            filterPropertiesByProject();
+                        }
                     }
                 }
             }
         });
+    }
+
+    // Auto load initial rental if provided
+    const rentalSelect = document.getElementById('rental_id');
+    if (rentalSelect && rentalSelect.value) {
+        handleRentalAgreementChange(rentalSelect);
+    } else if (propSelect) {
+        const selProps = $(propSelect).val() || [];
+        const typeInput = document.getElementById('expense_type_input');
+        if (typeInput && typeInput.value === 'Rental' && Array.isArray(selProps) && selProps.length > 0) {
+            fetchRentalInfoForProperty(selProps[0]);
+        }
     }
 
     // Initialize state
@@ -536,20 +1032,76 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Quick Add Category Modal Functions
+function selectExpenseType(type) {
+    const input = document.getElementById('expense_type_input');
+    if (input) input.value = type;
+
+    document.querySelectorAll('.expense-type-bar .type-btn').forEach(btn => {
+        if (btn.innerText.includes(type)) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    const row = document.getElementById('project-property-row');
+    const projWrapper = document.getElementById('project-field-wrapper');
+    const propWrapper = document.getElementById('property-field-wrapper');
+    const rentalCard = document.getElementById('rental-connection-card');
+    const rentalChips = document.getElementById('rental-category-chips');
+    const titleEl = document.getElementById('section-classification-title');
+    const propLabel = document.getElementById('property-label-text');
+    const propOpt = document.getElementById('property-label-opt');
+
+    if (type === 'Rental') {
+        if (row) row.style.display = 'grid';
+        if (projWrapper) projWrapper.style.display = 'none';
+        if (propWrapper) propWrapper.style.gridColumn = '1 / -1';
+        if (rentalCard) rentalCard.style.display = 'block';
+        if (rentalChips) rentalChips.style.display = 'block';
+        if (titleEl) titleEl.textContent = '1. Rental Property & Agreement Allocation';
+        if (propLabel) propLabel.textContent = 'Rental Property / Unit';
+        if (propOpt) propOpt.textContent = '(Selecting a property auto-fetches Tenant & Agreement)';
+
+        const propSelect = document.getElementById('property_ids');
+        if (propSelect) {
+            const selVal = $(propSelect).val();
+            if (selVal && (Array.isArray(selVal) ? selVal[0] : selVal)) {
+                fetchRentalInfoForProperty(Array.isArray(selVal) ? selVal[0] : selVal);
+            }
+        }
+    } else if (type === 'Property') {
+        if (row) row.style.display = 'grid';
+        if (projWrapper) projWrapper.style.display = 'block';
+        if (propWrapper) propWrapper.style.gridColumn = 'auto';
+        if (rentalCard) rentalCard.style.display = 'none';
+        if (rentalChips) rentalChips.style.display = 'none';
+        if (titleEl) titleEl.textContent = '1. Property Expense Classification';
+        if (propLabel) propLabel.textContent = 'Property / Unit';
+        if (propOpt) propOpt.textContent = '(Multi-Select Enabled)';
+    } else if (type === 'General') {
+        if (row) row.style.display = 'none';
+        if (rentalCard) rentalCard.style.display = 'none';
+        if (rentalChips) rentalChips.style.display = 'none';
+        if (titleEl) titleEl.textContent = '1. General Expense Classification';
+    } else if (type === 'Personal') {
+        if (row) row.style.display = 'none';
+        if (rentalCard) rentalCard.style.display = 'none';
+        if (rentalChips) rentalChips.style.display = 'none';
+        if (titleEl) titleEl.textContent = '1. Personal Expense Classification';
+    }
+}
+
 function openCategoryModal() {
     const modal = document.getElementById('quickCatModal');
-    const input = document.getElementById('quick_cat_name');
-    const err = document.getElementById('quick_cat_error');
-    if (modal) {
-        modal.style.display = 'flex';
-        if (err) { err.style.display = 'none'; err.textContent = ''; }
-        if (input) {
-            input.value = '';
-            setTimeout(() => input.focus(), 120);
-        }
-        const desc = document.getElementById('quick_cat_desc');
-        if (desc) desc.value = '';
-    }
+    const nameInput = document.getElementById('quick_cat_name');
+    const descInput = document.getElementById('quick_cat_desc');
+    const errorEl = document.getElementById('quick_cat_error');
+    if (nameInput) nameInput.value = '';
+    if (descInput) descInput.value = '';
+    if (errorEl) errorEl.style.display = 'none';
+    if (modal) modal.style.display = 'flex';
+    setTimeout(() => { if (nameInput) nameInput.focus(); }, 150);
 }
 
 function closeCategoryModal() {

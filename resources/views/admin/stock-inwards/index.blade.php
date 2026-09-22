@@ -144,7 +144,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 </style>
 
 <div class="print-header" style="display:none;">
-    <h1><i class="fa-solid fa-arrow-down-to-bracket"></i> Stock Inward</h1>
+    <h1><i class="fa-solid fa-download"></i> Stock Inward</h1>
     <p>Material purchase receipts and PO inward transactions &nbsp;|&nbsp; Printed on: {{ date('d M, Y H:i') }}</p>
 </div>
 

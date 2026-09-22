@@ -105,9 +105,9 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         @csrf
         @include('admin.components.firm-select')
 
-        {{-- Property Details --}}
+        {{-- Property & Unit Details --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-building"></i> Property & Agreement Details</div>
+            <div class="section-title"><i class="fa-solid fa-building"></i> Property & Unit Details</div>
             <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label" for="agreement_no">Agreement Number / Ref No</label>
@@ -117,9 +117,9 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="project_id">Project <span class="opt">(Filter Properties)</span></label>
+                    <label class="form-label" for="project_id">Project <span class="opt">(Filter Units)</span></label>
                     <select name="project_id" id="project_id" class="form-control">
-                        <option value="">-- All / Select Project --</option>
+                        <option value="">-- All Projects / Direct --</option>
                         @if(isset($projects))
                             @foreach($projects as $proj)
                                 <option value="{{ $proj->id }}"
@@ -133,24 +133,32 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="property_id">Property <span>*</span></label>
+                    <label class="form-label" for="property_id">Unit / Property <span>*</span></label>
                     <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required>
-                        <option value="">-- Select Property --</option>
+                        <option value="">-- Select Unit / Property --</option>
                         @foreach($properties as $property)
                             <option value="{{ $property->id }}"
                                     data-project-id="{{ $property->project_id }}"
                                     data-firm-id="{{ $property->firm_id }}"
+                                    data-unit-no="{{ $property->unit_no }}"
+                                    data-rent="{{ $property->price }}"
+                                    data-status="{{ $property->status }}"
                                     data-project="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
                                     {{ old('property_id') == $property->id ? 'selected' : '' }}>
+                                @if($property->unit_no) Unit #{{ $property->unit_no }} — @endif
                                 {{ $property->property_name }}
                                 @if($property->property_code) ({{ $property->property_code }}) @endif
-                                @if($property->unit_no) — Unit {{ $property->unit_no }} @endif
+                                @if($property->project) [{{ $property->project->project_name }}] @endif
                                 — {{ ucfirst($property->status) }}
+                                @if($property->price > 0) (Rent: ₹{{ number_format($property->price, 2) }}) @endif
                             </option>
                         @endforeach
                     </select>
                     @error('property_id') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
+            </div>
+            <div id="unit_info_badge" style="display: none; margin-top: 12px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.30); border-radius: 10px; padding: 9px 15px; font-size: 13px; color: #93C5FD;">
+                <i class="fa-solid fa-circle-check" style="color: #60A5FA;"></i> <span id="unit_info_text">Selected Unit Details</span>
             </div>
         </div>
 
@@ -357,13 +365,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const allProjOptions = projectSelect ? Array.from(projectSelect.querySelectorAll('option')).slice(1) : [];
     const allTenantOptions = tenantSelect ? Array.from(tenantSelect.querySelectorAll('option')).slice(1) : [];
 
-    // Filter properties when a project is selected
+    // Filter properties/units when a project is selected
     function filterPropertiesByProject() {
         if (!propSelect) return;
         const selectedProjectId = projectSelect ? projectSelect.value : '';
         const currentPropVal = propSelect.value;
 
-        propSelect.innerHTML = '<option value="">-- Select Property --</option>';
+        propSelect.innerHTML = '<option value="">-- Select Unit / Property --</option>';
 
         let visibleCount = 0;
         allPropOptions.forEach(opt => {
@@ -377,28 +385,55 @@ document.addEventListener('DOMContentLoaded', function() {
         if (visibleCount === 0 && selectedProjectId) {
             const noOpt = document.createElement('option');
             noOpt.value = '';
-            noOpt.textContent = '— No properties found for this project —';
+            noOpt.textContent = '— No units found for this project —';
             propSelect.appendChild(noOpt);
         }
 
         propSelect.value = currentPropVal;
+        onPropertySelect();
     }
 
     if (projectSelect) {
         projectSelect.addEventListener('change', filterPropertiesByProject);
     }
 
-    // Auto-select project when a property is picked
-    if (propSelect) {
-        propSelect.addEventListener('change', function() {
-            const selectedOpt = propSelect.options[propSelect.selectedIndex];
-            if (selectedOpt && selectedOpt.value) {
-                const projId = selectedOpt.getAttribute('data-project-id');
-                if (projectSelect && projId && projectSelect.value !== projId) {
-                    projectSelect.value = projId;
-                }
+    // Auto-select project and auto-fill details when a unit/property is picked
+    function onPropertySelect() {
+        if (!propSelect) return;
+        const selectedOpt = propSelect.options[propSelect.selectedIndex];
+        const unitBadge = document.getElementById('unit_info_badge');
+        const unitText = document.getElementById('unit_info_text');
+        const rentInput = document.getElementById('rent_amount');
+
+        if (selectedOpt && selectedOpt.value) {
+            const projId = selectedOpt.getAttribute('data-project-id');
+            const projName = selectedOpt.getAttribute('data-project') || '';
+            const unitNo = selectedOpt.getAttribute('data-unit-no') || '';
+            const rentVal = selectedOpt.getAttribute('data-rent');
+            const status = selectedOpt.getAttribute('data-status') || '';
+
+            if (projectSelect && projId && projectSelect.value !== projId) {
+                projectSelect.value = projId;
             }
-        });
+
+            if (rentInput && (!rentInput.value || parseFloat(rentInput.value) === 0) && rentVal && parseFloat(rentVal) > 0) {
+                rentInput.value = rentVal;
+            }
+
+            if (unitBadge && unitText) {
+                let desc = 'Unit: ' + (unitNo ? '#' + unitNo : selectedOpt.text.split('—')[0].trim());
+                if (projName) desc += ' | Project: ' + projName;
+                if (status) desc += ' | Status: ' + status;
+                unitText.innerText = desc;
+                unitBadge.style.display = 'block';
+            }
+        } else {
+            if (unitBadge) unitBadge.style.display = 'none';
+        }
+    }
+
+    if (propSelect) {
+        propSelect.addEventListener('change', onPropertySelect);
     }
 
     // Tenant Selection & Auto-fetch

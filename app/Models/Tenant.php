@@ -35,4 +35,9 @@ class Tenant extends Model
     {
         return $this->hasMany(Rental::class);
     }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'tenant_id');
+    }
 }

@@ -2273,7 +2273,7 @@
 
         {{-- 1. Property Management --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'property-masters.') || str_starts_with($currentRoute ?? '', 'property-sales.') || str_starts_with($currentRoute ?? '', 'property-availability.') || str_starts_with($currentRoute ?? '', 'property-documents.')) ? 'parent-active' : '' }}" data-label="1. Property Management">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'property-masters.') || str_starts_with($currentRoute ?? '', 'property-sales.') || str_starts_with($currentRoute ?? '', 'property-availability.') || str_starts_with($currentRoute ?? '', 'property-documents.') || str_starts_with($currentRoute ?? '', 'sellers.') || request()->is('expenses/property*')) ? 'parent-active' : '' }}" data-label="1. Property Management">
                 <i class="fa-solid fa-building"></i><span>1. Property Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
@@ -2305,6 +2305,13 @@
                 <li class="submenu-item">
                     <a href="{{ route('property-documents.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'property-documents.') ? 'active' : '' }}">
                         <i class="fa-solid fa-folder-open"></i><span>Property Documents</span>
+                    </a>
+                </li>
+                @endif
+                @if($authUser->hasPermission('expense_view'))
+                <li class="submenu-item">
+                    <a href="{{ route('expenses.property') }}" class="submenu-link {{ request()->is('expenses/property*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-file-invoice-dollar" style="color: #60A5FA;"></i><span>Property Expenses</span>
                     </a>
                 </li>
                 @endif
@@ -2366,7 +2373,7 @@
                     @endif
                     <li class="submenu-item">
                         <a href="{{ route('stock-inwards.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'stock-inwards.') ? 'active' : '' }}">
-                            <i class="fa-solid fa-arrow-down-to-bracket"></i><span>Stock Inward</span>
+                            <i class="fa-solid fa-download"></i><span>Stock Inward</span>
                         </a>
                     </li>
                     <li class="submenu-item">
@@ -2477,22 +2484,15 @@
 
         {{-- 5. Rental Management --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="5. Rental Management">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'tenants.') || str_starts_with($currentRoute ?? '', 'rentals.') || str_starts_with($currentRoute ?? '', 'rental-payments.') || $currentRoute == 'reports.rentals' || request()->is('expenses/rental*')) ? 'parent-active' : '' }}" data-label="5. Rental Management">
                 <i class="fa-solid fa-house"></i><span>5. Rental Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">
-                @if($authUser->hasPermission('tenant_view'))
+                @if($authUser->hasPermission('tenant_view') || $authUser->hasPermission('rental_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('tenants.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'tenants.') ? 'active' : '' }}">
-                        <i class="fa-solid fa-house-user"></i><span>Tenant</span>
-                    </a>
-                </li>
-                @endif
-                @if($authUser->hasPermission('rental_view'))
-                <li class="submenu-item">
-                    <a href="{{ route('rentals.index') }}" class="submenu-link {{ (str_starts_with($currentRoute ?? '', 'rentals.') && !request()->has('collect') && !str_starts_with($currentRoute ?? '', 'rental-payments.')) ? 'active' : '' }}">
-                        <i class="fa-solid fa-key"></i><span>Rent Agreement</span>
+                    <a href="{{ route('rentals.index') }}" class="submenu-link {{ ((str_starts_with($currentRoute ?? '', 'rentals.') && !request()->has('collect') && !str_starts_with($currentRoute ?? '', 'rental-payments.')) || str_starts_with($currentRoute ?? '', 'tenants.')) ? 'active' : '' }}">
+                        <i class="fa-solid fa-file-signature"></i><span>Tenant & Rent Agreement</span>
                     </a>
                 </li>
                 @endif
@@ -2511,12 +2511,19 @@
                     </a>
                 </li>
                 @endif
+                @if($authUser->hasPermission('expense_view'))
+                <li class="submenu-item">
+                    <a href="{{ route('expenses.rental') }}" class="submenu-link {{ request()->is('expenses/rental*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-receipt" style="color: #F87171;"></i><span>Rental Expenses</span>
+                    </a>
+                </li>
+                @endif
             </ul>
         </li>
 
         {{-- 6. Finance & Accounts --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="6. Finance & Accounts">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'incomes.') || str_starts_with($currentRoute ?? '', 'receipts.') || str_starts_with($currentRoute ?? '', 'loans.') || str_starts_with($currentRoute ?? '', 'emi-schedules.') || request()->is('expenses/general*')) ? 'parent-active' : '' }}" data-label="6. Finance & Accounts">
                 <i class="fa-solid fa-calculator"></i><span>6. Finance & Accounts</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
@@ -2525,6 +2532,14 @@
                 <li class="submenu-item">
                     <a href="{{ route('incomes.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'incomes.') ? 'active' : '' }}">
                         <i class="fa-solid fa-arrow-trend-up"></i><span>Income</span>
+                    </a>
+                </li>
+                @endif
+
+                @if($authUser->hasPermission('expense_view'))
+                <li class="submenu-item">
+                    <a href="{{ route('expenses.general') }}" class="submenu-link {{ request()->is('expenses/general*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-file-invoice-dollar" style="color: #A78BFA;"></i><span>General Expenses</span>
                     </a>
                 </li>
                 @endif
@@ -2594,11 +2609,20 @@
         </li>
         @endif
 
-        {{-- 8. Reports --}}
+        {{-- 8. Personal Expenses --}}
+        @if($authUser->hasPermission('expense_view'))
+        <li class="menu-item">
+            <a href="{{ route('expenses.personal') }}" class="menu-link {{ request()->is('expenses/personal*') ? 'active' : '' }}" data-label="8. Personal Expenses">
+                <i class="fa-solid fa-wallet" style="color: #F59E0B;"></i><span>8. Personal Expenses</span>
+            </a>
+        </li>
+        @endif
+
+        {{-- 9. Reports --}}
         @if($authUser->hasPermission('reports_view'))
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="8. Reports">
-                <i class="fa-solid fa-chart-column"></i><span>8. Reports</span>
+            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="9. Reports">
+                <i class="fa-solid fa-chart-column"></i><span>9. Reports</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">
@@ -2661,11 +2685,11 @@
         </li>
         @endif
 
-        {{-- 9. Utilities --}}
+        {{-- 10. Utilities --}}
         @if(session('login_type') !== 'firm')
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="9. Utilities">
-                <i class="fa-solid fa-screwdriver-wrench"></i><span>9. Utilities</span>
+            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="10. Utilities">
+                <i class="fa-solid fa-screwdriver-wrench"></i><span>10. Utilities</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">
@@ -2688,11 +2712,11 @@
         </li>
         @endif
 
-        {{-- 10. Settings --}}
+        {{-- 11. Settings --}}
         @if(session('login_type') !== 'firm')
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="10. Settings">
-                <i class="fa-solid fa-gears"></i><span>10. Settings</span>
+            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="11. Settings">
+                <i class="fa-solid fa-gears"></i><span>11. Settings</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">

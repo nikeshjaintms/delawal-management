@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProjectRequest;
+use App\Models\Booking;
 use App\Models\BrokerCommission;
 use App\Models\ContractorPayment;
+use App\Models\Income;
+use App\Models\Payment;
 use App\Models\Project;
 use App\Models\Property;
 use App\Models\PropertyMaster;
 use App\Models\PropertyMasterPayment;
+use App\Models\PropertySale;
 use App\Models\PropertyType;
+use App\Models\RentalPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -223,6 +228,153 @@ class ProjectController extends Controller
 
         $grandTotalProjectCost = $totalExpenses + $contractorPaymentsTotal + $brokerCommissionsTotal + $landPaymentsTotal;
 
+        // ── PROJECT INFLOWS / INCOMES ──
+        // 1. Property Sale Customer Installments & Receipts tied to this project
+        $projectPayments = Payment::with(['customer', 'property', 'propertySale.property', 'propertySale.customer'])
+            ->where(function ($q) use ($project) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $project->id))
+                  ->orWhereHas('propertySale.property', fn($p) => $p->where('project_id', $project->id))
+                  ->orWhereHas('propertySale.properties', fn($p) => $p->where('project_id', $project->id));
+            })
+            ->orderBy('payment_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+        $paymentsCollectedTotal = (float) $projectPayments->sum('payment_amount');
+
+        // 2. Bookings tied to this project
+        $projectBookings = Booking::with(['customer', 'property', 'properties', 'paymentMode'])
+            ->where(function ($q) use ($project) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $project->id))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $project->id));
+            })
+            ->orderBy('booking_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+        $bookingAdvanceTotal = (float) $projectBookings->sum('booking_amount');
+
+        // 3. Rental Payments tied to this project
+        $projectRentalPayments = RentalPayment::with(['rental.tenant', 'property', 'rental.property'])
+            ->where(function ($q) use ($project) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $project->id))
+                  ->orWhereHas('rental.property', fn($p) => $p->where('project_id', $project->id));
+            })
+            ->orderBy('payment_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+        $rentalIncomeTotal = (float) $projectRentalPayments->sum('paid_amount');
+
+        // 4. Direct / General Incomes tied to this project
+        $projectGeneralIncomes = Income::with(['paymentMode', 'property'])
+            ->where(function ($q) use ($project) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $project->id));
+            })
+            ->orderBy('income_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+        $generalIncomeTotal = (float) $projectGeneralIncomes->sum('amount');
+
+        // 5. Total Property Sales Value Booked
+        $projectSales = PropertySale::with(['customer', 'property', 'properties', 'payments'])
+            ->where(function ($q) use ($project) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $project->id))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $project->id));
+            })
+            ->orderBy('sale_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+        $totalSalesValue = (float) $projectSales->sum('grand_total');
+
+        // Grand Total Project Inflow Collected
+        $grandTotalProjectIncome = $paymentsCollectedTotal + $rentalIncomeTotal + $generalIncomeTotal;
+        if ($paymentsCollectedTotal == 0 && $bookingAdvanceTotal > 0) {
+            $grandTotalProjectIncome += $bookingAdvanceTotal;
+        }
+
+        $netProjectProfit = $grandTotalProjectIncome - $grandTotalProjectCost;
+
+        // Unified Incomes Collection for timeline/ledger view
+        $allProjectIncomes = collect();
+
+        foreach ($projectPayments as $pay) {
+            $allProjectIncomes->push((object)[
+                'id'         => $pay->id,
+                'date'       => $pay->payment_date ? \Carbon\Carbon::parse($pay->payment_date) : $pay->created_at,
+                'category'   => 'Property Sale Payment',
+                'type_badge' => 'sale',
+                'unit'       => $pay->property?->property_name ?: ($pay->propertySale?->property_names ?: '—'),
+                'party'      => $pay->customer?->name ?: ($pay->propertySale?->customer?->name ?: '—'),
+                'amount'     => (float) $pay->payment_amount,
+                'mode'       => $pay->payment_mode ?: 'Cash',
+                'ref_no'     => $pay->transaction_ref,
+                'status'     => $pay->status ?: 'Received',
+                'remarks'    => $pay->remarks ?: 'Sale Installment',
+                'view_url'   => route('payments.show', $pay->id),
+                'edit_url'   => route('payments.edit', $pay->id),
+            ]);
+        }
+
+        foreach ($projectBookings as $bk) {
+            if ((float) $bk->booking_amount > 0) {
+                $allProjectIncomes->push((object)[
+                    'id'         => $bk->id,
+                    'date'       => $bk->booking_date ? \Carbon\Carbon::parse($bk->booking_date) : $bk->created_at,
+                    'category'   => 'Booking Advance',
+                    'type_badge' => 'booking',
+                    'unit'       => $bk->property?->property_name ?: ($bk->properties->pluck('property_name')->implode(', ') ?: '—'),
+                    'party'      => $bk->customer?->name ?: '—',
+                    'amount'     => (float) $bk->booking_amount,
+                    'mode'       => $bk->payment_mode ?: ($bk->paymentMode?->name ?: 'Cash'),
+                    'ref_no'     => $bk->transaction_ref,
+                    'status'     => $bk->payment_status ?: 'Received',
+                    'remarks'    => $bk->remarks ?: 'Booking Token',
+                    'view_url'   => route('bookings.show', $bk->id),
+                    'edit_url'   => route('bookings.edit', $bk->id),
+                ]);
+            }
+        }
+
+        foreach ($projectRentalPayments as $rp) {
+            if ((float) $rp->paid_amount > 0) {
+                $allProjectIncomes->push((object)[
+                    'id'         => $rp->id,
+                    'date'       => $rp->payment_date ? \Carbon\Carbon::parse($rp->payment_date) : $rp->created_at,
+                    'category'   => 'Rental Income',
+                    'type_badge' => 'rent',
+                    'unit'       => $rp->property?->property_name ?: ($rp->rental?->property?->property_name ?: '—'),
+                    'party'      => $rp->rental?->tenant?->tenant_name ?: 'Tenant',
+                    'amount'     => (float) $rp->paid_amount,
+                    'mode'       => $rp->payment_mode ?: 'Cash',
+                    'ref_no'     => null,
+                    'status'     => $rp->payment_status ?: 'Paid',
+                    'remarks'    => $rp->remarks ?: ('Rent for ' . ($rp->payment_month ? $rp->payment_month . ' ' . $rp->payment_year : 'Unit')),
+                    'view_url'   => route('rentals.show', $rp->rental_id),
+                    'edit_url'   => null,
+                ]);
+            }
+        }
+
+        foreach ($projectGeneralIncomes as $inc) {
+            $allProjectIncomes->push((object)[
+                'id'         => $inc->id,
+                'date'       => $inc->income_date ? \Carbon\Carbon::parse($inc->income_date) : $inc->created_at,
+                'category'   => $inc->income_type ?: 'Direct Income',
+                'type_badge' => 'income',
+                'unit'       => $inc->property?->property_name ?: '—',
+                'party'      => $inc->received_from ?: '—',
+                'amount'     => (float) $inc->amount,
+                'mode'       => $inc->paymentMode?->name ?: 'Cash',
+                'ref_no'     => $inc->reference_no,
+                'status'     => $inc->status ?: 'Active',
+                'remarks'    => $inc->description ?: 'Direct Income',
+                'view_url'   => route('incomes.show', $inc->id),
+                'edit_url'   => route('incomes.edit', $inc->id),
+            ]);
+        }
+
+        $allProjectIncomes = $allProjectIncomes->sortByDesc(function ($item) {
+            return $item->date ? $item->date->timestamp : 0;
+        })->values();
+
         $projectPOs = $project->purchaseOrders;
         $poTotalAmount = (float) $projectPOs->sum('grand_total');
 
@@ -247,7 +399,20 @@ class ProjectController extends Controller
             'grandTotalProjectCost',
             'projectPOs',
             'poTotalAmount',
-            'propertyTypes'
+            'propertyTypes',
+            'projectPayments',
+            'paymentsCollectedTotal',
+            'projectBookings',
+            'bookingAdvanceTotal',
+            'projectRentalPayments',
+            'rentalIncomeTotal',
+            'projectGeneralIncomes',
+            'generalIncomeTotal',
+            'projectSales',
+            'totalSalesValue',
+            'grandTotalProjectIncome',
+            'netProjectProfit',
+            'allProjectIncomes'
         ));
     }
 

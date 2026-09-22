@@ -139,21 +139,96 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
 .action-buttons-wrap { display: flex !important; gap: 6px !important; align-items: center !important; white-space: nowrap !important; }
 .alert-success { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; color: #34D399 !important; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .pagination-wrapper { margin-top: 24px; display: flex; justify-content: center; }
+
+/* ── Expense Type Nav Tabs ── */
+.expense-nav-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.expense-nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    background: rgba(16, 22, 34, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #94A3B8;
+    text-decoration: none !important;
+    font-size: 13.5px;
+    font-weight: 700;
+    transition: all .25s ease;
+}
+.expense-nav-tab:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.10);
+    transform: translateY(-1px);
+}
+.expense-nav-tab.active {
+    background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
+    border-color: #3B82F6 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.40);
+}
 </style>
+
+@php
+    $moduleTitle = 'Expense Management';
+    $moduleSubtitle = 'Track, filter and manage expenses.';
+    if (isset($activeType)) {
+        if ($activeType === 'Property') {
+            $moduleTitle = 'Property Expenses';
+            $moduleSubtitle = 'Track and manage property-related maintenance, documentation & development costs.';
+        } elseif ($activeType === 'Project') {
+            $moduleTitle = 'Project Expenses';
+            $moduleSubtitle = 'Track and manage project-wise expenses, materials, contractors & development costs.';
+        } elseif ($activeType === 'General') {
+            $moduleTitle = 'General Expenses';
+            $moduleSubtitle = 'Track office, electricity, stationery, staff & administrative expenses.';
+        } elseif ($activeType === 'Rental') {
+            $moduleTitle = 'Rental Expenses';
+            $moduleSubtitle = 'Track rental property maintenance, repairs & tenant-related expenses.';
+        } elseif ($activeType === 'Personal') {
+            $moduleTitle = 'Personal Expenses';
+            $moduleSubtitle = 'Track personal drawings and private expenses.';
+        }
+    }
+@endphp
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Expense Management</h2>
-        <p>Track, filter and manage all firm, project and property expenses.</p>
+        <h2>{{ $moduleTitle }}</h2>
+        <p>{{ $moduleSubtitle }}</p>
     </div>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <a href="{{ route('expenses.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important; border: 1px solid #F87171 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.40);">
             <i class="fa-solid fa-file-pdf"></i> Export PDF
         </a>
-        <a href="{{ route('expenses.create') }}" class="btn-gold">
-            <i class="fa-solid fa-plus"></i> Add Expense
+        <a href="{{ route('expenses.create', isset($activeType) ? ['type' => $activeType] : []) }}" class="btn-gold">
+            <i class="fa-solid fa-plus"></i> Add {{ isset($activeType) ? $activeType : '' }} Expense
         </a>
     </div>
+</div>
+
+{{-- 5 Type Navigation Tabs --}}
+<div class="expense-nav-tabs">
+    <a href="{{ route('expenses.property') }}" class="expense-nav-tab {{ ($activeType ?? '') === 'Property' ? 'active' : '' }}">
+        <i class="fa-solid fa-building"></i> Property Expenses
+    </a>
+    <a href="{{ route('expenses.project-wise') }}" class="expense-nav-tab {{ ($activeType ?? '') === 'Project' ? 'active' : '' }}">
+        <i class="fa-solid fa-city"></i> Project Expenses
+    </a>
+    <a href="{{ route('expenses.general') }}" class="expense-nav-tab {{ ($activeType ?? '') === 'General' ? 'active' : '' }}">
+        <i class="fa-solid fa-briefcase"></i> General Expenses
+    </a>
+    <a href="{{ route('expenses.rental') }}" class="expense-nav-tab {{ ($activeType ?? '') === 'Rental' ? 'active' : '' }}">
+        <i class="fa-solid fa-house-user"></i> Rental Expenses
+    </a>
+    <a href="{{ route('expenses.personal') }}" class="expense-nav-tab {{ ($activeType ?? '') === 'Personal' ? 'active' : '' }}">
+        <i class="fa-solid fa-user"></i> Personal Expenses
+    </a>
 </div>
 
 @if(session('success'))
@@ -165,7 +240,10 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
 
 <div class="card-box">
     {{-- Dynamic Filter Bar --}}
-    <form method="GET" action="{{ route('expenses.index') }}" class="filter-bar">
+    <form method="GET" action="{{ url()->current() }}" class="filter-bar">
+        @if(isset($activeType))
+            <input type="hidden" name="type" value="{{ $activeType }}">
+        @endif
         @if(auth()->user() && auth()->user()->isAdmin())
         <div class="filter-group">
             <span class="filter-label">Firm</span>
@@ -188,7 +266,11 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
             <span class="filter-label">Category</span>
             <select name="filter_category" class="filter-control">
                 <option value="">All Categories</option>
-                @if(isset($categories))
+                @if(isset($activeType) && $activeType === 'Rental' && isset($rentalCategories))
+                    @foreach($rentalCategories as $rc)
+                        <option value="{{ $rc }}" {{ request('filter_category') == $rc ? 'selected' : '' }}>{{ $rc }}</option>
+                    @endforeach
+                @elseif(isset($categories))
                     @foreach($categories as $cat)
                         <option value="{{ $cat->name }}" {{ request('filter_category') == $cat->name || request('filter_category') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                     @endforeach
@@ -196,6 +278,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
             </select>
         </div>
 
+        @if(($activeType ?? '') !== 'Rental')
         <div class="filter-group">
             <span class="filter-label">Project</span>
             <select name="filter_project" class="filter-control">
@@ -207,9 +290,10 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                 @endforeach
             </select>
         </div>
+        @endif
 
         <div class="filter-group">
-            <span class="filter-label">Property</span>
+            <span class="filter-label">{{ ($activeType ?? '') === 'Rental' ? 'Rental Property' : 'Property' }}</span>
             <select name="filter_property" class="filter-control">
                 <option value="">All Properties</option>
                 @foreach($properties as $prop)
@@ -219,6 +303,32 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                 @endforeach
             </select>
         </div>
+
+        @if(($activeType ?? '') === 'Rental')
+        <div class="filter-group">
+            <span class="filter-label">Tenant</span>
+            <select name="filter_tenant" class="filter-control">
+                <option value="">All Tenants</option>
+                @if(isset($tenants))
+                    @foreach($tenants as $t)
+                        <option value="{{ $t->id }}" {{ request('filter_tenant') == $t->id ? 'selected' : '' }}>
+                            {{ $t->name }}
+                        </option>
+                    @endforeach
+                @endif
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <span class="filter-label">Recovery Status</span>
+            <select name="filter_recovery_status" class="filter-control">
+                <option value="">All Recovery</option>
+                @foreach(['Pending', 'Recovered', 'Partially Recovered', 'Waived', 'Deducted from Deposit'] as $rs)
+                    <option value="{{ $rs }}" {{ request('filter_recovery_status') == $rs ? 'selected' : '' }}>{{ $rs }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
 
         <div class="filter-group">
             <span class="filter-label">Payment Mode</span>
@@ -248,8 +358,8 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
 
         <div style="display: flex; gap: 6px; align-items: flex-end;">
             <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-            @if(request()->hasAny(['search','filter_project','filter_property','filter_category','filter_vendor','filter_mode','filter_status','filter_date','date_from','date_to','firm_id']))
-                <a href="{{ route('expenses.index') }}" class="btn-reset" title="Clear Filters"><i class="fa-solid fa-rotate-left"></i> Reset</a>
+            @if(request()->hasAny(['search','filter_project','filter_property','filter_rental','filter_tenant','filter_recovery_status','filter_recoverable','filter_category','filter_vendor','filter_mode','filter_status','filter_date','date_from','date_to','firm_id']))
+                <a href="{{ url()->current() . (isset($activeType) ? '?type=' . $activeType : '') }}" class="btn-reset" title="Clear Filters"><i class="fa-solid fa-rotate-left"></i> Reset</a>
             @endif
         </div>
     </form>
@@ -259,11 +369,38 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
         <div class="kpi-card kpi-total">
             <div class="kpi-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
             <div>
-                <div class="kpi-label">Total Filtered Expense</div>
+                <div class="kpi-label">Total {{ ($activeType ?? '') === 'Rental' ? 'Rental Expenses' : 'Expense' }}</div>
                 <div class="kpi-value">₹{{ number_format($totalAmount, 2) }}</div>
             </div>
         </div>
 
+        @if(($activeType ?? '') === 'Rental')
+        <div class="kpi-card kpi-direct" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 22, 34, 0.75) 100%) !important; border-color: rgba(16, 185, 129, 0.30) !important;">
+            <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.18); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35);">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div>
+                <div class="kpi-label">Tenant Recoverable</div>
+                <div class="kpi-value">₹{{ number_format($recoverableTotal ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-approved">
+            <div class="kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div>
+                <div class="kpi-label">Recovered Amount</div>
+                <div class="kpi-value">₹{{ number_format($recoveredTotal ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-pending">
+            <div class="kpi-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div>
+                <div class="kpi-label">Pending Recovery</div>
+                <div class="kpi-value">₹{{ number_format($pendingRecoveryTotal ?? 0, 2) }}</div>
+            </div>
+        </div>
+        @else
         <div class="kpi-card kpi-direct">
             <div class="kpi-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
             <div>
@@ -287,6 +424,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                 <div class="kpi-value">₹{{ number_format($pendingAmount ?? 0, 2) }}</div>
             </div>
         </div>
+        @endif
     </div>
 
     {{-- Expenses Listing Table --}}
@@ -298,10 +436,18 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     <th>Date</th>
                     <th>Category</th>
                     <th>Firm</th>
-                    <th>Project</th>
-                    <th>Property</th>
-                    <th>Paid To / Vendor</th>
-                    <th>Amount (₹)</th>
+                    @if(($activeType ?? '') === 'Rental')
+                        <th>Rental Property</th>
+                        <th>Tenant / Agreement</th>
+                        <th>Paid To / Payee</th>
+                        <th>Amount (₹)</th>
+                        <th>Tenant Recovery</th>
+                    @else
+                        <th>Project</th>
+                        <th>Property</th>
+                        <th>Paid To / Vendor</th>
+                        <th>Amount (₹)</th>
+                    @endif
                     <th>Payment Mode</th>
                     <th>Ref No</th>
                     <th style="text-align:center;">Status</th>
@@ -318,51 +464,138 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                     <td>
                         @if($expense->expense_category)
                             <span class="cat-chip">{{ $expense->expense_category }}</span>
+                            @if($expense->expense_subcategory && $expense->expense_subcategory !== $expense->expense_category)
+                                <div style="font-size:11px; color:#94A3B8; margin-top:2px;">{{ $expense->expense_subcategory }}</div>
+                            @endif
                         @else
                             <span style="color:#94A3B8;">—</span>
                         @endif
                     </td>
                     <td><strong style="color:#FFFFFF !important;">{{ $expense->firm_names }}</strong></td>
-                    <td>
-                        @if($expense->project ?? $expense->property?->project)
-                            @php $pObj = $expense->project ?? $expense->property->project; @endphp
-                            <div style="font-weight:700;font-size:13px;color:#60A5FA;">{{ $pObj->project_name }}</div>
-                        @else
-                            <span style="color:#94A3B8;">General / None</span>
-                        @endif
-                    </td>
-                    <td>
-                        @if($expense->relationLoaded('properties') && $expense->properties->isNotEmpty())
-                            @foreach($expense->properties as $prop)
-                                <div style="font-weight:700;font-size:12.5px;color:#FFFFFF; margin-bottom: 2px;">
-                                    {{ $prop->property_name }}
-                                    @if($prop->unit_no)
-                                        <span style="font-size:11px;color:#93C5FD;">(Unit {{ $prop->unit_no }})</span>
-                                    @endif
+
+                    @if(($activeType ?? '') === 'Rental')
+                        {{-- Rental Property --}}
+                        <td>
+                            @php
+                                $propObj = $expense->property ?? ($expense->rental?->property ?? ($expense->properties->first() ?? null));
+                            @endphp
+                            @if($propObj)
+                                <div style="font-weight:700;font-size:13px;color:#FFFFFF;">{{ $propObj->property_name }}</div>
+                                @if($propObj->unit_no)
+                                    <div style="font-size:11px;color:#93C5FD;">Unit: {{ $propObj->unit_no }}</div>
+                                @endif
+                            @else
+                                <span style="color:#94A3B8;">—</span>
+                            @endif
+                        </td>
+
+                        {{-- Tenant / Agreement --}}
+                        <td>
+                            @php
+                                $tObj = $expense->tenant ?? ($expense->rental?->tenant ?? null);
+                                $rObj = $expense->rental;
+                            @endphp
+                            @if($tObj || $rObj)
+                                @if($tObj)
+                                    <div style="font-weight:700;font-size:13px;color:#60A5FA;">
+                                        <i class="fa-solid fa-user" style="font-size:11px;margin-right:2px;"></i> {{ $tObj->name }}
+                                    </div>
+                                @elseif($rObj && $rObj->tenant_name)
+                                    <div style="font-weight:700;font-size:13px;color:#60A5FA;">{{ $rObj->tenant_name }}</div>
+                                @endif
+                                @if($rObj)
+                                    <a href="{{ route('rentals.show', $rObj->id) }}" style="font-size:11px;color:#A5B4FC;text-decoration:none;font-weight:600;" title="View Agreement">
+                                        <i class="fa-solid fa-file-contract"></i> {{ $rObj->agreement_no ?: 'AGR-'.$rObj->id }}
+                                    </a>
+                                @endif
+                            @else
+                                <span style="color:#94A3B8;">Direct Property</span>
+                            @endif
+                        </td>
+
+                        {{-- Paid To --}}
+                        <td style="color:#CBD5E1;">
+                            @if($expense->vendor)
+                                <a href="{{ route('vendors.show', $expense->vendor_id) }}" style="color:#60A5FA; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="View Vendor Profile">
+                                    <i class="fa-solid fa-building-user" style="font-size:11px;"></i> {{ $expense->vendor->name }}
+                                </a>
+                                @if($expense->paid_to && $expense->paid_to !== $expense->vendor->name)
+                                    <div style="font-size:11px; color:#94A3B8;">({{ $expense->paid_to }})</div>
+                                @endif
+                            @else
+                                {{ $expense->paid_to ?? '—' }}
+                            @endif
+                        </td>
+
+                        <td class="amount-col">₹{{ number_format($expense->amount, 2) }}</td>
+
+                        {{-- Tenant Recovery --}}
+                        <td>
+                            @if($expense->is_tenant_recoverable)
+                                <div style="display:flex; flex-direction:column; gap:3px;">
+                                    <span style="font-size:12px; font-weight:800; color:#34D399;">
+                                        ₹{{ number_format($expense->recovery_amount ?: $expense->amount, 2) }}
+                                    </span>
+                                    @php
+                                        $recSt = $expense->recovery_status ?: 'Pending';
+                                        $recBadgeColor = match($recSt) {
+                                            'Recovered' => 'rgba(16, 185, 129, 0.2); color:#34D399; border: 1px solid rgba(16, 185, 129, 0.35);',
+                                            'Partially Recovered' => 'rgba(59, 130, 246, 0.2); color:#60A5FA; border: 1px solid rgba(59, 130, 246, 0.35);',
+                                            'Deducted from Deposit' => 'rgba(168, 85, 247, 0.2); color:#C084FC; border: 1px solid rgba(168, 85, 247, 0.35);',
+                                            'Waived' => 'rgba(148, 163, 184, 0.2); color:#94A3B8; border: 1px solid rgba(148, 163, 184, 0.35);',
+                                            default => 'rgba(245, 158, 11, 0.2); color:#FBBF24; border: 1px solid rgba(245, 158, 11, 0.35);',
+                                        };
+                                    @endphp
+                                    <span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:10px; display:inline-block; width:fit-content; background:{{ $recBadgeColor }}">
+                                        {{ $recSt }}
+                                    </span>
                                 </div>
-                            @endforeach
-                        @elseif($expense->property)
-                            <div style="font-weight:700;font-size:13px;color:#FFFFFF;">{{ $expense->property->property_name }}</div>
-                            @if($expense->property->unit_no)
-                                <div style="font-size:11px;color:#93C5FD;">Unit: {{ $expense->property->unit_no }}</div>
+                            @else
+                                <span style="color:#64748B; font-size:11.5px;">Not Recoverable</span>
                             @endif
-                        @else
-                            <span style="color:#94A3B8;">—</span>
-                        @endif
-                    </td>
-                    <td style="color:#CBD5E1;">
-                        @if($expense->vendor)
-                            <a href="{{ route('vendors.show', $expense->vendor_id) }}" style="color:#60A5FA; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="View Vendor Profile">
-                                <i class="fa-solid fa-building-user" style="font-size:11px;"></i> {{ $expense->vendor->name }}
-                            </a>
-                            @if($expense->paid_to && $expense->paid_to !== $expense->vendor->name)
-                                <div style="font-size:11px; color:#94A3B8;">({{ $expense->paid_to }})</div>
+                        </td>
+                    @else
+                        <td>
+                            @if($expense->project ?? $expense->property?->project)
+                                @php $pObj = $expense->project ?? $expense->property->project; @endphp
+                                <div style="font-weight:700;font-size:13px;color:#60A5FA;">{{ $pObj->project_name }}</div>
+                            @else
+                                <span style="color:#94A3B8;">General / None</span>
                             @endif
-                        @else
-                            {{ $expense->paid_to ?? '—' }}
-                        @endif
-                    </td>
-                    <td class="amount-col">₹{{ number_format($expense->amount, 2) }}</td>
+                        </td>
+                        <td>
+                            @if($expense->relationLoaded('properties') && $expense->properties->isNotEmpty())
+                                @foreach($expense->properties as $prop)
+                                    <div style="font-weight:700;font-size:12.5px;color:#FFFFFF; margin-bottom: 2px;">
+                                        {{ $prop->property_name }}
+                                        @if($prop->unit_no)
+                                            <span style="font-size:11px;color:#93C5FD;">(Unit {{ $prop->unit_no }})</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            @elseif($expense->property)
+                                <div style="font-weight:700;font-size:13px;color:#FFFFFF;">{{ $expense->property->property_name }}</div>
+                                @if($expense->property->unit_no)
+                                    <div style="font-size:11px;color:#93C5FD;">Unit: {{ $expense->property->unit_no }}</div>
+                                @endif
+                            @else
+                                <span style="color:#94A3B8;">—</span>
+                            @endif
+                        </td>
+                        <td style="color:#CBD5E1;">
+                            @if($expense->vendor)
+                                <a href="{{ route('vendors.show', $expense->vendor_id) }}" style="color:#60A5FA; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="View Vendor Profile">
+                                    <i class="fa-solid fa-building-user" style="font-size:11px;"></i> {{ $expense->vendor->name }}
+                                </a>
+                                @if($expense->paid_to && $expense->paid_to !== $expense->vendor->name)
+                                    <div style="font-size:11px; color:#94A3B8;">({{ $expense->paid_to }})</div>
+                                @endif
+                            @else
+                                {{ $expense->paid_to ?? '—' }}
+                            @endif
+                        </td>
+                        <td class="amount-col">₹{{ number_format($expense->amount, 2) }}</td>
+                    @endif
                     <td>
                         @if($expense->payment_mode)
                             <span class="mode-chip">{{ $expense->payment_mode }}</span>

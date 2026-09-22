@@ -47,9 +47,12 @@ class RentalController extends Controller
                   ->orWhere('tenant_mobile', 'like', "%{$search}%")
                   ->orWhere('payment_status', 'like', "%{$search}%")
                   ->orWhere('rental_status', 'like', "%{$search}%")
+                  ->orWhere('agreement_no', 'like', "%{$search}%")
                   ->orWhereHas('property', fn($p) =>
                       $p->where('property_name', 'like', "%{$search}%")
                         ->orWhere('property_code', 'like', "%{$search}%")
+                        ->orWhere('unit_no', 'like', "%{$search}%")
+                        ->orWhereHas('project', fn($prj) => $prj->where('project_name', 'like', "%{$search}%"))
                   )
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$search}%"));
             });
@@ -153,9 +156,23 @@ class RentalController extends Controller
             abort(403);
         }
 
-        $rental->load(['firm', 'property.propertyType', 'property.project.propertyMaster', 'tenant']);
+        $rental->load([
+            'firm', 'property.propertyType', 'property.project.propertyMaster', 'tenant',
+            'expenses' => function ($q) {
+                $q->orderBy('expense_date', 'desc');
+            },
+            'expenses.expenseCategory', 'expenses.vendor'
+        ]);
 
-        return view('admin.rentals.show', compact('rental'));
+        $rentalExpenses = $rental->expenses;
+        $totalRentalExpense = (float) $rentalExpenses->sum('amount');
+        $recoverableExpense = (float) $rentalExpenses->where('is_tenant_recoverable', true)->sum('recovery_amount');
+        $recoveredExpense = (float) $rentalExpenses->where('is_tenant_recoverable', true)->where('recovery_status', 'Recovered')->sum('recovery_amount');
+        $pendingRecovery = (float) $rentalExpenses->where('is_tenant_recoverable', true)->where('recovery_status', 'Pending')->sum('recovery_amount');
+
+        return view('admin.rentals.show', compact(
+            'rental', 'rentalExpenses', 'totalRentalExpense', 'recoverableExpense', 'recoveredExpense', 'pendingRecovery'
+        ));
     }
 
     public function edit(Rental $rental)

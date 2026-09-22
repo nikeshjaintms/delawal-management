@@ -26,13 +26,18 @@
 .details-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 28px; }
 @media (max-width: 900px) { .details-grid { grid-template-columns: 1fr; } }
 
-.glass-card {
-    background: rgba(20, 27, 41, 0.60) !important;
-    backdrop-filter: blur(20px) saturate(160%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+.card-box {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.94) 0%, rgba(20, 28, 48, 0.97) 100%) !important;
+    backdrop-filter: blur(28px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
     border-radius: 24px !important; padding: 28px !important;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+}
+.card-box:hover {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.94) 0%, rgba(20, 28, 48, 0.97) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    transform: none !important;
 }
 
 .section-title { font-size: 14px; font-weight: 800; color: #34D399; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
@@ -61,14 +66,14 @@
         <h2><i class="fa-solid fa-wheat-awn" style="color: #34D399;"></i> Crop Sale / Income Details</h2>
         <p>Sale voucher for {{ $income->crop_product }} &bull; {{ $income->farm?->farm_name ?: 'Farm' }}</p>
     </div>
-    <div style="display: flex; gap: 10px;">
-        <a href="{{ route('agriculture.incomes.index') }}" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Back</a>
-        <a href="{{ route('agriculture.incomes.edit', $income->id) }}" class="btn-edit-head"><i class="fa-solid fa-pen-to-square"></i> Edit</a>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('agriculture.incomes.index') }}" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Back to Incomes</a>
+        <a href="{{ route('agriculture.incomes.edit', $income->id) }}" class="btn-edit-head"><i class="fa-solid fa-pen-to-square"></i> Edit Voucher</a>
     </div>
 </div>
 
 <div class="details-grid">
-    <div class="glass-card">
+    <div class="card-box">
         <div class="section-title"><i class="fa-solid fa-circle-info"></i> Sale Transaction Information</div>
         <table class="info-table">
             <tr>
@@ -131,7 +136,7 @@
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="glass-card">
+        <div class="card-box">
             <div class="amount-hero">
                 <span>Total Sale Value</span>
                 <h2>₹{{ number_format($income->total_amount, 2) }}</h2>

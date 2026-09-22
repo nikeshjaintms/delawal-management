@@ -208,16 +208,23 @@
             <i class="fa fa-arrow-left"></i> Back
         </a>
         
-        @if($authUser->hasPermission('purchase_order_print'))
+        @if($authUser->hasPermission('purchase_order_print') || $authUser->isAdmin())
         <a href="{{ route('purchase-orders.print', $purchaseOrder->id) }}" target="_blank" class="btn-print">
             <i class="fa fa-print"></i> Print PO
         </a>
         @endif
 
-        @if($authUser->hasPermission('purchase_order_edit') && in_array($purchaseOrder->status, ['Draft', 'Pending']))
+        @if($authUser->hasPermission('purchase_order_edit') || $authUser->isAdmin())
         <a href="{{ route('purchase-orders.edit', $purchaseOrder->id) }}" class="btn-gold">
             <i class="fa fa-edit"></i> Edit PO
         </a>
+        @endif
+
+        @if($authUser->hasPermission('purchase_order_delete') || $authUser->isAdmin())
+        <form action="{{ route('purchase-orders.destroy', $purchaseOrder->id) }}" method="POST" style="display:inline;" id="del-po-{{ $purchaseOrder->id }}">
+            @csrf @method('DELETE')
+            <button type="button" class="btn-delete" style="background: rgba(239, 68, 68, 0.15) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; padding: 10px 18px; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all .2s ease;" onclick="confirmDel({{ $purchaseOrder->id }},'{{ addslashes($purchaseOrder->po_number) }}','del-po-')"><i class="fa-solid fa-trash-can"></i> Delete</button>
+        </form>
         @endif
     </div>
 </div>
@@ -361,6 +368,24 @@
     </div>
     @endif
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmDel(id, name, formPrefix) {
+        Swal.fire({
+            title:'Delete Purchase Order?',
+            html:'Are you sure you want to delete <strong>'+name+'</strong>?',
+            icon:'warning',
+            showCancelButton:true,
+            confirmButtonColor:'#EF4444',
+            cancelButtonColor:'#64748B',
+            confirmButtonText:'Yes, Delete',
+            cancelButtonText:'Cancel',
+            customClass:{popup:'swal-inv-popup'}
+        })
+        .then(r=>{if(r.isConfirmed)document.getElementById(formPrefix+id).submit();});
+    }
+</script>
+<style>.swal-inv-popup{font-family:'Outfit',sans-serif!important;border-radius:14px!important;background:#101622!important;color:#FFF!important;border:1px solid rgba(255,255,255,0.15)!important;}</style>
 @if(!empty($printMode))
 <script>
     window.addEventListener('load', function() {

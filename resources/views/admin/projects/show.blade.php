@@ -143,25 +143,41 @@
 /* ── Quick KPI Strip ── */
 .project-kpi-strip {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
     margin-top: 20px;
     padding-top: 18px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
-@media (max-width: 768px) {
+@media (max-width: 1400px) {
+    .project-kpi-strip {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+@media (max-width: 992px) {
     .project-kpi-strip {
         grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 540px) {
+    .project-kpi-strip {
+        grid-template-columns: 1fr;
     }
 }
 .pk-card {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
-    padding: 12px 16px;
+    padding: 12px 14px;
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pk-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 .pk-icon {
     width: 38px;
@@ -180,9 +196,35 @@
 .pk-red    { background: rgba(239, 68, 68, 0.20); color: #F87171; }
 .pk-rose   { background: rgba(244, 63, 94, 0.20); color: #FB7185; }
 
-.pk-info { display: flex; flex-direction: column; }
-.pk-label { font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; }
-.pk-val { font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px; }
+.pk-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+}
+.pk-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+.pk-val {
+    font-size: 15.5px;
+    font-weight: 800;
+    color: #FFFFFF !important;
+    line-height: 1.25;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.2px;
+}
 
 /* ── Buttons & Badges ── */
 .btn-primary-custom, a.btn-primary-custom, button.btn-primary-custom, .btn-gold {
@@ -877,46 +919,60 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
 
     <!-- KPI Summary Strip -->
     <div class="project-kpi-strip">
-        <div class="pk-card">
+        <div class="pk-card" title="Total Plots: {{ $totalPlots }}">
             <div class="pk-icon pk-blue"><i class="fa-solid fa-boxes-stacked"></i></div>
             <div class="pk-info">
                 <span class="pk-label">Total Plots</span>
                 <span class="pk-val">{{ $totalPlots }} Plots</span>
             </div>
         </div>
-        <div class="pk-card">
+        <div class="pk-card" title="Combined Land Properties: {{ $linkedMasters->count() }}">
             <div class="pk-icon pk-purple"><i class="fa-solid fa-city"></i></div>
             <div class="pk-info">
-                <span class="pk-label">Properties Combined</span>
-                <span class="pk-val">{{ $linkedMasters->count() }} Properties</span>
+                <span class="pk-label">Properties</span>
+                <span class="pk-val">{{ $linkedMasters->count() }} Linked</span>
             </div>
         </div>
-        <div class="pk-card">
+        <div class="pk-card" title="Available Plots: {{ $availPlots }}">
             <div class="pk-icon pk-green"><i class="fa-solid fa-circle-check"></i></div>
             <div class="pk-info">
-                <span class="pk-label">Available Plots</span>
+                <span class="pk-label">Available</span>
                 <span class="pk-val">{{ $availPlots }} Plots</span>
             </div>
         </div>
-        <div class="pk-card">
+        <div class="pk-card" title="Booked Plots: {{ $bookedPlots }}">
             <div class="pk-icon pk-amber"><i class="fa-solid fa-handshake"></i></div>
             <div class="pk-info">
-                <span class="pk-label">Booked Plots</span>
+                <span class="pk-label">Booked</span>
                 <span class="pk-val">{{ $bookedPlots }} Plots</span>
             </div>
         </div>
-        <div class="pk-card">
+        <div class="pk-card" title="Sold Plots: {{ $soldPlots }}">
             <div class="pk-icon pk-red"><i class="fa-solid fa-circle-check"></i></div>
             <div class="pk-info">
-                <span class="pk-label">Sold Plots</span>
+                <span class="pk-label">Sold</span>
                 <span class="pk-val">{{ $soldPlots }} Plots</span>
             </div>
         </div>
-        <div class="pk-card">
+        <div class="pk-card" style="border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.08);" title="Total Inflow Collected: ₹{{ number_format($grandTotalProjectIncome ?? 0, 2) }}">
+            <div class="pk-icon pk-emerald"><i class="fa-solid fa-arrow-trend-up"></i></div>
+            <div class="pk-info">
+                <span class="pk-label" style="color: #6EE7B7;">Total Inflow</span>
+                <span class="pk-val" style="color: #34D399 !important;">₹{{ number_format($grandTotalProjectIncome ?? 0, 2) }}</span>
+            </div>
+        </div>
+        <div class="pk-card" style="border-color: rgba(244, 63, 94, 0.35); background: rgba(244, 63, 94, 0.08);" title="Total Project Outflows: ₹{{ number_format($grandTotalProjectCost ?? ($totalExpenses ?? 0), 2) }}">
             <div class="pk-icon pk-rose"><i class="fa-solid fa-receipt"></i></div>
             <div class="pk-info">
-                <span class="pk-label">Total Outflows</span>
-                <span class="pk-val">₹{{ number_format($grandTotalProjectCost ?? ($totalExpenses ?? 0), 2) }}</span>
+                <span class="pk-label" style="color: #FDA4AF;">Total Outflows</span>
+                <span class="pk-val" style="color: #FB7185 !important;">₹{{ number_format($grandTotalProjectCost ?? ($totalExpenses ?? 0), 2) }}</span>
+            </div>
+        </div>
+        <div class="pk-card" style="border-color: rgba(56, 189, 248, 0.35); background: rgba(56, 189, 248, 0.08);" title="Net Profit / Balance: ₹{{ number_format($netProjectProfit ?? 0, 2) }}">
+            <div class="pk-icon pk-cyan"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="pk-info">
+                <span class="pk-label" style="color: #7DD3FC;">Net Margin</span>
+                <span class="pk-val" style="color: {{ ($netProjectProfit ?? 0) >= 0 ? '#38BDF8' : '#F87171' }} !important;">{{ ($netProjectProfit ?? 0) >= 0 ? '+₹' : '-₹' }}{{ number_format(abs($netProjectProfit ?? 0), 2) }}</span>
             </div>
         </div>
     </div>
@@ -1094,6 +1150,608 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
         </table>
     </div>
 </div>
+
+<!-- ================================================================
+     PROJECT INCOMES & CUSTOMER COLLECTIONS SECTION
+================================================================ -->
+<div class="card-box" style="margin-top: 24px;">
+    <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10); padding-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16, 185, 129, 0.20); color: #34D399; display: flex; align-items: center; justify-content: center; font-size: 17px;">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin: 0;">Project Incomes &amp; Customer Collections</h3>
+                <p style="font-size: 12.5px; color: #94A3B8; margin: 2px 0 0 0;">Auto-aggregated inflow ledger of property sale installments, booking advances, rental collections, and direct project revenues ({{ $allProjectIncomes->count() }} total transactions recorded).</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <a href="{{ route('payments.create') }}" class="btn-action-income-receipt">
+                <i class="fa-solid fa-plus"></i> Record Payment / Receipt
+            </a>
+            <a href="{{ route('incomes.create') }}" class="btn-action-income-direct">
+                <i class="fa-solid fa-plus"></i> Add Direct Income
+            </a>
+            <a href="{{ route('property-sales.index') }}" class="btn-action-view" style="border-color: rgba(59, 130, 246, 0.35); background: rgba(59, 130, 246, 0.15); color: #60A5FA; width: auto; height: 36px; padding: 0 14px; font-size: 12.5px; font-weight: 700; gap: 6px;">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Sales Ledger
+            </a>
+            <a href="{{ route('bookings.index') }}" class="btn-action-view" style="border-color: rgba(168, 85, 247, 0.35); background: rgba(168, 85, 247, 0.15); color: #C084FC; width: auto; height: 36px; padding: 0 14px; font-size: 12.5px; font-weight: 700; gap: 6px;">
+                <i class="fa-solid fa-calendar-check"></i> Bookings
+            </a>
+            <a href="{{ route('rentals.index') }}" class="btn-action-view" style="border-color: rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.15); color: #FBBF24; width: auto; height: 36px; padding: 0 14px; font-size: 12.5px; font-weight: 700; gap: 6px;">
+                <i class="fa-solid fa-key"></i> Rentals
+            </a>
+        </div>
+    </div>
+
+    <!-- Income Financial Breakdown KPI Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px;">
+        <div style="background: rgba(16, 185, 129, 0.10); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.20); color: #34D399; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Total Inflow Collected</div>
+                <div style="font-size: 17px; font-weight: 800; color: #34D399 !important; line-height: 1.2; margin-top: 2px;">₹{{ number_format($grandTotalProjectIncome ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(59, 130, 246, 0.10); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59, 130, 246, 0.20); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Sales Installments</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px;">₹{{ number_format($paymentsCollectedTotal ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(168, 85, 247, 0.10); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(168, 85, 247, 0.20); color: #C084FC; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-handshake"></i>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Booking Advances</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px;">₹{{ number_format($bookingAdvanceTotal ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(245, 158, 11, 0.10); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.20); color: #FBBF24; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Rental Income</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px;">₹{{ number_format($rentalIncomeTotal ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(20, 184, 166, 0.10); border: 1px solid rgba(20, 184, 166, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(20, 184, 166, 0.20); color: #5EEAD4; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-coins"></i>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Direct / Misc Incomes</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px;">₹{{ number_format($generalIncomeTotal ?? 0, 2) }}</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(99, 102, 241, 0.10); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99, 102, 241, 0.20); color: #818CF8; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                <i class="fa-solid fa-tags"></i>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #CBD5E1; text-transform: uppercase;">Total Sales Booked</div>
+                <div style="font-size: 17px; font-weight: 800; color: #FFFFFF !important; line-height: 1.2; margin-top: 2px;">₹{{ number_format($totalSalesValue ?? 0, 2) }}</div>
+            </div>
+        </div>
+    </div>
+
+    @php
+        $hasIncomes = isset($allProjectIncomes) && $allProjectIncomes->isNotEmpty();
+        $hasPay = isset($projectPayments) && $projectPayments->isNotEmpty();
+        $hasBk = isset($projectBookings) && $projectBookings->isNotEmpty();
+        $hasRp = isset($projectRentalPayments) && $projectRentalPayments->isNotEmpty();
+        $hasGi = isset($projectGeneralIncomes) && $projectGeneralIncomes->isNotEmpty();
+    @endphp
+
+    {{-- Income Tabs Navigation --}}
+    <div class="project-outflows-tabbar">
+        <button type="button" id="btn-tab-inc-all" class="tab-pill-btn active tab-emerald" onclick="toggleProjectIncomeTab('all')">
+            <i class="fa-solid fa-list-check"></i>
+            <span>All Inflows &amp; Receipts</span>
+            <span class="tab-badge-count">{{ $allProjectIncomes->count() }}</span>
+        </button>
+        <button type="button" id="btn-tab-inc-sales" class="tab-pill-btn" onclick="toggleProjectIncomeTab('sales')">
+            <i class="fa-solid fa-money-bill-transfer"></i>
+            <span>Sale Payments / Receipts</span>
+            <span class="tab-badge-count">{{ isset($projectPayments) ? $projectPayments->count() : 0 }}</span>
+        </button>
+        <button type="button" id="btn-tab-inc-bookings" class="tab-pill-btn" onclick="toggleProjectIncomeTab('bookings')">
+            <i class="fa-solid fa-handshake"></i>
+            <span>Booking Advances</span>
+            <span class="tab-badge-count">{{ isset($projectBookings) ? $projectBookings->count() : 0 }}</span>
+        </button>
+        <button type="button" id="btn-tab-inc-rentals" class="tab-pill-btn" onclick="toggleProjectIncomeTab('rentals')">
+            <i class="fa-solid fa-key"></i>
+            <span>Rental Collections</span>
+            <span class="tab-badge-count">{{ isset($projectRentalPayments) ? $projectRentalPayments->count() : 0 }}</span>
+        </button>
+        <button type="button" id="btn-tab-inc-direct" class="tab-pill-btn" onclick="toggleProjectIncomeTab('direct')">
+            <i class="fa-solid fa-coins"></i>
+            <span>Direct Incomes</span>
+            <span class="tab-badge-count">{{ isset($projectGeneralIncomes) ? $projectGeneralIncomes->count() : 0 }}</span>
+        </button>
+    </div>
+
+    {{-- Tab 1: All Inflows & Receipts --}}
+    <div id="pane-project-income-all">
+        @if($hasIncomes)
+            <div class="table-responsive-wrapper">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px; white-space: nowrap;">#</th>
+                            <th style="white-space: nowrap;">Date</th>
+                            <th style="white-space: nowrap;">Income Type / Source</th>
+                            <th style="min-width: 150px;">Unit / Property</th>
+                            <th style="min-width: 160px;">Customer / Payer</th>
+                            <th style="white-space: nowrap;">Amount Received</th>
+                            <th style="white-space: nowrap;">Payment Mode</th>
+                            <th style="white-space: nowrap;">Ref / Trx No</th>
+                            <th style="text-align: center; white-space: nowrap;">Status</th>
+                            <th style="text-align: right; white-space: nowrap; width: 100px; padding-right: 18px !important;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($allProjectIncomes as $idx => $inc)
+                            <tr>
+                                <td style="color: #94A3B8; font-weight: 700; font-size: 12px;">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">{{ $inc->date ? $inc->date->format('d M Y') : '—' }}</td>
+                                <td style="white-space: nowrap;">
+                                    @if($inc->type_badge === 'sale')
+                                        <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.30);">
+                                            <i class="fa-solid fa-money-bill-transfer" style="font-size: 10px; margin-right: 4px;"></i> Sale Payment
+                                        </span>
+                                    @elseif($inc->type_badge === 'booking')
+                                        <span class="badge" style="background: rgba(168, 85, 247, 0.15); color: #D8B4FE; border: 1px solid rgba(168, 85, 247, 0.30);">
+                                            <i class="fa-solid fa-handshake" style="font-size: 10px; margin-right: 4px;"></i> Booking Advance
+                                        </span>
+                                    @elseif($inc->type_badge === 'rent')
+                                        <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.30);">
+                                            <i class="fa-solid fa-key" style="font-size: 10px; margin-right: 4px;"></i> Rental Income
+                                        </span>
+                                    @else
+                                        <span class="badge" style="background: rgba(20, 184, 166, 0.15); color: #5EEAD4; border: 1px solid rgba(20, 184, 166, 0.30);">
+                                            <i class="fa-solid fa-coins" style="font-size: 10px; margin-right: 4px;"></i> {{ $inc->category }}
+                                        </span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <strong style="color: #FFFFFF !important; font-size: 13px;">{{ $inc->unit }}</strong>
+                                </td>
+                                <td>
+                                    <span style="color: #E2E8F0; font-weight: 600; font-size: 13px;">{{ $inc->party }}</span>
+                                    @if($inc->remarks && $inc->remarks !== 'Sale Installment' && $inc->remarks !== 'Booking Token' && $inc->remarks !== 'Direct Income')
+                                        <div style="font-size: 11px; color: #94A3B8; margin-top: 1px;">{{ \Illuminate\Support\Str::limit($inc->remarks, 40) }}</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    <strong style="color: #34D399 !important; font-size: 14.5px; font-weight: 800; letter-spacing: -0.2px;">₹{{ number_format($inc->amount, 2) }}</strong>
+                                </td>
+                                <td>
+                                    <span style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 2px 7px; border-radius: 5px; font-size: 11.5px; white-space: nowrap;">
+                                        {{ $inc->mode }}
+                                    </span>
+                                </td>
+                                <td style="color: #94A3B8; font-size: 11.5px; white-space: nowrap;">
+                                    {{ $inc->ref_no ?: '—' }}
+                                </td>
+                                <td style="text-align: center; white-space: nowrap;">
+                                    <span class="badge badge-active" style="padding: 3px 8px; font-size: 11px;">
+                                        {{ ucfirst($inc->status) }}
+                                    </span>
+                                </td>
+                                <td style="text-align: right; white-space: nowrap; padding-right: 18px !important;">
+                                    <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                        @if($inc->view_url)
+                                            <a href="{{ $inc->view_url }}" class="btn-action-icon btn-action-view" title="View Details">
+                                                <i class="fa-regular fa-eye"></i>
+                                            </a>
+                                        @endif
+                                        @if($inc->edit_url)
+                                            <a href="{{ $inc->edit_url }}" class="btn-action-icon btn-action-edit" title="Edit Entry">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div style="text-align: center; color: #94A3B8; padding: 36px 0; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.12);">
+                <i class="fa-solid fa-hand-holding-dollar" style="font-size: 32px; color: #34D399; margin-bottom: 8px; display: block;"></i>
+                No income or customer receipts recorded for this project yet.
+                <div style="margin-top: 14px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <a href="{{ route('payments.create') }}" class="btn-action-income-receipt">
+                        <i class="fa-solid fa-plus"></i> Record Customer Payment
+                    </a>
+                    <a href="{{ route('incomes.create') }}" class="btn-action-income-direct">
+                        <i class="fa-solid fa-plus"></i> Add Direct Income
+                    </a>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    {{-- Tab 2: Property Sale Installments --}}
+    <div id="pane-project-income-sales" style="display: none;">
+        @if($hasPay)
+            <div class="table-responsive-wrapper">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px; white-space: nowrap;">#</th>
+                            <th style="white-space: nowrap;">Payment Date</th>
+                            <th style="white-space: nowrap;">Invoice / Sale</th>
+                            <th style="min-width: 150px;">Unit / Property</th>
+                            <th style="min-width: 160px;">Customer Name</th>
+                            <th style="white-space: nowrap;">Total Deal</th>
+                            <th style="white-space: nowrap;">Amount Paid</th>
+                            <th style="white-space: nowrap;">Pending Balance</th>
+                            <th style="white-space: nowrap;">Payment Mode</th>
+                            <th style="text-align: center; white-space: nowrap;">Status</th>
+                            <th style="text-align: right; white-space: nowrap; width: 100px; padding-right: 18px !important;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($projectPayments as $idx => $pay)
+                            <tr>
+                                <td style="color: #94A3B8; font-weight: 700; font-size: 12px;">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">{{ $pay->payment_date ? \Carbon\Carbon::parse($pay->payment_date)->format('d M Y') : $pay->created_at->format('d M Y') }}</td>
+                                <td>
+                                    @if($pay->propertySale)
+                                        <a href="{{ route('property-sales.show', $pay->property_sale_id) }}" style="color: #93C5FD; font-weight: 700; text-decoration: none;">
+                                            {{ $pay->propertySale->invoice_no ?: ('Sale #' . $pay->property_sale_id) }}
+                                        </a>
+                                    @else
+                                        <span style="color: #94A3B8;">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <strong style="color: #FFFFFF !important; font-size: 13px;">
+                                        {{ $pay->property?->property_name ?: ($pay->propertySale?->property_names ?: '—') }}
+                                    </strong>
+                                </td>
+                                <td>
+                                    <span style="color: #E2E8F0; font-weight: 600;">
+                                        {{ $pay->customer?->name ?: ($pay->propertySale?->customer?->name ?: '—') }}
+                                    </span>
+                                </td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">
+                                    ₹{{ number_format($pay->total_amount ?: ($pay->propertySale?->grand_total ?: 0), 2) }}
+                                </td>
+                                <td>
+                                    <strong style="color: #34D399 !important; font-size: 14.5px; font-weight: 800; letter-spacing: -0.2px;">₹{{ number_format($pay->payment_amount, 2) }}</strong>
+                                </td>
+                                <td style="color: #FDA4AF; font-weight: 700; white-space: nowrap;">
+                                    ₹{{ number_format($pay->pending_amount ?: 0, 2) }}
+                                </td>
+                                <td>
+                                    <span style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 2px 7px; border-radius: 5px; font-size: 11.5px; white-space: nowrap;">
+                                        {{ $pay->payment_mode ?: 'Cash' }}
+                                    </span>
+                                </td>
+                                <td style="text-align: center; white-space: nowrap;">
+                                    <span class="badge badge-active" style="padding: 3px 8px; font-size: 11px;">
+                                        {{ ucfirst($pay->status ?: 'Received') }}
+                                    </span>
+                                </td>
+                                <td style="text-align: right; white-space: nowrap; padding-right: 18px !important;">
+                                    <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                        <a href="{{ route('payments.show', $pay->id) }}" class="btn-action-icon btn-action-view" title="View Receipt">
+                                            <i class="fa-regular fa-eye"></i>
+                                        </a>
+                                        <a href="{{ route('payments.edit', $pay->id) }}" class="btn-action-icon btn-action-edit" title="Edit Payment">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div style="text-align: center; color: #94A3B8; padding: 32px 0; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.12);">
+                <i class="fa-solid fa-money-bill-transfer" style="font-size: 32px; color: #60A5FA; margin-bottom: 8px; display: block;"></i>
+                No sale installment receipts recorded for this project yet.
+                <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: center;">
+                    <a href="{{ route('payments.create') }}" class="btn-action-income-receipt">
+                        <i class="fa-solid fa-plus"></i> Record Sale Payment
+                    </a>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    {{-- Tab 3: Booking Advances --}}
+    <div id="pane-project-income-bookings" style="display: none;">
+        @if($hasBk)
+            <div class="table-responsive-wrapper">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px; white-space: nowrap;">#</th>
+                            <th style="white-space: nowrap;">Booking Date</th>
+                            <th style="min-width: 150px;">Unit / Property</th>
+                            <th style="min-width: 160px;">Customer Name</th>
+                            <th style="white-space: nowrap;">Deal Value</th>
+                            <th style="white-space: nowrap;">Booking / Token Paid</th>
+                            <th style="white-space: nowrap;">Pending Balance</th>
+                            <th style="white-space: nowrap;">Payment Mode</th>
+                            <th style="text-align: center; white-space: nowrap;">Status</th>
+                            <th style="text-align: right; white-space: nowrap; width: 80px; padding-right: 18px !important;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($projectBookings as $idx => $bk)
+                            <tr>
+                                <td style="color: #94A3B8; font-weight: 700; font-size: 12px;">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">{{ $bk->booking_date ? \Carbon\Carbon::parse($bk->booking_date)->format('d M Y') : '—' }}</td>
+                                <td>
+                                    <strong style="color: #FFFFFF !important; font-size: 13px;">
+                                        {{ $bk->property?->property_name ?: ($bk->properties->pluck('property_name')->implode(', ') ?: '—') }}
+                                    </strong>
+                                </td>
+                                <td>
+                                    <span style="color: #E2E8F0; font-weight: 600;">
+                                        {{ $bk->customer?->name ?: '—' }}
+                                    </span>
+                                </td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">
+                                    ₹{{ number_format($bk->final_amount ?: ($bk->total_amount ?: 0), 2) }}
+                                </td>
+                                <td>
+                                    <strong style="color: #34D399 !important; font-size: 14.5px; font-weight: 800; letter-spacing: -0.2px;">₹{{ number_format($bk->booking_amount ?: 0, 2) }}</strong>
+                                </td>
+                                <td style="color: #FDA4AF; font-weight: 700; white-space: nowrap;">
+                                    ₹{{ number_format($bk->remaining_amount ?: 0, 2) }}
+                                </td>
+                                <td>
+                                    <span style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 2px 7px; border-radius: 5px; font-size: 11.5px; white-space: nowrap;">
+                                        {{ $bk->payment_mode ?: ($bk->paymentMode?->name ?: 'Cash') }}
+                                    </span>
+                                </td>
+                                <td style="text-align: center; white-space: nowrap;">
+                                    <span class="badge badge-active" style="padding: 3px 8px; font-size: 11px;">
+                                        {{ ucfirst($bk->status ?: 'Booked') }}
+                                    </span>
+                                </td>
+                                <td style="text-align: right; white-space: nowrap; padding-right: 18px !important;">
+                                    <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                        <a href="{{ route('bookings.show', $bk->id) }}" class="btn-action-icon btn-action-view" title="View Booking">
+                                            <i class="fa-regular fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div style="text-align: center; color: #94A3B8; padding: 32px 0; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.12);">
+                <i class="fa-solid fa-handshake" style="font-size: 32px; color: #C084FC; margin-bottom: 8px; display: block;"></i>
+                No bookings recorded for this project yet.
+            </div>
+        @endif
+    </div>
+
+    {{-- Tab 4: Rental Collections --}}
+    <div id="pane-project-income-rentals" style="display: none;">
+        @if($hasRp)
+            <div class="table-responsive-wrapper">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px; white-space: nowrap;">#</th>
+                            <th style="white-space: nowrap;">Payment Date</th>
+                            <th style="white-space: nowrap;">Period / Month</th>
+                            <th style="min-width: 150px;">Unit / Property</th>
+                            <th style="min-width: 160px;">Tenant Name</th>
+                            <th style="white-space: nowrap;">Rent Due</th>
+                            <th style="white-space: nowrap;">Paid Amount</th>
+                            <th style="white-space: nowrap;">Pending</th>
+                            <th style="white-space: nowrap;">Mode</th>
+                            <th style="text-align: center; white-space: nowrap;">Status</th>
+                            <th style="text-align: right; white-space: nowrap; width: 80px; padding-right: 18px !important;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($projectRentalPayments as $idx => $rp)
+                            <tr>
+                                <td style="color: #94A3B8; font-weight: 700; font-size: 12px;">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">{{ $rp->payment_date ? \Carbon\Carbon::parse($rp->payment_date)->format('d M Y') : '—' }}</td>
+                                <td>
+                                    <span style="color: #FCD34D; font-weight: 700; font-size: 12.5px;">
+                                        {{ $rp->payment_month ? $rp->payment_month . ' ' . $rp->payment_year : '—' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style="color: #FFFFFF !important; font-size: 13px;">
+                                        {{ $rp->property?->property_name ?: ($rp->rental?->property?->property_name ?: '—') }}
+                                    </strong>
+                                </td>
+                                <td>
+                                    <span style="color: #E2E8F0; font-weight: 600;">
+                                        {{ $rp->rental?->tenant?->tenant_name ?: '—' }}
+                                    </span>
+                                </td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">
+                                    ₹{{ number_format($rp->rent_amount ?: 0, 2) }}
+                                </td>
+                                <td>
+                                    <strong style="color: #34D399 !important; font-size: 14.5px; font-weight: 800; letter-spacing: -0.2px;">₹{{ number_format($rp->paid_amount ?: 0, 2) }}</strong>
+                                </td>
+                                <td style="color: #FDA4AF; font-weight: 700; white-space: nowrap;">
+                                    ₹{{ number_format($rp->pending_amount ?: 0, 2) }}
+                                </td>
+                                <td>
+                                    <span style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 2px 7px; border-radius: 5px; font-size: 11.5px; white-space: nowrap;">
+                                        {{ $rp->payment_mode ?: 'Cash' }}
+                                    </span>
+                                </td>
+                                <td style="text-align: center; white-space: nowrap;">
+                                    <span class="badge badge-active" style="padding: 3px 8px; font-size: 11px;">
+                                        {{ ucfirst($rp->payment_status ?: 'Paid') }}
+                                    </span>
+                                </td>
+                                <td style="text-align: right; white-space: nowrap; padding-right: 18px !important;">
+                                    <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                        @if($rp->rental_id)
+                                            <a href="{{ route('rentals.show', $rp->rental_id) }}" class="btn-action-icon btn-action-view" title="View Agreement">
+                                                <i class="fa-regular fa-eye"></i>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div style="text-align: center; color: #94A3B8; padding: 32px 0; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.12);">
+                <i class="fa-solid fa-key" style="font-size: 32px; color: #FBBF24; margin-bottom: 8px; display: block;"></i>
+                No rental payment collections recorded for this project yet.
+            </div>
+        @endif
+    </div>
+
+    {{-- Tab 5: Direct & Misc Incomes --}}
+    <div id="pane-project-income-direct" style="display: none;">
+        @if($hasGi)
+            <div class="table-responsive-wrapper">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px; white-space: nowrap;">#</th>
+                            <th style="white-space: nowrap;">Date</th>
+                            <th style="white-space: nowrap;">Income Type</th>
+                            <th style="min-width: 150px;">Unit / Property</th>
+                            <th style="min-width: 160px;">Received From</th>
+                            <th style="white-space: nowrap;">Amount</th>
+                            <th style="white-space: nowrap;">Payment Mode</th>
+                            <th style="white-space: nowrap;">Ref / Trx No</th>
+                            <th style="min-width: 130px;">Description</th>
+                            <th style="text-align: center; white-space: nowrap;">Status</th>
+                            <th style="text-align: right; white-space: nowrap; width: 100px; padding-right: 18px !important;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($projectGeneralIncomes as $idx => $inc)
+                            <tr>
+                                <td style="color: #94A3B8; font-weight: 700; font-size: 12px;">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
+                                <td style="color: #CBD5E1; white-space: nowrap;">{{ $inc->income_date ? \Carbon\Carbon::parse($inc->income_date)->format('d M Y') : '—' }}</td>
+                                <td>
+                                    <span class="badge" style="background: rgba(20, 184, 166, 0.15); color: #5EEAD4; border: 1px solid rgba(20, 184, 166, 0.30); white-space: nowrap;">
+                                        {{ $inc->income_type ?: 'Direct Income' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style="color: #FFFFFF !important; font-size: 13px;">
+                                        {{ $inc->property?->property_name ?: '—' }}
+                                    </strong>
+                                </td>
+                                <td>
+                                    <span style="color: #E2E8F0; font-weight: 600;">
+                                        {{ $inc->received_from ?: '—' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style="color: #34D399 !important; font-size: 14.5px; font-weight: 800; letter-spacing: -0.2px;">₹{{ number_format($inc->amount, 2) }}</strong>
+                                </td>
+                                <td>
+                                    <span style="background: rgba(255, 255, 255, 0.08); color: #E2E8F0; padding: 2px 7px; border-radius: 5px; font-size: 11.5px; white-space: nowrap;">
+                                        {{ $inc->paymentMode?->name ?: 'Cash' }}
+                                    </span>
+                                </td>
+                                <td style="color: #94A3B8; font-size: 11.5px; white-space: nowrap;">
+                                    {{ $inc->reference_no ?: '—' }}
+                                </td>
+                                <td style="color: #94A3B8; font-size: 11.5px;">
+                                    {{ $inc->description ?: '—' }}
+                                </td>
+                                <td style="text-align: center; white-space: nowrap;">
+                                    <span class="badge badge-active" style="padding: 3px 8px; font-size: 11px;">
+                                        {{ ucfirst($inc->status ?: 'Active') }}
+                                    </span>
+                                </td>
+                                <td style="text-align: right; white-space: nowrap; padding-right: 18px !important;">
+                                    <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                        <a href="{{ route('incomes.show', $inc->id) }}" class="btn-action-icon btn-action-view" title="View Details">
+                                            <i class="fa-regular fa-eye"></i>
+                                        </a>
+                                        <a href="{{ route('incomes.edit', $inc->id) }}" class="btn-action-icon btn-action-edit" title="Edit Income">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div style="text-align: center; color: #94A3B8; padding: 32px 0; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.12);">
+                <i class="fa-solid fa-coins" style="font-size: 32px; color: #5EEAD4; margin-bottom: 8px; display: block;"></i>
+                No direct incomes recorded for this project yet.
+                <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: center;">
+                    <a href="{{ route('incomes.create') }}" class="btn-action-income-direct">
+                        <i class="fa-solid fa-plus"></i> Add Direct Income
+                    </a>
+                </div>
+            </div>
+        @endif
+    </div>
+</div>
+
+<script>
+function toggleProjectIncomeTab(tab) {
+    const tabs = ['all', 'sales', 'bookings', 'rentals', 'direct'];
+    const themes = {
+        all: 'tab-emerald',
+        sales: 'tab-blue',
+        bookings: 'tab-purple',
+        rentals: 'tab-amber',
+        direct: 'tab-teal'
+    };
+
+    tabs.forEach(t => {
+        const btn = document.getElementById('btn-tab-inc-' + t);
+        const pane = document.getElementById('pane-project-income-' + t);
+        if (btn) {
+            btn.classList.remove('active', 'tab-emerald', 'tab-blue', 'tab-purple', 'tab-amber', 'tab-teal');
+        }
+        if (pane) {
+            pane.style.display = 'none';
+        }
+    });
+
+    const activeBtn = document.getElementById('btn-tab-inc-' + tab);
+    const activePane = document.getElementById('pane-project-income-' + tab);
+    if (activeBtn) {
+        activeBtn.classList.add('active', themes[tab] || 'tab-emerald');
+    }
+    if (activePane) {
+        activePane.style.display = 'block';
+    }
+}
+</script>
 
 <!-- ================================================================
      PROJECT EXPENSES & ALL OUTFLOWS SECTION
@@ -2215,6 +2873,18 @@ document.addEventListener('keydown', function(e) {
     font-weight: 800;
 }
 /* Active Tab Themes */
+.tab-pill-btn.active.tab-emerald {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    border-color: #34D399 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 16px rgba(5, 150, 105, 0.45);
+}
+.tab-pill-btn.active.tab-amber {
+    background: linear-gradient(135deg, #D97706 0%, #B45309 100%) !important;
+    border-color: #FBBF24 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 16px rgba(217, 119, 6, 0.45);
+}
 .tab-pill-btn.active.tab-blue {
     background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
     border-color: #60A5FA !important;
@@ -2238,6 +2908,50 @@ document.addEventListener('keydown', function(e) {
     border-color: #2DD4BF !important;
     color: #FFFFFF !important;
     box-shadow: 0 4px 16px rgba(13, 148, 136, 0.45);
+}
+
+.pk-emerald { background: rgba(16, 185, 129, 0.20); color: #34D399; }
+.pk-cyan    { background: rgba(6, 182, 212, 0.20); color: #22D3EE; }
+
+.btn-action-income-receipt {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #10B981 !important;
+    padding: 7px 16px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.30);
+    transition: all 0.2s ease;
+}
+.btn-action-income-receipt:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.45);
+    color: #FFFFFF !important;
+}
+.btn-action-income-direct {
+    background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #2DD4BF !important;
+    padding: 7px 16px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.30);
+    transition: all 0.2s ease;
+}
+.btn-action-income-direct:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(13, 148, 136, 0.45);
+    color: #FFFFFF !important;
 }
 
 /* ── Badges ── */

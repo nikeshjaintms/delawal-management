@@ -82,12 +82,45 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
 .action-buttons-wrap { display: flex !important; gap: 8px !important; align-items: center !important; white-space: nowrap !important; }
 .alert-success { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; color: #34D399 !important; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .pagination-wrapper { margin-top: 24px; display: flex; justify-content: center; }
+
+/* ── Tab Switcher ── */
+.rental-nav-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.rental-nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    background: rgba(16, 22, 34, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #94A3B8;
+    text-decoration: none !important;
+    font-size: 13.5px;
+    font-weight: 700;
+    transition: all .25s ease;
+}
+.rental-nav-tab:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+.rental-nav-tab.active {
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+    color: #FFFFFF !important;
+    border-color: #3B82F6 !important;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.40);
+}
 </style>
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Tenant Master</h2>
-        <p>Add and manage tenant identity and rental contact details.</p>
+        <h2>Tenant & Rent Agreement</h2>
+        <p>Manage all tenant directory profiles and active rent agreements firm-wise.</p>
     </div>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <a href="{{ route('tenants.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important; border: 1px solid #F87171 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.40);">
@@ -97,7 +130,22 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
             <i class="fa-solid fa-plus"></i>
             <span>Add Tenant</span>
         </a>
+        <a href="{{ route('rentals.create') }}" class="btn-gold" style="background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.20) !important;">
+            <i class="fa-solid fa-file-circle-plus"></i>
+            <span>Add Agreement</span>
+        </a>
     </div>
+</div>
+
+<div class="rental-nav-tabs">
+    <a href="{{ route('rentals.index') }}" class="rental-nav-tab">
+        <i class="fa-solid fa-file-contract"></i>
+        <span>Rent Agreements</span>
+    </a>
+    <a href="{{ route('tenants.index') }}" class="rental-nav-tab active">
+        <i class="fa-solid fa-house-user"></i>
+        <span>Tenant Directory</span>
+    </a>
 </div>
 
 @if(session('success'))

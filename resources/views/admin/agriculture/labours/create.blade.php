@@ -113,7 +113,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 <div class="form-group">
                     <label class="form-label">Assigned Farm / Land <span class="opt">(optional)</span></label>
                     <select name="farm_id" class="form-control @error('farm_id') is-invalid @enderror">
-                        <option value="">— General Farm Labour —</option>
+                        <option value="">-- None / General Farm (Optional) --</option>
                         @foreach($farms as $farm)
                             <option value="{{ $farm->id }}" {{ old('farm_id') == $farm->id ? 'selected' : '' }}>{{ $farm->farm_name }}</option>
                         @endforeach

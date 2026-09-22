@@ -75,8 +75,28 @@ class ExpenseController extends Controller
             ->orderBy('name')
             ->get();
 
+        $paymentModes = PaymentMode::where('status', 'active')
+            ->when($firmId, function ($q) use ($firmId) {
+                $q->where(function ($sub) use ($firmId) {
+                    $sub
+                        ->whereHas('firms', fn($f) => $f->where('firms.id', $firmId))
+                        ->orWhereDoesntHave('firms');
+                });
+            })
+            ->orderBy('name')
+            ->get();
+
         if ($paymentModes->isEmpty()) {
             $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
+        }
+
+        $rentalsQuery = \App\Models\Rental::with(['property', 'tenant', 'firm'])
+            ->orderByDesc('id');
+        $tenantsQuery = \App\Models\Tenant::with('firm')->where('status', 'active')->orderBy('name');
+
+        if ($firmId && (!$user || !$user->isAdmin())) {
+            $rentalsQuery->where('firm_id', $firmId);
+            $tenantsQuery->where('firm_id', $firmId);
         }
 
         return [
@@ -86,12 +106,44 @@ class ExpenseController extends Controller
             'categories' => $catQuery->get(),
             'vendors' => $vendorQuery->get(),
             'paymentModes' => $paymentModes,
+            'rentals' => $rentalsQuery->get(),
+            'tenants' => $tenantsQuery->get(),
+            'rentalCategories' => Expense::RENTAL_CATEGORIES,
+            'recoveryStatuses' => Expense::RECOVERY_STATUSES,
         ];
+    }
+
+    public function propertyExpenses(Request $request)
+    {
+        $request->merge(['type' => 'Property']);
+        return $this->index($request);
+    }
+
+    public function generalExpenses(Request $request)
+    {
+        $request->merge(['type' => 'General']);
+        return $this->index($request);
+    }
+
+    public function rentalExpenses(Request $request)
+    {
+        $request->merge(['type' => 'Rental']);
+        return $this->index($request);
+    }
+
+    public function personalExpenses(Request $request)
+    {
+        $request->merge(['type' => 'Personal']);
+        return $this->index($request);
     }
 
     public function index(Request $request)
     {
-        $query = Expense::with(['firms', 'firm', 'project', 'properties.propertyType', 'property.propertyType', 'property.project', 'expenseCategory', 'vendor', 'purchaseOrder.vendor']);
+        $query = Expense::with([
+            'firms', 'firm', 'project', 'properties.propertyType',
+            'property.propertyType', 'property.project', 'expenseCategory',
+            'vendor', 'purchaseOrder.vendor', 'rental.property', 'tenant'
+        ]);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -104,6 +156,49 @@ class ExpenseController extends Controller
             $query->forFirms($firmIds);
         }
 
+        $activeType = $request->input('type', $request->input('expense_type', $request->input('filter_type')));
+        if ($activeType) {
+            if ($activeType === 'Property') {
+                $query->where(function ($q) {
+                    $q->where('expense_type', 'Property')
+                      ->orWhereNotNull('property_id')
+                      ->orWhereHas('properties');
+                });
+            } elseif ($activeType === 'Project') {
+                $query->where(function ($q) {
+                    $q->where('expense_type', 'Project')
+                      ->orWhereNotNull('project_id')
+                      ->orWhereNotNull('purchase_order_id');
+                });
+            } elseif ($activeType === 'General') {
+                $query->where(function ($q) {
+                    $q->whereIn('expense_type', ['General', 'Office'])
+                      ->orWhere(function ($sub) {
+                          $sub->whereNull('expense_type')
+                              ->whereNull('project_id')
+                              ->whereNull('property_id');
+                      });
+                });
+            } elseif ($activeType === 'Rental') {
+                $query->where(function ($q) {
+                    $q->where('expense_type', 'Rental')
+                      ->orWhereNotNull('rental_id')
+                      ->orWhereNotNull('tenant_id')
+                      ->orWhere('expense_category', 'like', '%Rental%')
+                      ->orWhere('expense_category', 'like', '%Rent%')
+                      ->orWhere('expense_category', 'like', '%Tenant%');
+                });
+            } elseif ($activeType === 'Personal') {
+                $query->where(function ($q) {
+                    $q->where('expense_type', 'Personal')
+                      ->orWhere('expense_category', 'like', '%Personal%')
+                      ->orWhere('expense_category', 'like', '%Drawing%');
+                });
+            } else {
+                $query->where('expense_type', $activeType);
+            }
+        }
+
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
@@ -111,6 +206,7 @@ class ExpenseController extends Controller
                     ->where('expense_title', 'like', "%{$s}%")
                     ->orWhere('description', 'like', "%{$s}%")
                     ->orWhere('expense_category', 'like', "%{$s}%")
+                    ->orWhere('expense_subcategory', 'like', "%{$s}%")
                     ->orWhere('expense_type', 'like', "%{$s}%")
                     ->orWhere('paid_to', 'like', "%{$s}%")
                     ->orWhere('bill_no', 'like', "%{$s}%")
@@ -118,6 +214,8 @@ class ExpenseController extends Controller
                     ->orWhere('payment_account', 'like', "%{$s}%")
                     ->orWhere('notes', 'like', "%{$s}%")
                     ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"))
+                    ->orWhereHas('tenant', fn($t) => $t->where('name', 'like', "%{$s}%")->orWhere('phone', 'like', "%{$s}%"))
+                    ->orWhereHas('rental', fn($r) => $r->where('agreement_no', 'like', "%{$s}%")->orWhere('tenant_name', 'like', "%{$s}%"))
                     ->orWhereHas('project', fn($pr) => $pr->where('project_name', 'like', "%{$s}%"))
                     ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
                     ->orWhereHas('properties', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
@@ -125,10 +223,6 @@ class ExpenseController extends Controller
                     ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
                     ->orWhereHas('purchaseOrder', fn($po) => $po->where('po_number', 'like', "%{$s}%"));
             });
-        }
-
-        if ($request->filled('filter_type')) {
-            $query->where('expense_type', $request->filter_type);
         }
 
         if ($request->filled('filter_project')) {
@@ -143,12 +237,31 @@ class ExpenseController extends Controller
             });
         }
 
+        if ($request->filled('filter_rental')) {
+            $query->where('rental_id', $request->filter_rental);
+        }
+
+        if ($request->filled('filter_tenant')) {
+            $query->where('tenant_id', $request->filter_tenant);
+        }
+
+        if ($request->filled('filter_recovery_status')) {
+            $query->where('recovery_status', $request->filter_recovery_status);
+        }
+
+        if ($request->filled('filter_recoverable')) {
+            $query->where('is_tenant_recoverable', (bool) $request->filter_recoverable);
+        }
+
         if ($request->filled('filter_category')) {
             $cat = $request->filter_category;
             if (is_numeric($cat)) {
                 $query->where('expense_category_id', $cat);
             } else {
-                $query->where('expense_category', $cat);
+                $query->where(function($q) use ($cat) {
+                    $q->where('expense_category', $cat)
+                      ->orWhere('expense_subcategory', $cat);
+                });
             }
         }
 
@@ -182,6 +295,11 @@ class ExpenseController extends Controller
         $approvedAmount = (clone $query)->where('approval_status', 'Approved')->sum('amount');
         $pendingAmount = (clone $query)->where('approval_status', 'Pending')->sum('amount');
 
+        // Rental-specific KPIs
+        $recoverableTotal = (clone $query)->where('is_tenant_recoverable', true)->sum('recovery_amount');
+        $recoveredTotal = (clone $query)->where('is_tenant_recoverable', true)->where('recovery_status', 'Recovered')->sum('recovery_amount');
+        $pendingRecoveryTotal = (clone $query)->where('is_tenant_recoverable', true)->where('recovery_status', 'Pending')->sum('recovery_amount');
+
         $expenses = $query->orderBy('expense_date', 'desc')->paginate(15)->withQueryString();
 
         $dropdownData = $this->dropdowns($request->firm_id);
@@ -191,22 +309,47 @@ class ExpenseController extends Controller
         $categories = $dropdownData['categories'];
         $vendors = $dropdownData['vendors'];
         $paymentModes = $dropdownData['paymentModes'];
+        $rentals = $dropdownData['rentals'];
+        $tenants = $dropdownData['tenants'];
+        $rentalCategories = $dropdownData['rentalCategories'];
+        $recoveryStatuses = $dropdownData['recoveryStatuses'];
 
         $selectedProject = $request->filled('filter_project') ? Project::find($request->filter_project) : null;
+        $selectedRental = $request->filled('filter_rental') ? \App\Models\Rental::with(['property', 'tenant'])->find($request->filter_rental) : null;
+        $selectedTenant = $request->filled('filter_tenant') ? \App\Models\Tenant::find($request->filter_tenant) : null;
 
         return view('admin.expenses.index', compact(
             'expenses', 'firms', 'projects', 'properties', 'categories', 'vendors', 'paymentModes',
+            'rentals', 'tenants', 'rentalCategories', 'recoveryStatuses',
             'totalAmount', 'poExpensesTotal', 'directExpensesTotal',
-            'approvedAmount', 'pendingAmount', 'selectedProject'
+            'approvedAmount', 'pendingAmount', 'recoverableTotal', 'recoveredTotal', 'pendingRecoveryTotal',
+            'selectedProject', 'selectedRental', 'selectedTenant', 'activeType'
         ));
     }
 
     public function create(Request $request)
     {
         $data = $this->dropdowns();
+        $data['selectedType'] = $request->input('type', $request->input('expense_type', 'Property'));
         $data['selectedProjectId'] = $request->input('project_id');
         $data['selectedPropertyId'] = $request->input('property_id');
+        $data['selectedRentalId'] = $request->input('rental_id');
+        $data['selectedTenantId'] = $request->input('tenant_id');
         $data['selectedPropertyIds'] = (array) ($request->input('property_ids') ?: ($request->input('property_id') ? [$request->input('property_id')] : []));
+        
+        // If rental_id is given directly, pre-fetch rental data
+        if ($data['selectedRentalId']) {
+            $rental = \App\Models\Rental::with(['property', 'tenant', 'firm'])->find($data['selectedRentalId']);
+            if ($rental) {
+                $data['selectedRental'] = $rental;
+                $data['selectedPropertyId'] = $rental->property_id;
+                $data['selectedTenantId'] = $rental->tenant_id;
+                if (!in_array($rental->property_id, $data['selectedPropertyIds'])) {
+                    $data['selectedPropertyIds'][] = $rental->property_id;
+                }
+            }
+        }
+
         return view('admin.expenses.create', $data);
     }
 
@@ -257,9 +400,30 @@ class ExpenseController extends Controller
             $billFilePath = $request->file('bill_file')->store('expenses/bills', 'public');
         }
 
+        $rentalId = $request->input('rental_id') ?: null;
+        $tenantId = $request->input('tenant_id') ?: null;
+
         $propertyIds = $request->input('property_ids', (array) ($request->property_id ? [$request->property_id] : []));
         $propertyIds = array_filter((array) $propertyIds);
         $primaryPropertyId = reset($propertyIds) ?: null;
+
+        // If rental is selected, link and ensure property/tenant/firm are synced
+        if ($rentalId) {
+            $rental = \App\Models\Rental::find($rentalId);
+            if ($rental) {
+                if (!$primaryPropertyId && $rental->property_id) {
+                    $primaryPropertyId = $rental->property_id;
+                    $propertyIds[] = $rental->property_id;
+                }
+                if (!$tenantId && $rental->tenant_id) {
+                    $tenantId = $rental->tenant_id;
+                }
+                if (!$primaryFirmId && $rental->firm_id) {
+                    $primaryFirmId = $rental->firm_id;
+                    $firmIds[] = $rental->firm_id;
+                }
+            }
+        }
 
         $projectId = $request->project_id ?: null;
         if (!$projectId && $primaryPropertyId) {
@@ -296,14 +460,21 @@ class ExpenseController extends Controller
             }
         }
 
+        $isRecoverable = $request->boolean('is_tenant_recoverable');
+        $recoveryAmount = $isRecoverable ? (float) ($request->input('recovery_amount') ?: $request->input('amount')) : 0.00;
+        $recoveryStatus = $isRecoverable ? ($request->input('recovery_status') ?: 'Pending') : 'Not Applicable';
+
         $expense = Expense::create([
             'firm_id' => $primaryFirmId,
             'project_id' => $projectId,
             'property_id' => $primaryPropertyId,
+            'rental_id' => $rentalId,
+            'tenant_id' => $tenantId,
             'vendor_id' => $vendorId,
             'expense_date' => $request->expense_date,
             'expense_category_id' => $categoryId ?: null,
             'expense_category' => $categoryName,
+            'expense_subcategory' => $request->expense_subcategory ?: null,
             'expense_type' => $request->expense_type ?: null,
             'expense_title' => $expenseTitle,
             'description' => $request->description ?: null,
@@ -314,6 +485,9 @@ class ExpenseController extends Controller
             'paid_to' => $paidTo ?: null,
             'bill_no' => $request->bill_no ?: null,
             'bill_file' => $billFilePath,
+            'is_tenant_recoverable' => $isRecoverable,
+            'recovery_amount' => $recoveryAmount,
+            'recovery_status' => $recoveryStatus,
             'approval_status' => $request->approval_status ?? 'Pending',
             'remarks' => $request->remarks ?: null,
             'notes' => $request->notes ?: null,
@@ -327,26 +501,49 @@ class ExpenseController extends Controller
             $expense->syncFirms($firmIds);
         }
 
-        return redirect()
-            ->route('expenses.project-wise', $projectId ? ['project_id' => $projectId] : [])
-            ->with('success', 'Expense added successfully.');
+        $expType = $expense->expense_type ?: $request->expense_type;
+        if ($expType === 'General' || $expType === 'Office') {
+            return redirect()->route('expenses.general')->with('success', 'General expense added successfully.');
+        } elseif ($expType === 'Rental') {
+            return redirect()->route('expenses.rental')->with('success', 'Rental expense added successfully.');
+        } elseif ($expType === 'Personal') {
+            return redirect()->route('expenses.personal')->with('success', 'Personal expense added successfully.');
+        } elseif ($expType === 'Property') {
+            return redirect()->route('expenses.property')->with('success', 'Property expense added successfully.');
+        } else {
+            return redirect()
+                ->route('expenses.project-wise', $projectId ? ['project_id' => $projectId] : [])
+                ->with('success', 'Project expense added successfully.');
+        }
     }
 
     public function show(Expense $expense)
     {
-        $expense->load(['firms', 'firm', 'project.propertyMaster', 'properties.propertyType', 'properties.project.propertyMaster', 'property.propertyType', 'property.project.propertyMaster', 'expenseCategory', 'vendor']);
+        $expense->load([
+            'firms', 'firm', 'project.propertyMaster',
+            'properties.propertyType', 'properties.project.propertyMaster',
+            'property.propertyType', 'property.project.propertyMaster',
+            'rental.tenant', 'rental.property', 'tenant',
+            'expenseCategory', 'vendor'
+        ]);
         $this->authorise($expense);
         return view('admin.expenses.show', compact('expense'));
     }
 
     public function edit(Expense $expense)
     {
-        $expense->load(['firms', 'firm', 'project', 'properties', 'property.project', 'vendor']);
+        $expense->load(['firms', 'firm', 'project', 'properties', 'property.project', 'vendor', 'rental.tenant', 'tenant']);
         $this->authorise($expense);
+        $selectedType = $expense->expense_type ?: ($expense->rental_id ? 'Rental' : ($expense->project_id || $expense->property_id ? 'Property' : 'General'));
         return view('admin.expenses.edit', array_merge(
             [
                 'expense' => $expense,
+                'selectedType' => $selectedType,
                 'selectedProjectId' => $expense->project_id ?? $expense->property?->project_id ?? $expense->properties->first()?->project_id,
+                'selectedPropertyId' => $expense->property_id,
+                'selectedRentalId' => $expense->rental_id,
+                'selectedTenantId' => $expense->tenant_id,
+                'selectedPropertyIds' => $expense->properties->pluck('id')->toArray(),
             ],
             $this->dropdowns($expense->firm_id)
         ));
@@ -405,9 +602,29 @@ class ExpenseController extends Controller
             $billFilePath = $request->file('bill_file')->store('expenses/bills', 'public');
         }
 
+        $rentalId = $request->input('rental_id') ?: null;
+        $tenantId = $request->input('tenant_id') ?: null;
+
         $propertyIds = $request->input('property_ids', (array) ($request->property_id ? [$request->property_id] : []));
         $propertyIds = array_filter((array) $propertyIds);
         $primaryPropertyId = reset($propertyIds) ?: null;
+
+        if ($rentalId) {
+            $rental = \App\Models\Rental::find($rentalId);
+            if ($rental) {
+                if (!$primaryPropertyId && $rental->property_id) {
+                    $primaryPropertyId = $rental->property_id;
+                    $propertyIds[] = $rental->property_id;
+                }
+                if (!$tenantId && $rental->tenant_id) {
+                    $tenantId = $rental->tenant_id;
+                }
+                if (!$primaryFirmId && $rental->firm_id) {
+                    $primaryFirmId = $rental->firm_id;
+                    $firmIds[] = $rental->firm_id;
+                }
+            }
+        }
 
         $projectId = $request->project_id ?: null;
         if (!$projectId && $primaryPropertyId) {
@@ -444,14 +661,21 @@ class ExpenseController extends Controller
             }
         }
 
+        $isRecoverable = $request->boolean('is_tenant_recoverable');
+        $recoveryAmount = $isRecoverable ? (float) ($request->input('recovery_amount') ?: $request->input('amount')) : 0.00;
+        $recoveryStatus = $isRecoverable ? ($request->input('recovery_status') ?: 'Pending') : 'Not Applicable';
+
         $expense->update([
             'firm_id' => $primaryFirmId,
             'project_id' => $projectId,
             'property_id' => $primaryPropertyId,
+            'rental_id' => $rentalId,
+            'tenant_id' => $tenantId,
             'vendor_id' => $vendorId,
             'expense_date' => $request->expense_date,
             'expense_category_id' => $categoryId ?: null,
             'expense_category' => $categoryName,
+            'expense_subcategory' => $request->expense_subcategory ?: null,
             'expense_type' => $request->expense_type ?: null,
             'expense_title' => $expenseTitle,
             'description' => $request->description ?: null,
@@ -462,6 +686,9 @@ class ExpenseController extends Controller
             'paid_to' => $paidTo ?: null,
             'bill_no' => $request->bill_no ?: null,
             'bill_file' => $billFilePath,
+            'is_tenant_recoverable' => $isRecoverable,
+            'recovery_amount' => $recoveryAmount,
+            'recovery_status' => $recoveryStatus,
             'approval_status' => $request->approval_status ?? 'Pending',
             'remarks' => $request->remarks ?: null,
             'notes' => $request->notes ?: null,
@@ -473,9 +700,20 @@ class ExpenseController extends Controller
             $expense->syncFirms($firmIds);
         }
 
-        return redirect()
-            ->route('expenses.project-wise', $projectId ? ['project_id' => $projectId] : [])
-            ->with('success', 'Expense updated successfully.');
+        $expType = $expense->expense_type ?: $request->expense_type;
+        if ($expType === 'General' || $expType === 'Office') {
+            return redirect()->route('expenses.general')->with('success', 'General expense updated successfully.');
+        } elseif ($expType === 'Rental') {
+            return redirect()->route('expenses.rental')->with('success', 'Rental expense updated successfully.');
+        } elseif ($expType === 'Personal') {
+            return redirect()->route('expenses.personal')->with('success', 'Personal expense updated successfully.');
+        } elseif ($expType === 'Property') {
+            return redirect()->route('expenses.property')->with('success', 'Property expense updated successfully.');
+        } else {
+            return redirect()
+                ->route('expenses.project-wise', $projectId ? ['project_id' => $projectId] : [])
+                ->with('success', 'Project expense updated successfully.');
+        }
     }
 
     public function destroy(Expense $expense)
@@ -599,11 +837,16 @@ class ExpenseController extends Controller
 
         $allProjects = $projectsQuery->orderBy('project_name')->get();
 
-        // Base expense query for filtering
+        // Base expense query for filtering (strictly Property / Project expenses)
         $expensesQuery = Expense::with([
             'firms', 'firm', 'project', 'properties.propertyType', 'properties.project', 'property.propertyType',
             'property.project', 'expenseCategory', 'vendor', 'purchaseOrder.vendor'
-        ]);
+        ])->where(function ($q) {
+            $q->whereIn('expense_type', ['Property', 'Project'])
+              ->orWhereNotNull('project_id')
+              ->orWhereNotNull('property_id')
+              ->orWhereNotNull('purchase_order_id');
+        });
 
         if (!$isAdmin && $firmId) {
             $expensesQuery->forFirms([$firmId]);
@@ -759,7 +1002,8 @@ class ExpenseController extends Controller
             $pExpenses = $allFilteredExpenses->filter(function ($exp) use ($project) {
                 return $exp->project_id == $project->id
                     || ($exp->property && $exp->property->project_id == $project->id)
-                    || ($exp->relationLoaded('properties') && $exp->properties->contains('project_id', $project->id));
+                    || ($exp->relationLoaded('properties') && $exp->properties->contains('project_id', $project->id))
+                    || ($exp->purchaseOrder && $exp->purchaseOrder->project_id == $project->id);
             });
 
             $pContractorPayments = $allFilteredContractorPayments->filter(function ($cp) use ($project) {
@@ -1210,5 +1454,71 @@ class ExpenseController extends Controller
             'projectsData', 'unallocatedExpenses', 'unallocatedContractorPayments', 'unallocatedBrokerCommissions', 'unallocatedLandPayments', 'unallocatedTotal',
             'grandTotal', 'grandPoTotal', 'grandDirectTotal', 'grandContractorTotal', 'grandBrokerTotal', 'grandLandTotal', 'grandApprovedTotal', 'grandPendingTotal'
         ));
+    }
+
+    /**
+     * AJAX endpoint to fetch rental, tenant, and agreement info for a property
+     */
+    public function getRentalPropertyInfo(Request $request, $propertyId)
+    {
+        $property = Property::with(['project', 'firm', 'firms'])->find($propertyId);
+        if (!$property) {
+            return response()->json(['success' => false, 'message' => 'Property not found.'], 404);
+        }
+
+        $rentals = \App\Models\Rental::with(['tenant', 'firm'])
+            ->where('property_id', $propertyId)
+            ->orderByRaw("CASE WHEN rental_status = 'active' THEN 1 ELSE 2 END")
+            ->orderByDesc('id')
+            ->get();
+
+        $activeRental = $rentals->where('rental_status', 'active')->first() ?? $rentals->first();
+
+        $firmIds = $property->firms->pluck('id')->toArray();
+        if ($property->firm_id && !in_array($property->firm_id, $firmIds)) {
+            $firmIds[] = $property->firm_id;
+        }
+
+        return response()->json([
+            'success' => true,
+            'property' => [
+                'id' => $property->id,
+                'name' => $property->property_name,
+                'property_code' => $property->property_code,
+                'project_id' => $property->project_id,
+                'project_name' => $property->project?->project_name,
+                'firm_id' => $property->firm_id,
+                'firm_ids' => $firmIds,
+                'firm_name' => $property->firm?->firm_name,
+            ],
+            'active_rental' => $activeRental ? [
+                'id' => $activeRental->id,
+                'agreement_no' => $activeRental->agreement_no,
+                'tenant_id' => $activeRental->tenant_id,
+                'tenant_name' => $activeRental->tenant_name ?? $activeRental->tenant?->name,
+                'tenant_phone' => $activeRental->tenant_mobile ?? $activeRental->tenant?->phone,
+                'firm_id' => $activeRental->firm_id,
+                'rent_amount' => $activeRental->rent_amount,
+                'security_deposit' => $activeRental->security_deposit,
+                'rental_status' => $activeRental->rental_status,
+                'start_date' => $activeRental->start_date ? (is_string($activeRental->start_date) ? $activeRental->start_date : $activeRental->start_date->format('Y-m-d')) : null,
+                'end_date' => $activeRental->end_date ? (is_string($activeRental->end_date) ? $activeRental->end_date : $activeRental->end_date->format('Y-m-d')) : null,
+            ] : null,
+            'rentals' => $rentals->map(function ($r) {
+                return [
+                    'id' => $r->id,
+                    'agreement_no' => $r->agreement_no,
+                    'tenant_id' => $r->tenant_id,
+                    'tenant_name' => $r->tenant_name ?? $r->tenant?->name,
+                    'tenant_phone' => $r->tenant_mobile ?? $r->tenant?->phone,
+                    'firm_id' => $r->firm_id,
+                    'rent_amount' => $r->rent_amount,
+                    'security_deposit' => $r->security_deposit,
+                    'rental_status' => $r->rental_status,
+                    'start_date' => $r->start_date ? (is_string($r->start_date) ? $r->start_date : $r->start_date->format('Y-m-d')) : null,
+                    'end_date' => $r->end_date ? (is_string($r->end_date) ? $r->end_date : $r->end_date->format('Y-m-d')) : null,
+                ];
+            }),
+        ]);
     }
 }

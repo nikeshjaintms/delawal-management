@@ -127,6 +127,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
             </div>
             <div class="form-row">
                 <div class="form-group">
+                    <label class="form-label" for="property_id">Unit / Plot</label>
+                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
+                        <option value="">-- All Units / General --</option>
+                        @foreach($properties as $prop)
+                            <option value="{{ $prop->id }}" data-project-id="{{ $prop->project_id ?? '' }}" {{ old('property_id', $stockOutward->property_id) == $prop->id ? 'selected' : '' }}>
+                                {{ $prop->unit_no ? 'Unit '.$prop->unit_no : 'Plot #'.$prop->id }} ({{ $prop->property_name ?? 'Plot' }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group">
                     <label class="form-label" for="contractor_id">Contractor</label>
                     <select name="contractor_id" id="contractor_id" class="form-control @error('contractor_id') is-invalid @enderror">
                         <option value="">-- Select Contractor --</option>
@@ -156,52 +167,129 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const projSelect = document.getElementById('project_id');
+    const propSelect = document.getElementById('property_id');
     const conSelect  = document.getElementById('contractor_id');
 
-    function syncContractors() {
-        if (!projSelect || !conSelect) return;
-        const pId = projSelect.value;
-        let firstMatch = '';
-        let matchCount = 0;
+    function bindProjectUnitContractorSync(projEl, propEl, conEl) {
+        if (!projEl) return;
 
-        Array.from(conSelect.options).forEach(opt => {
-            if (!opt.value) {
-                opt.hidden = false;
-                opt.disabled = false;
-                return;
-            }
-            const optPId = opt.dataset.projectId || '';
-            if (!pId || !optPId || optPId === pId) {
-                opt.hidden = false;
-                opt.disabled = false;
-                if (pId && optPId === pId) {
-                    matchCount++;
-                    if (!firstMatch) firstMatch = opt.value;
+        const allPropOptions = propEl ? Array.from(propEl.querySelectorAll('option')).map(opt => ({
+            value: opt.value,
+            text: opt.textContent.trim(),
+            projectId: opt.dataset.projectId || ''
+        })) : [];
+
+        const allConOptions = conEl ? Array.from(conEl.querySelectorAll('option')).map(opt => ({
+            value: opt.value,
+            text: opt.textContent.trim(),
+            projectId: opt.dataset.projectId || ''
+        })) : [];
+
+        function sync(preselectedPropVal = null, preselectedConVal = null) {
+            const pId = String(projEl.value || '');
+
+            // 1. Filter Units / Plots
+            if (propEl) {
+                const currentVal = preselectedPropVal !== null ? String(preselectedPropVal) : String(propEl.value || '');
+                propEl.innerHTML = '';
+
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = pId ? '-- All Units / General --' : '-- Select Project First --';
+                propEl.appendChild(defaultOpt);
+
+                let hasSelected = false;
+                allPropOptions.forEach(item => {
+                    if (!item.value) return;
+                    if (!pId || String(item.projectId) === pId) {
+                        const opt = document.createElement('option');
+                        opt.value = item.value;
+                        opt.textContent = item.text;
+                        opt.dataset.projectId = item.projectId;
+                        if (currentVal && String(item.value) === currentVal) {
+                            opt.selected = true;
+                            hasSelected = true;
+                        }
+                        propEl.appendChild(opt);
+                    }
+                });
+
+                if (!hasSelected && currentVal && currentVal !== '') {
+                    propEl.value = '';
                 }
-            } else {
-                opt.hidden = true;
-                opt.disabled = true;
             }
-        });
 
-        const currentSelected = conSelect.selectedOptions[0];
-        if (currentSelected && currentSelected.hidden) {
-            conSelect.value = firstMatch || '';
-        } else if (pId && matchCount > 0 && !conSelect.value) {
-            conSelect.value = firstMatch;
+            // 2. Filter Contractors
+            if (conEl) {
+                const currentVal = preselectedConVal !== null ? String(preselectedConVal) : String(conEl.value || '');
+                conEl.innerHTML = '';
+
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = '-- Select Contractor --';
+                conEl.appendChild(defaultOpt);
+
+                let hasSelected = false;
+                let firstMatch = '';
+                allConOptions.forEach(item => {
+                    if (!item.value) return;
+                    if (!pId || !item.projectId || String(item.projectId) === pId) {
+                        const opt = document.createElement('option');
+                        opt.value = item.value;
+                        opt.textContent = item.text;
+                        opt.dataset.projectId = item.projectId;
+                        if (String(item.projectId) === pId && !firstMatch) {
+                            firstMatch = item.value;
+                        }
+                        if (currentVal && String(item.value) === currentVal) {
+                            opt.selected = true;
+                            hasSelected = true;
+                        }
+                        conEl.appendChild(opt);
+                    }
+                });
+
+                if (!hasSelected) {
+                    if (pId && firstMatch && !currentVal) {
+                        conEl.value = firstMatch;
+                    } else {
+                        conEl.value = '';
+                    }
+                }
+            }
         }
+
+        projEl.addEventListener('change', function() {
+            sync();
+        });
+
+        if (propEl) {
+            propEl.addEventListener('change', function() {
+                const selectedOpt = this.selectedOptions[0];
+                const optPId = selectedOpt ? selectedOpt.dataset.projectId : '';
+                if (optPId && String(projEl.value) !== String(optPId)) {
+                    projEl.value = optPId;
+                    sync(this.value);
+                }
+            });
+        }
+
+        if (conEl) {
+            conEl.addEventListener('change', function() {
+                const selectedOpt = this.selectedOptions[0];
+                const optPId = selectedOpt ? selectedOpt.dataset.projectId : '';
+                if (optPId && String(projEl.value) !== String(optPId)) {
+                    projEl.value = optPId;
+                    sync(null, this.value);
+                }
+            });
+        }
+
+        projEl._syncDependencies = sync;
+        sync(propEl ? propEl.value : null, conEl ? conEl.value : null);
     }
 
-    if (projSelect && conSelect) {
-        projSelect.addEventListener('change', syncContractors);
-        conSelect.addEventListener('change', function() {
-            const opt = this.selectedOptions[0];
-            if (opt && opt.dataset.projectId && (!projSelect.value || projSelect.value !== opt.dataset.projectId)) {
-                projSelect.value = opt.dataset.projectId;
-            }
-        });
-        syncContractors();
-    }
+    bindProjectUnitContractorSync(projSelect, propSelect, conSelect);
 });
 </script>
 @endsection

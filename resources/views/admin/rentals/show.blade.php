@@ -279,6 +279,119 @@
         </div>
     </div>
 
+    {{-- Rental Expenses & Tenant Recovery Ledger --}}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 28px; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.10); padding-bottom: 8px; flex-wrap: wrap; gap: 10px;">
+        <div class="section-title" style="margin: 0; padding: 0; border: none; color: #38BDF8 !important;">
+            <i class="fa-solid fa-receipt"></i> Rental Expenses &amp; Tenant Recovery Ledger
+        </div>
+        <a href="{{ route('expenses.create', ['type' => 'Rental', 'rental_id' => $rental->id, 'property_id' => $rental->property_id, 'tenant_id' => $rental->tenant_id]) }}"
+           class="btn-gold" style="padding: 7px 15px; font-size: 12.5px; border-radius: 8px;">
+            <i class="fa-solid fa-plus"></i> Add Rental Expense
+        </a>
+    </div>
+
+    {{-- Rental Expenses KPI Row --}}
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 18px;">
+        <div style="background: rgba(16, 22, 34, 0.75); border: 1px solid rgba(245, 158, 11, 0.30); border-radius: 12px; padding: 12px 14px;">
+            <div style="font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: #FBBF24; letter-spacing: 0.5px;">Total Expenses</div>
+            <div style="font-size: 17px; font-weight: 800; color: #FFFFFF; margin-top: 2px;">₹{{ number_format($totalRentalExpense ?? 0, 2) }}</div>
+            <div style="font-size: 11px; color: #94A3B8;">{{ isset($rentalExpenses) ? $rentalExpenses->count() : 0 }} records logged</div>
+        </div>
+
+        <div style="background: rgba(16, 22, 34, 0.75); border: 1px solid rgba(59, 130, 246, 0.30); border-radius: 12px; padding: 12px 14px;">
+            <div style="font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: #60A5FA; letter-spacing: 0.5px;">Tenant Recoverable</div>
+            <div style="font-size: 17px; font-weight: 800; color: #34D399; margin-top: 2px;">₹{{ number_format($recoverableExpense ?? 0, 2) }}</div>
+            <div style="font-size: 11px; color: #94A3B8;">Billable to tenant</div>
+        </div>
+
+        <div style="background: rgba(16, 22, 34, 0.75); border: 1px solid rgba(16, 185, 129, 0.30); border-radius: 12px; padding: 12px 14px;">
+            <div style="font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: #34D399; letter-spacing: 0.5px;">Recovered Amount</div>
+            <div style="font-size: 17px; font-weight: 800; color: #34D399; margin-top: 2px;">₹{{ number_format($recoveredExpense ?? 0, 2) }}</div>
+            <div style="font-size: 11px; color: #94A3B8;">Settled / reimbursed</div>
+        </div>
+
+        <div style="background: rgba(16, 22, 34, 0.75); border: 1px solid rgba(239, 68, 68, 0.30); border-radius: 12px; padding: 12px 14px;">
+            <div style="font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: #F87171; letter-spacing: 0.5px;">Pending Recovery</div>
+            <div style="font-size: 17px; font-weight: 800; color: #F87171; margin-top: 2px;">₹{{ number_format($pendingRecovery ?? 0, 2) }}</div>
+            <div style="font-size: 11px; color: #94A3B8;">Due from tenant</div>
+        </div>
+    </div>
+
+    {{-- Expense Ledger Table --}}
+    <div style="width: 100%; overflow-x: auto; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.10); margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <thead>
+                <tr style="background: rgba(255, 255, 255, 0.05); color: #94A3B8; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10);">
+                    <th style="padding: 10px 14px;">Date</th>
+                    <th style="padding: 10px 14px;">Category</th>
+                    <th style="padding: 10px 14px;">Expense Title / Note</th>
+                    <th style="padding: 10px 14px;">Amount (₹)</th>
+                    <th style="padding: 10px 14px;">Tenant Recovery</th>
+                    <th style="padding: 10px 14px; text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if(isset($rentalExpenses) && $rentalExpenses->isNotEmpty())
+                    @foreach($rentalExpenses as $exp)
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                            <td style="padding: 10px 14px; color: #CBD5E1; font-weight: 600;">
+                                {{ \Carbon\Carbon::parse($exp->expense_date)->format('d M Y') }}
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                <span style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; padding: 2px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.30);">
+                                    {{ $exp->expense_category }}
+                                </span>
+                            </td>
+                            <td style="padding: 10px 14px; color: #FFFFFF; font-weight: 600;">
+                                {{ $exp->expense_title ?: ($exp->description ? \Illuminate\Support\Str::limit($exp->description, 35) : 'Rental Expense') }}
+                            </td>
+                            <td style="padding: 10px 14px; color: #F87171; font-weight: 800;">
+                                ₹{{ number_format($exp->amount, 2) }}
+                            </td>
+                            <td style="padding: 10px 14px;">
+                                @if($exp->is_tenant_recoverable)
+                                    @php
+                                        $rSt = $exp->recovery_status ?: 'Pending';
+                                        $rColor = match($rSt) {
+                                            'Recovered' => 'rgba(16, 185, 129, 0.2); color:#34D399; border: 1px solid rgba(16, 185, 129, 0.35);',
+                                            'Partially Recovered' => 'rgba(59, 130, 246, 0.2); color:#60A5FA; border: 1px solid rgba(59, 130, 246, 0.35);',
+                                            'Deducted from Deposit' => 'rgba(168, 85, 247, 0.2); color:#C084FC; border: 1px solid rgba(168, 85, 247, 0.35);',
+                                            'Waived' => 'rgba(148, 163, 184, 0.2); color:#94A3B8; border: 1px solid rgba(148, 163, 184, 0.35);',
+                                            default => 'rgba(245, 158, 11, 0.2); color:#FBBF24; border: 1px solid rgba(245, 158, 11, 0.35);',
+                                        };
+                                    @endphp
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <span style="color: #34D399; font-weight: 700; font-size: 12px;">₹{{ number_format($exp->recovery_amount ?: $exp->amount, 2) }}</span>
+                                        <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; background: {{ $rColor }};">
+                                            {{ $rSt }}
+                                        </span>
+                                    </div>
+                                @else
+                                    <span style="color: #64748B; font-size: 11.5px;">Not Recoverable</span>
+                                @endif
+                            </td>
+                            <td style="padding: 10px 14px; text-align: center;">
+                                <a href="{{ route('expenses.show', $exp->id) }}" style="color: #60A5FA; font-weight: 700; text-decoration: none; font-size: 12px; margin-right: 8px;" title="View Voucher">
+                                    <i class="fa-solid fa-eye"></i> View
+                                </a>
+                                <a href="{{ route('expenses.edit', $exp->id) }}" style="color: #FBBF24; font-weight: 700; text-decoration: none; font-size: 12px;" title="Edit Voucher">
+                                    <i class="fa-solid fa-edit"></i> Edit
+                                </a>
+                            </td>
+                        </tr>
+                    @endforeach
+                @else
+                    <tr>
+                        <td colspan="6" align="center" style="padding: 24px; color: #94A3B8; font-size: 12.5px;">
+                            <i class="fa-solid fa-receipt" style="font-size: 20px; opacity: 0.3; margin-bottom: 4px; display: block;"></i>
+                            No expenses logged for this rental agreement yet.
+                        </td>
+                    </tr>
+                @endif
+            </tbody>
+        </table>
+    </div>
+
     @if($rental->remarks)
         <div class="section-title"><i class="fa-solid fa-note-sticky"></i> Remarks / Special Clauses</div>
         <div class="detail-item">

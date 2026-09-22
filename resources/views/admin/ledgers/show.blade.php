@@ -60,7 +60,7 @@
         $hasDebit  = $ledger->debit_amount  > 0;
         $hasCredit = $ledger->credit_amount > 0;
         $iconClass = ($hasDebit && $hasCredit) ? 'both' : ($hasDebit ? 'debit' : 'credit');
-        $iconName  = ($hasDebit && $hasCredit) ? 'fa-scale-balanced' : ($hasDebit ? 'fa-arrow-up-right-from-square' : 'fa-arrow-down-to-bracket');
+        $iconName  = ($hasDebit && $hasCredit) ? 'fa-scale-balanced' : ($hasDebit ? 'fa-arrow-up-right-from-square' : 'fa-download');
     @endphp
 
     <div class="ldg-hero">

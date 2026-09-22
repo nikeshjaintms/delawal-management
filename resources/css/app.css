@@ -79,24 +79,23 @@ html, body {
     background-color: transparent !important;
 }
 
-/* Frosted Glass Utility Classes */
 .glass-card {
-    background: var(--glass-bg-card) !important;
-    backdrop-filter: var(--glass-blur) saturate(180%) !important;
-    -webkit-backdrop-filter: var(--glass-blur) saturate(180%) !important;
-    border: 1.5px solid var(--glass-border) !important;
-    border-top: 2px solid var(--glass-border-glow) !important;
-    box-shadow: var(--glass-shadow) !important;
-    border-radius: var(--radius-lg) !important;
-    transition: var(--transition) !important;
-    color: #0F172A !important;
+    background: var(--glass-bg-card);
+    backdrop-filter: var(--glass-blur) saturate(180%);
+    -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
+    border: 1.5px solid var(--glass-border);
+    border-top: 2px solid var(--glass-border-glow);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--radius-lg);
+    transition: var(--transition);
+    color: #0F172A;
 }
 
-.glass-card:hover {
-    background: var(--glass-bg-hover) !important;
-    border-color: #FFFFFF !important;
-    box-shadow: var(--glass-shadow-hover) !important;
-    transform: translateY(-3px) !important;
+.public-portal .glass-card:hover {
+    background: var(--glass-bg-hover);
+    border-color: #FFFFFF;
+    box-shadow: var(--glass-shadow-hover);
+    transform: translateY(-3px);
 }
 
 .glass-panel {

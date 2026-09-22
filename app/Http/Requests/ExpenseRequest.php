@@ -21,36 +21,50 @@ class ExpenseRequest extends FormRequest
                 $inputs[$key] = trim($value);
             }
         }
+        if (empty($inputs['approval_status'])) {
+            $inputs['approval_status'] = 'Pending';
+        }
+        if (isset($inputs['is_tenant_recoverable'])) {
+            $inputs['is_tenant_recoverable'] = filter_var($inputs['is_tenant_recoverable'], FILTER_VALIDATE_BOOLEAN);
+        } else {
+            $inputs['is_tenant_recoverable'] = false;
+        }
         $this->replace($inputs);
     }
 
     public function rules(): array
     {
         $rules = [
-            'firm_ids'            => 'nullable|array',
-            'firm_ids.*'          => 'exists:firms,id',
-            'firm_id'             => 'nullable|exists:firms,id',
-            'project_id'          => 'nullable|exists:projects,id',
-            'property_ids'        => 'nullable|array',
-            'property_ids.*'      => 'exists:properties,id',
-            'property_id'         => 'nullable|exists:properties,id',
-            'expense_date'        => 'required|date',
-            'expense_category_id' => 'nullable',
-            'expense_category'    => 'nullable|string|max:255',
-            'expense_type'        => 'nullable|string|in:Project,Property,Office,Other',
-            'expense_title'       => 'nullable|string|max:255',
-            'description'         => 'nullable|string|max:2000',
-            'amount'              => 'required|numeric|min:0.01',
-            'payment_mode'        => 'nullable|string|max:255',
-            'reference_no'        => 'nullable|string|max:255',
-            'payment_account'     => 'nullable|string|max:255',
-            'vendor_id'           => 'nullable',
-            'paid_to'             => 'nullable|string|max:255',
-            'bill_no'             => 'nullable|string|max:255',
-            'bill_file'           => 'nullable|file|max:5120|mimes:pdf,jpg,jpeg,png',
-            'approval_status'     => 'required|in:Pending,Approved,Rejected',
-            'remarks'             => 'nullable|string|max:2000',
-            'notes'               => 'nullable|string|max:2000',
+            'firm_ids'              => 'nullable|array',
+            'firm_ids.*'            => 'exists:firms,id',
+            'firm_id'               => 'nullable|exists:firms,id',
+            'project_id'            => 'nullable|exists:projects,id',
+            'property_ids'          => 'nullable|array',
+            'property_ids.*'        => 'exists:properties,id',
+            'property_id'           => 'nullable|exists:properties,id',
+            'rental_id'             => 'nullable|exists:rentals,id',
+            'tenant_id'             => 'nullable|exists:tenants,id',
+            'is_tenant_recoverable' => 'nullable|boolean',
+            'recovery_amount'       => 'nullable|numeric|min:0',
+            'recovery_status'       => 'nullable|string|in:Pending,Partially Recovered,Recovered,Not Applicable',
+            'expense_date'          => 'required|date',
+            'expense_category_id'   => 'nullable',
+            'expense_category'      => 'nullable|string|max:255',
+            'expense_subcategory'   => 'nullable|string|max:255',
+            'expense_type'          => 'nullable|string|in:Property,Project,General,Office,Rental,Personal,Other',
+            'expense_title'         => 'nullable|string|max:255',
+            'description'           => 'nullable|string|max:2000',
+            'amount'                => 'required|numeric|min:0.01',
+            'payment_mode'          => 'nullable|string|max:255',
+            'reference_no'          => 'nullable|string|max:255',
+            'payment_account'       => 'nullable|string|max:255',
+            'vendor_id'             => 'nullable',
+            'paid_to'               => 'nullable|string|max:255',
+            'bill_no'               => 'nullable|string|max:255',
+            'bill_file'             => 'nullable|file|max:5120|mimes:pdf,jpg,jpeg,png',
+            'approval_status'       => 'nullable|in:Pending,Approved,Rejected',
+            'remarks'               => 'nullable|string|max:2000',
+            'notes'                 => 'nullable|string|max:2000',
         ];
 
         return $rules;

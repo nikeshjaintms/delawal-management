@@ -172,6 +172,7 @@ input[type=number] {
                     <div><span style="color:#94A3B8; font-size:12px; display:block;">IMIR Date:</span> <strong id="lbl-si-date" style="color:#FFFFFF;"></strong></div>
                     <div><span style="color:#94A3B8; font-size:12px; display:block;">Warehouse:</span> <strong id="lbl-si-warehouse" style="color:#10B981;"></strong></div>
                     <div id="div-si-project" style="display:none;"><span style="color:#94A3B8; font-size:12px; display:block;">Project:</span> <strong id="lbl-si-project" style="color:#F59E0B;"></strong></div>
+                    <div id="div-si-unit" style="display:none;"><span style="color:#94A3B8; font-size:12px; display:block;">Unit / Plot:</span> <strong id="lbl-si-unit" style="color:#38BDF8;"></strong></div>
                     <div id="div-si-contractor" style="display:none;"><span style="color:#94A3B8; font-size:12px; display:block;">Contractor:</span> <strong id="lbl-si-contractor" style="color:#60A5FA;"></strong></div>
                 </div>
             </div>
@@ -181,13 +182,24 @@ input[type=number] {
             <div class="form-section">
                 <div class="section-title"><i class="fa-solid fa-truck-dispatch"></i> Dispatch Details</div>
                 
-                <div class="form-row">
+                <div class="form-row-3">
                     <div class="form-group">
                         <label class="form-label">Destination Project <span>*</span></label>
-                        <select name="project_id" class="form-control">
-                            <option value="">Select Project</option>
+                        <select name="project_id" id="ref_project_id" class="form-control" required>
+                            <option value="">-- Select Project --</option>
                             @foreach($projects as $prop)
                                 <option value="{{ $prop->id }}" {{ old('project_id', $selectedProjectId ?? '')==$prop->id?'selected':'' }}>{{ $prop->project_name }} ({{ $prop->propertyMaster->property_name ?? 'Property' }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Unit / Plot <small style="font-weight:400;">(optional)</small></label>
+                        <select name="property_id" id="ref_property_id" class="form-control">
+                            <option value="">-- All Units / General --</option>
+                            @foreach($properties as $p)
+                                <option value="{{ $p->id }}" data-project-id="{{ $p->project_id ?? '' }}" {{ old('property_id', $selectedPropertyId ?? '')==$p->id?'selected':'' }}>
+                                    {{ $p->property_name }}@if($p->unit_no) · Unit {{ $p->unit_no }}@endif @if($p->project)({{ $p->project->project_name }})@endif
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -196,21 +208,24 @@ input[type=number] {
                         <select name="contractor_id" id="ref_contractor_id" class="form-control">
                             <option value="">-- Select Contractor --</option>
                             @foreach($contractors as $c)
-                                <option value="{{ $c->id }}" data-project-id="{{ $c->project_id ?? '' }}">{{ $c->contractor_name }}</option>
+                                <option value="{{ $c->id }}" data-project-id="{{ $c->project_id ?? '' }}" {{ old('contractor_id', $selectedContractorId ?? '')==$c->id?'selected':'' }}>{{ $c->contractor_name }}</option>
                             @endforeach
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Dispatch Date <span>*</span></label>
-                        <input type="date" name="outward_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Vehicle Number</label>
-                        <input type="text" name="vehicle_no" class="form-control" placeholder="Enter vehicle number...">
+                        <label class="form-label">Dispatch Date <span>*</span></label>
+                        <input type="date" name="outward_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Vehicle Number</label>
+                        <input type="text" name="vehicle_no" id="ref_vehicle_no" class="form-control" placeholder="Enter vehicle number...">
+                    </div>
+                </div>
+
+                <div class="form-row-3">
                     <div class="form-group">
                         <label class="form-label">Driver Name</label>
                         <input type="text" name="driver_name" class="form-control" placeholder="Enter driver name...">
@@ -219,9 +234,6 @@ input[type=number] {
                         <label class="form-label">LR Number (Lorry Receipt)</label>
                         <input type="text" name="lr_no" class="form-control" placeholder="Enter LR number...">
                     </div>
-                </div>
-
-                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Transport Name</label>
                         <input type="text" name="transport_name" class="form-control" placeholder="Enter transport company...">
@@ -287,16 +299,12 @@ input[type=number] {
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="outward_date">Outward Date <span>*</span></label>
-                    <input type="date" name="outward_date" value="{{ old('outward_date',date('Y-m-d')) }}" class="form-control @error('outward_date') is-invalid @enderror">
+                    <label class="form-label" for="outward_date_manual">Outward Date <span>*</span></label>
+                    <input type="date" name="outward_date" id="outward_date_manual" value="{{ old('outward_date',date('Y-m-d')) }}" class="form-control @error('outward_date') is-invalid @enderror">
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label" for="quantity">Quantity to Issue <span>*</span></label>
-                    <input type="number" step="0.001" name="quantity" value="{{ old('quantity') }}" class="form-control @error('quantity') is-invalid @enderror" placeholder="Enter quantity" autocomplete="off">
-                    <div style="font-size:12px;color:var(--text-secondary);margin-top:5px;">Cannot exceed available stock.</div>
-                </div>
+
+            <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label" for="manual_project_id">Project <small style="font-weight:400;">(optional)</small></label>
                     <select name="project_id" id="manual_project_id" class="form-control @error('project_id') is-invalid @enderror">
@@ -304,13 +312,22 @@ input[type=number] {
                         @foreach($projects as $p)<option value="{{ $p->id }}" {{ old('project_id', $selectedProjectId ?? '')==$p->id?'selected':'' }}>{{ $p->project_name }} ({{ $p->propertyMaster->property_name ?? 'Property' }})</option>@endforeach
                     </select>
                 </div>
-            </div>
-            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="manual_property_id">Unit / Plot <small style="font-weight:400;">(optional)</small></label>
+                    <select name="property_id" id="manual_property_id" class="form-control @error('property_id') is-invalid @enderror">
+                        <option value="">-- All Units / General --</option>
+                        @foreach($properties as $p)
+                            <option value="{{ $p->id }}" data-project-id="{{ $p->project_id ?? '' }}" {{ old('property_id', $selectedPropertyId ?? '')==$p->id?'selected':'' }}>
+                                {{ $p->property_name }}@if($p->unit_no) · Unit {{ $p->unit_no }}@endif @if($p->project)({{ $p->project->project_name }})@endif
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="form-group">
                     <label class="form-label" for="manual_contractor_id">Contractor <small style="font-weight:400;">(optional)</small></label>
                     <select name="contractor_id" id="manual_contractor_id" class="form-control @error('contractor_id') is-invalid @enderror">
                         <option value="">-- Select Contractor --</option>
-                        @foreach($contractors as $c)<option value="{{ $c->id }}" data-project-id="{{ $c->project_id ?? '' }}" {{ old('contractor_id')==$c->id?'selected':'' }}>{{ $c->contractor_name }}</option>@endforeach
+                        @foreach($contractors as $c)<option value="{{ $c->id }}" data-project-id="{{ $c->project_id ?? '' }}" {{ old('contractor_id', $selectedContractorId ?? '')==$c->id?'selected':'' }}>{{ $c->contractor_name }}</option>@endforeach
                     </select>
                 </div>
             </div>
@@ -320,11 +337,11 @@ input[type=number] {
             <div class="section-title"><i class="fa-solid fa-clipboard-list"></i> Usage Details</div>
             <div class="form-group">
                 <label class="form-label" for="used_for">Used For</label>
-                <input type="text" name="used_for" value="{{ old('used_for') }}" class="form-control @error('used_for') is-invalid @enderror" placeholder="e.g. Foundation work at Block A, Plastering 2nd Floor">
+                <input type="text" name="used_for" id="used_for" value="{{ old('used_for') }}" class="form-control @error('used_for') is-invalid @enderror" placeholder="e.g. Foundation work at Block A, Plastering 2nd Floor">
             </div>
             <div class="form-group">
                 <label class="form-label" for="remarks">Remarks</label>
-                <textarea name="remarks" class="form-control @error('remarks') is-invalid @enderror" placeholder="Additional notes...">{{ old('remarks') }}</textarea>
+                <textarea name="remarks" id="remarks" class="form-control @error('remarks') is-invalid @enderror" placeholder="Additional notes...">{{ old('remarks') }}</textarea>
             </div>
         </div>
 
@@ -382,59 +399,137 @@ input[type=number] {
             btnManual.addEventListener('click', function() { switchOutwardType('manual'); });
         }
 
-        // Project-to-Contractor cascading function
-        function bindProjectContractorSync(projEl, conEl) {
-            if (!projEl || !conEl) return;
-            function sync() {
-                const pId = projEl.value;
-                let firstMatch = '';
-                let matchCount = 0;
+        // Project-to-Units and Project-to-Contractor dynamic cascade with DOM reconstruction
+        function bindProjectUnitContractorSync(projEl, propEl, conEl) {
+            if (!projEl) return;
 
-                Array.from(conEl.options).forEach(opt => {
-                    if (!opt.value) {
-                        opt.hidden = false;
-                        opt.disabled = false;
-                        return;
-                    }
-                    const optPId = opt.dataset.projectId || '';
-                    if (!pId || !optPId || optPId === pId) {
-                        opt.hidden = false;
-                        opt.disabled = false;
-                        if (pId && optPId === pId) {
-                            matchCount++;
-                            if (!firstMatch) firstMatch = opt.value;
+            // Cache original option data
+            const allPropOptions = propEl ? Array.from(propEl.querySelectorAll('option')).map(opt => ({
+                value: opt.value,
+                text: opt.textContent.trim(),
+                projectId: opt.dataset.projectId || ''
+            })) : [];
+
+            const allConOptions = conEl ? Array.from(conEl.querySelectorAll('option')).map(opt => ({
+                value: opt.value,
+                text: opt.textContent.trim(),
+                projectId: opt.dataset.projectId || ''
+            })) : [];
+
+            function sync(preselectedPropVal = null, preselectedConVal = null) {
+                const pId = String(projEl.value || '');
+
+                // 1. Filter Units / Plots
+                if (propEl) {
+                    const currentVal = preselectedPropVal !== null ? String(preselectedPropVal) : String(propEl.value || '');
+                    propEl.innerHTML = '';
+
+                    const defaultOpt = document.createElement('option');
+                    defaultOpt.value = '';
+                    defaultOpt.textContent = pId ? '-- All Units / General --' : '-- Select Project First --';
+                    propEl.appendChild(defaultOpt);
+
+                    let hasSelected = false;
+                    allPropOptions.forEach(item => {
+                        if (!item.value) return;
+                        // Match if no project is selected OR item project matches current project
+                        if (!pId || String(item.projectId) === pId) {
+                            const opt = document.createElement('option');
+                            opt.value = item.value;
+                            opt.textContent = item.text;
+                            opt.dataset.projectId = item.projectId;
+                            if (currentVal && String(item.value) === currentVal) {
+                                opt.selected = true;
+                                hasSelected = true;
+                            }
+                            propEl.appendChild(opt);
                         }
-                    } else {
-                        opt.hidden = true;
-                        opt.disabled = true;
-                    }
-                });
+                    });
 
-                const currentSelected = conEl.selectedOptions[0];
-                if (currentSelected && currentSelected.hidden) {
-                    conEl.value = firstMatch || '';
-                } else if (pId && matchCount > 0 && !conEl.value) {
-                    conEl.value = firstMatch;
+                    if (!hasSelected && currentVal && currentVal !== '') {
+                        propEl.value = '';
+                    }
+                }
+
+                // 2. Filter Contractors
+                if (conEl) {
+                    const currentVal = preselectedConVal !== null ? String(preselectedConVal) : String(conEl.value || '');
+                    conEl.innerHTML = '';
+
+                    const defaultOpt = document.createElement('option');
+                    defaultOpt.value = '';
+                    defaultOpt.textContent = '-- Select Contractor --';
+                    conEl.appendChild(defaultOpt);
+
+                    let hasSelected = false;
+                    let firstMatch = '';
+                    allConOptions.forEach(item => {
+                        if (!item.value) return;
+                        if (!pId || !item.projectId || String(item.projectId) === pId) {
+                            const opt = document.createElement('option');
+                            opt.value = item.value;
+                            opt.textContent = item.text;
+                            opt.dataset.projectId = item.projectId;
+                            if (String(item.projectId) === pId && !firstMatch) {
+                                firstMatch = item.value;
+                            }
+                            if (currentVal && String(item.value) === currentVal) {
+                                opt.selected = true;
+                                hasSelected = true;
+                            }
+                            conEl.appendChild(opt);
+                        }
+                    });
+
+                    if (!hasSelected) {
+                        if (pId && firstMatch && !currentVal) {
+                            conEl.value = firstMatch;
+                        } else {
+                            conEl.value = '';
+                        }
+                    }
                 }
             }
 
-            projEl.addEventListener('change', sync);
-            conEl.addEventListener('change', function() {
-                const opt = this.selectedOptions[0];
-                if (opt && opt.dataset.projectId && (!projEl.value || projEl.value !== opt.dataset.projectId)) {
-                    projEl.value = opt.dataset.projectId;
-                }
+            projEl.addEventListener('change', function() {
+                sync();
             });
-            sync();
+
+            if (propEl) {
+                propEl.addEventListener('change', function() {
+                    const selectedOpt = this.selectedOptions[0];
+                    const optPId = selectedOpt ? selectedOpt.dataset.projectId : '';
+                    if (optPId && String(projEl.value) !== String(optPId)) {
+                        projEl.value = optPId;
+                        sync(this.value);
+                    }
+                });
+            }
+
+            if (conEl) {
+                conEl.addEventListener('change', function() {
+                    const selectedOpt = this.selectedOptions[0];
+                    const optPId = selectedOpt ? selectedOpt.dataset.projectId : '';
+                    if (optPId && String(projEl.value) !== String(optPId)) {
+                        projEl.value = optPId;
+                        sync(null, this.value);
+                    }
+                });
+            }
+
+            projEl._syncDependencies = sync;
+            sync(propEl ? propEl.value : null, conEl ? conEl.value : null);
         }
 
-        const destProjSelect = document.querySelector('#form-ref-dispatch select[name="project_id"]');
-        const refConSelect = document.getElementById('ref_contractor_id');
-        bindProjectContractorSync(destProjSelect, refConSelect);
+        const destProjSelect = document.getElementById('ref_project_id');
+        const refPropSelect  = document.getElementById('ref_property_id');
+        const refConSelect   = document.getElementById('ref_contractor_id');
+        bindProjectUnitContractorSync(destProjSelect, refPropSelect, refConSelect);
 
         const manualProjSelect = document.getElementById('manual_project_id');
-        const manualConSelect = document.getElementById('manual_contractor_id');
-        bindProjectContractorSync(manualProjSelect, manualConSelect);
+        const manualPropSelect = document.getElementById('manual_property_id');
+        const manualConSelect  = document.getElementById('manual_contractor_id');
+        bindProjectUnitContractorSync(manualProjSelect, manualPropSelect, manualConSelect);
 
         // SI selection dynamic loader
         const siSelect = document.getElementById('stock_inward_number');
@@ -466,6 +561,15 @@ input[type=number] {
                         divProj.style.display = 'none';
                     }
 
+                    const divUnit = document.getElementById('div-si-unit');
+                    const lblUnit = document.getElementById('lbl-si-unit');
+                    if (data.property_name) {
+                        lblUnit.innerText = data.property_name;
+                        divUnit.style.display = 'block';
+                    } else {
+                        divUnit.style.display = 'none';
+                    }
+
                     const divCon = document.getElementById('div-si-contractor');
                     const lblCon = document.getElementById('lbl-si-contractor');
                     if (data.contractor_name) {
@@ -475,19 +579,16 @@ input[type=number] {
                         divCon.style.display = 'none';
                     }
 
-                    // Auto-select Destination Project
+                    // Auto-select Destination Project and trigger dynamic sync
                     if (destProjSelect && data.project_id) {
                         destProjSelect.value = data.project_id;
-                        destProjSelect.dispatchEvent(new Event('change'));
-                    }
-
-                    // Auto-select Contractor
-                    if (refConSelect && data.contractor_id) {
-                        refConSelect.value = data.contractor_id;
+                        if (typeof destProjSelect._syncDependencies === 'function') {
+                            destProjSelect._syncDependencies(data.property_id || '', data.contractor_id || '');
+                        }
                     }
 
                     // Auto-fill Vehicle Number
-                    const vehInput = document.querySelector('#form-ref-dispatch input[name="vehicle_no"]');
+                    const vehInput = document.getElementById('ref_vehicle_no');
                     if (vehInput && data.vehicle_no && !vehInput.value) {
                         vehInput.value = data.vehicle_no;
                     }

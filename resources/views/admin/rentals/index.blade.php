@@ -111,6 +111,39 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
 
 .alert-success { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; color: #34D399 !important; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .pagination-wrapper { margin-top: 24px; display: flex; justify-content: center; }
+
+/* ── Tab Switcher ── */
+.rental-nav-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.rental-nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    background: rgba(16, 22, 34, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #94A3B8;
+    text-decoration: none !important;
+    font-size: 13.5px;
+    font-weight: 700;
+    transition: all .25s ease;
+}
+.rental-nav-tab:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+.rental-nav-tab.active {
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+    color: #FFFFFF !important;
+    border-color: #3B82F6 !important;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.40);
+}
 </style>
 
 <div class="crud-header">
@@ -119,8 +152,8 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
             <h2>Rent Collection</h2>
             <p>Track rental payments and collect outstanding dues for active agreements.</p>
         @else
-            <h2>Rental Management</h2>
-            <p>Manage all property rentals and tenant agreements firm-wise.</p>
+            <h2>Tenant & Rent Agreement</h2>
+            <p>Manage all tenant directory profiles and active rent agreements firm-wise.</p>
         @endif
     </div>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -128,13 +161,30 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
             <i class="fa-solid fa-file-pdf"></i> Export PDF
         </a>
         @if(!request()->has('collect'))
+        <a href="{{ route('tenants.create') }}" class="btn-gold" style="background: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.20) !important;">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Add Tenant</span>
+        </a>
         <a href="{{ route('rentals.create') }}" class="btn-gold">
             <i class="fa-solid fa-plus"></i>
-            <span>Add Rental</span>
+            <span>Add Agreement</span>
         </a>
         @endif
     </div>
 </div>
+
+@if(!request()->has('collect'))
+<div class="rental-nav-tabs">
+    <a href="{{ route('rentals.index') }}" class="rental-nav-tab active">
+        <i class="fa-solid fa-file-contract"></i>
+        <span>Rent Agreements</span>
+    </a>
+    <a href="{{ route('tenants.index') }}" class="rental-nav-tab">
+        <i class="fa-solid fa-house-user"></i>
+        <span>Tenant Directory</span>
+    </a>
+</div>
+@endif
 
 @if(session('success'))
     <div class="alert-success">
@@ -197,11 +247,16 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                         @endif
                         <td>
                             <div style="font-weight:700;color:#FFFFFF !important;">{{ $rental->property->property_name ?? '-' }}</div>
-                            @if($rental->property?->property_code)
-                                <div style="font-size:11.5px;color:#94A3B8;">{{ $rental->property->property_code }}</div>
-                            @endif
-                            @if($rental->property?->unit_no)
-                                <div style="font-size:11.5px;color:#60A5FA;font-weight:700;">Unit: {{ $rental->property->unit_no }}</div>
+                            <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-top: 3px;">
+                                @if($rental->property?->unit_no)
+                                    <span class="badge" style="background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.30) !important; font-size: 11px; padding: 2px 7px;">Unit #{{ $rental->property->unit_no }}</span>
+                                @endif
+                                @if($rental->property?->property_code)
+                                    <span style="font-size:11px;color:#94A3B8;">({{ $rental->property->property_code }})</span>
+                                @endif
+                            </div>
+                            @if($rental->property?->project)
+                                <div style="font-size:11.5px;color:#94A3B8;margin-top:2px;">{{ $rental->property->project->project_name }}</div>
                             @endif
                         </td>
                         <td>

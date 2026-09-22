@@ -162,7 +162,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
         <div id="po-fields-container" style="display:none;">
             <div class="form-section">
-                <div class="section-title"><i class="fa-solid fa-arrow-down-to-bracket"></i> Receipt Details</div>
+                <div class="section-title"><i class="fa-solid fa-download"></i> Receipt Details</div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Receive Date <span>*</span></label>
@@ -251,7 +251,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         @include('admin.components.firm-select')
 
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-arrow-down-to-bracket"></i> Inward Details</div>
+            <div class="section-title"><i class="fa-solid fa-download"></i> Inward Details</div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="material_id">Material <span>*</span></label>
