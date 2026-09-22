@@ -56,18 +56,7 @@ class Project extends Model
             }
         }
 
-        if (!empty($propertyMasterIds)) {
-            \App\Models\Property::whereIn('property_master_id', $propertyMasterIds)
-                ->where(function ($q) {
-                    $q->whereNull('project_id')->orWhere('project_id', $this->id);
-                })
-                ->update(['project_id' => $this->id]);
-        }
-
-        \App\Models\Property::whereNotIn('property_master_id', $propertyMasterIds)
-            ->where('project_id', $this->id)
-            ->whereNotNull('property_master_id')
-            ->update(['project_id' => null]);
+        // PropertyMaster plots remain isolated in PropertyMaster module
     }
 
     public function property()

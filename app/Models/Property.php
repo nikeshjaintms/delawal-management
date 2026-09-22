@@ -196,25 +196,12 @@ class Property extends Model
             })
             ->update(['status' => 'available']);
 
-        // 5. Automatically link plots of all merged PropertyMasters to their respective projects
+        // 5. Ensure Property Master plots remain strictly isolated from Project module plots
         try {
-            $projectMappings = \Illuminate\Support\Facades\DB::table('project_property_master')->get();
-            foreach ($projectMappings as $pm) {
-                \Illuminate\Support\Facades\DB::table('properties')
-                    ->where('property_master_id', $pm->property_master_id)
-                    ->whereNull('project_id')
-                    ->update(['project_id' => $pm->project_id]);
-            }
-
-            $directProjects = \Illuminate\Support\Facades\DB::table('projects')
-                ->whereNotNull('property_id')
-                ->get(['id', 'property_id']);
-            foreach ($directProjects as $dp) {
-                \Illuminate\Support\Facades\DB::table('properties')
-                    ->where('property_master_id', $dp->property_id)
-                    ->whereNull('project_id')
-                    ->update(['project_id' => $dp->id]);
-            }
+            \Illuminate\Support\Facades\DB::table('properties')
+                ->whereNotNull('property_master_id')
+                ->whereNotNull('project_id')
+                ->update(['project_id' => null]);
         } catch (\Throwable $e) {
             // Silently ignore if table does not exist
         }

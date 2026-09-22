@@ -46,12 +46,12 @@ class DashboardController extends Controller
         $totalUsers          = \App\Models\User::count();
         $activeUsers         = \App\Models\User::where('status', 'active')->count();
         $totalCustomers      = Customer::count();
-        $totalProperties     = Property::whereNotNull('project_id')->count();
-        $availableProperties = Property::whereNotNull('project_id')->where('status', 'available')->count();
-        $bookedProperties    = Property::whereNotNull('project_id')->where('status', 'booked')->count();
-        $soldProperties      = Property::whereNotNull('project_id')->where('status', 'sold')->count();
-        $rentedProperties    = Property::whereNotNull('project_id')->where('status', 'rented')->count();
-        $totalBookings       = Property::whereNotNull('project_id')->where('status', 'booked')->count();
+        $totalProperties     = Property::whereNotNull('project_id')->whereNull('property_master_id')->count();
+        $availableProperties = Property::whereNotNull('project_id')->whereNull('property_master_id')->where('status', 'available')->count();
+        $bookedProperties    = Property::whereNotNull('project_id')->whereNull('property_master_id')->where('status', 'booked')->count();
+        $soldProperties      = Property::whereNotNull('project_id')->whereNull('property_master_id')->where('status', 'sold')->count();
+        $rentedProperties    = Property::whereNotNull('project_id')->whereNull('property_master_id')->where('status', 'rented')->count();
+        $totalBookings       = Property::whereNotNull('project_id')->whereNull('property_master_id')->where('status', 'booked')->count();
         
         // Comprehensive revenue calculation from all modules
         $paymentReceived     = Payment::sum('payment_amount') ?: 0;
@@ -96,15 +96,15 @@ class DashboardController extends Controller
             ->count();
 
         // ── Properties (Project Plots Only) ────────────────────────
-        $totalProperties     = Property::where('firm_id', $firmId)->whereNotNull('project_id')->count();
-        $availableProperties = Property::where('firm_id', $firmId)->whereNotNull('project_id')->where('status', 'available')->count();
-        $soldProperties      = Property::where('firm_id', $firmId)->whereNotNull('project_id')->where('status', 'sold')->count();
-        $bookedProperties    = Property::where('firm_id', $firmId)->whereNotNull('project_id')->where('status', 'booked')->count();
-        $rentedProperties    = Property::where('firm_id', $firmId)->whereNotNull('project_id')->where('status', 'rented')->count();
-        $portfolioVal        = Property::where('firm_id', $firmId)->whereNotNull('project_id')->sum('price') ?: 0;
+        $totalProperties     = Property::where('firm_id', $firmId)->whereNotNull('project_id')->whereNull('property_master_id')->count();
+        $availableProperties = Property::where('firm_id', $firmId)->whereNotNull('project_id')->whereNull('property_master_id')->where('status', 'available')->count();
+        $soldProperties      = Property::where('firm_id', $firmId)->whereNotNull('project_id')->whereNull('property_master_id')->where('status', 'sold')->count();
+        $bookedProperties    = Property::where('firm_id', $firmId)->whereNotNull('project_id')->whereNull('property_master_id')->where('status', 'booked')->count();
+        $rentedProperties    = Property::where('firm_id', $firmId)->whereNotNull('project_id')->whereNull('property_master_id')->where('status', 'rented')->count();
+        $portfolioVal        = Property::where('firm_id', $firmId)->whereNotNull('project_id')->whereNull('property_master_id')->sum('price') ?: 0;
 
         // ── Sales / Bookings ───────────────────────────────────────
-        $totalBookings = Property::where('firm_id', $firmId)->whereNotNull('project_id')->where('status', 'booked')->count();
+        $totalBookings = Property::where('firm_id', $firmId)->whereNotNull('project_id')->whereNull('property_master_id')->where('status', 'booked')->count();
         $totalSalesAmt = PropertySale::where('firm_id', $firmId)->sum('grand_total') ?: 0;
 
         // ── Payments & Revenue ─────────────────────────────────────
