@@ -88,6 +88,143 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .text-error { color: #F87171; font-size: 12.5px; margin-top: 6px; font-weight: 500; }
 .form-hint { font-size: 12px; color: #CBD5E1 !important; margin-top: 5px; }
 .form-actions { display: flex; align-items: center; gap: 15px; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
+
+/* ── Luxury Dark Glass Select2 Overrides ── */
+.select2-container { width: 100% !important; }
+.select2-container--default .select2-selection--multiple,
+.select2-container--default .select2-selection--single {
+    background: rgba(16, 22, 34, 0.65) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px !important;
+    color: #FFFFFF !important;
+    min-height: 44px !important;
+    padding: 3px 8px !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.select2-container--default.select2-container--focus .select2-selection--multiple,
+.select2-container--default.select2-container--open .select2-selection--multiple,
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: #3B82F6 !important;
+    background: rgba(16, 22, 34, 0.85) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25), 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.30) 0%, rgba(30, 58, 138, 0.45) 100%) !important;
+    border: 1px solid rgba(96, 165, 250, 0.45) !important;
+    color: #FFFFFF !important;
+    border-radius: 8px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    padding: 4px 10px 4px 8px !important;
+    margin: 2px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25) !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #93C5FD !important;
+    margin-right: 4px !important;
+    border: none !important;
+    background: transparent !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+    color: #F87171 !important;
+    transform: scale(1.15) !important;
+}
+.select2-container--default .select2-search--inline .select2-search__field {
+    color: #FFFFFF !important;
+    font-size: 13.5px !important;
+    font-family: inherit !important;
+    margin: 4px 2px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.select2-container--default .select2-search--inline .select2-search__field::placeholder {
+    color: #94A3B8 !important;
+}
+.select2-dropdown {
+    background: rgba(16, 22, 34, 0.96) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border: 1.5px solid rgba(59, 130, 246, 0.35) !important;
+    border-radius: 14px !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65), 0 0 20px rgba(37, 99, 235, 0.15) !important;
+    padding: 6px !important;
+    z-index: 99999 !important;
+    overflow: hidden !important;
+}
+.select2-search--dropdown {
+    padding: 6px !important;
+}
+.select2-search--dropdown .select2-search__field {
+    background: rgba(10, 15, 26, 0.85) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 8px !important;
+    color: #FFFFFF !important;
+    padding: 8px 12px !important;
+    font-size: 13.5px !important;
+    outline: none !important;
+}
+.select2-search--dropdown .select2-search__field:focus {
+    border-color: #3B82F6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
+}
+.select2-results__options {
+    max-height: 250px !important;
+    padding: 4px 2px !important;
+}
+.select2-results__option {
+    color: #CBD5E1 !important;
+    padding: 9px 14px !important;
+    border-radius: 8px !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    margin-bottom: 3px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+}
+.select2-results__option--highlighted[aria-selected] {
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+}
+.select2-results__option[aria-selected="true"] {
+    background: rgba(59, 130, 246, 0.15) !important;
+    color: #60A5FA !important;
+    font-weight: 600 !important;
+}
+.select2-container--default .select2-selection__clear {
+    color: #94A3B8 !important;
+    font-size: 16px !important;
+    margin-right: 8px !important;
+    font-weight: 700 !important;
+}
+.select2-container--default .select2-selection__clear:hover {
+    color: #EF4444 !important;
+}
 </style>
 <div class="crud-header"><div class="crud-title"><h2>Edit Stock Outward</h2><p>Update outward — stock will be recalculated.</p></div></div>
 <div class="card-box">
@@ -269,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sync();
         });
 
-        if (propEl) {
+        if (propEl && !propEl.hasAttribute('multiple')) {
             propEl.addEventListener('change', function() {
                 const selectedOpt = this.selectedOptions[0];
                 const optPId = selectedOpt ? selectedOpt.dataset.projectId : '';
@@ -292,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         projEl._syncDependencies = sync;
-        sync(propEl ? propEl.value : null, conEl ? conEl.value : null);
+        sync(propEl ? (propEl.hasAttribute('multiple') ? Array.from(propEl.selectedOptions).map(o => o.value) : propEl.value) : null, conEl ? conEl.value : null);
     }
 
     bindProjectUnitContractorSync(projSelect, propSelect, conSelect);
