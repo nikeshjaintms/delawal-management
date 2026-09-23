@@ -362,7 +362,7 @@ select.search-input option {
                         @if($authUser && $authUser->isAdmin())
                             <td><strong style="color: #FFFFFF !important;">{{ $vendor->firm->firm_name ?? '-' }}</strong></td>
                         @endif
-                        <td><strong>{{ $vendor->name }}</strong></td>
+                        <td><a href="{{ route('vendors.show', $vendor->id) }}" style="color: #60A5FA !important; font-weight: 700 !important; text-decoration: none;" title="View Purchases & Bills">{{ $vendor->name }}</a></td>
                         <td>
                             @if($vendor->project)
                                 <span class="badge" style="background: rgba(59, 130, 246, 0.18); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.35); font-weight: 600; font-size: 11.5px; padding: 4px 8px;">

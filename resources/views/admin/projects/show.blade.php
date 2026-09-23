@@ -1166,19 +1166,19 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             </div>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-            <a href="{{ route('payments.create') }}" class="btn-action-income-receipt">
-                <i class="fa-solid fa-plus"></i> Record Payment / Receipt
+            <a href="{{ route('payments.create') }}" class="btn-action-income-receipt" title="Record customer sales installment or advance">
+                <i class="fa-solid fa-receipt"></i> Record Payment / Receipt
             </a>
-            <a href="{{ route('incomes.create') }}" class="btn-action-income-direct">
-                <i class="fa-solid fa-plus"></i> Add Direct Income
+            <a href="{{ route('incomes.create') }}" class="btn-action-income-direct" title="Add other direct revenues or deposits">
+                <i class="fa-solid fa-circle-plus"></i> Add Direct Income
             </a>
-            <a href="{{ route('property-sales.index') }}" class="btn-action-view" style="border-color: rgba(59, 130, 246, 0.35); background: rgba(59, 130, 246, 0.15); color: #60A5FA; width: auto; height: 36px; padding: 0 14px; font-size: 12.5px; font-weight: 700; gap: 6px;">
+            <a href="{{ route('property-sales.index') }}" class="btn-action-sales-ledger" title="View Property Sales Invoices">
                 <i class="fa-solid fa-file-invoice-dollar"></i> Sales Ledger
             </a>
-            <a href="{{ route('bookings.index') }}" class="btn-action-view" style="border-color: rgba(168, 85, 247, 0.35); background: rgba(168, 85, 247, 0.15); color: #C084FC; width: auto; height: 36px; padding: 0 14px; font-size: 12.5px; font-weight: 700; gap: 6px;">
+            <a href="{{ route('bookings.index') }}" class="btn-action-bookings" title="View Property Bookings">
                 <i class="fa-solid fa-calendar-check"></i> Bookings
             </a>
-            <a href="{{ route('rentals.index') }}" class="btn-action-view" style="border-color: rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.15); color: #FBBF24; width: auto; height: 36px; padding: 0 14px; font-size: 12.5px; font-weight: 700; gap: 6px;">
+            <a href="{{ route('rentals.index') }}" class="btn-action-rentals" title="View Active Rental Agreements">
                 <i class="fa-solid fa-key"></i> Rentals
             </a>
         </div>
@@ -2914,44 +2914,114 @@ document.addEventListener('keydown', function(e) {
 .pk-cyan    { background: rgba(6, 182, 212, 0.20); color: #22D3EE; }
 
 .btn-action-income-receipt {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
     color: #FFFFFF !important;
-    border: 1px solid #10B981 !important;
-    padding: 7px 16px;
+    border: 1px solid #3B82F6 !important;
+    padding: 7px 15px;
     border-radius: 9px;
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 700;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.30);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
     transition: all 0.2s ease;
 }
 .btn-action-income-receipt:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.45);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50);
     color: #FFFFFF !important;
 }
+
 .btn-action-income-direct {
-    background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%) !important;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
     color: #FFFFFF !important;
-    border: 1px solid #2DD4BF !important;
-    padding: 7px 16px;
+    border: 1px solid #10B981 !important;
+    padding: 7px 15px;
     border-radius: 9px;
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 700;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.30);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
     transition: all 0.2s ease;
 }
 .btn-action-income-direct:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(13, 148, 136, 0.45);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.50);
     color: #FFFFFF !important;
+}
+
+.btn-action-sales-ledger {
+    background: rgba(139, 92, 246, 0.16) !important;
+    border: 1.5px solid rgba(168, 85, 247, 0.45) !important;
+    color: #C084FC !important;
+    padding: 7px 15px;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.20);
+    transition: all 0.2s ease;
+}
+.btn-action-sales-ledger:hover {
+    background: rgba(139, 92, 246, 0.32) !important;
+    border-color: #A855F7 !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(139, 92, 246, 0.40);
+}
+
+.btn-action-bookings {
+    background: rgba(245, 158, 11, 0.16) !important;
+    border: 1.5px solid rgba(245, 158, 11, 0.45) !important;
+    color: #FBBF24 !important;
+    padding: 7px 15px;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.20);
+    transition: all 0.2s ease;
+}
+.btn-action-bookings:hover {
+    background: rgba(245, 158, 11, 0.32) !important;
+    border-color: #F59E0B !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(245, 158, 11, 0.40);
+}
+
+.btn-action-rentals {
+    background: rgba(6, 182, 212, 0.16) !important;
+    border: 1.5px solid rgba(6, 182, 212, 0.45) !important;
+    color: #22D3EE !important;
+    padding: 7px 15px;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.20);
+    transition: all 0.2s ease;
+}
+.btn-action-rentals:hover {
+    background: rgba(6, 182, 212, 0.32) !important;
+    border-color: #06B6D4 !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(6, 182, 212, 0.40);
 }
 
 /* ── Badges ── */

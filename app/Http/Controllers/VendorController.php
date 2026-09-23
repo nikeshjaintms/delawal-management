@@ -171,9 +171,56 @@ class VendorController extends Controller
             abort(403);
         }
 
-        $vendor->load(['firm', 'project', 'purchaseOrders', 'expenses']);
+        $vendor->load(['firm', 'project', 'propertyMasters']);
 
-        return view('admin.vendors.show', compact('vendor'));
+        $expenses = $vendor->expenses()
+            ->with(['project', 'property', 'firm', 'purchaseOrder'])
+            ->orderBy('expense_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $purchaseOrders = $vendor->purchaseOrders()
+            ->with(['project', 'items.material', 'expense'])
+            ->orderBy('po_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $debitNotes = $vendor->debitNotes()
+            ->with(['project'])
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $totalExpenseAmount    = $expenses->sum('amount');
+        $approvedExpenseAmount = $expenses->where('approval_status', 'Approved')->sum('amount');
+        $pendingExpenseAmount  = $expenses->where('approval_status', 'Pending')->sum('amount');
+        $rejectedExpenseAmount = $expenses->where('approval_status', 'Rejected')->sum('amount');
+        
+        $totalPOAmount         = $purchaseOrders->sum('grand_total');
+        $totalDebitNotesAmount = $debitNotes->sum('amount');
+
+        $totalBillsCount       = $expenses->count();
+        $totalPOsCount         = $purchaseOrders->count();
+
+        // Calculate total items count purchased across all POs
+        $totalItemsCount       = $purchaseOrders->sum(function($po) {
+            return $po->items ? $po->items->sum('quantity') : 0;
+        });
+
+        return view('admin.vendors.show', compact(
+            'vendor',
+            'expenses',
+            'purchaseOrders',
+            'debitNotes',
+            'totalExpenseAmount',
+            'approvedExpenseAmount',
+            'pendingExpenseAmount',
+            'rejectedExpenseAmount',
+            'totalPOAmount',
+            'totalDebitNotesAmount',
+            'totalBillsCount',
+            'totalPOsCount',
+            'totalItemsCount'
+        ));
     }
 
     public function edit(Vendor $vendor)
@@ -297,9 +344,44 @@ class VendorController extends Controller
             abort(403);
         }
 
-        $vendor->load(['firm', 'project', 'purchaseOrders', 'expenses']);
+        $vendor->load(['firm', 'project', 'propertyMasters']);
 
-        return view('admin.vendors.show-pdf', compact('vendor'));
+        $expenses = $vendor->expenses()
+            ->with(['project', 'property', 'firm', 'purchaseOrder'])
+            ->orderBy('expense_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $purchaseOrders = $vendor->purchaseOrders()
+            ->with(['project', 'items.material', 'expense'])
+            ->orderBy('po_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $debitNotes = $vendor->debitNotes()
+            ->with(['project'])
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $totalExpenseAmount    = $expenses->sum('amount');
+        $approvedExpenseAmount = $expenses->where('approval_status', 'Approved')->sum('amount');
+        $pendingExpenseAmount  = $expenses->where('approval_status', 'Pending')->sum('amount');
+        $rejectedExpenseAmount = $expenses->where('approval_status', 'Rejected')->sum('amount');
+        $totalPOAmount         = $purchaseOrders->sum('grand_total');
+        $totalDebitNotesAmount = $debitNotes->sum('amount');
+
+        return view('admin.vendors.show-pdf', compact(
+            'vendor',
+            'expenses',
+            'purchaseOrders',
+            'debitNotes',
+            'totalExpenseAmount',
+            'approvedExpenseAmount',
+            'pendingExpenseAmount',
+            'rejectedExpenseAmount',
+            'totalPOAmount',
+            'totalDebitNotesAmount'
+        ));
     }
 }
 

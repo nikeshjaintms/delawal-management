@@ -45,4 +45,9 @@ class Vendor extends Model
     {
         return $this->hasMany(DebitNote::class, 'vendor_id');
     }
+
+    public function propertyMasters()
+    {
+        return $this->hasMany(PropertyMaster::class, 'vendor_id');
+    }
 }

@@ -122,9 +122,12 @@ class PurchaseOrderController extends Controller
         return view('admin.purchase-orders.index', compact('purchaseOrders', 'firms', 'projects', 'contractors', 'totalAmount'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('admin.purchase-orders.create', $this->dropdowns());
+        $data = $this->dropdowns();
+        $data['selectedVendorId'] = $request->input('vendor_id');
+        $data['selectedProjectId'] = $request->input('project_id');
+        return view('admin.purchase-orders.create', $data);
     }
 
     public function store(Request $request)

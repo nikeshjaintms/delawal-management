@@ -495,7 +495,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                 <div class="form-group">
                     <label class="form-label" for="paid_to">Paid To / Vendor <span class="opt">(Payee Name or Vendor)</span></label>
                     <div style="display: flex; gap: 8px;">
-                        <input type="text" name="paid_to" id="paid_to" value="{{ old('paid_to') }}"
+                        <input type="text" name="paid_to" id="paid_to" value="{{ old('paid_to', $selectedPaidTo ?? request('paid_to')) }}"
                                 class="form-control @error('paid_to') is-invalid @enderror"
                                 placeholder="Vendor, contractor, or tenant name"
                                 list="vendors-datalist">
@@ -506,7 +506,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                                 @endforeach
                             @endif
                         </datalist>
-                        <input type="hidden" name="vendor_id" id="vendor_id" value="{{ old('vendor_id') }}">
+                        <input type="hidden" name="vendor_id" id="vendor_id" value="{{ old('vendor_id', $selectedVendorId ?? request('vendor_id')) }}">
                     </div>
                     @error('paid_to')<div class="text-error">{{ $message }}</div>@enderror
                 </div>

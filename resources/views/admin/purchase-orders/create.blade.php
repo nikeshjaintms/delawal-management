@@ -144,7 +144,7 @@ input[type=number] {
                 <select name="vendor_id" id="vendor_id" class="form-control" required>
                     <option value="">Select Vendor</option>
                     @foreach($vendors as $vendor)
-                        <option value="{{ $vendor->id }}" data-state="{{ $vendor->state ?? '' }}" {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>{{ $vendor->name }}</option>
+                        <option value="{{ $vendor->id }}" data-state="{{ $vendor->state ?? '' }}" {{ (old('vendor_id', $selectedVendorId ?? request('vendor_id')) == $vendor->id) ? 'selected' : '' }}>{{ $vendor->name }}</option>
                     @endforeach
                 </select>
                 @error('vendor_id') <span class="text-error show">{{ $message }}</span> @enderror

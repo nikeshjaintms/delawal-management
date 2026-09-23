@@ -350,6 +350,18 @@ class ExpenseController extends Controller
             }
         }
 
+        $data['selectedVendorId'] = $request->input('vendor_id');
+        if ($data['selectedVendorId']) {
+            $vendor = \App\Models\Vendor::find($data['selectedVendorId']);
+            if ($vendor) {
+                $data['selectedVendor'] = $vendor;
+                $data['selectedPaidTo'] = $vendor->name;
+                if ($vendor->project_id && empty($data['selectedProjectId'])) {
+                    $data['selectedProjectId'] = $vendor->project_id;
+                }
+            }
+        }
+
         return view('admin.expenses.create', $data);
     }
 
