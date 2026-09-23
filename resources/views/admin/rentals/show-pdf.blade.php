@@ -84,33 +84,54 @@
 
 <div class="grid-2">
     <!-- Property Info -->
+    @php
+        $allProps = $rental->all_properties;
+        $firstProp = $allProps->first();
+    @endphp
     <div class="grid-col">
-        <div class="col-heading">&#9632; Demised Premises / Property</div>
-        <div class="info-row">
-            <span class="info-label">Property Name:</span>
-            <span class="info-value">{{ $rental->property->property_name ?? '-' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Property Code:</span>
-            <span class="info-value">{{ $rental->property->property_code ?? '-' }}</span>
-        </div>
-        @if($rental->property && $rental->property->project)
+        <div class="col-heading">&#9632; Demised Premises / Property @if($allProps->count() > 1) ({{ $allProps->count() }} Units) @endif</div>
+        @if($allProps->count() > 1)
+            <div class="info-row">
+                <span class="info-label">Rented Units:</span>
+                <span class="info-value" style="color: #2563EB;">
+                    @foreach($allProps as $p)
+                        {{ $p->property_name ?: ($p->unit_no ? 'Unit #' . $p->unit_no : 'Property #' . $p->id) }}@if(!$loop->last), @endif
+                    @endforeach
+                </span>
+            </div>
+        @else
+            <div class="info-row">
+                <span class="info-label">Property Name:</span>
+                <span class="info-value">{{ $firstProp->property_name ?? ($rental->property->property_name ?? '-') }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Property Code:</span>
+                <span class="info-value">{{ $firstProp->property_code ?? ($rental->property->property_code ?? '-') }}</span>
+            </div>
+        @endif
+        @if($firstProp && $firstProp->project)
         <div class="info-row">
             <span class="info-label">Project:</span>
-            <span class="info-value">{{ $rental->property->project->project_name }}</span>
+            <span class="info-value">{{ $firstProp->project->project_name }}</span>
         </div>
         @endif
         <div class="info-row">
             <span class="info-label">Property Type:</span>
-            <span class="info-value">{{ $rental->property->propertyType->name ?? 'Residential / Commercial' }}</span>
+            <span class="info-value">{{ $firstProp->propertyType->name ?? ($rental->property->propertyType->name ?? 'Residential / Commercial') }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Location / Address:</span>
-            <span class="info-value">{{ $rental->property->location ?? ($rental->property->address ?? '-') }}</span>
+            <span class="info-value">{{ $firstProp->location ?? ($firstProp->address ?? ($rental->property->location ?? ($rental->property->address ?? '-'))) }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Size / Area:</span>
-            <span class="info-value">{{ $rental->property && $rental->property->size ? $rental->property->size . ' ' . ($rental->property->size_unit ?? 'sq.ft') : '-' }}</span>
+            <span class="info-value">
+                @if($allProps->count() > 1)
+                    {{ $allProps->sum('size') > 0 ? $allProps->sum('size') . ' ' . ($firstProp->size_unit ?? 'sq.ft') : '-' }}
+                @else
+                    {{ $firstProp && $firstProp->size ? $firstProp->size . ' ' . ($firstProp->size_unit ?? 'sq.ft') : '-' }}
+                @endif
+            </span>
         </div>
     </div>
 

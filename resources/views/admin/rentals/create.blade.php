@@ -107,16 +107,17 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
         {{-- Property & Unit Details --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-building"></i> Property & Unit Details</div>
-            <div class="form-row-3">
-                <div class="form-group">
+            <div class="section-title"><i class="fa-solid fa-building"></i> Property &amp; Unit Details</div>
+            
+            <div class="form-row" style="margin-bottom: 16px;">
+                <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label" for="agreement_no">Agreement Number / Ref No</label>
                     <input type="text" name="agreement_no" id="agreement_no" value="{{ old('agreement_no') }}"
                            class="form-control @error('agreement_no') is-invalid @enderror" placeholder="e.g. AGR-2026-001">
                     @error('agreement_no') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label" for="project_id">Project <span class="opt">(Filter Units)</span></label>
                     <select name="project_id" id="project_id" class="form-control">
                         <option value="">-- All Projects / Direct --</option>
@@ -131,32 +132,58 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                         @endif
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="property_id">Unit / Property <span>*</span></label>
-                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror" required>
-                        <option value="">-- Select Unit / Property --</option>
-                        @foreach($properties as $property)
-                            <option value="{{ $property->id }}"
-                                    data-project-id="{{ $property->project_id }}"
-                                    data-firm-id="{{ $property->firm_id }}"
-                                    data-unit-no="{{ $property->unit_no }}"
-                                    data-status="{{ $property->status }}"
-                                    data-project="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
-                                    {{ old('property_id') == $property->id ? 'selected' : '' }}>
-                                @if($property->unit_no) Unit #{{ $property->unit_no }} — @endif
-                                {{ $property->property_name }}
-                                @if($property->property_code) ({{ $property->property_code }}) @endif
-                                @if($property->project) [{{ $property->project->project_name }}] @endif
-                                — {{ ucfirst($property->status) }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('property_id') <div class="text-error">{{ $message }}</div> @enderror
-                </div>
             </div>
-            <div id="unit_info_badge" style="display: none; margin-top: 12px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.30); border-radius: 10px; padding: 9px 15px; font-size: 13px; color: #93C5FD;">
-                <i class="fa-solid fa-circle-check" style="color: #60A5FA;"></i> <span id="unit_info_text">Selected Unit Details</span>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                    <label class="form-label" for="property_ids" style="margin-bottom: 0;">
+                        <i class="fa-solid fa-layer-group" style="color: #60A5FA;"></i> Unit / Property <span>*</span>
+                        <span class="opt">(Select one or multiple units/plots)</span>
+                    </label>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn-outline" id="btnSelectAllUnits" style="padding: 3px 10px; font-size: 11.5px; border-radius: 6px; cursor: pointer;">
+                            <i class="fa-solid fa-check-double"></i> Select All Filtered
+                        </button>
+                        <button type="button" class="btn-outline" id="btnClearAllUnits" style="padding: 3px 10px; font-size: 11.5px; border-radius: 6px; color: #F87171; border-color: rgba(239, 68, 68, 0.35); cursor: pointer;">
+                            <i class="fa-solid fa-xmark"></i> Clear Selection
+                        </button>
+                    </div>
+                </div>
+
+                <select name="property_ids[]" id="property_ids" class="form-control select2-units @error('property_ids') is-invalid @enderror @error('property_id') is-invalid @enderror" multiple required data-placeholder="-- Click to Select One or Multiple Units / Properties --" style="width: 100%;">
+                    @foreach($properties as $property)
+                        @php
+                            $oldProps = old('property_ids', old('property_id') ? [old('property_id')] : []);
+                            $isSel = is_array($oldProps) && in_array($property->id, $oldProps);
+                        @endphp
+                        <option value="{{ $property->id }}"
+                                data-project-id="{{ $property->project_id }}"
+                                data-firm-id="{{ $property->firm_id }}"
+                                data-unit-no="{{ $property->unit_no }}"
+                                data-name="{{ $property->property_name }}"
+                                data-status="{{ $property->status }}"
+                                data-project="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
+                                {{ $isSel ? 'selected' : '' }}>
+                            @if($property->unit_no) Unit #{{ $property->unit_no }} — @endif
+                            {{ $property->property_name }}
+                            @if($property->property_code) ({{ $property->property_code }}) @endif
+                            @if($property->project) [{{ $property->project->project_name }}] @endif
+                            — {{ ucfirst($property->status) }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('property_ids') <div class="text-error">{{ $message }}</div> @enderror
+                @error('property_id') <div class="text-error">{{ $message }}</div> @enderror
+
+                <div id="unit_info_badge" style="display: none; margin-top: 12px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.30); border-radius: 12px; padding: 10px 16px; font-size: 13px; color: #93C5FD;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                        <div style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-circle-check" style="color: #60A5FA;"></i>
+                            <span id="unit_info_count">0</span> Unit(s) Selected for this Agreement:
+                        </div>
+                        <div id="unit_chips_container" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -345,83 +372,135 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const propSelect = document.getElementById('property_ids');
     const projectSelect = document.getElementById('project_id');
-    const propSelect = document.getElementById('property_id');
-    const firmSelect = document.getElementById('firm_ids');
+    const firmSelect = document.querySelector('select[name="firm_id"], select[name="firm_ids[]"]');
     const tenantSelect = document.getElementById('tenant_id_select');
     const tenantNameInput = document.getElementById('tenant_name');
     const tenantMobileInput = document.getElementById('tenant_mobile');
     const tenantEmailInput = document.getElementById('tenant_email');
     const tenantBadge = document.getElementById('tenant_autofill_badge');
 
-    const allPropOptions = propSelect ? Array.from(propSelect.querySelectorAll('option')).slice(1) : [];
+    const allPropOptions = propSelect ? Array.from(propSelect.querySelectorAll('option')) : [];
     const allProjOptions = projectSelect ? Array.from(projectSelect.querySelectorAll('option')).slice(1) : [];
     const allTenantOptions = tenantSelect ? Array.from(tenantSelect.querySelectorAll('option')).slice(1) : [];
+
+    // Initialize Select2 on units multi-select
+    if (window.jQuery && jQuery.fn.select2) {
+        jQuery('#property_ids').select2({
+            placeholder: '-- Click to Select One or Multiple Units / Properties --',
+            allowClear: true,
+            width: '100%'
+        }).on('change', function() {
+            updateSelectedUnitsBadge();
+        });
+    } else if (propSelect) {
+        propSelect.addEventListener('change', updateSelectedUnitsBadge);
+    }
+
+    // Update selected units visual badge chips
+    function updateSelectedUnitsBadge() {
+        if (!propSelect) return;
+        const selectedOpts = Array.from(propSelect.selectedOptions || []);
+        const unitBadge = document.getElementById('unit_info_badge');
+        const unitCountSpan = document.getElementById('unit_info_count');
+        const chipsContainer = document.getElementById('unit_chips_container');
+
+        if (selectedOpts.length > 0) {
+            if (unitCountSpan) unitCountSpan.innerText = selectedOpts.length;
+            if (chipsContainer) {
+                let html = '';
+                selectedOpts.forEach(opt => {
+                    const unitNo = opt.getAttribute('data-unit-no');
+                    const name = opt.getAttribute('data-name') || opt.text.split('—')[0].trim();
+                    const label = unitNo ? 'Unit #' + unitNo : name;
+                    html += `<span style="background: rgba(37, 99, 235, 0.25); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.40); padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>${label}</span>
+                        <i class="fa-solid fa-xmark remove-unit-chip" data-id="${opt.value}" style="cursor: pointer; color: #F87171; font-size: 10px;" title="Remove"></i>
+                    </span>`;
+                });
+                chipsContainer.innerHTML = html;
+
+                // Add chip remove event listeners
+                chipsContainer.querySelectorAll('.remove-unit-chip').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const idToRemove = this.getAttribute('data-id');
+                        const currentVals = Array.from(propSelect.selectedOptions).map(o => o.value).filter(v => v !== idToRemove);
+                        if (window.jQuery && jQuery(propSelect).data('select2')) {
+                            jQuery(propSelect).val(currentVals).trigger('change');
+                        } else {
+                            Array.from(propSelect.options).forEach(o => {
+                                o.selected = currentVals.includes(o.value);
+                            });
+                            updateSelectedUnitsBadge();
+                        }
+                    });
+                });
+            }
+            if (unitBadge) unitBadge.style.display = 'block';
+        } else {
+            if (unitBadge) unitBadge.style.display = 'none';
+        }
+    }
 
     // Filter properties/units when a project is selected
     function filterPropertiesByProject() {
         if (!propSelect) return;
         const selectedProjectId = projectSelect ? projectSelect.value : '';
-        const currentPropVal = propSelect.value;
+        const currentlySelectedVals = Array.from(propSelect.selectedOptions || []).map(o => o.value);
 
-        propSelect.innerHTML = '<option value="">-- Select Unit / Property --</option>';
+        propSelect.innerHTML = '';
 
         let visibleCount = 0;
         allPropOptions.forEach(opt => {
             const optProjId = opt.getAttribute('data-project-id');
-            if (!selectedProjectId || String(optProjId) === String(selectedProjectId)) {
-                propSelect.appendChild(opt.cloneNode(true));
+            const isSelected = currentlySelectedVals.includes(opt.value);
+            if (!selectedProjectId || String(optProjId) === String(selectedProjectId) || isSelected) {
+                const clone = opt.cloneNode(true);
+                clone.selected = isSelected;
+                propSelect.appendChild(clone);
                 visibleCount++;
             }
         });
 
-        if (visibleCount === 0 && selectedProjectId) {
-            const noOpt = document.createElement('option');
-            noOpt.value = '';
-            noOpt.textContent = '— No units found for this project —';
-            propSelect.appendChild(noOpt);
+        if (window.jQuery && jQuery(propSelect).data('select2')) {
+            jQuery(propSelect).trigger('change.select2');
         }
-
-        propSelect.value = currentPropVal;
-        onPropertySelect();
+        updateSelectedUnitsBadge();
     }
 
     if (projectSelect) {
         projectSelect.addEventListener('change', filterPropertiesByProject);
     }
 
-    // Auto-select project and auto-fill details when a unit/property is picked
-    function onPropertySelect() {
-        if (!propSelect) return;
-        const selectedOpt = propSelect.options[propSelect.selectedIndex];
-        const unitBadge = document.getElementById('unit_info_badge');
-        const unitText = document.getElementById('unit_info_text');
-        const rentInput = document.getElementById('rent_amount');
-
-        if (selectedOpt && selectedOpt.value) {
-            const projId = selectedOpt.getAttribute('data-project-id');
-            const projName = selectedOpt.getAttribute('data-project') || '';
-            const unitNo = selectedOpt.getAttribute('data-unit-no') || '';
-            const status = selectedOpt.getAttribute('data-status') || '';
-
-            if (projectSelect && projId && projectSelect.value !== projId) {
-                projectSelect.value = projId;
+    // "Select All Filtered" Button
+    const btnSelectAll = document.getElementById('btnSelectAllUnits');
+    if (btnSelectAll) {
+        btnSelectAll.addEventListener('click', function() {
+            if (!propSelect) return;
+            const allVals = Array.from(propSelect.options).map(o => o.value);
+            if (window.jQuery && jQuery(propSelect).data('select2')) {
+                jQuery(propSelect).val(allVals).trigger('change');
+            } else {
+                Array.from(propSelect.options).forEach(o => o.selected = true);
+                updateSelectedUnitsBadge();
             }
-
-            if (unitBadge && unitText) {
-                let desc = 'Unit: ' + (unitNo ? '#' + unitNo : selectedOpt.text.split('—')[0].trim());
-                if (projName) desc += ' | Project: ' + projName;
-                if (status) desc += ' | Status: ' + status;
-                unitText.innerText = desc;
-                unitBadge.style.display = 'block';
-            }
-        } else {
-            if (unitBadge) unitBadge.style.display = 'none';
-        }
+        });
     }
 
-    if (propSelect) {
-        propSelect.addEventListener('change', onPropertySelect);
+    // "Clear Selection" Button
+    const btnClearAll = document.getElementById('btnClearAllUnits');
+    if (btnClearAll) {
+        btnClearAll.addEventListener('click', function() {
+            if (!propSelect) return;
+            if (window.jQuery && jQuery(propSelect).data('select2')) {
+                jQuery(propSelect).val([]).trigger('change');
+            } else {
+                Array.from(propSelect.options).forEach(o => o.selected = false);
+                updateSelectedUnitsBadge();
+            }
+        });
     }
 
     // Tenant Selection & Auto-fetch
@@ -499,10 +578,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initial filter if project is pre-selected
+    // Initial run
     if (projectSelect && projectSelect.value) {
         filterPropertiesByProject();
     }
+    updateSelectedUnitsBadge();
 });
 </script>
 @endsection

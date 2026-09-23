@@ -246,17 +246,41 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                             <td><strong style="color:#FFFFFF !important;">{{ $rental->firm->firm_name ?? '-' }}</strong></td>
                         @endif
                         <td>
-                            <div style="font-weight:700;color:#FFFFFF !important;">{{ $rental->property->property_name ?? '-' }}</div>
-                            <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-top: 3px;">
-                                @if($rental->property?->unit_no)
-                                    <span class="badge" style="background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.30) !important; font-size: 11px; padding: 2px 7px;">Unit #{{ $rental->property->unit_no }}</span>
+                            @php
+                                $allProps = $rental->all_properties;
+                                $firstProp = $allProps->first();
+                            @endphp
+                            @if($allProps->count() > 1)
+                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                    <span class="badge" style="background: rgba(37, 99, 235, 0.25) !important; color: #93C5FD !important; border: 1px solid rgba(59, 130, 246, 0.40) !important; font-size: 11px; padding: 2px 7px;">
+                                        <i class="fa-solid fa-layer-group"></i> {{ $allProps->count() }} Units
+                                    </span>
+                                </div>
+                                <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-top: 4px;">
+                                    @foreach($allProps as $p)
+                                        <span class="badge" style="background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.30) !important; font-size: 10.5px; padding: 1px 6px;">
+                                            {{ $p->unit_no ? 'Unit #' . $p->unit_no : $p->property_name }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                                @if($firstProp?->project)
+                                    <div style="font-size:11.5px;color:#94A3B8;margin-top:3px;">{{ $firstProp->project->project_name }}</div>
                                 @endif
-                                @if($rental->property?->property_code)
-                                    <span style="font-size:11px;color:#94A3B8;">({{ $rental->property->property_code }})</span>
+                            @elseif($firstProp)
+                                <div style="font-weight:700;color:#FFFFFF !important;">{{ $firstProp->property_name }}</div>
+                                <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-top: 3px;">
+                                    @if($firstProp->unit_no)
+                                        <span class="badge" style="background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.30) !important; font-size: 11px; padding: 2px 7px;">Unit #{{ $firstProp->unit_no }}</span>
+                                    @endif
+                                    @if($firstProp->property_code)
+                                        <span style="font-size:11px;color:#94A3B8;">({{ $firstProp->property_code }})</span>
+                                    @endif
+                                </div>
+                                @if($firstProp->project)
+                                    <div style="font-size:11.5px;color:#94A3B8;margin-top:2px;">{{ $firstProp->project->project_name }}</div>
                                 @endif
-                            </div>
-                            @if($rental->property?->project)
-                                <div style="font-size:11.5px;color:#94A3B8;margin-top:2px;">{{ $rental->property->project->project_name }}</div>
+                            @else
+                                <span style="color:#64748B;">—</span>
                             @endif
                         </td>
                         <td>

@@ -25,6 +25,19 @@ class RentalRequest extends FormRequest
                 $inputs['firm_id'] = auth()->check() ? auth()->user()->firm_id : session('firm_id');
             }
         }
+
+        // Handle multiple properties / units
+        if (!empty($inputs['property_ids'])) {
+            if (!is_array($inputs['property_ids'])) {
+                $inputs['property_ids'] = array_filter(explode(',', (string)$inputs['property_ids']));
+            }
+            if (empty($inputs['property_id']) && !empty($inputs['property_ids'])) {
+                $inputs['property_id'] = $inputs['property_ids'][0] ?? null;
+            }
+        } elseif (!empty($inputs['property_id'])) {
+            $inputs['property_ids'] = [$inputs['property_id']];
+        }
+
         foreach ($inputs as $key => $value) {
             if (is_string($value)) {
                 $inputs[$key] = trim($value);
@@ -53,7 +66,9 @@ class RentalRequest extends FormRequest
             'firm_id'            => 'required|exists:firms,id',
             'firm_ids'           => 'nullable|array',
             'firm_ids.*'         => 'exists:firms,id',
-            'property_id'        => 'required|exists:properties,id',
+            'property_id'        => 'nullable|exists:properties,id',
+            'property_ids'       => 'required|array|min:1',
+            'property_ids.*'     => 'exists:properties,id',
             'tenant_id'          => 'nullable|exists:tenants,id',
             'agreement_no'       => 'nullable|string|max:100',
             'tenant_name'        => 'required|string|max:255',

@@ -43,6 +43,35 @@ class Rental extends Model
         return $this->belongsTo(Property::class);
     }
 
+    public function properties()
+    {
+        return $this->belongsToMany(Property::class, 'rental_property')->withTimestamps();
+    }
+
+    public function getAllPropertiesAttribute()
+    {
+        if ($this->relationLoaded('properties') && $this->properties->isNotEmpty()) {
+            return $this->properties;
+        }
+        if ($this->properties()->exists()) {
+            return $this->properties;
+        }
+        return $this->property ? collect([$this->property]) : collect([]);
+    }
+
+    public function getUnitsDisplayAttribute()
+    {
+        $props = $this->all_properties;
+        if ($props->isEmpty()) return '—';
+        return $props->map(function ($p) {
+            $u = $p->unit_no ? 'Unit #' . $p->unit_no : $p->property_name;
+            if ($p->project) {
+                $u .= ' [' . $p->project->project_name . ']';
+            }
+            return $u;
+        })->implode(', ');
+    }
+
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);

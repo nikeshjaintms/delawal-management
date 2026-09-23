@@ -220,17 +220,32 @@
 
         <div class="grid-col">
             <div class="col-heading"><i class="fa-solid fa-building"></i> Property Details</div>
-            <div class="info-row">
-                <span class="info-label">Property Name:</span>
-                <span class="info-val">{{ $rentalPayment->property->property_name ?? ($rental->property->property_name ?? '—') }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Unit / Code:</span>
-                <span class="info-val">{{ $rentalPayment->property->property_code ?? ($rental->property->unit_no ? 'Unit #'.$rental->property->unit_no : '—') }}</span>
-            </div>
+            @php
+                $activeProp = $rentalPayment->property ?? $rental->all_properties->first();
+                $allProps = $rental->all_properties;
+            @endphp
+            @if($allProps->count() > 1)
+                <div class="info-row">
+                    <span class="info-label">Rented Units:</span>
+                    <span class="info-val" style="color: #2563EB;">
+                        @foreach($allProps as $p)
+                            {{ $p->property_name ?: ($p->unit_no ? 'Unit #' . $p->unit_no : 'Property #' . $p->id) }}@if(!$loop->last), @endif
+                        @endforeach
+                    </span>
+                </div>
+            @else
+                <div class="info-row">
+                    <span class="info-label">Property Name:</span>
+                    <span class="info-val">{{ $activeProp->property_name ?? ($rental->property->property_name ?? '—') }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Unit / Code:</span>
+                    <span class="info-val">{{ $activeProp->property_code ?? ($activeProp && $activeProp->unit_no ? 'Unit #'.$activeProp->unit_no : '—') }}</span>
+                </div>
+            @endif
             <div class="info-row">
                 <span class="info-label">Project:</span>
-                <span class="info-val">{{ $rental->property?->project?->project_name ?? 'Direct Property' }}</span>
+                <span class="info-val">{{ $activeProp?->project?->project_name ?? ($rental->property?->project?->project_name ?? 'Direct Property') }}</span>
             </div>
         </div>
     </div>

@@ -122,13 +122,23 @@ class Property extends Model
         return $this->hasMany(Rental::class);
     }
 
+    public function rentalsList()
+    {
+        return $this->belongsToMany(Rental::class, 'rental_property')->withTimestamps();
+    }
+
     public function getActiveRentalAttribute()
     {
         if ($this->relationLoaded('rentals') && $this->rentals->isNotEmpty()) {
             $r = $this->rentals->where('rental_status', 'active')->first();
             if ($r) return $r;
         }
-        return $this->rentals()->where('rental_status', 'active')->first();
+        if ($this->relationLoaded('rentalsList') && $this->rentalsList->isNotEmpty()) {
+            $r = $this->rentalsList->where('rental_status', 'active')->first();
+            if ($r) return $r;
+        }
+        return $this->rentalsList()->where('rentals.rental_status', 'active')->first()
+            ?: $this->rentals()->where('rentals.rental_status', 'active')->first();
     }
 
     /**
@@ -167,11 +177,18 @@ class Property extends Model
 
         // 3. Mark properties with active rentals as 'rented'
         \Illuminate\Support\Facades\DB::table('properties')
-            ->whereIn('id', function ($query) {
-                $query->select('property_id')
-                    ->from('rentals')
-                    ->where('rental_status', 'active')
-                    ->whereNotNull('property_id');
+            ->where(function ($q) {
+                $q->whereIn('id', function ($query) {
+                    $query->select('property_id')
+                        ->from('rentals')
+                        ->where('rental_status', 'active')
+                        ->whereNotNull('property_id');
+                })->orWhereIn('id', function ($query) {
+                    $query->select('rental_property.property_id')
+                        ->from('rental_property')
+                        ->join('rentals', 'rental_property.rental_id', '=', 'rentals.id')
+                        ->where('rentals.rental_status', 'active');
+                });
             })
             ->where('status', '!=', 'sold')
             ->update(['status' => 'rented']);
@@ -202,6 +219,12 @@ class Property extends Model
                     ->from('rentals')
                     ->where('rental_status', 'active')
                     ->whereNotNull('property_id');
+            })
+            ->whereNotIn('id', function ($query) {
+                $query->select('rental_property.property_id')
+                    ->from('rental_property')
+                    ->join('rentals', 'rental_property.rental_id', '=', 'rentals.id')
+                    ->where('rentals.rental_status', 'active');
             })
             ->update(['status' => 'available']);
 

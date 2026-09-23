@@ -25,7 +25,7 @@ class RentalController extends Controller
 
     public function index(Request $request)
     {
-        $query = Rental::with(['firm', 'property']);
+        $query = Rental::with(['firm', 'property', 'properties.project', 'properties.propertyMaster']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -54,6 +54,12 @@ class RentalController extends Controller
                         ->orWhere('unit_no', 'like', "%{$search}%")
                         ->orWhereHas('project', fn($prj) => $prj->where('project_name', 'like', "%{$search}%"))
                   )
+                  ->orWhereHas('properties', fn($p) =>
+                      $p->where('property_name', 'like', "%{$search}%")
+                        ->orWhere('property_code', 'like', "%{$search}%")
+                        ->orWhere('unit_no', 'like', "%{$search}%")
+                        ->orWhereHas('project', fn($prj) => $prj->where('project_name', 'like', "%{$search}%"))
+                  )
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$search}%"));
             });
         }
@@ -70,7 +76,7 @@ class RentalController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
-        $propQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
+        $propQuery = Property::with(['project.propertyMaster', 'propertyMaster'])->orderBy('property_name');
         if (!$isAdmin && $firmId) {
             $propQuery->where('firm_id', $firmId);
         }
@@ -105,9 +111,12 @@ class RentalController extends Controller
             $firmId = $user ? $user->firm_id : session('firm_id');
         }
 
+        $propertyIds = (array) ($request->property_ids ?: ($request->property_id ? [$request->property_id] : []));
+        $primaryPropertyId = $propertyIds[0] ?? null;
+
         $data = [
             'firm_id'            => $firmId,
-            'property_id'        => $request->property_id,
+            'property_id'        => $primaryPropertyId,
             'tenant_id'          => $request->tenant_id,
             'agreement_no'       => $request->agreement_no,
             'tenant_name'        => $request->tenant_name,
@@ -135,13 +144,17 @@ class RentalController extends Controller
 
         $rental = Rental::create($data);
 
+        if (!empty($propertyIds)) {
+            $rental->properties()->sync($propertyIds);
+        }
+
         if ($request->has('firm_ids') && is_array($request->firm_ids) && !empty($request->firm_ids)) {
             $rental->syncFirms($request->firm_ids);
         } elseif ($firmId) {
             $rental->syncFirms([$firmId]);
         }
 
-        $this->updatePropertyStatus($rental);
+        Property::syncAllStatuses();
 
         return redirect()->route('rentals.index')->with('success', 'Rental agreement added successfully.');
     }
@@ -157,7 +170,8 @@ class RentalController extends Controller
         }
 
         $rental->load([
-            'firm', 'property.propertyType', 'property.project.propertyMaster', 'tenant',
+            'firm', 'property.propertyType', 'property.project.propertyMaster',
+            'properties.propertyType', 'properties.project.propertyMaster', 'tenant',
             'expenses' => function ($q) {
                 $q->orderBy('expense_date', 'desc');
             },
@@ -185,7 +199,9 @@ class RentalController extends Controller
             abort(403);
         }
 
-        $propQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
+        $rental->load('properties');
+
+        $propQuery = Property::with(['project.propertyMaster', 'propertyMaster'])->orderBy('property_name');
         if (!$isAdmin) {
             $propQuery->where('firm_id', $rental->firm_id ?: $firmId);
         }
@@ -197,6 +213,10 @@ class RentalController extends Controller
         }
         $projects = $projQuery->get();
 
+        $selectedPropertyIds = $rental->properties->isNotEmpty()
+            ? $rental->properties->pluck('id')->toArray()
+            : ($rental->property_id ? [$rental->property_id] : []);
+
         $selectedProjectId = $rental->property ? $rental->property->project_id : null;
 
         $tenantQuery = \App\Models\Tenant::with('firm')->where('status', 'active')->orderBy('name');
@@ -207,7 +227,7 @@ class RentalController extends Controller
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.rentals.edit', compact('rental', 'properties', 'projects', 'tenants', 'firms', 'selectedProjectId'));
+        return view('admin.rentals.edit', compact('rental', 'properties', 'projects', 'tenants', 'firms', 'selectedProjectId', 'selectedPropertyIds'));
     }
 
     public function update(RentalRequest $request, Rental $rental)
@@ -229,9 +249,12 @@ class RentalController extends Controller
             $newFirmId = $rental->firm_id;
         }
 
+        $propertyIds = (array) ($request->property_ids ?: ($request->property_id ? [$request->property_id] : []));
+        $primaryPropertyId = $propertyIds[0] ?? $rental->property_id;
+
         $data = [
             'firm_id'            => $newFirmId,
-            'property_id'        => $request->property_id,
+            'property_id'        => $primaryPropertyId,
             'tenant_id'          => $request->tenant_id,
             'agreement_no'       => $request->agreement_no,
             'tenant_name'        => $request->tenant_name,
@@ -260,8 +283,11 @@ class RentalController extends Controller
             $data['agreement_document'] = $request->file('agreement_document')->store('rental_documents', 'public');
         }
 
-        $oldPropertyId = $rental->property_id;
         $rental->update($data);
+
+        if (!empty($propertyIds)) {
+            $rental->properties()->sync($propertyIds);
+        }
 
         if ($request->has('firm_ids') && is_array($request->firm_ids) && !empty($request->firm_ids)) {
             $rental->syncFirms($request->firm_ids);
@@ -269,20 +295,6 @@ class RentalController extends Controller
             $rental->syncFirms([$newFirmId]);
         }
 
-        if ($oldPropertyId && $oldPropertyId != $rental->property_id) {
-            $oldProperty = Property::find($oldPropertyId);
-            if ($oldProperty && $oldProperty->status === 'rented') {
-                $hasOtherActive = Rental::where('property_id', $oldPropertyId)
-                    ->where('id', '!=', $rental->id)
-                    ->where('rental_status', 'active')
-                    ->exists();
-                if (!$hasOtherActive) {
-                    $oldProperty->update(['status' => 'available']);
-                }
-            }
-        }
-
-        $this->updatePropertyStatus($rental);
         Property::syncAllStatuses();
 
         return redirect()->route('rentals.index')->with('success', 'Rental agreement updated successfully.');
@@ -298,20 +310,9 @@ class RentalController extends Controller
             abort(403);
         }
 
-        $propertyId = $rental->property_id;
+        $rental->properties()->detach();
         $rental->delete();
 
-        if ($propertyId) {
-            $property = Property::find($propertyId);
-            if ($property && $property->status === 'rented') {
-                $hasOtherActive = Rental::where('property_id', $propertyId)
-                    ->where('rental_status', 'active')
-                    ->exists();
-                if (!$hasOtherActive) {
-                    $property->update(['status' => 'available']);
-                }
-            }
-        }
         Property::syncAllStatuses();
 
         return redirect()->route('rentals.index')->with('success', 'Rental record deleted successfully.');

@@ -107,8 +107,20 @@
         <tr>
             <td style="color:#9CA3AF;">{{ $i+1 }}</td>
             <td>
-                <strong>{{ $item->property->property_name ?? '-' }}</strong><br>
-                <span style="font-size:9.5px; color:#64748B;">{{ $item->property->property_code ?? '-' }}</span>
+                @php
+                    $allProps = $item->all_properties;
+                @endphp
+                @if($allProps->count() > 1)
+                    <strong style="color: #2563EB;">[{{ $allProps->count() }} Units]</strong><br>
+                    <span style="font-size: 9.5px;">
+                        @foreach($allProps as $p)
+                            {{ $p->property_name ?: ($p->unit_no ? 'Unit #' . $p->unit_no : 'Property #' . $p->id) }}@if(!$loop->last), @endif
+                        @endforeach
+                    </span>
+                @else
+                    <strong>{{ $item->property->property_name ?? '-' }}</strong><br>
+                    <span style="font-size:9.5px; color:#64748B;">{{ $item->property->property_code ?? '-' }}</span>
+                @endif
             </td>
             <td><strong>{{ $item->tenant_name ?: ($item->tenant->name ?? '-') }}</strong></td>
             <td>{{ $item->tenant_mobile ?: ($item->tenant->phone ?? '-') }}</td>

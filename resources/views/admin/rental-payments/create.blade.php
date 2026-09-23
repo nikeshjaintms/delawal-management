@@ -115,14 +115,29 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
 <div style="max-width:880px;margin:0 auto;">
     {{-- Rental summary bar --}}
+    @php
+        $allProps = $rental->all_properties;
+    @endphp
     <div class="rental-bar">
         <div class="rental-bar-icon"><i class="fa-solid fa-key"></i></div>
         <div class="rental-bar-info">
-            <p>
+            <p style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                 <strong>{{ $rental->tenant_name }}</strong>
                 &nbsp;·&nbsp; {{ $rental->tenant_mobile }}
-                &nbsp;·&nbsp; {{ $rental->property->property_name ?? '' }}
-                @if($rental->property?->unit_no) — Unit {{ $rental->property->unit_no }} @endif
+                &nbsp;·&nbsp;
+                @if($allProps->count() > 1)
+                    <span style="background:rgba(59,130,246,0.25);color:#93C5FD;border:1px solid rgba(59,130,246,0.45);padding:1px 6px;border-radius:4px;font-size:11px;font-weight:700;">
+                        {{ $allProps->count() }} UNITS:
+                    </span>
+                    @foreach($allProps as $p)
+                        <span style="background:rgba(255,255,255,0.08);color:#F1F5F9;border:1px solid rgba(255,255,255,0.15);padding:1px 6px;border-radius:4px;font-size:11px;font-weight:600;">
+                            {{ $p->property_name ?: ($p->unit_no ? 'Unit #' . $p->unit_no : 'Property #' . $p->id) }}
+                        </span>
+                    @endforeach
+                @else
+                    {{ $rental->property->property_name ?? '' }}
+                    @if($rental->property?->unit_no) — Unit {{ $rental->property->unit_no }} @endif
+                @endif
                 &nbsp;·&nbsp; Monthly Rent: <strong>₹{{ number_format($rental->rent_amount, 0) }}</strong>
             </p>
         </div>

@@ -254,13 +254,24 @@
     </div>
 
     <!-- Banner -->
+    @php
+        $allProps = $rental->all_properties;
+        $firstProp = $allProps->first();
+    @endphp
     <div class="summary-banner">
         <div class="banner-left">
             <h2>{{ $rental->tenant_name ?? ($rental->tenant->name ?? 'Tenant Statement') }}</h2>
             <p>
                 Agreement #{{ $rental->agreement_no ?: ('RA-' . str_pad($rental->id, 5, '0', STR_PAD_LEFT)) }} &nbsp;|&nbsp;
-                Property: {{ $rental->property->property_name ?? '—' }}
-                @if($rental->property && $rental->property->unit_no) (Unit #{{ $rental->property->unit_no }}) @endif
+                @if($allProps->count() > 1)
+                    <strong>{{ $allProps->count() }} Units:</strong>
+                    @foreach($allProps as $p)
+                        {{ $p->property_name ?: ($p->unit_no ? 'Unit #' . $p->unit_no : 'Property #' . $p->id) }}@if(!$loop->last), @endif
+                    @endforeach
+                @else
+                    Property: {{ $firstProp->property_name ?? ($rental->property->property_name ?? '—') }}
+                    @if($firstProp && $firstProp->unit_no) (Unit #{{ $firstProp->unit_no }}) @endif
+                @endif
             </p>
         </div>
         <div>
@@ -304,14 +315,31 @@
         <!-- Property Info -->
         <div class="grid-col">
             <div class="col-heading"><i class="fa-solid fa-building"></i> Property &amp; Commercials</div>
+            @if($allProps->count() > 1)
+                <div class="info-row">
+                    <span class="info-label">Rented Units ({{ $allProps->count() }}):</span>
+                    <span class="info-val" style="color: #2563EB;">
+                        @foreach($allProps as $p)
+                            {{ $p->property_name ?: ($p->unit_no ? 'Unit #' . $p->unit_no : 'Property #' . $p->id) }}@if(!$loop->last), @endif
+                        @endforeach
+                    </span>
+                </div>
+            @else
+                <div class="info-row">
+                    <span class="info-label">Property:</span>
+                    <span class="info-val">{{ $firstProp->property_name ?? ($rental->property->property_name ?? '—') }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Unit / Code:</span>
+                    <span class="info-val">{{ $firstProp->property_code ?? ($firstProp && $firstProp->unit_no ? 'Unit #'.$firstProp->unit_no : '—') }}</span>
+                </div>
+            @endif
+            @if($firstProp && $firstProp->project)
             <div class="info-row">
-                <span class="info-label">Property:</span>
-                <span class="info-val">{{ $rental->property->property_name ?? '—' }}</span>
+                <span class="info-label">Project:</span>
+                <span class="info-val">{{ $firstProp->project->project_name }}</span>
             </div>
-            <div class="info-row">
-                <span class="info-label">Unit / Code:</span>
-                <span class="info-val">{{ $rental->property->property_code ?? ($rental->property->unit_no ? 'Unit #'.$rental->property->unit_no : '—') }}</span>
-            </div>
+            @endif
             <div class="info-row">
                 <span class="info-label">Base Monthly Rent:</span>
                 <span class="info-val" style="color: #2563EB;">₹{{ number_format($rental->rent_amount, 2) }}</span>

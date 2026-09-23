@@ -126,11 +126,25 @@
     <div class="summary-icon"><i class="fa-solid fa-key"></i></div>
     <div class="summary-info">
         <h3>{{ $rental->tenant_name }} <span style="font-size:13px;font-weight:400;color:#94A3B8;">— {{ $rental->tenant_mobile }}</span></h3>
-        <p>
+        <p style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;">
             Firm: <strong>{{ $rental->firm->firm_name ?? '-' }}</strong> &nbsp;·&nbsp;
-            {{ $rental->property->property_name ?? '' }}
-            @if($rental->property?->property_code) ({{ $rental->property->property_code }}) @endif
-            @if($rental->property?->unit_no) &nbsp;·&nbsp; Unit {{ $rental->property->unit_no }} @endif
+            @php
+                $allProps = $rental->all_properties;
+            @endphp
+            @if($allProps->count() > 1)
+                <span style="background: rgba(59, 130, 246, 0.25); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.45); padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 700;">
+                    {{ $allProps->count() }} UNITS:
+                </span>
+                @foreach($allProps as $p)
+                    <span style="background: rgba(255, 255, 255, 0.08); color: #F1F5F9; border: 1px solid rgba(255, 255, 255, 0.15); padding: 2px 7px; border-radius: 5px; font-size: 11.5px; font-weight: 600;">
+                        {{ $p->property_name ?: ($p->unit_no ? 'Unit #' . $p->unit_no : 'Property #' . $p->id) }}
+                    </span>
+                @endforeach
+            @else
+                {{ $rental->property->property_name ?? '' }}
+                @if($rental->property?->property_code) ({{ $rental->property->property_code }}) @endif
+                @if($rental->property?->unit_no) &nbsp;·&nbsp; Unit {{ $rental->property->unit_no }} @endif
+            @endif
         </p>
     </div>
     <div class="summary-stats">

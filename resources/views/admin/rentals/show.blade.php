@@ -111,16 +111,38 @@
                     <span style="font-size:14px;color:#60A5FA;font-weight:700;margin-left:8px;">#{{ $rental->agreement_no }}</span>
                 @endif
             </h3>
-            <p>
-                {{ $rental->property->property_name ?? '' }}
-                @if($rental->property?->property_code)
-                    <span style="color:#60A5FA;font-weight:600;"> ({{ $rental->property->property_code }})</span>
-                @endif
-                @if($rental->property?->unit_no)
-                    &nbsp;·&nbsp; Unit {{ $rental->property->unit_no }}
-                @endif
-                @if($rental->property?->project)
-                    &nbsp;·&nbsp; {{ $rental->property->project->project_name }}
+            @php
+                $allProps = $rental->all_properties;
+                $firstProp = $allProps->first();
+                $projectName = $firstProp?->project?->project_name ?? ($firstProp?->project?->propertyMaster?->property_name ?? '');
+            @endphp
+            <p style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                @if($allProps->count() > 1)
+                    <span style="background: rgba(59, 130, 246, 0.25); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.45); padding: 2px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class="fa-solid fa-layer-group"></i> {{ $allProps->count() }} UNITS
+                    </span>
+                    @foreach($allProps as $p)
+                        <span style="background: rgba(255, 255, 255, 0.08); color: #F1F5F9; border: 1px solid rgba(255, 255, 255, 0.15); padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                            {{ $p->property_name ?: ($p->unit_no ? 'Unit #' . $p->unit_no : 'Property #' . $p->id) }}
+                            @if($p->unit_no && $p->property_name && !str_contains($p->property_name, (string)$p->unit_no))
+                                <span style="color: #60A5FA;">(U#{{ $p->unit_no }})</span>
+                            @endif
+                        </span>
+                    @endforeach
+                    @if($projectName)
+                        <span style="color: #94A3B8; font-size: 12.5px;">&nbsp;·&nbsp; {{ $projectName }}</span>
+                    @endif
+                @else
+                    <span>{{ $firstProp->property_name ?? ($rental->property->property_name ?? '') }}</span>
+                    @if($firstProp?->property_code)
+                        <span style="color:#60A5FA;font-weight:600;"> ({{ $firstProp->property_code }})</span>
+                    @endif
+                    @if($firstProp?->unit_no)
+                        &nbsp;·&nbsp; Unit {{ $firstProp->unit_no }}
+                    @endif
+                    @if($projectName)
+                        &nbsp;·&nbsp; {{ $projectName }}
+                    @endif
                 @endif
             </p>
             <div class="hero-badges">
@@ -139,7 +161,11 @@
     </div>
 
     {{-- Property & Project --}}
-    <div class="section-title"><i class="fa-solid fa-building"></i> Property & Firm Details</div>
+    <div class="section-title"><i class="fa-solid fa-building"></i> Property &amp; Firm Details</div>
+    @php
+        $allProps = $rental->all_properties;
+        $firstProp = $allProps->first();
+    @endphp
     <div class="detail-grid">
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-building-user"></i> Firm</div>
@@ -147,28 +173,29 @@
         </div>
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-city"></i> Project</div>
-            <div class="detail-value">{{ $rental->property?->project?->project_name ?? ($rental->property?->project?->propertyMaster?->property_name ?? '—') }}</div>
+            <div class="detail-value">{{ $firstProp?->project?->project_name ?? ($firstProp?->project?->propertyMaster?->property_name ?? '—') }}</div>
         </div>
-        <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-building"></i> Property Name</div>
-            <div class="detail-value">
-                {{ $rental->property->property_name ?? '-' }}
-                @if($rental->property?->property_code)
-                    <span style="color:#60A5FA;font-size:13px;"> ({{ $rental->property->property_code }})</span>
-                @endif
+        <div class="detail-item" style="grid-column: span 2;">
+            <div class="detail-label"><i class="fa-solid fa-layer-group"></i> Rented Units / Properties ({{ $allProps->count() }})</div>
+            <div class="detail-value" style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 4px;">
+                @forelse($allProps as $p)
+                    <span style="background: rgba(37, 99, 235, 0.20); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.40); padding: 4px 10px; border-radius: 8px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid fa-door-open" style="font-size: 11px;"></i>
+                        {{ $p->unit_no ? 'Unit #' . $p->unit_no . ' — ' : '' }}{{ $p->property_name }}
+                        @if($p->property_code) <span style="font-size: 11px; color: #60A5FA;">({{ $p->property_code }})</span> @endif
+                    </span>
+                @empty
+                    <span style="color: #64748B;">—</span>
+                @endforelse
             </div>
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-solid fa-door-open"></i> Unit / Plot No</div>
-            <div class="detail-value">{{ $rental->property?->unit_no ?? '—' }}</div>
-        </div>
-        <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-layer-group"></i> Property Type</div>
-            <div class="detail-value">{{ $rental->property?->propertyType?->name ?? '—' }}</div>
+            <div class="detail-value">{{ $firstProp?->propertyType?->name ?? '—' }}</div>
         </div>
         <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-location-dot"></i> City</div>
-            <div class="detail-value">{{ $rental->property?->city ?? '—' }}</div>
+            <div class="detail-value">{{ $firstProp?->city ?? '—' }}</div>
         </div>
     </div>
 
