@@ -76,10 +76,10 @@
             <div class="info-row"><span class="info-label">Inward Reference:</span><span class="info-value">{{ isset($outwardGroup) ? ($outwardGroup->stock_inward_number ?: 'Manual') : 'Manual' }}</span></div>
             <div class="info-row"><span class="info-label">Destination Project:</span><span class="info-value">{{ isset($outwardGroup) ? ($outwardGroup->project->project_name ?? 'General') : ($stockOutward->project->project_name ?? 'General') }}</span></div>
             @php
-                $currProperty = isset($outwardGroup) ? $outwardGroup->property : $stockOutward->property;
+                $currPropertyNames = isset($outwardGroup) ? $outwardGroup->property_names : $stockOutward->property_names;
             @endphp
-            @if($currProperty)
-            <div class="info-row"><span class="info-label">Destination Unit:</span><span class="info-value">{{ $currProperty->unit_no ? 'Unit '.$currProperty->unit_no : 'Plot #'.$currProperty->id }} ({{ $currProperty->property_name }})</span></div>
+            @if($currPropertyNames)
+            <div class="info-row"><span class="info-label">Destination Unit(s):</span><span class="info-value">{{ $currPropertyNames }}</span></div>
             @endif
             <div class="info-row"><span class="info-label">Contractor:</span><span class="info-value">{{ isset($outwardGroup) ? ($outwardGroup->contractor->contractor_name ?? '—') : ($stockOutward->contractor->contractor_name ?? '—') }}</span></div>
         </div>

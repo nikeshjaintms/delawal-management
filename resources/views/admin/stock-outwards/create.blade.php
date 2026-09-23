@@ -193,11 +193,13 @@ input[type=number] {
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Unit / Plot <small style="font-weight:400;">(optional)</small></label>
-                        <select name="property_id" id="ref_property_id" class="form-control">
-                            <option value="">-- All Units / General --</option>
+                        <label class="form-label" for="ref_property_id">Unit / Plot <small style="font-weight:400; color:#93C5FD;">(Multi-Select Enabled)</small></label>
+                        @php
+                            $selectedPropIds = (array) old('property_ids', request('property_ids') ?: (request('property_id') ? [request('property_id')] : (old('property_id') ? [old('property_id')] : ($selectedPropertyIds ?? ($selectedPropertyId ? [$selectedPropertyId] : [])))));
+                        @endphp
+                        <select name="property_ids[]" id="ref_property_id" class="form-control select2-multi" multiple data-placeholder="-- All Units / General --">
                             @foreach($properties as $p)
-                                <option value="{{ $p->id }}" data-project-id="{{ $p->project_id ?? '' }}" {{ old('property_id', $selectedPropertyId ?? '')==$p->id?'selected':'' }}>
+                                <option value="{{ $p->id }}" data-project-id="{{ $p->project_id ?? '' }}" {{ in_array($p->id, $selectedPropIds) ? 'selected' : '' }}>
                                     {{ $p->property_name }}@if($p->unit_no) · Unit {{ $p->unit_no }}@endif @if($p->project)({{ $p->project->project_name }})@endif
                                 </option>
                             @endforeach
@@ -313,11 +315,10 @@ input[type=number] {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="manual_property_id">Unit / Plot <small style="font-weight:400;">(optional)</small></label>
-                    <select name="property_id" id="manual_property_id" class="form-control @error('property_id') is-invalid @enderror">
-                        <option value="">-- All Units / General --</option>
+                    <label class="form-label" for="manual_property_id">Unit / Plot <small style="font-weight:400; color:#93C5FD;">(Multi-Select Enabled)</small></label>
+                    <select name="property_ids[]" id="manual_property_id" class="form-control select2-multi @error('property_ids') is-invalid @enderror" multiple data-placeholder="-- All Units / General --">
                         @foreach($properties as $p)
-                            <option value="{{ $p->id }}" data-project-id="{{ $p->project_id ?? '' }}" {{ old('property_id', $selectedPropertyId ?? '')==$p->id?'selected':'' }}>
+                            <option value="{{ $p->id }}" data-project-id="{{ $p->project_id ?? '' }}" {{ in_array($p->id, $selectedPropIds) ? 'selected' : '' }}>
                                 {{ $p->property_name }}@if($p->unit_no) · Unit {{ $p->unit_no }}@endif @if($p->project)({{ $p->project->project_name }})@endif
                             </option>
                         @endforeach
@@ -421,15 +422,20 @@ input[type=number] {
 
                 // 1. Filter Units / Plots
                 if (propEl) {
-                    const currentVal = preselectedPropVal !== null ? String(preselectedPropVal) : String(propEl.value || '');
+                    const isMulti = propEl.hasAttribute('multiple');
+                    const currentValues = Array.isArray(preselectedPropVal) 
+                        ? preselectedPropVal.map(String) 
+                        : (preselectedPropVal !== null ? [String(preselectedPropVal)] : Array.from(propEl.selectedOptions).map(o => String(o.value)));
+
                     propEl.innerHTML = '';
 
-                    const defaultOpt = document.createElement('option');
-                    defaultOpt.value = '';
-                    defaultOpt.textContent = pId ? '-- All Units / General --' : '-- Select Project First --';
-                    propEl.appendChild(defaultOpt);
+                    if (!isMulti) {
+                        const defaultOpt = document.createElement('option');
+                        defaultOpt.value = '';
+                        defaultOpt.textContent = pId ? '-- All Units / General --' : '-- Select Project First --';
+                        propEl.appendChild(defaultOpt);
+                    }
 
-                    let hasSelected = false;
                     allPropOptions.forEach(item => {
                         if (!item.value) return;
                         // Match if no project is selected OR item project matches current project
@@ -438,16 +444,15 @@ input[type=number] {
                             opt.value = item.value;
                             opt.textContent = item.text;
                             opt.dataset.projectId = item.projectId;
-                            if (currentVal && String(item.value) === currentVal) {
+                            if (currentValues.includes(String(item.value))) {
                                 opt.selected = true;
-                                hasSelected = true;
                             }
                             propEl.appendChild(opt);
                         }
                     });
 
-                    if (!hasSelected && currentVal && currentVal !== '') {
-                        propEl.value = '';
+                    if (window.jQuery && $(propEl).data('select2')) {
+                        $(propEl).trigger('change.select2');
                     }
                 }
 
@@ -495,7 +500,7 @@ input[type=number] {
                 sync();
             });
 
-            if (propEl) {
+            if (propEl && !propEl.hasAttribute('multiple')) {
                 propEl.addEventListener('change', function() {
                     const selectedOpt = this.selectedOptions[0];
                     const optPId = selectedOpt ? selectedOpt.dataset.projectId : '';
@@ -518,7 +523,7 @@ input[type=number] {
             }
 
             projEl._syncDependencies = sync;
-            sync(propEl ? propEl.value : null, conEl ? conEl.value : null);
+            sync(propEl ? (propEl.hasAttribute('multiple') ? Array.from(propEl.selectedOptions).map(o => o.value) : propEl.value) : null, conEl ? conEl.value : null);
         }
 
         const destProjSelect = document.getElementById('ref_project_id');

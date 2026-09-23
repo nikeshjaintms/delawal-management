@@ -127,11 +127,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label" for="property_id">Unit / Plot</label>
-                    <select name="property_id" id="property_id" class="form-control @error('property_id') is-invalid @enderror">
-                        <option value="">-- All Units / General --</option>
+                    <label class="form-label" for="property_id">Unit / Plot <small style="font-weight:400; color:#93C5FD;">(Multi-Select Enabled)</small></label>
+                    @php
+                        $selectedPropIds = (array) old('property_ids', $selectedPropertyIds ?? ($stockOutward->property_id ? [$stockOutward->property_id] : []));
+                    @endphp
+                    <select name="property_ids[]" id="property_id" class="form-control select2-multi @error('property_ids') is-invalid @enderror" multiple data-placeholder="-- All Units / General --">
                         @foreach($properties as $prop)
-                            <option value="{{ $prop->id }}" data-project-id="{{ $prop->project_id ?? '' }}" {{ old('property_id', $stockOutward->property_id) == $prop->id ? 'selected' : '' }}>
+                            <option value="{{ $prop->id }}" data-project-id="{{ $prop->project_id ?? '' }}" {{ in_array($prop->id, $selectedPropIds) ? 'selected' : '' }}>
                                 {{ $prop->unit_no ? 'Unit '.$prop->unit_no : 'Plot #'.$prop->id }} ({{ $prop->property_name ?? 'Plot' }})
                             </option>
                         @endforeach
@@ -185,39 +187,43 @@ document.addEventListener('DOMContentLoaded', function() {
             projectId: opt.dataset.projectId || ''
         })) : [];
 
-        function sync(preselectedPropVal = null, preselectedConVal = null) {
-            const pId = String(projEl.value || '');
+            function sync(preselectedPropVal = null, preselectedConVal = null) {
+                const pId = String(projEl.value || '');
 
-            // 1. Filter Units / Plots
-            if (propEl) {
-                const currentVal = preselectedPropVal !== null ? String(preselectedPropVal) : String(propEl.value || '');
-                propEl.innerHTML = '';
+                // 1. Filter Units / Plots
+                if (propEl) {
+                    const isMulti = propEl.hasAttribute('multiple');
+                    const currentValues = Array.isArray(preselectedPropVal) 
+                        ? preselectedPropVal.map(String) 
+                        : (preselectedPropVal !== null ? [String(preselectedPropVal)] : Array.from(propEl.selectedOptions).map(o => String(o.value)));
 
-                const defaultOpt = document.createElement('option');
-                defaultOpt.value = '';
-                defaultOpt.textContent = pId ? '-- All Units / General --' : '-- Select Project First --';
-                propEl.appendChild(defaultOpt);
+                    propEl.innerHTML = '';
 
-                let hasSelected = false;
-                allPropOptions.forEach(item => {
-                    if (!item.value) return;
-                    if (!pId || String(item.projectId) === pId) {
-                        const opt = document.createElement('option');
-                        opt.value = item.value;
-                        opt.textContent = item.text;
-                        opt.dataset.projectId = item.projectId;
-                        if (currentVal && String(item.value) === currentVal) {
-                            opt.selected = true;
-                            hasSelected = true;
-                        }
-                        propEl.appendChild(opt);
+                    if (!isMulti) {
+                        const defaultOpt = document.createElement('option');
+                        defaultOpt.value = '';
+                        defaultOpt.textContent = pId ? '-- All Units / General --' : '-- Select Project First --';
+                        propEl.appendChild(defaultOpt);
                     }
-                });
 
-                if (!hasSelected && currentVal && currentVal !== '') {
-                    propEl.value = '';
+                    allPropOptions.forEach(item => {
+                        if (!item.value) return;
+                        if (!pId || String(item.projectId) === pId) {
+                            const opt = document.createElement('option');
+                            opt.value = item.value;
+                            opt.textContent = item.text;
+                            opt.dataset.projectId = item.projectId;
+                            if (currentValues.includes(String(item.value))) {
+                                opt.selected = true;
+                            }
+                            propEl.appendChild(opt);
+                        }
+                    });
+
+                    if (window.jQuery && $(propEl).data('select2')) {
+                        $(propEl).trigger('change.select2');
+                    }
                 }
-            }
 
             // 2. Filter Contractors
             if (conEl) {

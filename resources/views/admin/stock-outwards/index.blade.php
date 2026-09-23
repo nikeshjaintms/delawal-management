@@ -242,10 +242,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     </td>
                     <td>
                         <div style="font-weight:600; color:#FFFFFF;">{{ $out->project->project_name ?? ($out->property->property_name ?? 'General') }}</div>
-                        @if($out->property)
-                            <small style="color:#60A5FA; font-weight:600; display:block; font-size:11.5px; margin-top:2px;">
+                        @if($out->property_names)
+                            <small style="color:#60A5FA; font-weight:600; display:block; font-size:11.5px; margin-top:2px;" title="{{ $out->property_names }}">
                                 <i class="fa-solid fa-layer-group" style="font-size:10px;"></i>
-                                {{ $out->property->unit_no ? 'Unit '.$out->property->unit_no : 'Plot #'.$out->property->id }} ({{ $out->property->property_name }})
+                                {{ \Illuminate\Support\Str::limit($out->property_names, 45) }}
                             </small>
                         @endif
                     </td>

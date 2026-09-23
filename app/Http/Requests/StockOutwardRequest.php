@@ -15,8 +15,9 @@ class StockOutwardRequest extends FormRequest
     {
         $inputs = $this->all();
 
-        if (isset($inputs['firm_ids']) && is_array($inputs['firm_ids']) && !empty($inputs['firm_ids'])) {
-            $inputs['firm_id'] = (int) $inputs['firm_ids'][0];
+        if (isset($inputs['property_ids']) && is_array($inputs['property_ids'])) {
+            $filtered = array_values(array_filter($inputs['property_ids']));
+            $inputs['property_id'] = $filtered[0] ?? null;
         }
 
         foreach ($inputs as $key => $value) {
@@ -30,11 +31,13 @@ class StockOutwardRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'outward_date'  => 'required|date',
-            'project_id'    => 'nullable|exists:projects,id',
-            'property_id'   => 'nullable|exists:properties,id',
-            'contractor_id' => 'nullable|exists:contractors,id',
-            'remarks'       => 'nullable|string|max:1000',
+            'outward_date'   => 'required|date',
+            'project_id'     => 'nullable|exists:projects,id',
+            'property_id'    => 'nullable|exists:properties,id',
+            'property_ids'   => 'nullable|array',
+            'property_ids.*' => 'nullable|exists:properties,id',
+            'contractor_id'  => 'nullable|exists:contractors,id',
+            'remarks'        => 'nullable|string|max:1000',
         ];
 
         if ($this->has('items')) {

@@ -40,7 +40,7 @@ class StockOutwardController extends Controller
     {
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
-        $query = StockOutward::with(['material.materialCategory', 'project.propertyMaster', 'property', 'contractor']);
+        $query = StockOutward::with(['material.materialCategory', 'project.propertyMaster', 'property', 'properties', 'contractor']);
 
         if (!$isAdmin) {
             $firmId = $user ? $user->firm_id : session('firm_id');
@@ -55,6 +55,8 @@ class StockOutwardController extends Controller
                   ->orWhere('stock_inward_number', 'like', "%{$s}%")
                   ->orWhereHas('material', fn($m) => $m->where('material_name', 'like', "%{$s}%"))
                   ->orWhereHas('project', fn($p) => $p->where('project_name', 'like', "%{$s}%"))
+                  ->orWhereHas('property', fn($pr) => $pr->where('property_name', 'like', "%{$s}%")->orWhere('unit_no', 'like', "%{$s}%"))
+                  ->orWhereHas('properties', fn($pr) => $pr->where('property_name', 'like', "%{$s}%")->orWhere('unit_no', 'like', "%{$s}%"))
                   ->orWhereHas('contractor', fn($c) => $c->where('contractor_name', 'like', "%{$s}%"));
             });
         }
@@ -137,11 +139,12 @@ class StockOutwardController extends Controller
         $dropdowns = $this->dropdowns();
         $selectedProjectId = $request->input('project_id');
         $selectedPropertyId = $request->input('property_id');
+        $selectedPropertyIds = (array) ($request->input('property_ids') ?: ($request->input('property_id') ? [$request->input('property_id')] : []));
         $selectedContractorId = $request->input('contractor_id');
 
         return view('admin.stock-outwards.create', array_merge(
             $dropdowns,
-            compact('inwardNumbers', 'selectedInward', 'pendingItems', 'selectedProjectId', 'selectedPropertyId', 'selectedContractorId')
+            compact('inwardNumbers', 'selectedInward', 'pendingItems', 'selectedProjectId', 'selectedPropertyId', 'selectedPropertyIds', 'selectedContractorId')
         ));
     }
 
@@ -265,6 +268,11 @@ class StockOutwardController extends Controller
                 $outwardNumber = 'SO-' . $year . '-' . str_pad($count, 6, '0', STR_PAD_LEFT);
             }
 
+            // Parse submitted property IDs
+            $submittedPropertyIds = (array) ($request->property_ids ?: ($request->property_id ? [$request->property_id] : []));
+            $submittedPropertyIds = array_values(array_unique(array_filter($submittedPropertyIds)));
+            $primaryPropertyId = $submittedPropertyIds[0] ?? ($request->property_id ?: ($inwGroup->property_id ?? null));
+
             DB::beginTransaction();
             try {
                 foreach ($request->items as $itemData) {
@@ -276,7 +284,7 @@ class StockOutwardController extends Controller
                     $out = StockOutward::create([
                         'firm_id'             => $inwGroup->firm_id,
                         'project_id'          => $request->project_id ?: ($inwGroup->project_id ?? null),
-                        'property_id'         => $request->property_id ?: ($inwGroup->property_id ?? null),
+                        'property_id'         => $primaryPropertyId,
                         'contractor_id'       => $request->contractor_id ?: ($inwGroup->contractor_id ?: ($inwGroup->purchaseOrder?->contractor_id ?? null)),
                         'outward_number'      => $outwardNumber,
                         'stock_inward_number' => $siNumber,
@@ -290,6 +298,10 @@ class StockOutwardController extends Controller
                         'used_for'            => $request->used_for ?: ('Dispatched to Site via Gate Pass ' . $outwardNumber),
                         'remarks'             => $request->remarks,
                     ]);
+
+                    if (!empty($submittedPropertyIds)) {
+                        $out->properties()->sync($submittedPropertyIds);
+                    }
 
                     $material = Material::find($materialId);
                     if ($material) {
@@ -336,12 +348,16 @@ class StockOutwardController extends Controller
                 $outwardNumber = 'SO-' . $year . '-' . str_pad($count, 6, '0', STR_PAD_LEFT);
             }
 
+            $submittedPropertyIds = (array) ($request->property_ids ?: ($request->property_id ? [$request->property_id] : []));
+            $submittedPropertyIds = array_values(array_unique(array_filter($submittedPropertyIds)));
+            $primaryPropertyId = $submittedPropertyIds[0] ?? ($request->property_id ?: null);
+
             DB::beginTransaction();
             try {
                 $out = StockOutward::create([
                     'firm_id'        => $userFirmId ?: $material->firm_id,
                     'project_id'     => $request->project_id ?: null,
-                    'property_id'    => $request->property_id ?: null,
+                    'property_id'    => $primaryPropertyId,
                     'contractor_id'  => $request->contractor_id ?: null,
                     'outward_number' => $outwardNumber,
                     'material_id'    => $request->material_id,
@@ -350,6 +366,10 @@ class StockOutwardController extends Controller
                     'used_for'       => $request->used_for,
                     'remarks'        => $request->remarks,
                 ]);
+
+                if (!empty($submittedPropertyIds)) {
+                    $out->properties()->sync($submittedPropertyIds);
+                }
 
                 if ($qty > 0) {
                     $material->decrement('current_stock', $qty);
@@ -385,11 +405,11 @@ class StockOutwardController extends Controller
         if (!$isAdmin && $stockOutward->firm_id != $firmId) abort(403);
 
         if ($stockOutward->outward_number) {
-            $outwards = StockOutward::where('outward_number', $stockOutward->outward_number)->with(['material.materialCategory', 'project.propertyMaster', 'property', 'contractor'])->get();
+            $outwards = StockOutward::where('outward_number', $stockOutward->outward_number)->with(['material.materialCategory', 'project.propertyMaster', 'property', 'properties', 'contractor'])->get();
             $outwardGroup = $outwards->first();
             return view('admin.stock-outwards.show', compact('outwardGroup', 'outwards'));
         } else {
-            $stockOutward->load(['material.materialCategory', 'project.propertyMaster', 'property', 'contractor']);
+            $stockOutward->load(['material.materialCategory', 'project.propertyMaster', 'property', 'properties', 'contractor']);
             return view('admin.stock-outwards.show', compact('stockOutward'));
         }
     }
@@ -403,11 +423,11 @@ class StockOutwardController extends Controller
         if (!$isAdmin && $stockOutward->firm_id != $firmId) abort(403);
 
         if ($stockOutward->outward_number) {
-            $outwards = StockOutward::where('outward_number', $stockOutward->outward_number)->with(['material.materialCategory', 'project.propertyMaster', 'property', 'contractor'])->get();
+            $outwards = StockOutward::where('outward_number', $stockOutward->outward_number)->with(['material.materialCategory', 'project.propertyMaster', 'property', 'properties', 'contractor'])->get();
             $outwardGroup = $outwards->first();
             return view('admin.stock-outwards.show', compact('outwardGroup', 'outwards'))->with('printMode', true);
         } else {
-            $stockOutward->load(['material.materialCategory', 'project.propertyMaster', 'property', 'contractor']);
+            $stockOutward->load(['material.materialCategory', 'project.propertyMaster', 'property', 'properties', 'contractor']);
             return view('admin.stock-outwards.show', compact('stockOutward'))->with('printMode', true);
         }
     }
@@ -423,8 +443,11 @@ class StockOutwardController extends Controller
             return redirect()->route('stock-outwards.index')->with('error', 'Cannot edit stock outward dispatched against a Stock Inward.');
         }
 
+        $stockOutward->load('properties');
+        $selectedPropertyIds = $stockOutward->properties->pluck('id')->all() ?: ($stockOutward->property_id ? [$stockOutward->property_id] : []);
+
         return view('admin.stock-outwards.edit', array_merge(
-            ['stockOutward' => $stockOutward], $this->dropdowns()
+            ['stockOutward' => $stockOutward, 'selectedPropertyIds' => $selectedPropertyIds], $this->dropdowns()
         ));
     }
 
@@ -450,19 +473,25 @@ class StockOutwardController extends Controller
             ]);
         }
 
+        $submittedPropertyIds = (array) ($request->property_ids ?: ($request->property_id ? [$request->property_id] : []));
+        $submittedPropertyIds = array_values(array_unique(array_filter($submittedPropertyIds)));
+        $primaryPropertyId = $submittedPropertyIds[0] ?? ($request->property_id ?: null);
+
         $material->increment('current_stock', $oldQty);
         $material->decrement('current_stock', $newQty);
 
         $stockOutward->update([
             'material_id'   => $request->material_id,
             'project_id'    => $request->project_id ?: null,
-            'property_id'   => $request->property_id ?: null,
+            'property_id'   => $primaryPropertyId,
             'contractor_id' => $request->contractor_id ?: null,
             'outward_date'  => $request->outward_date,
             'quantity'      => $newQty,
             'used_for'      => $request->used_for,
             'remarks'       => $request->remarks,
         ]);
+
+        $stockOutward->properties()->sync($submittedPropertyIds);
 
         return redirect()->route('stock-outwards.index')->with('success', 'Stock outward updated.');
     }
