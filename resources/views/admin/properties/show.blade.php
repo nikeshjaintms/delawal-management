@@ -260,6 +260,54 @@
         </div>
     </div>
 
+    @php
+        $activeRental = $property->active_rental;
+    @endphp
+    @if($activeRental)
+        <div class="section-title" style="margin-top: 24px;"><i class="fa-solid fa-key" style="color: #60A5FA;"></i> Active Rental Information</div>
+        <div class="detail-grid-3" style="background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-user"></i> Tenant Name</div>
+                <div class="detail-value" style="color: #60A5FA; font-weight: 700;">
+                    {{ $activeRental->tenant_name ?? ($activeRental->tenant->name ?? '—') }}
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-file-contract"></i> Agreement No</div>
+                <div class="detail-value">{{ $activeRental->agreement_no ?: '—' }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-money-bill-wave"></i> Monthly Rent</div>
+                <div class="detail-value" style="color: #34D399; font-weight: 700;">
+                    ₹{{ number_format($activeRental->rent_amount, 2) }}
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-shield-halved"></i> Security Deposit</div>
+                <div class="detail-value">
+                    {{ $activeRental->security_deposit ? '₹' . number_format($activeRental->security_deposit, 2) : '—' }}
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-calendar-days"></i> Lease Period</div>
+                <div class="detail-value">
+                    {{ $activeRental->rent_start_date ? \Carbon\Carbon::parse($activeRental->rent_start_date)->format('d M Y') : '—' }}
+                    @if($activeRental->rent_end_date)
+                        to {{ \Carbon\Carbon::parse($activeRental->rent_end_date)->format('d M Y') }}
+                    @endif
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label"><i class="fa-solid fa-link"></i> Action</div>
+                <div class="detail-value">
+                    <a href="{{ route('rentals.show', $activeRental->id) }}" class="doc-link" style="padding: 4px 10px; font-size: 12px;">
+                        <i class="fa-solid fa-eye"></i> View Lease
+                    </a>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @if($property->description)
         <div class="section-title"><i class="fa-solid fa-align-left"></i> Description</div>
         <div class="detail-item">

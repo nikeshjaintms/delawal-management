@@ -122,6 +122,15 @@ class Property extends Model
         return $this->hasMany(Rental::class);
     }
 
+    public function getActiveRentalAttribute()
+    {
+        if ($this->relationLoaded('rentals') && $this->rentals->isNotEmpty()) {
+            $r = $this->rentals->where('rental_status', 'active')->first();
+            if ($r) return $r;
+        }
+        return $this->rentals()->where('rental_status', 'active')->first();
+    }
+
     /**
      * Synchronize all property statuses based on active bookings, sales, and rentals.
      */
@@ -161,15 +170,15 @@ class Property extends Model
             ->whereIn('id', function ($query) {
                 $query->select('property_id')
                     ->from('rentals')
-                    ->where('status', 'active')
+                    ->where('rental_status', 'active')
                     ->whereNotNull('property_id');
             })
             ->where('status', '!=', 'sold')
             ->update(['status' => 'rented']);
 
-        // 4. Revert any properties that are marked 'booked' but have NO active bookings, sales, or rentals
+        // 4. Revert any properties that are marked 'booked' or 'rented' but have NO active bookings, sales, or rentals
         \Illuminate\Support\Facades\DB::table('properties')
-            ->where('status', 'booked')
+            ->whereIn('status', ['booked', 'rented'])
             ->whereNotIn('id', function ($query) {
                 $query->select('property_id')
                     ->from('bookings')
@@ -191,7 +200,7 @@ class Property extends Model
             ->whereNotIn('id', function ($query) {
                 $query->select('property_id')
                     ->from('rentals')
-                    ->where('status', 'active')
+                    ->where('rental_status', 'active')
                     ->whereNotNull('property_id');
             })
             ->update(['status' => 'available']);

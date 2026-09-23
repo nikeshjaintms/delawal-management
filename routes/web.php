@@ -147,6 +147,8 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::resource('rentals', RentalController::class)->middleware(['permission:rental_view']);
 
     Route::get('rentals/{rental}/payments', [RentalPaymentController::class, 'index'])->name('rental-payments.index')->middleware(['permission:rental_view']);
+    Route::get('rentals/{rental}/payments/statement-pdf', [RentalPaymentController::class, 'statementPdf'])->name('rental-payments.statement-pdf')->middleware(['permission:rental_view']);
+    Route::get('rentals/{rental}/payments/{rentalPayment}/receipt-pdf', [RentalPaymentController::class, 'receiptPdf'])->name('rental-payments.receipt-pdf')->middleware(['permission:rental_view']);
     Route::get('rentals/{rental}/payments/create', [RentalPaymentController::class, 'create'])->name('rental-payments.create')->middleware(['permission:rental_view']);
     Route::post('rentals/{rental}/payments', [RentalPaymentController::class, 'store'])->name('rental-payments.store')->middleware(['permission:rental_view']);
     Route::get('rentals/{rental}/payments/{rentalPayment}/edit', [RentalPaymentController::class, 'edit'])->name('rental-payments.edit')->middleware(['permission:rental_view']);

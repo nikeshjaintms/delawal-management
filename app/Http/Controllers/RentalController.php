@@ -260,6 +260,7 @@ class RentalController extends Controller
             $data['agreement_document'] = $request->file('agreement_document')->store('rental_documents', 'public');
         }
 
+        $oldPropertyId = $rental->property_id;
         $rental->update($data);
 
         if ($request->has('firm_ids') && is_array($request->firm_ids) && !empty($request->firm_ids)) {
@@ -268,7 +269,21 @@ class RentalController extends Controller
             $rental->syncFirms([$newFirmId]);
         }
 
+        if ($oldPropertyId && $oldPropertyId != $rental->property_id) {
+            $oldProperty = Property::find($oldPropertyId);
+            if ($oldProperty && $oldProperty->status === 'rented') {
+                $hasOtherActive = Rental::where('property_id', $oldPropertyId)
+                    ->where('id', '!=', $rental->id)
+                    ->where('rental_status', 'active')
+                    ->exists();
+                if (!$hasOtherActive) {
+                    $oldProperty->update(['status' => 'available']);
+                }
+            }
+        }
+
         $this->updatePropertyStatus($rental);
+        Property::syncAllStatuses();
 
         return redirect()->route('rentals.index')->with('success', 'Rental agreement updated successfully.');
     }
@@ -283,12 +298,21 @@ class RentalController extends Controller
             abort(403);
         }
 
-        $property = Property::find($rental->property_id);
-        if ($property && $property->status === 'rented') {
-            $property->update(['status' => 'available']);
-        }
-
+        $propertyId = $rental->property_id;
         $rental->delete();
+
+        if ($propertyId) {
+            $property = Property::find($propertyId);
+            if ($property && $property->status === 'rented') {
+                $hasOtherActive = Rental::where('property_id', $propertyId)
+                    ->where('rental_status', 'active')
+                    ->exists();
+                if (!$hasOtherActive) {
+                    $property->update(['status' => 'available']);
+                }
+            }
+        }
+        Property::syncAllStatuses();
 
         return redirect()->route('rentals.index')->with('success', 'Rental record deleted successfully.');
     }

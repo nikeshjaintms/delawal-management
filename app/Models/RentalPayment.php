@@ -15,6 +15,8 @@ class RentalPayment extends Model
         'payment_month',
         'payment_year',
         'rent_amount',
+        'maintenance_amount',
+        'total_amount',
         'paid_amount',
         'pending_amount',
         'payment_date',

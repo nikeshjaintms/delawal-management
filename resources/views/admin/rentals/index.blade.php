@@ -295,6 +295,11 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                                        title="Collect Rent">
                                         <i class="fa-solid fa-hand-holding-dollar"></i> Collect Rent
                                     </a>
+                                    <a href="{{ route('rental-payments.statement-pdf', $rental->id) }}" target="_blank" class="btn-view"
+                                       style="background: rgba(239, 68, 68, 0.15) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.30) !important;"
+                                       title="Print / Download Personal Statement PDF">
+                                        <i class="fa fa-file-pdf"></i> Statement
+                                    </a>
                                     <a href="{{ route('rental-payments.index', $rental->id) }}" class="btn-history-link"
                                        title="Payment History">
                                         <i class="fa-solid fa-clock-rotate-left"></i> History

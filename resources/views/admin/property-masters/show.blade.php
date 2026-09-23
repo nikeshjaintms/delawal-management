@@ -421,6 +421,7 @@
 .badge-in-project { background: rgba(59, 130, 246, 0.18); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.35); }
 .badge-booked { background: rgba(245, 158, 11, 0.18); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.35); }
 .badge-sold { background: rgba(168, 85, 247, 0.18); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.35); }
+.badge-rented { background: rgba(59, 130, 246, 0.18); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.35); }
 .badge-paid { background: rgba(16, 185, 129, 0.18); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35); }
 .badge-partial { background: rgba(245, 158, 11, 0.18); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.35); }
 .badge-unpaid { background: rgba(239, 68, 68, 0.18); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.35); }
@@ -665,7 +666,10 @@
     $totalPlots      = $propertyMaster->plots->count();
     $unassignedPlots = $propertyMaster->plots->whereNull('project_id')->where('status', 'available')->count();
     $assignedPlots   = $propertyMaster->plots->whereNotNull('project_id')->count();
-    $bookedSoldPlots = $propertyMaster->plots->whereIn('status', ['booked', 'sold', 'reserved'])->count();
+    $bookedPlots     = $propertyMaster->plots->where('status', 'booked')->count();
+    $soldPlots       = $propertyMaster->plots->where('status', 'sold')->count();
+    $rentedPlots     = $propertyMaster->plots->where('status', 'rented')->count();
+    $bookedSoldPlots = $propertyMaster->plots->whereIn('status', ['booked', 'sold', 'rented', 'reserved'])->count();
     
     $totalAreaSqft   = $propertyMaster->plots->sum(function($p) {
         $val = floatval(preg_replace('/[^0-9.]/', '', $p->size ?? '0'));
@@ -1126,8 +1130,9 @@
             <button type="button" class="filter-tab-btn active" onclick="filterPlots('all', this)">All ({{ $totalPlots }})</button>
             <button type="button" class="filter-tab-btn" onclick="filterPlots('available', this)">Available Free ({{ $unassignedPlots }})</button>
             <button type="button" class="filter-tab-btn" onclick="filterPlots('in-project', this)">In Project ({{ $assignedPlots }})</button>
-            <button type="button" class="filter-tab-btn" onclick="filterPlots('booked', this)">Booked</button>
-            <button type="button" class="filter-tab-btn" onclick="filterPlots('sold', this)">Sold</button>
+            <button type="button" class="filter-tab-btn" onclick="filterPlots('booked', this)">Booked ({{ $bookedPlots }})</button>
+            <button type="button" class="filter-tab-btn" onclick="filterPlots('rented', this)">Rented ({{ $rentedPlots }})</button>
+            <button type="button" class="filter-tab-btn" onclick="filterPlots('sold', this)">Sold ({{ $soldPlots }})</button>
         </div>
 
         <div class="search-input-wrap">
@@ -1156,7 +1161,7 @@
                 @forelse($propertyMaster->plots as $plot)
                     @php
                         $filterCategory = 'available';
-                        if ($plot->status === 'booked' || $plot->status === 'sold' || $plot->status === 'reserved') {
+                        if ($plot->status === 'booked' || $plot->status === 'sold' || $plot->status === 'rented' || $plot->status === 'reserved') {
                             $filterCategory = $plot->status;
                         } elseif ($plot->project_id) {
                             $filterCategory = 'in-project';
@@ -1212,6 +1217,8 @@
                                     ?: $plot->active_booking;
                                 $activeSale = ($plot->relationLoaded('sales') ? $plot->sales->where('sale_status', '!=', 'cancelled')->first() : null)
                                     ?: ($plot->relationLoaded('sales') && $plot->sales->isNotEmpty() ? $plot->sales->first() : null);
+                                $activeRental = ($plot->relationLoaded('rentals') ? $plot->rentals->where('rental_status', 'active')->first() : null)
+                                    ?: $plot->active_rental;
                             @endphp
 
                             @if($st === 'sold' || $activeSale)
@@ -1236,10 +1243,15 @@
                                         <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name }}
                                     </div>
                                 @endif
-                            @elseif($st === 'rented')
+                            @elseif($st === 'rented' || $activeRental)
                                 <span class="badge badge-rented">
                                     <i class="fa-solid fa-key"></i> Rented
                                 </span>
+                                @if($activeRental && ($activeRental->tenant_name || $activeRental->tenant))
+                                    <div style="font-size: 11px; color: #60A5FA; font-weight: 600; margin-top: 3px;" title="Tenant: {{ $activeRental->tenant_name ?? $activeRental->tenant->name }}">
+                                        <i class="fa-solid fa-user-tag" style="font-size: 10px;"></i> {{ $activeRental->tenant_name ?? $activeRental->tenant->name }}
+                                    </div>
+                                @endif
                             @else
                                 <span class="badge badge-available">
                                     <i class="fa-solid fa-circle-dot"></i> Available

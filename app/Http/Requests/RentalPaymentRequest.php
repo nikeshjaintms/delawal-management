@@ -60,13 +60,15 @@ class RentalPaymentRequest extends FormRequest
             'firm_ids'       => 'nullable|array',
             'firm_ids.*'     => 'exists:firms,id',
             'property_id'    => 'required|exists:properties,id',
-            'payment_month'  => 'required|string|max:255',
-            'payment_year'   => 'required|integer|min:2020',
-            'rent_amount'    => 'required|numeric|min:0',
-            'paid_amount'    => 'required|numeric|min:0',
-            'payment_date'   => 'required|date',
-            'payment_mode'   => 'nullable|string|max:255',
-            'remarks'        => 'nullable|string|max:1000',
+            'payment_month'      => 'required|string|max:255',
+            'payment_year'       => 'required|integer|min:2020',
+            'rent_amount'        => 'required|numeric|min:0',
+            'maintenance_amount' => 'nullable|numeric|min:0',
+            'total_amount'       => 'nullable|numeric|min:0',
+            'paid_amount'        => 'required|numeric|min:0',
+            'payment_date'       => 'required|date',
+            'payment_mode'       => 'nullable|string|max:255',
+            'remarks'            => 'nullable|string|max:1000',
         ];
 
         // Replace placeholders in unique rules dynamically
@@ -101,14 +103,16 @@ class RentalPaymentRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'property_id'   => 'Property',
-            'payment_month' => 'Payment Month',
-            'payment_year'  => 'Payment Year',
-            'rent_amount'   => 'Rent Amount',
-            'paid_amount'   => 'Paid Amount',
-            'payment_date'  => 'Payment Date',
-            'payment_mode'  => 'Payment Mode',
-            'remarks'       => 'Remarks',
+            'property_id'        => 'Property',
+            'payment_month'      => 'Payment Month',
+            'payment_year'       => 'Payment Year',
+            'rent_amount'        => 'Rent Amount',
+            'maintenance_amount' => 'Maintenance Amount',
+            'total_amount'       => 'Total Due Amount',
+            'paid_amount'        => 'Paid Amount',
+            'payment_date'       => 'Payment Date',
+            'payment_mode'       => 'Payment Mode',
+            'remarks'            => 'Remarks',
         ];
     }
 

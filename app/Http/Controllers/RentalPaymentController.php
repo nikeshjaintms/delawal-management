@@ -75,13 +75,15 @@ class RentalPaymentController extends Controller
     {
         $this->firmCheck($rental);
 
-        $rentAmt  = (float) $request->rent_amount;
-        $paidAmt  = (float) $request->paid_amount;
-        $pending  = max(0, $rentAmt - $paidAmt);
+        $rentAmt   = (float) $request->rent_amount;
+        $maintAmt  = (float) ($request->maintenance_amount ?? 0);
+        $totalAmt  = $rentAmt + $maintAmt;
+        $paidAmt   = (float) $request->paid_amount;
+        $pending   = max(0, $totalAmt - $paidAmt);
 
         if ($paidAmt <= 0) {
             $status = 'pending';
-        } elseif ($paidAmt >= $rentAmt) {
+        } elseif ($paidAmt >= $totalAmt) {
             $status = 'paid';
         } else {
             $status = 'partial';
@@ -96,18 +98,20 @@ class RentalPaymentController extends Controller
         }
 
         $rentalPayment = RentalPayment::create([
-            'firm_id'        => $firmId,
-            'rental_id'      => $rental->id,
-            'property_id'    => $request->property_id,
-            'payment_month'  => $request->payment_month,
-            'payment_year'   => $request->payment_year,
-            'rent_amount'    => $rentAmt,
-            'paid_amount'    => $paidAmt,
-            'pending_amount' => $pending,
-            'payment_date'   => $request->payment_date,
-            'payment_mode'   => $request->payment_mode ?: 'Cash',
-            'payment_status' => $status,
-            'remarks'        => $request->remarks,
+            'firm_id'            => $firmId,
+            'rental_id'          => $rental->id,
+            'property_id'        => $request->property_id,
+            'payment_month'      => $request->payment_month,
+            'payment_year'       => $request->payment_year,
+            'rent_amount'        => $rentAmt,
+            'maintenance_amount' => $maintAmt,
+            'total_amount'       => $totalAmt,
+            'paid_amount'        => $paidAmt,
+            'pending_amount'     => $pending,
+            'payment_date'       => $request->payment_date,
+            'payment_mode'       => $request->payment_mode ?: 'Cash',
+            'payment_status'     => $status,
+            'remarks'            => $request->remarks,
         ]);
 
         $rental->update(['payment_status' => $status]);
@@ -154,13 +158,15 @@ class RentalPaymentController extends Controller
             abort(403);
         }
 
-        $rentAmt  = (float) $request->rent_amount;
-        $paidAmt  = (float) $request->paid_amount;
-        $pending  = max(0, $rentAmt - $paidAmt);
+        $rentAmt   = (float) $request->rent_amount;
+        $maintAmt  = (float) ($request->maintenance_amount ?? 0);
+        $totalAmt  = $rentAmt + $maintAmt;
+        $paidAmt   = (float) $request->paid_amount;
+        $pending   = max(0, $totalAmt - $paidAmt);
 
         if ($paidAmt <= 0) {
             $status = 'pending';
-        } elseif ($paidAmt >= $rentAmt) {
+        } elseif ($paidAmt >= $totalAmt) {
             $status = 'paid';
         } else {
             $status = 'partial';
@@ -175,17 +181,19 @@ class RentalPaymentController extends Controller
         }
 
         $rentalPayment->update([
-            'firm_id'        => $firmId,
-            'property_id'    => $request->property_id,
-            'payment_month'  => $request->payment_month,
-            'payment_year'   => $request->payment_year,
-            'rent_amount'    => $rentAmt,
-            'paid_amount'    => $paidAmt,
-            'pending_amount' => $pending,
-            'payment_date'   => $request->payment_date,
-            'payment_mode'   => $request->payment_mode ?: 'Cash',
-            'payment_status' => $status,
-            'remarks'        => $request->remarks,
+            'firm_id'            => $firmId,
+            'property_id'        => $request->property_id,
+            'payment_month'      => $request->payment_month,
+            'payment_year'       => $request->payment_year,
+            'rent_amount'        => $rentAmt,
+            'maintenance_amount' => $maintAmt,
+            'total_amount'       => $totalAmt,
+            'paid_amount'        => $paidAmt,
+            'pending_amount'     => $pending,
+            'payment_date'       => $request->payment_date,
+            'payment_mode'       => $request->payment_mode ?: 'Cash',
+            'payment_status'     => $status,
+            'remarks'            => $request->remarks,
         ]);
 
         $rental->update(['payment_status' => $status]);
@@ -213,5 +221,48 @@ class RentalPaymentController extends Controller
         return redirect()
             ->route('rental-payments.index', $rental->id)
             ->with('success', 'Payment record deleted successfully.');
+    }
+
+    public function statementPdf(Rental $rental)
+    {
+        $this->firmCheck($rental);
+
+        $rental->load(['firm', 'property.propertyType', 'property.project.propertyMaster', 'tenant']);
+
+        $payments = RentalPayment::with(['firm', 'property'])
+            ->where('rental_id', $rental->id)
+            ->orderBy('payment_year')
+            ->orderBy('payment_month')
+            ->orderBy('id')
+            ->get();
+
+        $totalRentCharged = (float) $payments->sum('rent_amount');
+        $totalMaintenanceCharged = (float) $payments->sum('maintenance_amount');
+        $totalDueAmount = (float) $payments->sum(fn($p) => $p->total_amount ?: ($p->rent_amount + $p->maintenance_amount));
+        $totalPaidAmount = (float) $payments->sum('paid_amount');
+        $totalPendingAmount = (float) $payments->sum('pending_amount');
+
+        return view('admin.rental-payments.statement-pdf', compact(
+            'rental',
+            'payments',
+            'totalRentCharged',
+            'totalMaintenanceCharged',
+            'totalDueAmount',
+            'totalPaidAmount',
+            'totalPendingAmount'
+        ));
+    }
+
+    public function receiptPdf(Rental $rental, RentalPayment $rentalPayment)
+    {
+        $this->firmCheck($rental);
+        if ($rentalPayment->rental_id !== $rental->id) {
+            abort(403);
+        }
+
+        $rental->load(['firm', 'property.propertyType', 'property.project.propertyMaster', 'tenant']);
+        $rentalPayment->load(['firm', 'property.propertyType']);
+
+        return view('admin.rental-payments.receipt-pdf', compact('rental', 'rentalPayment'));
     }
 }

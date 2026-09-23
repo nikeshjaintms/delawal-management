@@ -1078,6 +1078,8 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                                     ?: $property->active_booking;
                                 $activeSale = ($property->relationLoaded('sales') ? $property->sales->where('sale_status', '!=', 'cancelled')->first() : null)
                                     ?: ($property->relationLoaded('sales') && $property->sales->isNotEmpty() ? $property->sales->first() : null);
+                                $activeRental = ($property->relationLoaded('rentals') ? $property->rentals->where('rental_status', 'active')->first() : null)
+                                    ?: $property->active_rental;
                             @endphp
 
                             @if($st === 'sold' || $activeSale)
@@ -1102,10 +1104,15 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
                                         <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name }}
                                     </div>
                                 @endif
-                            @elseif($st === 'rented')
+                            @elseif($st === 'rented' || $activeRental)
                                 <span class="badge badge-rented">
                                     <i class="fa-solid fa-key"></i> Rented
                                 </span>
+                                @if($activeRental && ($activeRental->tenant_name || $activeRental->tenant))
+                                    <div style="font-size: 11px; color: #D8B4FE; font-weight: 600; margin-top: 3px;" title="Tenant: {{ $activeRental->tenant_name ?? $activeRental->tenant->name }}">
+                                        <i class="fa-solid fa-user-tag" style="font-size: 10px;"></i> {{ $activeRental->tenant_name ?? $activeRental->tenant->name }}
+                                    </div>
+                                @endif
                             @elseif($st === 'blocked' || $st === 'inactive')
                                 <span class="badge badge-inactive">
                                     <i class="fa-solid fa-ban"></i> {{ ucfirst($st) }}

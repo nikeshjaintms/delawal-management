@@ -141,7 +141,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                                     data-project-id="{{ $property->project_id }}"
                                     data-firm-id="{{ $property->firm_id }}"
                                     data-unit-no="{{ $property->unit_no }}"
-                                    data-rent="{{ $property->price }}"
                                     data-status="{{ $property->status }}"
                                     data-project="{{ $property->project->project_name ?? ($property->project->propertyMaster->property_name ?? 'No Project Assigned') }}"
                                     {{ old('property_id') == $property->id ? 'selected' : '' }}>
@@ -150,7 +149,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                                 @if($property->property_code) ({{ $property->property_code }}) @endif
                                 @if($property->project) [{{ $property->project->project_name }}] @endif
                                 — {{ ucfirst($property->status) }}
-                                @if($property->price > 0) (Rent: ₹{{ number_format($property->price, 2) }}) @endif
                             </option>
                         @endforeach
                     </select>
@@ -214,9 +212,10 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         </div>
 
         {{-- Rent & Financials --}}
+        {{-- Rent & Financials --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Rent & Financials</div>
-            <div class="form-row-3">
+            <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Rent &amp; Financials</div>
+            <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="rent_amount">Monthly Rent Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="rent_amount" id="rent_amount" value="{{ old('rent_amount') }}"
@@ -228,12 +227,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     <input type="number" step="0.01" name="security_deposit" id="security_deposit" value="{{ old('security_deposit') }}"
                            class="form-control @error('security_deposit') is-invalid @enderror" placeholder="Enter security deposit amount">
                     @error('security_deposit') <div class="text-error">{{ $message }}</div> @enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="maintenance_amount">Maintenance Charges (₹/mo)</label>
-                    <input type="number" step="0.01" name="maintenance_amount" id="maintenance_amount" value="{{ old('maintenance_amount', 0) }}"
-                           class="form-control @error('maintenance_amount') is-invalid @enderror" placeholder="Society maintenance (if any)">
-                    @error('maintenance_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
         </div>
@@ -409,15 +402,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const projId = selectedOpt.getAttribute('data-project-id');
             const projName = selectedOpt.getAttribute('data-project') || '';
             const unitNo = selectedOpt.getAttribute('data-unit-no') || '';
-            const rentVal = selectedOpt.getAttribute('data-rent');
             const status = selectedOpt.getAttribute('data-status') || '';
 
             if (projectSelect && projId && projectSelect.value !== projId) {
                 projectSelect.value = projId;
-            }
-
-            if (rentInput && (!rentInput.value || parseFloat(rentInput.value) === 0) && rentVal && parseFloat(rentVal) > 0) {
-                rentInput.value = rentVal;
             }
 
             if (unitBadge && unitText) {

@@ -201,16 +201,32 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
         {{-- Amounts --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Payment Amount</div>
+            <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Payment &amp; Maintenance Breakdown</div>
             <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label" for="rent_amount">Rent Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="rent_amount" id="rent_amount"
                            value="{{ old('rent_amount', $rental->rent_amount) }}"
                            class="form-control @error('rent_amount') is-invalid @enderror" placeholder="Enter rent amount"
-                           oninput="calcPending()" required>
+                           oninput="calcTotal(true)" required>
                     @error('rent_amount') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
+                <div class="form-group">
+                    <label class="form-label" for="maintenance_amount">Maintenance Charges (₹)</label>
+                    <input type="number" step="0.01" name="maintenance_amount" id="maintenance_amount"
+                           value="{{ old('maintenance_amount', 0) }}"
+                           class="form-control @error('maintenance_amount') is-invalid @enderror" placeholder="Society maintenance (if any)"
+                           oninput="calcTotal(true)">
+                    @error('maintenance_amount') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="total_amount_display">Total Due Amount (₹)</label>
+                    <input type="text" id="total_amount_display" class="form-control form-control-readonly"
+                           readonly placeholder="Auto-calculated">
+                    <div class="calc-hint"><i class="fa-solid fa-calculator" style="font-size:10px;"></i> = Rent + Maintenance</div>
+                </div>
+            </div>
+            <div class="form-row" style="margin-top: 16px;">
                 <div class="form-group">
                     <label class="form-label" for="paid_amount">Paid Amount (₹) <span>*</span></label>
                     <input type="number" step="0.01" name="paid_amount" id="paid_amount"
@@ -223,7 +239,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     <label class="form-label" for="pending_display">Pending Amount (₹)</label>
                     <input type="text" id="pending_display" class="form-control form-control-readonly"
                            readonly placeholder="Auto-calculated">
-                    <div class="calc-hint"><i class="fa-solid fa-calculator" style="font-size:10px;"></i> = Rent − Paid</div>
+                    <div class="calc-hint"><i class="fa-solid fa-calculator" style="font-size:10px;"></i> = Total Due − Paid</div>
                 </div>
             </div>
         </div>
@@ -282,16 +298,40 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 </div>
 
 <script>
+function calcTotal(autoFillPaid = false) {
+    const rent   = parseFloat(document.getElementById('rent_amount').value) || 0;
+    const maint  = parseFloat(document.getElementById('maintenance_amount').value) || 0;
+    const total  = rent + maint;
+
+    const totalDisplay = document.getElementById('total_amount_display');
+    if (totalDisplay) {
+        totalDisplay.value = '₹ ' + total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    if (autoFillPaid) {
+        const paidInput = document.getElementById('paid_amount');
+        if (paidInput) {
+            paidInput.value = total > 0 ? total : '';
+        }
+    }
+    calcPending();
+}
+
 function calcPending() {
-    const rent   = parseFloat(document.getElementById('rent_amount').value)   || 0;
-    const paid   = parseFloat(document.getElementById('paid_amount').value)   || 0;
-    const pending = Math.max(0, rent - paid);
-    document.getElementById('pending_display').value =
-        '₹' + pending.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const rent   = parseFloat(document.getElementById('rent_amount').value) || 0;
+    const maint  = parseFloat(document.getElementById('maintenance_amount').value) || 0;
+    const total  = rent + maint;
+    const paid   = parseFloat(document.getElementById('paid_amount').value) || 0;
+    const pending = Math.max(0, total - paid);
+
+    const pendingDisplay = document.getElementById('pending_display');
+    if (pendingDisplay) {
+        pendingDisplay.value = '₹ ' + pending.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    calcPending();
+    calcTotal(false);
 
     const projectSelect = document.getElementById('project_id');
     const propSelect = document.getElementById('property_id');

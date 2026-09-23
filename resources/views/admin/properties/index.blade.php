@@ -412,6 +412,8 @@
                                     ?: $property->active_booking;
                                 $activeSale = ($property->relationLoaded('sales') ? $property->sales->where('sale_status', '!=', 'cancelled')->first() : null)
                                     ?: ($property->relationLoaded('sales') && $property->sales->isNotEmpty() ? $property->sales->first() : null);
+                                $activeRental = ($property->relationLoaded('rentals') ? $property->rentals->where('rental_status', 'active')->first() : null)
+                                    ?: $property->active_rental;
                             @endphp
 
                             @if($st === 'sold' || $activeSale)
@@ -432,8 +434,13 @@
                                         <i class="fa-solid fa-user-check" style="font-size: 10px;"></i> {{ $activeB->customer->name }}
                                     </div>
                                 @endif
-                            @elseif($st === 'rented')
+                            @elseif($st === 'rented' || $activeRental)
                                 <span class="badge badge-rented">Rented</span>
+                                @if($activeRental && ($activeRental->tenant_name || $activeRental->tenant))
+                                    <div style="font-size: 11px; color: #D8B4FE; font-weight: 600; margin-top: 3px;" title="Tenant: {{ $activeRental->tenant_name ?? $activeRental->tenant->name }}">
+                                        <i class="fa-solid fa-user-tag" style="font-size: 10px;"></i> {{ $activeRental->tenant_name ?? $activeRental->tenant->name }}
+                                    </div>
+                                @endif
                             @else
                                 <span class="badge badge-available">{{ ucfirst($st) }}</span>
                             @endif

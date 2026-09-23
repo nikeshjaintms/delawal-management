@@ -102,6 +102,9 @@
         <p>Monthly rent payment records for this rental.</p>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="{{ route('rental-payments.statement-pdf', $rental->id) }}" target="_blank" class="btn-outline" style="background: rgba(239, 68, 68, 0.15) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important;" title="Print / Download Personal Statement PDF">
+            <i class="fa-solid fa-file-pdf"></i> Statement PDF
+        </a>
         <a href="{{ route('rental-payments.create', $rental->id) }}" class="btn-gold">
             <i class="fa-solid fa-plus"></i> Add Payment
         </a>
@@ -169,7 +172,9 @@
                         <th>Property Type</th>
                         <th>Property Code</th>
                         <th>Month / Year</th>
-                        <th>Rent Amount</th>
+                        <th>Rent</th>
+                        <th>Maintenance</th>
+                        <th>Total Due</th>
                         <th>Paid Amount</th>
                         <th>Pending Amount</th>
                         <th>Payment Mode</th>
@@ -181,6 +186,10 @@
                 </thead>
                 <tbody>
                     @foreach($payments as $key => $pay)
+                        @php
+                            $maint = (float) ($pay->maintenance_amount ?? 0);
+                            $total = (float) ($pay->total_amount ?: ($pay->rent_amount + $maint));
+                        @endphp
                         <tr>
                             <td>{{ method_exists($payments, 'firstItem') ? ($payments->firstItem() + $key) : ($key + 1) }}</td>
                             <td><strong style="color:#FFFFFF !important;">{{ $pay->property->property_name ?? '—' }}</strong></td>
@@ -188,6 +197,10 @@
                             <td style="color:#CBD5E1;">{{ $pay->property->property_code ?? '—' }}</td>
                             <td><span class="month-chip">{{ $pay->payment_month }} {{ $pay->payment_year }}</span></td>
                             <td class="amount-fw">₹{{ number_format($pay->rent_amount, 0) }}</td>
+                            <td style="color: {{ $maint > 0 ? '#FBBF24' : '#94A3B8' }}; font-weight: 600;">
+                                {{ $maint > 0 ? '₹' . number_format($maint, 0) : '—' }}
+                            </td>
+                            <td style="color: #60A5FA; font-weight: 700;">₹{{ number_format($total, 0) }}</td>
                             <td class="paid-green">₹{{ number_format($pay->paid_amount, 0) }}</td>
                             <td class="{{ $pay->pending_amount > 0 ? 'pending-red' : 'paid-green' }}">
                                 ₹{{ number_format($pay->pending_amount, 0) }}
@@ -206,6 +219,9 @@
                             </td>
                             <td>
                                 <div class="action-buttons-wrap">
+                                    <a href="{{ route('rental-payments.receipt-pdf', [$rental->id, $pay->id]) }}" target="_blank" class="btn-view" style="background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important;" title="Print / Download Receipt">
+                                        <i class="fa-solid fa-receipt"></i> Receipt
+                                    </a>
                                     <a href="{{ route('rental-payments.edit', [$rental->id, $pay->id]) }}" class="btn-edit">
                                         <i class="fa fa-edit"></i> Edit
                                     </a>
