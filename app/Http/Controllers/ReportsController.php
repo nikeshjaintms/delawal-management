@@ -481,204 +481,172 @@ class ReportsController extends Controller
     }
 
     // ---------------------------------------------------------------
-    // Profit & Loss Statement
+    // Profit & Loss Statement (Standard Accounting Method)
     // ---------------------------------------------------------------
-    public function profitLoss(Request $request)
+    private function getProfitLossData(Request $request)
     {
         $fromDate = $request->filled('from_date') ? $request->from_date : null;
         $toDate   = $request->filled('to_date')   ? $request->to_date   : null;
 
-        // 1. Property Sales & Bookings Income
-        $payQuery = Payment::query();
-        $this->applyFirmScope($payQuery, $request);
-        $salesPaymentIncome = $payQuery
-            ->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
-            ->when($toDate,   fn($q) => $q->whereDate('payment_date', '<=', $toDate))
-            ->sum('payment_amount');
+        // ── 1. OPERATING REVENUE (TURNOVER) ──
+        $salesQuery = PropertySale::with(['properties.propertyMaster', 'property.propertyMaster'])
+            ->where('sale_status', '!=', 'cancelled');
+        $this->applyFirmScope($salesQuery, $request);
+        $salesList = $salesQuery
+            ->when($fromDate, fn($q) => $q->whereDate('sale_date', '>=', $fromDate))
+            ->when($toDate,   fn($q) => $q->whereDate('sale_date', '<=', $toDate))
+            ->get();
 
-        $bkQuery = Booking::query();
-        $this->applyFirmScope($bkQuery, $request);
-        $bookingIncome = $bkQuery
-            ->when($fromDate, fn($q) => $q->whereDate('booking_date', '>=', $fromDate))
-            ->when($toDate,   fn($q) => $q->whereDate('booking_date', '<=', $toDate))
-            ->sum('booking_amount');
+        $propertySalesRevenue = (float)$salesList->sum('sale_amount');
 
-        $salesIncome = max($salesPaymentIncome, $bookingIncome);
-
-        // 2. Rental Income
         $rentPayQuery = RentalPayment::query();
         $this->applyFirmScope($rentPayQuery, $request, 'firm_id', 'rental');
-        $rentalIncome = $rentPayQuery
+        $rentalRevenue = (float)$rentPayQuery
             ->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('payment_date', '<=', $toDate))
             ->sum('paid_amount');
 
-        $totalIncome = $salesIncome + $rentalIncome;
+        $incQuery = \App\Models\Income::query();
+        $this->applyFirmScope($incQuery, $request);
+        $otherIncome = (float)$incQuery
+            ->when($fromDate, fn($q) => $q->whereDate('income_date', '>=', $fromDate))
+            ->when($toDate,   fn($q) => $q->whereDate('income_date', '<=', $toDate))
+            ->sum('amount');
 
-        // 3. Operating Expenses
+        $totalRevenue = $propertySalesRevenue + $rentalRevenue + $otherIncome;
+
+        // ── 2. COST OF SALES / DIRECT COSTS (COGS) ──
+        $propertyPurchaseCost = (float)$salesList->sum(fn($s) => $s->total_purchase_cost);
+
+        $matInwardQuery = StockInward::query();
+        $this->applyFirmScope($matInwardQuery, $request);
+        $materialPurchaseCost = (float)$matInwardQuery
+            ->when($fromDate, fn($q) => $q->whereDate('inward_date', '>=', $fromDate))
+            ->when($toDate,   fn($q) => $q->whereDate('inward_date', '<=', $toDate))
+            ->sum('total_amount');
+
+        $totalCostOfSales = $propertyPurchaseCost + $materialPurchaseCost;
+
+        // ── 3. GROSS PROFIT ──
+        $grossProfit = $totalRevenue - $totalCostOfSales;
+        $grossProfitMargin = $totalRevenue > 0 ? round(($grossProfit / $totalRevenue) * 100, 2) : 0.0;
+
+        // ── 4. OPERATING & INDIRECT EXPENSES ──
+        $brokerCommissions = (float)$salesList->sum('broker_commission_amount');
+
         $expQuery = Expense::query();
         $this->applyFirmScope($expQuery, $request);
-        $operatingExpense = $expQuery
+        $operatingExpenses = (float)$expQuery
             ->when($fromDate, fn($q) => $q->whereDate('expense_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('expense_date', '<=', $toDate))
             ->sum('amount');
 
-        // 4. Loan EMI Payments
         $loanQuery = LoanEmiSchedule::whereIn('emi_status', ['Paid', 'Partial']);
         $this->applyFirmScope($loanQuery, $request, 'firm_id', 'loan');
-        $loanEmiPaid = $loanQuery
+        $loanEmiPaid = (float)$loanQuery
             ->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('payment_date', '<=', $toDate))
             ->sum('paid_amount');
 
-        $totalExpense  = $operatingExpense + $loanEmiPaid;
-        $netProfitLoss = $totalIncome - $totalExpense;
+        $totalOperatingExpenses = $brokerCommissions + $operatingExpenses + $loanEmiPaid;
 
-        $rows = collect([
-            ['particular' => 'Property Sales & Bookings Receipts', 'type' => 'income',  'amount' => $salesIncome],
-            ['particular' => 'Rental Income Received',              'type' => 'income',  'amount' => $rentalIncome],
-            ['particular' => 'Operating Expenses',                  'type' => 'expense', 'amount' => $operatingExpense],
-            ['particular' => 'Loan EMI Payments',                   'type' => 'expense', 'amount' => $loanEmiPaid],
-        ]);
+        // ── 5. NET PROFIT / (LOSS) ──
+        $netProfitLoss = $grossProfit - $totalOperatingExpenses;
+        $netProfitMargin = $totalRevenue > 0 ? round(($netProfitLoss / $totalRevenue) * 100, 2) : 0.0;
 
-        $expCatQuery = Expense::query();
-        $this->applyFirmScope($expCatQuery, $request);
-        $expenseByCategory = $expCatQuery
+        $expenseByCategory = $expQuery
             ->when($fromDate, fn($q) => $q->whereDate('expense_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('expense_date', '<=', $toDate))
-            ->selectRaw('COALESCE(expense_category, "Uncategorised") as category, SUM(amount) as total')
+            ->selectRaw('COALESCE(expense_category, "General Expenses") as category, SUM(amount) as total')
             ->groupBy('category')
             ->orderByDesc('total')
             ->get();
 
+        return compact(
+            'propertySalesRevenue', 'rentalRevenue', 'otherIncome', 'totalRevenue',
+            'propertyPurchaseCost', 'materialPurchaseCost', 'totalCostOfSales',
+            'grossProfit', 'grossProfitMargin',
+            'brokerCommissions', 'operatingExpenses', 'loanEmiPaid', 'totalOperatingExpenses',
+            'netProfitLoss', 'netProfitMargin', 'expenseByCategory'
+        );
+    }
+
+    public function profitLoss(Request $request)
+    {
+        $pl = $this->getProfitLossData($request);
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.reports.profit-loss', compact(
-            'salesIncome', 'rentalIncome', 'totalIncome',
-            'operatingExpense', 'loanEmiPaid', 'totalExpense',
-            'netProfitLoss', 'rows', 'expenseByCategory', 'firms'
-        ));
+        return view('admin.reports.profit-loss', array_merge($pl, compact('firms')));
     }
 
     public function profitLossExportPdf(Request $request)
     {
-        $fromDate = $request->filled('from_date') ? $request->from_date : null;
-        $toDate   = $request->filled('to_date')   ? $request->to_date   : null;
-
-        $payQuery = Payment::query();
-        $this->applyFirmScope($payQuery, $request);
-        $salesPaymentIncome = $payQuery->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('payment_date', '<=', $toDate))->sum('payment_amount');
-
-        $bkQuery = Booking::query();
-        $this->applyFirmScope($bkQuery, $request);
-        $bookingIncome = $bkQuery->when($fromDate, fn($q) => $q->whereDate('booking_date', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('booking_date', '<=', $toDate))->sum('booking_amount');
-
-        $salesIncome = max($salesPaymentIncome, $bookingIncome);
-
-        $rentPayQuery = RentalPayment::query();
-        $this->applyFirmScope($rentPayQuery, $request, 'firm_id', 'rental');
-        $rentalIncome = $rentPayQuery->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('payment_date', '<=', $toDate))->sum('paid_amount');
-
-        $totalIncome = $salesIncome + $rentalIncome;
-
-        $expQuery = Expense::query();
-        $this->applyFirmScope($expQuery, $request);
-        $operatingExpense = $expQuery->when($fromDate, fn($q) => $q->whereDate('expense_date', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('expense_date', '<=', $toDate))->sum('amount');
-
-        $loanQuery = LoanEmiSchedule::whereIn('emi_status', ['Paid', 'Partial']);
-        $this->applyFirmScope($loanQuery, $request, 'firm_id', 'loan');
-        $loanEmiPaid = $loanQuery->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('payment_date', '<=', $toDate))->sum('paid_amount');
-
-        $totalExpense  = $operatingExpense + $loanEmiPaid;
-        $netProfitLoss = $totalIncome - $totalExpense;
-
-        $expCatQuery = Expense::query();
-        $this->applyFirmScope($expCatQuery, $request);
-        $expenseByCategory = $expCatQuery->when($fromDate, fn($q) => $q->whereDate('expense_date', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('expense_date', '<=', $toDate))
-            ->selectRaw('COALESCE(expense_category, "Uncategorised") as category, SUM(amount) as total')
-            ->groupBy('category')->orderByDesc('total')->get();
-
-        return view('admin.reports.profit-loss-pdf', compact(
-            'salesIncome', 'rentalIncome', 'totalIncome',
-            'operatingExpense', 'loanEmiPaid', 'totalExpense',
-            'netProfitLoss', 'expenseByCategory'
-        ));
+        $pl = $this->getProfitLossData($request);
+        return view('admin.reports.profit-loss-pdf', $pl);
     }
 
     public function profitLossExportExcel(Request $request)
     {
-        $fromDate = $request->filled('from_date') ? $request->from_date : null;
-        $toDate   = $request->filled('to_date')   ? $request->to_date   : null;
+        $pl = $this->getProfitLossData($request);
 
-        $payQuery = Payment::query();
-        $this->applyFirmScope($payQuery, $request);
-        $salesPaymentIncome = $payQuery->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('payment_date', '<=', $toDate))->sum('payment_amount');
-
-        $bkQuery = Booking::query();
-        $this->applyFirmScope($bkQuery, $request);
-        $bookingIncome = $bkQuery->when($fromDate, fn($q) => $q->whereDate('booking_date', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('booking_date', '<=', $toDate))->sum('booking_amount');
-
-        $salesIncome = max($salesPaymentIncome, $bookingIncome);
-
-        $rentPayQuery = RentalPayment::query();
-        $this->applyFirmScope($rentPayQuery, $request, 'firm_id', 'rental');
-        $rentalIncome = $rentPayQuery->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('payment_date', '<=', $toDate))->sum('paid_amount');
-
-        $totalIncome = $salesIncome + $rentalIncome;
-
-        $expQuery = Expense::query();
-        $this->applyFirmScope($expQuery, $request);
-        $operatingExpense = $expQuery->when($fromDate, fn($q) => $q->whereDate('expense_date', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('expense_date', '<=', $toDate))->sum('amount');
-
-        $loanQuery = LoanEmiSchedule::whereIn('emi_status', ['Paid', 'Partial']);
-        $this->applyFirmScope($loanQuery, $request, 'firm_id', 'loan');
-        $loanEmiPaid = $loanQuery->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('payment_date', '<=', $toDate))->sum('paid_amount');
-
-        $totalExpense  = $operatingExpense + $loanEmiPaid;
-        $net           = $totalIncome - $totalExpense;
-
-        $filename = 'profit-loss-' . date('Y-m-d') . '.csv';
+        $filename = 'profit-loss-statement-' . date('Y-m-d') . '.csv';
         $headers  = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
-        $callback = function () use ($salesIncome, $rentalIncome, $totalIncome,
-                                     $operatingExpense, $loanEmiPaid, $totalExpense, $net) {
+
+        $callback = function () use ($pl, $request) {
             $h = fopen('php://output', 'w');
             fprintf($h, chr(0xEF) . chr(0xBB) . chr(0xBF));
-            fputcsv($h, ['Particular', 'Type', 'Amount (₹)']);
-            fputcsv($h, ['Property Sales & Bookings Receipts', 'Income',  number_format($salesIncome, 2)]);
-            fputcsv($h, ['Rental Income Received',             'Income',  number_format($rentalIncome, 2)]);
-            fputcsv($h, ['Total Income',                       'TOTAL',   number_format($totalIncome, 2)]);
-            fputcsv($h, ['']);
-            fputcsv($h, ['Operating Expenses',                 'Expense', number_format($operatingExpense, 2)]);
-            fputcsv($h, ['Loan EMI Payments',                  'Expense', number_format($loanEmiPaid, 2)]);
-            fputcsv($h, ['Total Expenses',                      'TOTAL',   number_format($totalExpense, 2)]);
-            fputcsv($h, ['']);
-            fputcsv($h, ['Net ' . ($net >= 0 ? 'Profit' : 'Loss'), 'NET', number_format(abs($net), 2)]);
+
+            fputcsv($h, ['DELAWALA PROPERTIES - PROFIT & LOSS STATEMENT (ACCOUNTING METHOD)']);
+            fputcsv($h, ['Generated on', date('d M Y, h:i A')]);
+            if ($request->filled('from_date') || $request->filled('to_date')) {
+                $fromDisplay = $request->filled('from_date') ? \Carbon\Carbon::parse($request->from_date)->format('d M Y') : 'All time';
+                $toDisplay   = $request->filled('to_date') ? \Carbon\Carbon::parse($request->to_date)->format('d M Y') : 'Now';
+                fputcsv($h, ['Period', $fromDisplay . ' to ' . $toDisplay]);
+            }
+            fputcsv($h, []);
+
+            fputcsv($h, ['PART I: OPERATING REVENUE (INCOME)', 'TYPE', 'AMOUNT (₹)']);
+            fputcsv($h, ['  Property Sales Revenue', 'Revenue', number_format($pl['propertySalesRevenue'], 2)]);
+            fputcsv($h, ['  Rental Income Received', 'Revenue', number_format($pl['rentalRevenue'], 2)]);
+            fputcsv($h, ['  Other Business Incomes', 'Revenue', number_format($pl['otherIncome'], 2)]);
+            fputcsv($h, ['TOTAL REVENUE (A)', 'TOTAL', number_format($pl['totalRevenue'], 2)]);
+            fputcsv($h, []);
+
+            fputcsv($h, ['PART II: COST OF SALES / DIRECT COSTS (COGS)', 'TYPE', 'AMOUNT (₹)']);
+            fputcsv($h, ['  Property Acquisition Cost (Lidhi Price of Sold Units)', 'Direct Cost', number_format($pl['propertyPurchaseCost'], 2)]);
+            fputcsv($h, ['  Material Stock Purchases & Construction Direct Costs', 'Direct Cost', number_format($pl['materialPurchaseCost'], 2)]);
+            fputcsv($h, ['TOTAL COST OF SALES (B)', 'TOTAL', number_format($pl['totalCostOfSales'], 2)]);
+            fputcsv($h, []);
+
+            fputcsv($h, ['GROSS PROFIT / (LOSS) (A - B)', 'GROSS MARGIN ' . $pl['grossProfitMargin'] . '%', number_format($pl['grossProfit'], 2)]);
+            fputcsv($h, []);
+
+            fputcsv($h, ['PART III: OPERATING & INDIRECT EXPENSES', 'TYPE', 'AMOUNT (₹)']);
+            fputcsv($h, ['  Broker Commissions / Selling Incentive', 'Selling Expense', number_format($pl['brokerCommissions'], 2)]);
+            fputcsv($h, ['  Operating & Administrative Expenses', 'Admin Expense', number_format($pl['operatingExpenses'], 2)]);
+            fputcsv($h, ['  Finance Charges & Loan EMI Outflows', 'Finance Expense', number_format($pl['loanEmiPaid'], 2)]);
+            fputcsv($h, ['TOTAL OPERATING EXPENSES (C)', 'TOTAL', number_format($pl['totalOperatingExpenses'], 2)]);
+            fputcsv($h, []);
+
+            fputcsv($h, ['NET PROFIT / (LOSS) BEFORE TAX', 'NET MARGIN ' . $pl['netProfitMargin'] . '%', number_format($pl['netProfitLoss'], 2)]);
             fclose($h);
         };
+
         return response()->stream($callback, 200, $headers);
     }
 
     // ---------------------------------------------------------------
-    // Balance Sheet
+    // Balance Sheet (Standard Double-Entry Method)
     // ---------------------------------------------------------------
     public function balanceSheet(Request $request)
     {
         $asOnDate = $request->filled('as_on_date') ? $request->as_on_date : null;
 
+        // ── 1. ASSETS (CURRENT & NON-CURRENT) ──
+        // Liquid Cash & Bank from all payments
         $payQuery = Payment::query();
         $this->applyFirmScope($payQuery, $request);
         $cashFromPayments = $payQuery->when($asOnDate, fn($q) => $q->whereDate('payment_date', '<=', $asOnDate))->sum('payment_amount');
@@ -693,6 +661,13 @@ class ReportsController extends Controller
         $this->applyFirmScope($rentPayQuery, $request, 'firm_id', 'rental');
         $rentalCashReceived = $rentPayQuery->when($asOnDate, fn($q) => $q->whereDate('payment_date', '<=', $asOnDate))->sum('paid_amount');
 
+        $incQuery = \App\Models\Income::query();
+        $this->applyFirmScope($incQuery, $request);
+        $otherIncomeReceived = $incQuery->when($asOnDate, fn($q) => $q->whereDate('income_date', '<=', $asOnDate))->sum('amount');
+
+        $totalCashAndBank = $cashReceived + $rentalCashReceived + $otherIncomeReceived;
+
+        // Accounts Receivable (Debtors: Sales Remaining + Booking Remaining + Rent Overdue)
         $saleRecQuery = PropertySale::query();
         $this->applyFirmScope($saleRecQuery, $request);
         $receivablesFromSales = $saleRecQuery->when($asOnDate, fn($q) => $q->whereDate('sale_date', '<=', $asOnDate))
@@ -705,16 +680,24 @@ class ReportsController extends Controller
 
         $receivables = max($receivablesFromSales, $receivablesFromBookings);
 
+        // Inventory Stock: Available properties valuation
         $propQuery = Property::whereIn('status', ['available', 'booked']);
         $this->applyFirmScope($propQuery, $request);
         $propertyValue = $propQuery->sum('price');
 
+        // Material inventory valuation
+        $matQuery = StockInward::query();
+        $this->applyFirmScope($matQuery, $request);
+        $materialStockValue = $matQuery->when($asOnDate, fn($q) => $q->whereDate('inward_date', '<=', $asOnDate))->sum('total_amount');
+
+        // Security Deposits
         $rentQuery = Rental::where('rental_status', 'active');
         $this->applyFirmScope($rentQuery, $request);
         $securityDeposits = $rentQuery->when($asOnDate, fn($q) => $q->whereDate('rent_start_date', '<=', $asOnDate))->sum('security_deposit');
 
-        $totalAssets = $cashReceived + $rentalCashReceived + $receivables + $propertyValue + $securityDeposits;
+        $totalAssets = $totalCashAndBank + $receivables + $propertyValue + $materialStockValue + $securityDeposits;
 
+        // ── 2. LIABILITIES ──
         $loanQuery = Loan::query();
         $this->applyFirmScope($loanQuery, $request);
         $loanOutstanding = $loanQuery->when($asOnDate, fn($q) => $q->whereDate('loan_start_date', '<=', $asOnDate))->sum('pending_amount');
@@ -730,13 +713,15 @@ class ReportsController extends Controller
         $creditNotePayable = $cnQuery->when($asOnDate, fn($q) => $q->whereDate('credit_note_date', '<=', $asOnDate))->sum('credit_amount');
 
         $totalLiabilities = $loanOutstanding + $unpaidExpenses + $creditNotePayable;
+
+        // ── 3. EQUITY & NET CAPITAL ──
         $netWorth = $totalAssets - $totalLiabilities;
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
         return view('admin.reports.balance-sheet', compact(
-            'cashReceived', 'rentalCashReceived', 'receivables',
-            'propertyValue', 'securityDeposits', 'totalAssets',
+            'cashReceived', 'rentalCashReceived', 'totalCashAndBank', 'receivables',
+            'propertyValue', 'materialStockValue', 'securityDeposits', 'totalAssets',
             'loanOutstanding', 'unpaidExpenses', 'creditNotePayable',
             'loanTotal', 'loanPaid', 'totalLiabilities',
             'netWorth', 'firms'
@@ -1045,11 +1030,17 @@ class ReportsController extends Controller
     }
 
     // ---------------------------------------------------------------
-    // Sales Report
+    // Sales Report (Accounting Method)
     // ---------------------------------------------------------------
     private function getSalesData(Request $request)
     {
-        $query = PropertySale::with(['property', 'customer', 'broker', 'firm']);
+        $query = PropertySale::with([
+            'property.propertyMaster',
+            'properties.propertyMaster',
+            'customer',
+            'broker',
+            'firm'
+        ]);
         $this->applyFirmScope($query, $request);
 
         if ($request->filled('from_date'))       $query->whereDate('sale_date', '>=', $request->from_date);
@@ -1081,10 +1072,14 @@ class ReportsController extends Controller
     {
         $records = $this->getSalesData($request);
 
-        $totalSale     = $records->sum('sale_amount');
-        $totalReceived = $records->sum('received_amount');
-        $totalPending  = $records->sum('remaining_amount');
-        $totalBookings = $records->count();
+        $totalSale         = (float)$records->sum('sale_amount');
+        $totalPurchaseCost = (float)$records->sum(fn($s) => (float)$s->total_purchase_cost);
+        $totalCommission   = (float)$records->sum('broker_commission_amount');
+        $totalNetProfit    = (float)$records->sum(fn($s) => (float)$s->net_profit);
+        $profitMargin      = $totalSale > 0 ? round(($totalNetProfit / $totalSale) * 100, 2) : 0.0;
+        $totalReceived     = (float)$records->sum('received_amount');
+        $totalPending      = (float)$records->sum('remaining_amount');
+        $totalBookings     = $records->count();
 
         $propQuery = Property::orderBy('property_name');
         $custQuery = Customer::orderBy('name');
@@ -1096,21 +1091,27 @@ class ReportsController extends Controller
         $firms      = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
         return view('admin.reports.sales', compact(
-            'records', 'totalSale', 'totalReceived', 'totalPending',
+            'records', 'totalSale', 'totalPurchaseCost', 'totalCommission', 'totalNetProfit',
+            'profitMargin', 'totalReceived', 'totalPending',
             'totalBookings', 'properties', 'customers', 'firms'
         ));
     }
 
     public function salesExportPdf(Request $request)
     {
-        $records       = $this->getSalesData($request);
-        $totalSale     = $records->sum('sale_amount');
-        $totalReceived = $records->sum('received_amount');
-        $totalPending  = $records->sum('remaining_amount');
-        $totalBookings = $records->count();
+        $records           = $this->getSalesData($request);
+        $totalSale         = (float)$records->sum('sale_amount');
+        $totalPurchaseCost = (float)$records->sum(fn($s) => (float)$s->total_purchase_cost);
+        $totalCommission   = (float)$records->sum('broker_commission_amount');
+        $totalNetProfit    = (float)$records->sum(fn($s) => (float)$s->net_profit);
+        $profitMargin      = $totalSale > 0 ? round(($totalNetProfit / $totalSale) * 100, 2) : 0.0;
+        $totalReceived     = (float)$records->sum('received_amount');
+        $totalPending      = (float)$records->sum('remaining_amount');
+        $totalBookings     = $records->count();
 
         return view('admin.reports.sales-pdf', compact(
-            'records', 'totalSale', 'totalReceived', 'totalPending', 'totalBookings'
+            'records', 'totalSale', 'totalPurchaseCost', 'totalCommission', 'totalNetProfit',
+            'profitMargin', 'totalReceived', 'totalPending', 'totalBookings'
         ));
     }
 
@@ -1118,20 +1119,24 @@ class ReportsController extends Controller
     {
         $records = $this->getSalesData($request);
 
-        $totalSale     = $records->sum('sale_amount');
-        $totalReceived = $records->sum('received_amount');
-        $totalPending  = $records->sum('remaining_amount');
+        $totalSale         = (float)$records->sum('sale_amount');
+        $totalPurchaseCost = (float)$records->sum(fn($s) => (float)$s->total_purchase_cost);
+        $totalCommission   = (float)$records->sum('broker_commission_amount');
+        $totalNetProfit    = (float)$records->sum(fn($s) => (float)$s->net_profit);
+        $profitMargin      = $totalSale > 0 ? round(($totalNetProfit / $totalSale) * 100, 2) : 0.0;
+        $totalReceived     = (float)$records->sum('received_amount');
+        $totalPending      = (float)$records->sum('remaining_amount');
 
-        $filename = 'sales-report-' . date('Y-m-d') . '.csv';
+        $filename = 'sales-accounting-report-' . date('Y-m-d') . '.csv';
         $headers  = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
-        $callback = function () use ($records, $request, $totalSale, $totalReceived, $totalPending) {
+        $callback = function () use ($records, $request, $totalSale, $totalPurchaseCost, $totalCommission, $totalNetProfit, $profitMargin, $totalReceived, $totalPending) {
             $h = fopen('php://output', 'w');
             fprintf($h, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            fputcsv($h, ['Delawala Properties & Management - Sales Report']);
+            fputcsv($h, ['Delawala Properties & Management - Sales Accounting Report']);
             fputcsv($h, ['Generated on', date('d M Y, h:i A')]);
             if ($request->filled('from_date') || $request->filled('to_date')) {
                 $fromDisplay = $request->filled('from_date') ? \Carbon\Carbon::parse($request->from_date)->format('d M Y') : 'All time';
@@ -1140,17 +1145,22 @@ class ReportsController extends Controller
             }
             fputcsv($h, []);
 
-            fputcsv($h, ['SUMMARY']);
-            fputcsv($h, ['Total Records', $records->count()]);
-            fputcsv($h, ['Total Sale Value', number_format($totalSale, 2)]);
+            fputcsv($h, ['ACCOUNTING SUMMARY']);
+            fputcsv($h, ['Total Bookings / Units Sold', $records->count()]);
+            fputcsv($h, ['Total Sale Value (Turnover)', number_format($totalSale, 2)]);
+            fputcsv($h, ['Total Purchase Cost (Lidhi Price)', number_format($totalPurchaseCost, 2)]);
+            fputcsv($h, ['Total Broker Commission', number_format($totalCommission, 2)]);
+            fputcsv($h, ['Realized Net Profit', number_format($totalNetProfit, 2)]);
+            fputcsv($h, ['Net Profit Margin %', $profitMargin . '%']);
             fputcsv($h, ['Total Received', number_format($totalReceived, 2)]);
             fputcsv($h, ['Total Pending', number_format($totalPending, 2)]);
             fputcsv($h, []);
 
             fputcsv($h, [
-                'Sr', 'Sale Date', 'Invoice No', 'Customer', 'Property',
-                'Broker', 'Sale Amount', 'Booking Amount',
-                'Received Amount', 'Remaining Amount',
+                'Sr', 'Sale Date', 'Invoice No', 'Customer', 'Property / Unit',
+                'Broker', 'Sale Value (₹)', 'Purchase Cost (Lidhi Price ₹)',
+                'Commission (₹)', 'Net Profit (₹)', 'Profit Margin %',
+                'Received Amount (₹)', 'Remaining Amount (₹)',
                 'Payment Status', 'Sale Status',
             ]);
 
@@ -1160,10 +1170,13 @@ class ReportsController extends Controller
                     $s->sale_date ? \Carbon\Carbon::parse($s->sale_date)->format('d M Y') : '-',
                     $s->invoice_no ?? '-',
                     $s->customer?->name ?? '-',
-                    $s->property?->property_name ?? '-',
+                    $s->property?->property_name ?? ($s->properties->pluck('property_name')->implode(', ') ?: '-'),
                     $s->broker?->name ?? '-',
                     number_format($s->sale_amount ?? 0, 2),
-                    number_format($s->booking_amount ?? 0, 2),
+                    number_format($s->total_purchase_cost ?? 0, 2),
+                    number_format($s->broker_commission_amount ?? 0, 2),
+                    number_format($s->net_profit ?? 0, 2),
+                    $s->profit_margin_percentage . '%',
                     number_format($s->received_amount ?? 0, 2),
                     number_format($s->remaining_amount ?? 0, 2),
                     ucfirst($s->payment_status ?? 'pending'),

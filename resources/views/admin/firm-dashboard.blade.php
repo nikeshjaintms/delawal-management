@@ -79,15 +79,15 @@
     .kpi-section-divider { flex: 1; height: 1px; background: rgba(255, 255, 255, 0.12) !important; }
 
     /* --- KPI Grid --- */
-    .kpi-grid {
+    .kpi-grid-4, .kpi-grid {
         display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px;
     }
     .kpi-grid-2 {
         display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px;
     }
-    @media(max-width:1440px) { .kpi-grid, .kpi-grid-2 { grid-template-columns: repeat(4, 1fr); } }
-    @media(max-width:1280px) { .kpi-grid, .kpi-grid-2 { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
-    @media(max-width:580px)  { .kpi-grid, .kpi-grid-2 { grid-template-columns: 1fr; } }
+    @media(max-width:1440px) { .kpi-grid-4, .kpi-grid, .kpi-grid-2 { grid-template-columns: repeat(4, 1fr); } }
+    @media(max-width:1280px) { .kpi-grid-4, .kpi-grid, .kpi-grid-2 { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
+    @media(max-width:580px)  { .kpi-grid-4, .kpi-grid, .kpi-grid-2 { grid-template-columns: 1fr; } }
 
     /* --- KPI Cards --- */
     .kpi-card {
@@ -213,6 +213,21 @@
     .task-content p  { font-size: 12px; color: #94A3B8; line-height: 1.5; }
     .amt-strong { font-weight: 800; color: #FFFFFF; font-size: 14px; }
     .amt-green  { color: #34D399; }
+
+    /* Summary table rows */
+    .summary-row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 9px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        text-decoration: none !important;
+        transition: transform 0.15s ease;
+    }
+    .summary-row:hover { transform: translateX(2px); }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label { font-size: 12.5px; color: #CBD5E1; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .summary-val { font-size: 13.5px; font-weight: 800; color: #FFFFFF; }
+    .summary-val.g { color: #34D399 !important; }
+    .summary-val.r { color: #F87171 !important; }
+    .summary-val.o { color: #FB923C !important; }
     </style>
 
     <div class="dash-welcome">
@@ -324,6 +339,52 @@
                 <span class="kpi-badge bk-amber">{{ $soldPct }}% sold</span>
             </div>
             <div class="kpi-deco deco-amber"></div>
+        </a>
+    </div>
+
+    <!-- Property Sales & Profit Performance -->
+    <div class="kpi-section-header" style="margin-top:10px;">
+        <div style="width:6px;height:18px;background:linear-gradient(180deg,#10B981,#3B82F6);border-radius:4px;flex-shrink:0;"></div>
+        <h3>Property Sales &amp; Profit Analysis (Lidhi Price - Sell Price = Profit)</h3>
+        <div class="kpi-section-divider"></div>
+    </div>
+
+    <div class="kpi-grid-4" style="margin-bottom: 24px;">
+        <a href="{{ route('property-sales.index') }}" class="kpi-card">
+            <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-handshake"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Total Sales (Sell Value)</span>
+                <span class="kpi-value" style="color:#60A5FA;" title="₹{{ number_format($totalSalesRevenue, 2) }}">₹{{ number_format($totalSalesRevenue, 2) }}</span>
+                <span class="kpi-badge bk-blue">{{ $totalSoldUnitsCount ?? 0 }} Units / Plots Sold</span>
+            </div>
+            <div class="kpi-deco deco-blue"></div>
+        </a>
+        <a href="{{ route('property-sales.index') }}" class="kpi-card">
+            <div class="kpi-icon-box ik-amber"><i class="fa-solid fa-cart-shopping"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Purchase Cost (Lidhi Price)</span>
+                <span class="kpi-value" style="color:#FBBF24;" title="₹{{ number_format($totalSalesPurchaseCost, 2) }}">₹{{ number_format($totalSalesPurchaseCost, 2) }}</span>
+                <span class="kpi-badge bk-amber">Acquisition Cost</span>
+            </div>
+            <div class="kpi-deco deco-amber"></div>
+        </a>
+        <a href="{{ route('property-sales.index') }}" class="kpi-card">
+            <div class="kpi-icon-box {{ $totalSalesProfit >= 0 ? 'ik-green' : 'ik-red' }}"><i class="fa-solid fa-{{ $totalSalesProfit >= 0 ? 'arrow-trend-up' : 'arrow-trend-down' }}"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Total Realized Profit</span>
+                <span class="kpi-value" style="color:{{ $totalSalesProfit >= 0 ? '#10B981' : '#EF4444' }};" title="₹{{ number_format($totalSalesProfit, 2) }}">₹{{ number_format($totalSalesProfit, 2) }}</span>
+                <span class="kpi-badge {{ $totalSalesProfit >= 0 ? 'bk-green' : 'bk-red' }}">{{ $totalSalesProfit >= 0 ? 'Net Profit' : 'Net Loss' }}</span>
+            </div>
+            <div class="kpi-deco {{ $totalSalesProfit >= 0 ? 'deco-green' : 'deco-red' }}"></div>
+        </a>
+        <a href="{{ route('property-sales.index') }}" class="kpi-card">
+            <div class="kpi-icon-box ik-purple"><i class="fa-solid fa-percent"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Sales Profit Margin</span>
+                <span class="kpi-value" style="color:{{ $salesProfitMargin >= 0 ? '#A78BFA' : '#EF4444' }};" title="{{ $salesProfitMargin }}%">{{ $salesProfitMargin }}%</span>
+                <span class="kpi-badge bk-purple">Margin on Sales</span>
+            </div>
+            <div class="kpi-deco deco-purple"></div>
         </a>
     </div>
 
@@ -507,6 +568,35 @@
                         <div class="progress-bg">
                             <div class="progress-fill" style="width:{{ $rentedPct }}%; background: #0EA5E9;"></div>
                         </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sales Profit Breakdown -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-title-icon" style="background:rgba(16,185,129,0.15);"><i class="fa-solid fa-chart-pie" style="color:#10B981;"></i></div>
+                        Sales Profit Analysis
+                    </div>
+                    <a href="{{ route('property-sales.index') }}" class="btn-view-all">View All <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+                <div>
+                    <a href="{{ route('property-sales.index') }}" class="summary-row">
+                        <span class="summary-label"><i class="fa-solid fa-handshake" style="color:#60A5FA;"></i> Selling Value</span>
+                        <span class="summary-val" style="color:#60A5FA;">₹{{ number_format($totalSalesRevenue, 0) }}</span>
+                    </a>
+                    <a href="{{ route('property-sales.index') }}" class="summary-row">
+                        <span class="summary-label"><i class="fa-solid fa-cart-shopping" style="color:#FBBF24;"></i> Purchase Cost</span>
+                        <span class="summary-val" style="color:#FBBF24;">₹{{ number_format($totalSalesPurchaseCost, 0) }}</span>
+                    </a>
+                    <a href="{{ route('property-sales.index') }}" class="summary-row">
+                        <span class="summary-label"><i class="fa-solid fa-arrow-trend-up" style="color:{{ $totalSalesProfit >= 0 ? '#34D399' : '#F87171' }};"></i> Net Realized Profit</span>
+                        <span class="summary-val {{ $totalSalesProfit >= 0 ? 'g' : 'r' }}">₹{{ number_format($totalSalesProfit, 0) }}</span>
+                    </a>
+                    <a href="{{ route('property-sales.index') }}" class="summary-row">
+                        <span class="summary-label"><i class="fa-solid fa-percent" style="color:#A78BFA;"></i> Profit Margin</span>
+                        <span class="summary-val" style="color:#A78BFA;">{{ $salesProfitMargin }}%</span>
                     </a>
                 </div>
             </div>

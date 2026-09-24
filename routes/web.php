@@ -15,6 +15,7 @@ use App\Http\Controllers\FinancialYearController;
 use App\Http\Controllers\FirmController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormSubmissionController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoiceSettingController;
 use App\Http\Controllers\LedgerController;
 use App\Http\Controllers\LoanController;
@@ -193,7 +194,14 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('stock-report/export-pdf', [StockReportController::class, 'exportPdf'])->name('stock-report.pdf')->middleware(['permission:inventory_export']);
     Route::get('stock-report/export-excel', [StockReportController::class, 'exportExcel'])->name('stock-report.excel')->middleware(['permission:inventory_export']);
 
-    // ── Finance ──────────────────────────────────────────────────────
+    // ── Finance & Invoices ───────────────────────────────────────────
+    Route::get('invoices/ajax-data', [InvoiceController::class, 'ajaxData'])->name('invoices.ajax-data');
+    Route::get('invoices/export-pdf', [InvoiceController::class, 'exportPdf'])->name('invoices.pdf');
+    Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
+    Route::post('invoices/{invoice}/payments', [InvoiceController::class, 'recordPayment'])->name('invoices.payments.store');
+    Route::delete('invoices/{invoice}/payments/{payment}', [InvoiceController::class, 'destroyPayment'])->name('invoices.payments.destroy');
+    Route::resource('invoices', InvoiceController::class);
+
     Route::resource('incomes', \App\Http\Controllers\IncomeController::class)->middleware(['permission:income_view']);
     Route::resource('receipts', \App\Http\Controllers\ReceiptController::class)->middleware(['permission:receipt_view']);
 

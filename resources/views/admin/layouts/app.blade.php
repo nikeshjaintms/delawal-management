@@ -2523,11 +2523,16 @@
 
         {{-- 6. Finance & Accounts --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'incomes.') || str_starts_with($currentRoute ?? '', 'receipts.') || str_starts_with($currentRoute ?? '', 'loans.') || str_starts_with($currentRoute ?? '', 'emi-schedules.') || request()->is('expenses/general*')) ? 'parent-active' : '' }}" data-label="6. Finance & Accounts">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'invoices.') || str_starts_with($currentRoute ?? '', 'incomes.') || str_starts_with($currentRoute ?? '', 'receipts.') || str_starts_with($currentRoute ?? '', 'loans.') || str_starts_with($currentRoute ?? '', 'emi-schedules.') || request()->is('expenses/general*')) ? 'parent-active' : '' }}" data-label="6. Finance & Accounts">
                 <i class="fa-solid fa-calculator"></i><span>6. Finance & Accounts</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
             <ul class="submenu-list">
+                <li class="submenu-item">
+                    <a href="{{ route('invoices.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'invoices.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-file-invoice-dollar" style="color: #60A5FA;"></i><span>Invoices &amp; Billing</span>
+                    </a>
+                </li>
                 @if($authUser->hasPermission('income_view'))
                 <li class="submenu-item">
                     <a href="{{ route('incomes.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'incomes.') ? 'active' : '' }}">

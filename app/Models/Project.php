@@ -121,6 +121,11 @@ class Project extends Model
         return $this->hasMany(PurchaseOrder::class, 'project_id');
     }
 
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class, 'project_id')->latest();
+    }
+
     public function getTotalExpensesAttribute(): float
     {
         return (float) ($this->expenses()->sum('amount') ?? 0);

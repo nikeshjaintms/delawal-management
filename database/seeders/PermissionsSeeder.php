@@ -47,6 +47,7 @@ class PermissionsSeeder extends Seeder
             'user_management' => 'User Management',
             'role_permission' => 'Role & Permission',
             'form_management' => 'Form Management',
+            'invoice' => 'Invoices',
         ];
 
         $actions = ['view', 'add', 'edit', 'delete', 'print', 'export'];

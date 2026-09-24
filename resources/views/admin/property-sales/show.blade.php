@@ -205,6 +205,15 @@
                         ₹{{ number_format($propertySale->sale_amount, 2) }}
                     </span>
                 @endif
+                @if($propertySale->net_profit > 0)
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.20) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.45) !important;">
+                        <i class="fa-solid fa-arrow-trend-up"></i> +₹{{ number_format($propertySale->net_profit, 2) }} Profit ({{ $propertySale->profit_margin_percentage }}%)
+                    </span>
+                @elseif($propertySale->net_profit < 0)
+                    <span class="badge" style="background: rgba(239, 68, 68, 0.20) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.45) !important;">
+                        <i class="fa-solid fa-arrow-trend-down"></i> -₹{{ number_format(abs($propertySale->net_profit), 2) }} Loss
+                    </span>
+                @endif
             </div>
         </div>
     </div>
@@ -264,24 +273,54 @@
         <span><i class="fa-solid fa-layer-group"></i> Assigned Plot(s) / Unit(s) ({{ $plotCount }})</span>
     </div>
     @if($plotCount > 0)
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 24px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; margin-bottom: 24px;">
             @foreach($assignedPlots as $p)
-                <div style="background: rgba(16, 22, 34, 0.75); border: 1.5px solid rgba(59, 130, 246, 0.25); border-radius: 14px; padding: 14px 16px;">
+                @php
+                    $unitCost = (float)($p->effective_purchase_cost ?? 0);
+                    $unitSell = (float)($p->price ?? 0);
+                    $unitProfit = $unitSell - $unitCost;
+                    $unitMargin = $unitSell > 0 ? round(($unitProfit / $unitSell) * 100, 1) : 0;
+                @endphp
+                <div style="background: rgba(16, 22, 34, 0.75); border: 1.5px solid rgba(59, 130, 246, 0.25); border-radius: 14px; padding: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <strong style="color: #FFFFFF; font-size: 14.5px;">{{ $p->property_name }}</strong>
+                        <strong style="color: #FFFFFF; font-size: 15px;">{{ $p->property_name }}</strong>
                         @if($p->property_code)
-                            <span style="font-size: 11px; font-weight: 700; color: #60A5FA; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); padding: 1px 7px; border-radius: 5px;">
+                            <span style="font-size: 11px; font-weight: 700; color: #60A5FA; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); padding: 2px 8px; border-radius: 6px;">
                                 {{ $p->property_code }}
                             </span>
                         @endif
                     </div>
-                    <div style="font-size: 12px; color: #CBD5E1; margin-bottom: 4px;">
+                    <div style="font-size: 12px; color: #CBD5E1; margin-bottom: 10px;">
                         @if($p->unit_no) <span>Unit: <strong>{{ $p->unit_no }}</strong> &nbsp;·&nbsp; </span> @endif
                         @if($p->size) <span>Size: <strong>{{ $p->size }} {{ $p->size_unit ?? 'Sq.Ft' }}</strong></span> @endif
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.1);">
-                        <span style="font-size: 12px; font-weight: 700; color: #34D399;">₹ {{ number_format($p->price ?? 0, 2) }}</span>
-                        <span class="badge badge-{{ $p->status }}" style="font-size: 9.5px; padding: 2px 7px;">{{ ucfirst($p->status) }}</span>
+
+                    <!-- Cost vs Selling Price Comparison -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: rgba(10, 15, 26, 0.70); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;">
+                        <div>
+                            <div style="font-size: 10.5px; font-weight: 700; color: #F59E0B; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px;">
+                                <i class="fa-solid fa-cart-shopping" style="font-size: 10px;"></i> Purchase Cost
+                            </div>
+                            <div style="font-size: 13.5px; font-weight: 800; color: #FBBF24; margin-top: 2px;">
+                                ₹{{ number_format($unitCost, 2) }}
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size: 10.5px; font-weight: 700; color: #60A5FA; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px;">
+                                <i class="fa-solid fa-tag" style="font-size: 10px;"></i> Selling / Price
+                            </div>
+                            <div style="font-size: 13.5px; font-weight: 800; color: #93C5FD; margin-top: 2px;">
+                                ₹{{ number_format($unitSell, 2) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.12);">
+                        <span style="font-size: 12px; font-weight: 800; color: {{ $unitProfit >= 0 ? '#34D399' : '#F87171' }}; display: inline-flex; align-items: center; gap: 4px;">
+                            <i class="fa-solid {{ $unitProfit >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}"></i>
+                            {{ $unitProfit >= 0 ? '+' : '' }}₹{{ number_format($unitProfit, 2) }} ({{ $unitMargin }}%)
+                        </span>
+                        <span class="badge badge-{{ $p->status }}" style="font-size: 9.5px; padding: 2px 8px;">{{ ucfirst($p->status) }}</span>
                     </div>
                 </div>
             @endforeach
@@ -292,37 +331,102 @@
         </div>
     @endif
 
-    {{-- Amounts & Progress --}}
-    <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Sale Amount & Financial Breakdown</div>
-    <div style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 18px; padding: 22px; margin-bottom: 24px;">
-        <div class="detail-grid-3">
-            <!-- 1. Total Sale Amount -->
-            <div class="detail-item" style="background: rgba(16, 22, 34, 0.85) !important; border-color: rgba(96, 165, 250, 0.4) !important;">
-                <div class="detail-label" style="color: #60A5FA !important;"><i class="fa-solid fa-money-bill-wave" style="color:#60A5FA !important;"></i> Total Sale Value</div>
-                <div class="detail-value" style="font-size: 20px; font-weight: 800; color: #60A5FA !important;">
+    {{-- Amounts, Cost, Profit & Financial Breakdown --}}
+    <div class="section-title">
+        <span><i class="fa-solid fa-chart-pie"></i> Purchase, Sale &amp; Profit Analysis (ખરીદી, વેચાણ અને નફો)</span>
+    </div>
+    
+    <div style="background: linear-gradient(135deg, rgba(20, 27, 41, 0.90) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(255, 255, 255, 0.14); border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: 0 12px 32px rgba(0,0,0,0.35);">
+        
+        <!-- 4 Key Financial Metrics Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <!-- 1. Total Purchase Cost -->
+            <div class="detail-item" style="background: rgba(245, 158, 11, 0.08) !important; border: 1.5px solid rgba(245, 158, 11, 0.35) !important;">
+                <div class="detail-label" style="color: #FBBF24 !important;">
+                    <i class="fa-solid fa-cart-shopping" style="color: #FBBF24 !important;"></i> Total Purchase Cost
+                </div>
+                <div class="detail-value" style="font-size: 21px; font-weight: 800; color: #FBBF24 !important;">
+                    ₹{{ number_format($propertySale->total_purchase_cost, 2) }}
+                </div>
+                <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">
+                    {{ $plotCount }} unit(s) acquisition cost
+                </div>
+            </div>
+
+            <!-- 2. Total Sale Value -->
+            <div class="detail-item" style="background: rgba(59, 130, 246, 0.08) !important; border: 1.5px solid rgba(59, 130, 246, 0.35) !important;">
+                <div class="detail-label" style="color: #60A5FA !important;">
+                    <i class="fa-solid fa-money-bill-wave" style="color: #60A5FA !important;"></i> Total Sale Value
+                </div>
+                <div class="detail-value" style="font-size: 21px; font-weight: 800; color: #60A5FA !important;">
                     ₹{{ number_format($propertySale->sale_amount ?? 0, 2) }}
                 </div>
-            </div>
-
-            <!-- 2. Paid / Received Amount -->
-            <div class="detail-item" style="background: rgba(16, 22, 34, 0.85) !important; border-color: rgba(52, 211, 153, 0.4) !important;">
-                <div class="detail-label" style="color: #34D399 !important;"><i class="fa-solid fa-circle-check" style="color:#34D399 !important;"></i> Total Received / Paid</div>
-                <div class="detail-value" style="font-size: 20px; font-weight: 800; color: #34D399 !important;">
-                    ₹{{ number_format($propertySale->booking_amount ?? 0, 2) }}
+                <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">
+                    Agreed customer contract price
                 </div>
             </div>
 
-            <!-- 3. Remaining Due Balance -->
-            <div class="detail-item" style="background: rgba(16, 22, 34, 0.85) !important; border-color: rgba(248, 113, 113, 0.4) !important;">
-                <div class="detail-label" style="color: #F87171 !important;"><i class="fa-solid fa-clock-rotate-left" style="color:#F87171 !important;"></i> Outstanding Due</div>
-                <div class="detail-value" style="font-size: 20px; font-weight: 800; color: #F87171 !important;">
-                    ₹{{ number_format($propertySale->remaining_amount ?? 0, 2) }}
+            <!-- 3. Net Profit / Gain -->
+            @php
+                $isProfit = $propertySale->net_profit >= 0;
+            @endphp
+            <div class="detail-item" style="background: {{ $isProfit ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)' }} !important; border: 1.5px solid {{ $isProfit ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.45)' }} !important; box-shadow: 0 4px 20px {{ $isProfit ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)' }};">
+                <div class="detail-label" style="color: {{ $isProfit ? '#34D399' : '#F87171' }} !important;">
+                    <i class="fa-solid {{ $isProfit ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}" style="color: {{ $isProfit ? '#34D399' : '#F87171' }} !important;"></i> Net {{ $isProfit ? 'Profit (ચોખ્ખો નફો)' : 'Loss (ખોટ)' }}
+                </div>
+                <div class="detail-value" style="font-size: 21px; font-weight: 800; color: {{ $isProfit ? '#34D399' : '#F87171' }} !important;">
+                    {{ $isProfit ? '+' : '' }}₹{{ number_format($propertySale->net_profit, 2) }}
+                </div>
+                <div style="font-size: 11px; color: {{ $isProfit ? '#A7F3D0' : '#FECACA' }}; margin-top: 4px; font-weight: 700;">
+                    {{ $propertySale->profit_margin_percentage }}% Margin &nbsp;·&nbsp; {{ $propertySale->roi_percentage }}% ROI
+                </div>
+            </div>
+
+            <!-- 4. Total Received & Due -->
+            <div class="detail-item" style="background: rgba(139, 92, 246, 0.08) !important; border: 1.5px solid rgba(139, 92, 246, 0.35) !important;">
+                <div class="detail-label" style="color: #C084FC !important;">
+                    <i class="fa-solid fa-hand-holding-dollar" style="color: #C084FC !important;"></i> Total Received / Paid
+                </div>
+                <div class="detail-value" style="font-size: 21px; font-weight: 800; color: #C084FC !important;">
+                    ₹{{ number_format($propertySale->booking_amount ?? 0, 2) }}
+                </div>
+                <div style="font-size: 11px; color: #F87171; margin-top: 4px; font-weight: 600;">
+                    Outstanding Due: ₹{{ number_format($propertySale->remaining_amount ?? 0, 2) }}
                 </div>
             </div>
         </div>
 
+        <!-- Profit Formula & Financial Breakdown Strip -->
+        <div style="background: rgba(10, 15, 26, 0.75); border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 14px; padding: 14px 18px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 13px;">
+            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                <span style="color: #94A3B8; font-weight: 600;">Financial Formula:</span>
+                <span style="color: #60A5FA; font-weight: 700;">
+                    <i class="fa-solid fa-plus" style="font-size: 10px;"></i> Sale Price: ₹{{ number_format($propertySale->sale_amount ?? 0, 2) }}
+                </span>
+                <span style="color: #64748B;">—</span>
+                <span style="color: #F59E0B; font-weight: 700;">
+                    <i class="fa-solid fa-minus" style="font-size: 10px;"></i> Purchase Cost: ₹{{ number_format($propertySale->total_purchase_cost, 2) }}
+                </span>
+                @if(($propertySale->broker_commission_amount ?? 0) > 0)
+                    <span style="color: #64748B;">—</span>
+                    <span style="color: #A78BFA; font-weight: 700;">
+                        <i class="fa-solid fa-minus" style="font-size: 10px;"></i> Broker Comm: ₹{{ number_format($propertySale->broker_commission_amount, 2) }}
+                    </span>
+                @endif
+                <span style="color: #64748B;">=</span>
+                <span style="color: {{ $isProfit ? '#34D399' : '#F87171' }}; font-weight: 800; font-size: 14px;">
+                    Net {{ $isProfit ? 'Profit' : 'Loss' }}: {{ $isProfit ? '+' : '' }}₹{{ number_format($propertySale->net_profit, 2) }}
+                </span>
+            </div>
+            <div>
+                <span class="badge" style="background: {{ $isProfit ? 'rgba(16, 185, 129, 0.18)' : 'rgba(239, 68, 68, 0.18)' }} !important; color: {{ $isProfit ? '#34D399' : '#F87171' }} !important; border: 1px solid {{ $isProfit ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)' }} !important; padding: 4px 10px; font-size: 11.5px;">
+                    {{ $propertySale->profit_margin_percentage }}% Profit Margin
+                </span>
+            </div>
+        </div>
+
         <!-- Progress Bar -->
-        <div style="margin-top: 6px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08);">
+        <div style="padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <span style="font-size: 12px; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Payment Progress ({{ $propertySale->paid_percentage }}% Cleared)</span>
                 <span style="font-size: 12px; color: #CBD5E1; font-weight: 700;">₹{{ number_format($propertySale->booking_amount ?? 0, 2) }} of ₹{{ number_format($propertySale->sale_amount ?? 0, 2) }}</span>

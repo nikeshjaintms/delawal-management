@@ -382,6 +382,12 @@ class ProjectController extends Controller
             $q->where('firms.id', $project->firm_id);
         })->orWhereDoesntHave('firms')->orderBy('name')->get();
 
+        // 6. Project Invoices
+        $projectInvoices = $project->invoices()->with(['customer', 'tenant', 'contractor', 'vendor', 'items', 'payments'])->get();
+        $projectInvoicesTotal = (float) $projectInvoices->sum('total_amount');
+        $projectInvoicesPaid = (float) $projectInvoices->sum('paid_amount');
+        $projectInvoicesBalance = (float) $projectInvoices->sum('balance_amount');
+
         return view('admin.projects.show', compact(
             'project',
             'projectExpenses',
@@ -412,7 +418,11 @@ class ProjectController extends Controller
             'totalSalesValue',
             'grandTotalProjectIncome',
             'netProjectProfit',
-            'allProjectIncomes'
+            'allProjectIncomes',
+            'projectInvoices',
+            'projectInvoicesTotal',
+            'projectInvoicesPaid',
+            'projectInvoicesBalance'
         ));
     }
 

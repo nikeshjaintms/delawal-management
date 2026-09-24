@@ -277,10 +277,18 @@
 
         <div class="bs-item">
             <div>
+                <div class="bs-item-name">Material Inventory & Site Stock</div>
+                <div class="bs-item-note">Stock inward materials and site construction inventory</div>
+            </div>
+            <div class="bs-item-amt" style="color:#FBBF24 !important;">₹{{ number_format($materialStockValue,2) }}</div>
+        </div>
+
+        <div class="bs-item">
+            <div>
                 <div class="bs-item-name">Security Deposits Held</div>
                 <div class="bs-item-note">Deposits from active rental agreements</div>
             </div>
-            <div class="bs-item-amt" style="color:#FBBF24 !important;">₹{{ number_format($securityDeposits,2) }}</div>
+            <div class="bs-item-amt" style="color:#2DD4BF !important;">₹{{ number_format($securityDeposits,2) }}</div>
         </div>
 
         <div class="bs-subtotal asset">
@@ -323,17 +331,6 @@
                 <div class="bs-item-note">Pending/Approved credit notes owed to customers</div>
             </div>
             <div class="bs-item-amt" style="color:#F87171 !important;">₹{{ number_format($creditNotePayable,2) }}</div>
-        </div>
-
-        {{-- Spacer rows to match height visually --}}
-        <div class="bs-item" style="opacity:0.35;">
-            <div><div class="bs-item-name" style="color:#94A3B8 !important;">Other Liabilities</div><div class="bs-item-note">—</div></div>
-            <div class="bs-item-amt" style="color:#94A3B8 !important;">₹0.00</div>
-        </div>
-
-        <div class="bs-item" style="opacity:0.35;">
-            <div><div class="bs-item-name" style="color:#94A3B8 !important;">Other Payables</div><div class="bs-item-note">—</div></div>
-            <div class="bs-item-amt" style="color:#94A3B8 !important;">₹0.00</div>
         </div>
 
         <div class="bs-subtotal liab">
@@ -414,11 +411,19 @@
                 </tr>
                 <tr>
                     <td>
+                        <div style="font-weight:700;font-size:13.5px;color:#FFFFFF;">Material Inventory &amp; Site Stock</div>
+                        <div style="font-size:12px;color:#94A3B8;font-weight:500;margin-top:2px;">Stock inward purchases and site construction inventory</div>
+                    </td>
+                    <td style="text-align:center;"><span class="bs-badge asset">Asset</span></td>
+                    <td class="amt" style="color:#FBBF24 !important;font-weight:800;font-size:14.5px;">₹{{ number_format($materialStockValue,2) }}</td>
+                </tr>
+                <tr>
+                    <td>
                         <div style="font-weight:700;font-size:13.5px;color:#FFFFFF;">Security Deposits Held</div>
                         <div style="font-size:12px;color:#94A3B8;font-weight:500;margin-top:2px;">Deposits from active rental agreements</div>
                     </td>
                     <td style="text-align:center;"><span class="bs-badge asset">Asset</span></td>
-                    <td class="amt" style="color:#FBBF24 !important;font-weight:800;font-size:14.5px;">₹{{ number_format($securityDeposits,2) }}</td>
+                    <td class="amt" style="color:#2DD4BF !important;font-weight:800;font-size:14.5px;">₹{{ number_format($securityDeposits,2) }}</td>
                 </tr>
                 <tr style="background:rgba(16, 185, 129, 0.12);border-top:1.5px solid rgba(16, 185, 129, 0.30);">
                     <td style="font-weight:800;font-size:14px;padding:14px 16px;color:#FFFFFF !important;">

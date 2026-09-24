@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title','Sales Report')
+@section('title','Sales Report (Accounting Method)')
 @section('page-title','Reports')
 @section('content')
 <style>
@@ -34,25 +34,28 @@
 }
 .btn-print:hover { background: rgba(99, 102, 241, 0.28) !important; color: #FFFFFF !important; transform: translateY(-1px); }
 
-/* ── Summary Cards ── */
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+/* ── Summary Cards (Accounting Grid) ── */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
 .stat-card {
     background: rgba(20, 27, 41, 0.60) !important;
     backdrop-filter: blur(20px) saturate(160%) !important;
     -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 20px !important; padding: 20px 22px;
+    border-radius: 20px !important; padding: 18px 20px;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.30); transition: all .25s ease;
 }
 .stat-card:hover { transform: translateY(-3px); border-color: rgba(59, 130, 246, 0.40) !important; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); }
-.stat-card .sc-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 19px; margin-bottom: 12px; }
+.stat-card .sc-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
 .sc-blue   { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
-.sc-green  { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
 .sc-amber  { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
+.sc-green  { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
 .sc-red    { background: rgba(239, 68, 68, 0.18) !important;  color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
 .sc-purple { background: rgba(139, 92, 246, 0.18) !important; color: #C084FC !important; border: 1px solid rgba(139, 92, 246, 0.35) !important; }
-.stat-card .sc-label { font-size: 11px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 5px; }
-.stat-card .sc-value { font-size: 20px; font-weight: 800; color: #FFFFFF !important; }
+.sc-teal   { background: rgba(20, 184, 166, 0.18) !important; color: #2DD4BF !important; border: 1px solid rgba(20, 184, 166, 0.35) !important; }
+
+.stat-card .sc-label { font-size: 10.5px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
+.stat-card .sc-value { font-size: 19px; font-weight: 800; color: #FFFFFF !important; font-family: monospace; }
+.stat-card .sc-sub { font-size: 11px; color: #94A3B8; margin-top: 3px; font-weight: 600; }
 
 /* ── Card Container & Filter ── */
 .card-box {
@@ -96,27 +99,26 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
 
 /* ── Table & Footer Total Row ── */
 .table-wrap { width: 100%; overflow-x: auto; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.10); }
-.sales-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.sales-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .sales-table thead th {
-    padding: 16px 18px !important; background: rgba(255, 255, 255, 0.05) !important;
+    padding: 14px 16px !important; background: rgba(255, 255, 255, 0.05) !important;
     color: #94A3B8 !important; font-weight: 800; font-size: 11px;
     text-transform: uppercase; letter-spacing: .9px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
     white-space: nowrap !important;
 }
 .sales-table tbody td {
-    padding: 16px 18px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-    font-size: 13.5px; color: #E2E8F0 !important; font-weight: 500; vertical-align: middle; white-space: nowrap !important;
+    padding: 14px 16px !important; border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    font-size: 13px; color: #E2E8F0 !important; font-weight: 500; vertical-align: middle; white-space: nowrap !important;
 }
 .sales-table tbody tr { transition: background .14s ease; }
 .sales-table tbody tr:hover { background: rgba(255, 255, 255, 0.05) !important; }
 
-/* ── TFOOT LUXURY DARK GLASS STYLING ── */
 .sales-table tfoot td {
-    padding: 16px 18px !important; background: rgba(255, 255, 255, 0.08) !important;
+    padding: 16px 16px !important; background: rgba(255, 255, 255, 0.08) !important;
     font-weight: 800; border-top: 2px solid rgba(255, 255, 255, 0.15) !important;
     color: #FFFFFF !important; white-space: nowrap !important;
 }
-.amt { text-align: right; font-variant-numeric: tabular-nums; }
+.amt { text-align: right; font-variant-numeric: tabular-nums; font-family: monospace; }
 
 /* ── Status Badges ── */
 .pay-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap !important; }
@@ -126,7 +128,7 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
 .pb-cancelled { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
 
 /* ── Action link ── */
-.tbl-action { color: #60A5FA !important; font-size: 13px; font-weight: 600; text-decoration: none !important; display: inline-flex; align-items: center; gap: 5px; transition: color .15s; }
+.tbl-action { color: #60A5FA !important; font-size: 12.5px; font-weight: 600; text-decoration: none !important; display: inline-flex; align-items: center; gap: 5px; transition: color .15s; }
 .tbl-action:hover { color: #93C5FD !important; }
 
 /* ── Empty state ── */
@@ -136,59 +138,27 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
 /* ── Date badge ── */
 .date-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; border-radius: 8px; padding: 6px 12px; font-size: 12.5px; color: #34D399 !important; font-weight: 600; margin-top: 8px; }
 
-/* ── Print header ── */
-.print-header { display: none; border-bottom: 2.5px solid #10B981; padding-bottom: 12px; margin-bottom: 20px; flex-direction: row; justify-content: space-between; align-items: flex-start; }
-.print-header .ph-left .ph-company { font-size: 20px; font-weight: 800; color: #0F172A; }
-.print-header .ph-left .ph-sub { font-size: 10px; color: #10B981; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
-.print-header .ph-right { text-align: right; }
-.print-header .ph-right .ph-title { font-size: 15px; font-weight: 700; color: #0F172A; margin-bottom: 3px; }
-.print-header .ph-right .ph-meta { font-size: 11px; color: #64748B; }
-.print-header .ph-filter-strip { width: 100%; margin-top: 10px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 5px; padding: 7px 12px; font-size: 11px; color: #166534; font-weight: 600; }
-
 @media print {
     .sidebar, .topbar, .rpt-action-btns, .card-box.filter-card, .btn-action, .tbl-action, .btn-filter, .btn-reset, .empty-state a { display: none !important; }
     .main-content { margin-left: 0 !important; }
     .content-body  { padding: 6px 0 0 !important; }
     body           { background: #fff !important; }
-    .stat-card, .gst-stat-card, .card-box, .section-card { box-shadow: none !important; border: 1px solid #E2E8F0 !important; background: #FFF !important; }
-    .stat-grid, .gst-stat-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 10px !important; }
-    .summary-grid  { grid-template-columns: repeat(2, 1fr) !important; }
+    .stat-card, .card-box { box-shadow: none !important; border: 1px solid #E2E8F0 !important; background: #FFF !important; }
+    .stat-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; }
     .table-wrap    { overflow: visible !important; }
-    .sales-table, .pay-table, .rent-table, .r-table { font-size: 10.5px !important; color: #000 !important; }
+    .sales-table   { font-size: 9.5px !important; color: #000 !important; }
     thead tr { background: #0F172A !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     thead th { color: #fff !important; }
-    .print-header  { display: flex !important; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
     .date-badge    { display: none !important; }
-    @page { margin: 12mm; }
+    @page { margin: 8mm; }
 }
 </style>
-
-{{-- ── Print-only Header ── --}}
-<div class="print-header">
-    <div class="ph-left">
-        <div class="ph-company">Delawala</div>
-        <div class="ph-sub">Properties &amp; Management</div>
-    </div>
-    <div class="ph-right">
-        <div class="ph-title">Sales Report</div>
-        <div class="ph-meta">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-        @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status']))
-        <div class="ph-meta" style="margin-top:4px;">
-            @if(request('from_date') || request('to_date'))
-                Period: {{ request('from_date') ? \Carbon\Carbon::parse(request('from_date'))->format('d M Y') : 'All time' }}
-                → {{ request('to_date') ? \Carbon\Carbon::parse(request('to_date'))->format('d M Y') : 'Today' }}
-            @endif
-            @if(request('filter_status')) &nbsp;·&nbsp; Status: {{ ucfirst(request('filter_status')) }} @endif
-        </div>
-        @endif
-    </div>
-</div>
 
 {{-- ── Header ── --}}
 <div class="rpt-header">
     <div class="rpt-title-block">
-        <h2><i class="fa-solid fa-handshake" style="color:#10B981;margin-right:9px;"></i>Sales Report</h2>
-        <p>Property-wise sales with customer, broker, received and pending amount details.</p>
+        <h2><i class="fa-solid fa-handshake" style="color:#10B981;margin-right:9px;"></i>Sales Accounting Report</h2>
+        <p>Complete Sales Ledger with Selling Price, Purchase Cost (Lidhi Price), Brokerage & Realized Net Profit.</p>
         @if(request('from_date') || request('to_date'))
             <div>
                 <span class="date-badge">
@@ -213,27 +183,51 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
     </div>
 </div>
 
-{{-- ── Summary Cards ── --}}
+{{-- ── Accounting Summary Cards ── --}}
 <div class="stat-grid">
     <div class="stat-card">
         <div class="sc-icon sc-blue"><i class="fa-solid fa-file-contract"></i></div>
         <div class="sc-label">Total Bookings</div>
         <div class="sc-value" style="color:#60A5FA !important;">{{ $totalBookings }}</div>
+        <div class="sc-sub">Units / properties sold</div>
     </div>
     <div class="stat-card">
-        <div class="sc-icon sc-purple"><i class="fa-solid fa-building"></i></div>
-        <div class="sc-label">Total Sale Value</div>
-        <div class="sc-value" style="color:#C084FC !important;">₹{{ number_format($totalSale,2) }}</div>
+        <div class="sc-icon sc-purple"><i class="fa-solid fa-tag"></i></div>
+        <div class="sc-label">Turnover (Sale Value)</div>
+        <div class="sc-value" style="color:#C084FC !important;">₹{{ number_format($totalSale, 2) }}</div>
+        <div class="sc-sub">Total revenue recognized</div>
     </div>
     <div class="stat-card">
-        <div class="sc-icon sc-green"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="sc-icon sc-amber"><i class="fa-solid fa-boxes-packing"></i></div>
+        <div class="sc-label">Acquisition Cost</div>
+        <div class="sc-value" style="color:#FBBF24 !important;">₹{{ number_format($totalPurchaseCost, 2) }}</div>
+        <div class="sc-sub">Lidhi price of sold units</div>
+    </div>
+    <div class="stat-card">
+        <div class="sc-icon sc-red"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+        <div class="sc-label">Broker Commission</div>
+        <div class="sc-value" style="color:#F87171 !important;">₹{{ number_format($totalCommission, 2) }}</div>
+        <div class="sc-sub">Committed brokerage</div>
+    </div>
+    <div class="stat-card" style="border:1.5px solid {{ $totalNetProfit >= 0 ? 'rgba(16,185,129,0.35)' : 'rgba(239,68,68,0.35)' }} !important;">
+        <div class="sc-icon sc-green"><i class="fa-solid fa-sack-dollar"></i></div>
+        <div class="sc-label">Realized Net Profit</div>
+        <div class="sc-value" style="color:{{ $totalNetProfit >= 0 ? '#34D399' : '#F87171' }} !important;">
+            {{ $totalNetProfit >= 0 ? '' : '−' }}₹{{ number_format(abs($totalNetProfit), 2) }}
+        </div>
+        <div class="sc-sub">Margin: {{ $profitMargin }}%</div>
+    </div>
+    <div class="stat-card">
+        <div class="sc-icon sc-teal"><i class="fa-solid fa-circle-check"></i></div>
         <div class="sc-label">Total Received</div>
-        <div class="sc-value" style="color:#34D399 !important;">₹{{ number_format($totalReceived,2) }}</div>
+        <div class="sc-value" style="color:#2DD4BF !important;">₹{{ number_format($totalReceived, 2) }}</div>
+        <div class="sc-sub">Cash / bank inflow</div>
     </div>
     <div class="stat-card">
         <div class="sc-icon sc-red"><i class="fa-solid fa-clock"></i></div>
         <div class="sc-label">Total Pending</div>
-        <div class="sc-value" style="color:#F87171 !important;">₹{{ number_format($totalPending,2) }}</div>
+        <div class="sc-value" style="color:#F87171 !important;">₹{{ number_format($totalPending, 2) }}</div>
+        <div class="sc-sub">Outstanding dues</div>
     </div>
 </div>
 
@@ -275,10 +269,21 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
                 @endforeach
             </select>
         </div>
+        @if(isset($firms) && $firms->count() > 1 && Auth::user()?->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-ctrl">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id')==$f->id?'selected':'' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
         <button type="submit" class="btn-filter">
             <i class="fa-solid fa-magnifying-glass"></i> Search
         </button>
-        @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status']))
+        @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status','firm_id']))
             <a href="{{ route('reports.sales') }}" class="btn-reset">
                 <i class="fa-solid fa-rotate-left"></i> Reset
             </a>
@@ -289,14 +294,14 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
 {{-- ── Data Table ── --}}
 <div class="card-box">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-        <div style="font-size:14px;font-weight:700;color:#FFFFFF !important;">
+        <div style="font-size:15px;font-weight:800;color:#FFFFFF !important;">
             <i class="fa-solid fa-table-list" style="color:#10B981;margin-right:7px;"></i>
-            Sales Records
+            Sales Accounting Ledger
             <span style="font-size:12.5px;font-weight:600;color:#94A3B8;margin-left:8px;">
                 {{ $totalBookings }} record{{ $totalBookings!=1?'s':'' }}
             </span>
         </div>
-        @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status']))
+        @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status','firm_id']))
             <span style="font-size:12px;color:#94A3B8;display:flex;align-items:center;gap:5px;">
                 <i class="fa-solid fa-filter" style="color:#10B981;"></i> Filtered results
             </span>
@@ -307,14 +312,18 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
         <table class="sales-table">
             <thead>
                 <tr>
-                    <th style="width:36px;">#</th>
+                    <th style="width:30px;">#</th>
                     <th>Date</th>
                     <th>Customer Name</th>
-                    <th>Property / Project</th>
+                    <th>Property / Unit</th>
                     <th>Broker</th>
-                    <th class="amt">Booking Amt</th>
-                    <th class="amt">Received Amt</th>
-                    <th class="amt">Pending Amt</th>
+                    <th class="amt">Sale Value (₹)</th>
+                    <th class="amt">Purchase Cost (₹)</th>
+                    <th class="amt">Commission (₹)</th>
+                    <th class="amt">Net Profit (₹)</th>
+                    <th class="amt">Margin %</th>
+                    <th class="amt">Received (₹)</th>
+                    <th class="amt">Pending (₹)</th>
                     <th style="text-align:center;">Payment Status</th>
                     <th style="text-align:center;">Action</th>
                 </tr>
@@ -322,18 +331,23 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
             <tbody>
                 @forelse($records as $i => $s)
                 @php
-                    $badge    = match(strtolower($s->payment_status ?? 'pending')) {
+                    $badge = match(strtolower($s->payment_status ?? 'pending')) {
                         'paid'      => 'pb-paid',
                         'partial'   => 'pb-partial',
                         'cancelled' => 'pb-cancelled',
                         default     => 'pb-pending',
                     };
-                    $received = $s->received_amount ?? 0;
-                    $pending  = $s->remaining_amount ?? max(0, ($s->sale_amount ?? 0) - $received);
+                    $received = (float)($s->received_amount ?? 0);
+                    $pending  = (float)($s->remaining_amount ?? max(0, ($s->sale_amount ?? 0) - $received));
+                    $pCost    = (float)$s->total_purchase_cost;
+                    $comm     = (float)$s->broker_commission_amount;
+                    $nProfit  = (float)$s->net_profit;
+                    $isProf   = $nProfit >= 0;
+                    $propName = $s->property?->property_name ?? ($s->properties->pluck('property_name')->implode(', ') ?: '—');
                 @endphp
                 <tr>
                     <td style="color:#94A3B8;font-size:12px;">{{ $i + 1 }}</td>
-                    <td style="white-space:nowrap;font-size:13px;font-weight:600;color:#FFFFFF !important;">
+                    <td style="white-space:nowrap;font-size:12.5px;font-weight:600;color:#FFFFFF !important;">
                         {{ $s->sale_date ? \Carbon\Carbon::parse($s->sale_date)->format('d M Y') : '—' }}
                     </td>
                     <td>
@@ -343,18 +357,37 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
                         @endif
                     </td>
                     <td>
-                        <div style="font-weight:700;font-size:13.5px;color:#FFFFFF !important;">{{ $s->property?->property_name ?? '—' }}</div>
+                        <div style="font-weight:700;font-size:13.5px;color:#FFFFFF !important;">{{ $propName }}</div>
                         @if($s->invoice_no)
                             <div style="font-size:11.5px;color:#94A3B8;">INV: {{ $s->invoice_no }}</div>
                         @endif
                     </td>
-                    <td style="font-size:13px;color:#CBD5E1;">{{ $s->broker?->name ?? '—' }}</td>
+                    <td style="font-size:12.5px;color:#CBD5E1;">{{ $s->broker?->name ?? '—' }}</td>
+                    {{-- Sale Value --}}
                     <td class="amt" style="color:#C084FC !important;font-weight:700;">
-                        ₹{{ number_format($s->booking_amount ?? 0, 2) }}
+                        ₹{{ number_format($s->sale_amount ?? 0, 2) }}
                     </td>
-                    <td class="amt" style="color:#34D399 !important;font-weight:700;">
+                    {{-- Purchase Cost (Lidhi Price) --}}
+                    <td class="amt" style="color:#FBBF24 !important;font-weight:700;">
+                        ₹{{ number_format($pCost, 2) }}
+                    </td>
+                    {{-- Commission --}}
+                    <td class="amt" style="color:#F87171 !important;font-weight:700;">
+                        ₹{{ number_format($comm, 2) }}
+                    </td>
+                    {{-- Net Profit --}}
+                    <td class="amt" style="color:{{ $isProf ? '#34D399' : '#F87171' }} !important;font-weight:800;">
+                        {{ $isProf ? '' : '−' }}₹{{ number_format(abs($nProfit), 2) }}
+                    </td>
+                    {{-- Margin % --}}
+                    <td class="amt" style="color:{{ $isProf ? '#34D399' : '#F87171' }} !important;font-weight:700;font-size:12px;">
+                        {{ $s->profit_margin_percentage }}%
+                    </td>
+                    {{-- Received --}}
+                    <td class="amt" style="color:#2DD4BF !important;font-weight:700;">
                         ₹{{ number_format($received, 2) }}
                     </td>
+                    {{-- Pending --}}
                     <td class="amt" style="color:#F87171 !important;font-weight:700;">
                         ₹{{ number_format($pending, 2) }}
                     </td>
@@ -364,18 +397,18 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
                         </span>
                     </td>
                     <td style="text-align:center;">
-                        <a href="{{ route('property-sales.show', $s->id) }}" class="tbl-action" title="View Sale">
+                        <a href="{{ route('property-sales.show', $s->id) }}" class="tbl-action" title="View Sale Details">
                             <i class="fa-regular fa-eye"></i> View
                         </a>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="10">
+                    <td colspan="14">
                         <div class="empty-state">
                             <i class="fa-solid fa-handshake"></i>
                             <p>No sales records found for the selected filters.</p>
-                            @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status']))
+                            @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status','firm_id']))
                                 <a href="{{ route('reports.sales') }}" style="color:#60A5FA;font-size:13px;margin-top:8px;display:inline-block;">
                                     Clear all filters
                                 </a>
@@ -388,13 +421,19 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
             @if($records->count() > 0)
             <tfoot>
                 <tr>
-                    <td colspan="5" style="font-size:13.5px;color:#FFFFFF !important;font-weight:800;">
-                        <i class="fa-solid fa-sigma" style="color:#34D399;margin-right:6px;"></i>
-                        Total ({{ $totalBookings }} sale{{ $totalBookings!=1?'s':'' }})
+                    <td colspan="5" style="font-size:13px;color:#FFFFFF !important;font-weight:800;">
+                        <i class="fa-solid fa-calculator" style="color:#34D399;margin-right:6px;"></i>
+                        ACCOUNTING TOTALS ({{ $totalBookings }} sale{{ $totalBookings!=1?'s':'' }})
                     </td>
-                    <td class="amt" style="color:#C084FC !important;font-size:14px;font-weight:800;">₹{{ number_format($records->sum('booking_amount'),2) }}</td>
-                    <td class="amt" style="color:#34D399 !important;font-size:14px;font-weight:800;">₹{{ number_format($totalReceived,2) }}</td>
-                    <td class="amt" style="color:#F87171 !important;font-size:14px;font-weight:800;">₹{{ number_format($totalPending,2) }}</td>
+                    <td class="amt" style="color:#C084FC !important;font-size:13.5px;font-weight:800;">₹{{ number_format($totalSale, 2) }}</td>
+                    <td class="amt" style="color:#FBBF24 !important;font-size:13.5px;font-weight:800;">₹{{ number_format($totalPurchaseCost, 2) }}</td>
+                    <td class="amt" style="color:#F87171 !important;font-size:13.5px;font-weight:800;">₹{{ number_format($totalCommission, 2) }}</td>
+                    <td class="amt" style="color:{{ $totalNetProfit >= 0 ? '#34D399' : '#F87171' }} !important;font-size:14px;font-weight:800;">
+                        {{ $totalNetProfit >= 0 ? '' : '−' }}₹{{ number_format(abs($totalNetProfit), 2) }}
+                    </td>
+                    <td class="amt" style="color:{{ $totalNetProfit >= 0 ? '#34D399' : '#F87171' }} !important;font-size:12.5px;font-weight:800;">{{ $profitMargin }}%</td>
+                    <td class="amt" style="color:#2DD4BF !important;font-size:13.5px;font-weight:800;">₹{{ number_format($totalReceived, 2) }}</td>
+                    <td class="amt" style="color:#F87171 !important;font-size:13.5px;font-weight:800;">₹{{ number_format($totalPending, 2) }}</td>
                     <td colspan="2"></td>
                 </tr>
             </tfoot>
@@ -405,12 +444,13 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
     @if($records->count() > 0)
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
                 margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.10);">
-        <span style="font-size:12.5px;color:#94A3B8;">
-            <strong>{{ $totalBookings }}</strong> record{{ $totalBookings!=1?'s':'' }}
-            &nbsp;·&nbsp; Received: <strong style="color:#34D399 !important;">₹{{ number_format($totalReceived,2) }}</strong>
-            &nbsp;·&nbsp; Pending: <strong style="color:#F87171 !important;">₹{{ number_format($totalPending,2) }}</strong>
+        <span style="font-size:12.5px;color:#CBD5E1;">
+            Turnover: <strong style="color:#C084FC !important;">₹{{ number_format($totalSale, 2) }}</strong>
+            &nbsp;·&nbsp; Purchase Cost: <strong style="color:#FBBF24 !important;">₹{{ number_format($totalPurchaseCost, 2) }}</strong>
+            &nbsp;·&nbsp; Commission: <strong style="color:#F87171 !important;">₹{{ number_format($totalCommission, 2) }}</strong>
+            &nbsp;·&nbsp; Net Profit: <strong style="color:{{ $totalNetProfit >= 0 ? '#34D399' : '#F87171' }} !important;">₹{{ number_format($totalNetProfit, 2) }} ({{ $profitMargin }}%)</strong>
         </span>
-        <span style="font-size:12.5px;color:#94A3B8;">
+        <span style="font-size:12px;color:#94A3B8;">
             <i class="fa-regular fa-clock"></i> Generated: {{ now()->format('d M Y, h:i A') }}
         </span>
     </div>
@@ -418,4 +458,3 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
 </div>
 
 @endsection
-

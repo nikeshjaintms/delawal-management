@@ -240,9 +240,9 @@
     .summary-section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; margin-top: 30px; }
     .summary-section-header h3 { font-size: 13px; font-weight: 800; color: #FFFFFF !important; text-transform: uppercase; letter-spacing: 1.4px; margin: 0; }
     .summary-grid {
-        display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 28px;
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 28px;
     }
-    @media(max-width:1100px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media(max-width:1380px) { .summary-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; } }
     @media(max-width:768px)  { .summary-grid { grid-template-columns: 1fr; } }
 
     .summary-card {
@@ -468,10 +468,56 @@
         </a>
     </div>
 
+    <!-- Property Sales & Profit Performance -->
+    <div class="kpi-section-header" style="margin-top:10px;">
+        <div style="width:6px;height:18px;background:linear-gradient(180deg,#10B981,#3B82F6);border-radius:4px;flex-shrink:0;"></div>
+        <h3>Property Sales &amp; Profit Analysis (Lidhi Price - Sell Price = Profit)</h3>
+        <div class="kpi-section-divider"></div>
+    </div>
+
+    <div class="kpi-grid-4" style="margin-bottom: 24px;">
+        <a href="{{ route('property-sales.index') }}" class="kpi-card">
+            <div class="kpi-icon-box ik-blue"><i class="fa-solid fa-handshake"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Total Sales (Sell Value)</span>
+                <span class="kpi-value" style="color:#60A5FA;" title="₹{{ number_format($totalSalesRevenue, 2) }}">₹{{ number_format($totalSalesRevenue, 2) }}</span>
+                <span class="kpi-badge bk-blue">{{ $totalSoldUnitsCount ?? 0 }} Units / Plots Sold</span>
+            </div>
+            <div class="kpi-deco deco-blue"></div>
+        </a>
+        <a href="{{ route('property-sales.index') }}" class="kpi-card">
+            <div class="kpi-icon-box ik-amber"><i class="fa-solid fa-cart-shopping"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Purchase Cost (Lidhi Price)</span>
+                <span class="kpi-value" style="color:#FBBF24;" title="₹{{ number_format($totalSalesPurchaseCost, 2) }}">₹{{ number_format($totalSalesPurchaseCost, 2) }}</span>
+                <span class="kpi-badge bk-amber">Acquisition Cost</span>
+            </div>
+            <div class="kpi-deco deco-amber"></div>
+        </a>
+        <a href="{{ route('property-sales.index') }}" class="kpi-card">
+            <div class="kpi-icon-box {{ $totalSalesProfit >= 0 ? 'ik-green' : 'ik-red' }}"><i class="fa-solid fa-{{ $totalSalesProfit >= 0 ? 'arrow-trend-up' : 'arrow-trend-down' }}"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Total Realized Profit</span>
+                <span class="kpi-value" style="color:{{ $totalSalesProfit >= 0 ? '#10B981' : '#EF4444' }};" title="₹{{ number_format($totalSalesProfit, 2) }}">₹{{ number_format($totalSalesProfit, 2) }}</span>
+                <span class="kpi-badge {{ $totalSalesProfit >= 0 ? 'bk-green' : 'bk-red' }}">{{ $totalSalesProfit >= 0 ? 'Net Profit' : 'Net Loss' }}</span>
+            </div>
+            <div class="kpi-deco {{ $totalSalesProfit >= 0 ? 'deco-green' : 'deco-red' }}"></div>
+        </a>
+        <a href="{{ route('property-sales.index') }}" class="kpi-card">
+            <div class="kpi-icon-box ik-purple"><i class="fa-solid fa-percent"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Sales Profit Margin</span>
+                <span class="kpi-value" style="color:{{ $salesProfitMargin >= 0 ? '#A78BFA' : '#EF4444' }};" title="{{ $salesProfitMargin }}%">{{ $salesProfitMargin }}%</span>
+                <span class="kpi-badge bk-purple">Margin on Sales</span>
+            </div>
+            <div class="kpi-deco deco-purple"></div>
+        </a>
+    </div>
+
     <!-- System Finances -->
     <div class="kpi-section-header" style="margin-top:10px;">
         <div style="width:6px;height:18px;background:linear-gradient(180deg,#10B981,#14B8A6);border-radius:4px;flex-shrink:0;"></div>
-        <h3>System-Wide Finances</h3>
+        <h3>System-Wide Cashflow &amp; Finances</h3>
         <div class="kpi-section-divider"></div>
     </div>    <div class="kpi-grid-4" style="margin-bottom: 24px;">
         <a href="{{ route('bookings.index') }}" class="kpi-card">
@@ -504,9 +550,9 @@
         <a href="{{ route('reports.profit-loss') }}" class="kpi-card">
             <div class="kpi-icon-box {{ $netProfit >= 0 ? 'ik-green' : 'ik-red' }}"><i class="fa-solid fa-{{ $netProfit >= 0 ? 'arrow-trend-up' : 'arrow-trend-down' }}"></i></div>
             <div class="kpi-info">
-                <span class="kpi-label">Net Profit (Est.)</span>
+                <span class="kpi-label">Net Cash Flow (Est.)</span>
                 <span class="kpi-value" style="color:{{ $netProfit >= 0 ? '#10B981' : '#EF4444' }};" title="₹{{ number_format($netProfit, 0) }}">₹{{ number_format($netProfit, 0) }}</span>
-                <span class="kpi-badge {{ $netProfit >= 0 ? 'bk-green' : 'bk-red' }}">{{ $netProfit >= 0 ? 'Profit' : 'Loss' }}</span>
+                <span class="kpi-badge {{ $netProfit >= 0 ? 'bk-green' : 'bk-red' }}">{{ $netProfit >= 0 ? 'Surplus' : 'Deficit' }}</span>
             </div>
             <div class="kpi-deco {{ $netProfit >= 0 ? 'deco-green' : 'deco-red' }}"></div>
         </a>
@@ -565,6 +611,29 @@
             </div>
         </div>
 
+        <!-- Property Sales & Profit Breakdown -->
+        <div class="summary-card">
+            <div class="summary-title">
+                <i class="fa-solid fa-chart-pie" style="color:#10B981;"></i> Sales Profit Breakdown
+            </div>
+            <a href="{{ route('property-sales.index') }}" class="summary-row">
+                <span class="summary-label"><i class="fa-solid fa-handshake" style="color:#60A5FA;"></i> Total Selling Value</span>
+                <span class="summary-val" style="color:#60A5FA;">₹{{ number_format($totalSalesRevenue, 0) }}</span>
+            </a>
+            <a href="{{ route('property-sales.index') }}" class="summary-row">
+                <span class="summary-label"><i class="fa-solid fa-cart-shopping" style="color:#FBBF24;"></i> Total Purchase Cost</span>
+                <span class="summary-val" style="color:#FBBF24;">₹{{ number_format($totalSalesPurchaseCost, 0) }}</span>
+            </a>
+            <a href="{{ route('property-sales.index') }}" class="summary-row">
+                <span class="summary-label"><i class="fa-solid fa-arrow-trend-up" style="color:{{ $totalSalesProfit >= 0 ? '#34D399' : '#F87171' }};"></i> Net Sales Profit</span>
+                <span class="summary-val {{ $totalSalesProfit >= 0 ? 'g' : 'r' }}">₹{{ number_format($totalSalesProfit, 0) }}</span>
+            </a>
+            <a href="{{ route('property-sales.index') }}" class="summary-row">
+                <span class="summary-label"><i class="fa-solid fa-percent" style="color:#A78BFA;"></i> Profit Margin</span>
+                <span class="summary-val" style="color:#A78BFA;">{{ $salesProfitMargin }}%</span>
+            </a>
+        </div>
+
         <!-- Financial Summary -->
         <div class="summary-card">
             <div class="summary-title">
@@ -579,7 +648,7 @@
                 <span class="summary-val r">₹{{ number_format($totalExpenses, 0) }}</span>
             </a>
             <a href="{{ route('reports.profit-loss') }}" class="summary-row">
-                <span class="summary-label"><i class="fa-solid fa-chart-line" style="color:{{ $netProfit >= 0 ? '#10B981' : '#EF4444' }};"></i> Net Profit (Est.)</span>
+                <span class="summary-label"><i class="fa-solid fa-chart-line" style="color:{{ $netProfit >= 0 ? '#10B981' : '#EF4444' }};"></i> Net Cash Flow</span>
                 <span class="summary-val {{ $netProfit >= 0 ? 'g' : 'r' }}">₹{{ number_format($netProfit, 0) }}</span>
             </a>
             <a href="{{ route('property-sales.index') }}" class="summary-row">

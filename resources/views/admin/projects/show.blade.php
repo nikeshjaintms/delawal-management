@@ -823,6 +823,9 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
         <p>Project details, associated Property Masters &amp; Plot Inventory</p>
     </div>
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="{{ route('invoices.create', ['project_id' => $project->id]) }}" class="btn-gold" style="padding: 9px 18px; font-size: 13.5px;">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Generate Invoice
+        </a>
         <a href="{{ route('projects.detail-pdf', $project->id) }}" target="_blank" class="btn-secondary-custom" style="background: rgba(252, 105, 0, 0.18) !important; border-color: rgba(252, 105, 0, 0.45) !important; color: #FF8A3D !important;">
             <i class="fa-solid fa-file-pdf"></i> Print / PDF Dossier
         </a>
@@ -1761,10 +1764,138 @@ function toggleProjectIncomeTab(tab) {
 </script>
 
 <!-- ================================================================
-     PROJECT EXPENSES & ALL OUTFLOWS SECTION
+     PROJECT INVOICES & BILLING SECTION
 ================================================================ -->
 <div class="card-box" style="margin-top: 24px;">
     <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10); padding-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(59, 130, 246, 0.20); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 17px;">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin: 0;">Project Invoices &amp; Billing Statements</h3>
+                <p style="font-size: 12.5px; color: #94A3B8; margin: 2px 0 0 0;">All sales, rental, contractor, purchase and custom invoices generated specifically for this project ({{ $projectInvoices->count() }} invoices).</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <a href="{{ route('invoices.create', ['project_id' => $project->id]) }}" class="btn-gold" style="padding: 8px 16px; font-size: 13px;">
+                <i class="fa-solid fa-plus"></i> Generate Invoice for this Project
+            </a>
+            <a href="{{ route('invoices.index', ['project_id' => $project->id]) }}" class="btn-secondary-custom" style="padding: 8px 14px; font-size: 13px;">
+                <i class="fa-solid fa-list"></i> View All in Invoices Module
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Mini KPI strip -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px;">
+        <div style="background: rgba(15, 23, 42, 0.60); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 12px; padding: 12px 16px;">
+            <span style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Total Invoiced</span>
+            <div style="font-size: 17px; font-weight: 800; color: #60A5FA; margin-top: 2px;">₹{{ number_format($projectInvoicesTotal, 2) }}</div>
+        </div>
+        <div style="background: rgba(15, 23, 42, 0.60); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 12px 16px;">
+            <span style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Collected / Paid</span>
+            <div style="font-size: 17px; font-weight: 800; color: #34D399; margin-top: 2px;">₹{{ number_format($projectInvoicesPaid, 2) }}</div>
+        </div>
+        <div style="background: rgba(15, 23, 42, 0.60); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 12px 16px;">
+            <span style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Outstanding Balance</span>
+            <div style="font-size: 17px; font-weight: 800; color: #FBBF24; margin-top: 2px;">₹{{ number_format($projectInvoicesBalance, 2) }}</div>
+        </div>
+        <div style="background: rgba(15, 23, 42, 0.60); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 12px; padding: 12px 16px;">
+            <span style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Invoice Count</span>
+            <div style="font-size: 17px; font-weight: 800; color: #FFFFFF; margin-top: 2px;">{{ $projectInvoices->count() }} Invoices</div>
+        </div>
+    </div>
+
+    @if($projectInvoices->isNotEmpty())
+        <div class="table-responsive-wrapper">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th style="width: 45px;">#</th>
+                        <th>Invoice No</th>
+                        <th>Date</th>
+                        <th>Recipient / Party</th>
+                        <th>Category</th>
+                        <th style="text-align: right;">Total Amount</th>
+                        <th style="text-align: right;">Paid</th>
+                        <th style="text-align: right;">Balance</th>
+                        <th style="text-align: center;">Status</th>
+                        <th style="text-align: right; width: 100px; padding-right: 18px !important;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($projectInvoices as $idx => $inv)
+                        <tr>
+                            <td style="color: #94A3B8; font-weight: 700; font-size: 12px;">{{ str_pad($idx + 1, 2, '0', STR_PAD_LEFT) }}</td>
+                            <td>
+                                <a href="{{ route('invoices.show', $inv->id) }}" style="color: #60A5FA; font-weight: 800; text-decoration: none;">
+                                    <i class="fa-solid fa-file-invoice" style="font-size: 11px; margin-right: 4px;"></i>{{ $inv->invoice_no }}
+                                </a>
+                            </td>
+                            <td style="color: #CBD5E1; white-space: nowrap;">
+                                {{ $inv->invoice_date->format('d M Y') }}
+                            </td>
+                            <td>
+                                <strong style="color: #FFFFFF;">{{ $inv->recipient_name }}</strong>
+                                @if($inv->recipient_phone)
+                                    <div style="font-size: 11px; color: #94A3B8;">{{ $inv->recipient_phone }}</div>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="badge-inv {{ $inv->type_badge_class }}" style="font-size: 10.5px; padding: 3px 8px; border-radius: 6px;">
+                                    {{ $inv->type_label }}
+                                </span>
+                            </td>
+                            <td style="text-align: right; font-weight: 800; color: #FFFFFF;">
+                                ₹{{ number_format($inv->total_amount, 2) }}
+                            </td>
+                            <td style="text-align: right; font-weight: 700; color: #34D399;">
+                                ₹{{ number_format($inv->paid_amount, 2) }}
+                            </td>
+                            <td style="text-align: right; font-weight: 700; color: {{ $inv->balance_amount > 0 ? '#F87171' : '#94A3B8' }};">
+                                ₹{{ number_format($inv->balance_amount, 2) }}
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="badge-inv {{ $inv->payment_badge_class }}" style="font-size: 10.5px; padding: 3px 8px; border-radius: 6px;">
+                                    {{ str_replace('_', ' ', $inv->payment_status) }}
+                                </span>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap; padding-right: 18px !important;">
+                                <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                    <a href="{{ route('invoices.show', $inv->id) }}" class="btn-action-icon btn-action-view" title="View Details">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </a>
+                                    <a href="{{ route('invoices.print', $inv->id) }}" target="_blank" class="btn-action-icon btn-action-pdf" title="Print / PDF Invoice">
+                                        <i class="fa-solid fa-print"></i>
+                                    </a>
+                                    <a href="{{ route('invoices.edit', $inv->id) }}" class="btn-action-icon btn-action-edit" title="Edit Invoice">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @else
+        <div style="text-align: center; color: #94A3B8; padding: 36px 0; background: rgba(255, 255, 255, 0.02); border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.12);">
+            <i class="fa-solid fa-file-invoice-dollar" style="font-size: 36px; color: #60A5FA; margin-bottom: 10px; display: block;"></i>
+            <div style="font-size: 14.5px; font-weight: 700; color: #FFFFFF; margin-bottom: 4px;">No Invoices Generated for {{ $project->project_name }}</div>
+            <p style="font-size: 12.5px; color: #94A3B8; margin-bottom: 14px;">Generate plot sales, rental bills, contractor claims or material purchase invoices directly for this project.</p>
+            <a href="{{ route('invoices.create', ['project_id' => $project->id]) }}" class="btn-gold" style="font-size: 13px; display: inline-flex;">
+                <i class="fa-solid fa-plus"></i> Generate First Project Invoice
+            </a>
+        </div>
+    @endif
+</div>
+
+<!-- ================================================================
+     PROJECT EXPENSES & ALL OUTFLOWS SECTION
+================================================================ -->
+<div class="card-box" style="margin-top: 24px;">
+    <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; margin-bottom: 20px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.10); padding-bottom: 14px;">
         <div style="display: flex; align-items: center; gap: 10px;">
             <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(245, 158, 11, 0.20); color: #FBBF24; display: flex; align-items: center; justify-content: center; font-size: 17px;">
                 <i class="fa-solid fa-receipt"></i>

@@ -301,4 +301,31 @@ class Property extends Model
             return ($a->id ?? 0) <=> ($b->id ?? 0);
         })->values();
     }
+
+    /**
+     * Get the effective purchase / acquisition cost of this unit.
+     */
+    public function getEffectivePurchaseCostAttribute(): float
+    {
+        if ((float)($this->purchase_rate ?? 0) > 0) {
+            return (float)$this->purchase_rate;
+        }
+
+        if ($this->propertyMaster) {
+            $pm = $this->propertyMaster;
+            $unitsCount = (int)($pm->total_units_count ?? 0);
+            $pmPrice = (float)($pm->purchase_price ?? 0);
+            if ($unitsCount > 0 && $pmPrice > 0) {
+                return round($pmPrice / $unitsCount, 2);
+            }
+            if ((float)($pm->purchase_rate ?? 0) > 0) {
+                return (float)$pm->purchase_rate;
+            }
+            if ($pmPrice > 0) {
+                return $pmPrice;
+            }
+        }
+
+        return 0.0;
+    }
 }

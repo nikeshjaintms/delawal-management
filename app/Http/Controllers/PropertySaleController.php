@@ -79,7 +79,14 @@ class PropertySaleController extends Controller
 
     public function index(Request $request)
     {
-        $query = PropertySale::with(['firm', 'property', 'properties', 'customer', 'broker', 'payments']);
+        $query = PropertySale::with([
+            'firm',
+            'property.propertyMaster',
+            'properties.propertyMaster',
+            'customer',
+            'broker',
+            'payments'
+        ]);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -116,11 +123,25 @@ class PropertySaleController extends Controller
             });
         }
 
+        // Summary KPI calculations across all matching sales
+        $summarySales = (clone $query)->get();
+        $totalSalesRevenue      = (float)$summarySales->sum('sale_amount');
+        $totalSalesPurchaseCost = (float)$summarySales->sum(fn($s) => $s->total_purchase_cost);
+        $totalSalesProfit       = (float)$summarySales->sum(fn($s) => $s->net_profit);
+        $salesProfitMargin      = $totalSalesRevenue > 0 ? round(($totalSalesProfit / $totalSalesRevenue) * 100, 1) : 0.0;
+        $totalSalesCount        = $summarySales->count();
+        $totalPaidAmount        = (float)$summarySales->sum('booking_amount');
+        $totalDueAmount         = (float)$summarySales->sum('remaining_amount');
+
         $propertySales = $query->latest()->paginate(10)->withQueryString();
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
         $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
 
-        return view('admin.property-sales.index', compact('propertySales', 'firms', 'paymentModes'));
+        return view('admin.property-sales.index', compact(
+            'propertySales', 'firms', 'paymentModes',
+            'totalSalesRevenue', 'totalSalesPurchaseCost', 'totalSalesProfit',
+            'salesProfitMargin', 'totalSalesCount', 'totalPaidAmount', 'totalDueAmount'
+        ));
     }
 
     public function create()
@@ -305,7 +326,9 @@ class PropertySaleController extends Controller
         $propertySale->load([
             'firm',
             'property.propertyType',
+            'property.propertyMaster',
             'properties.propertyType',
+            'properties.propertyMaster',
             'customer',
             'broker',
             'payments',

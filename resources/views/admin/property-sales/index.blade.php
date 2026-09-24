@@ -127,14 +127,76 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
     border: 1.5px solid rgba(255, 255, 255, 0.15); border-radius: 10px;
     color: #FFFFFF; font-size: 14px; outline: none; transition: border-color .2s; box-sizing: border-box;
 }
-.m-form-control:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); }
-.m-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+/* Top KPI Cards */
+.ps-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+@media(max-width: 1200px) {
+    .ps-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media(max-width: 600px) {
+    .ps-kpi-grid { grid-template-columns: 1fr; }
+}
+.ps-kpi-card {
+    background: rgba(20, 27, 41, 0.65) !important;
+    backdrop-filter: blur(16px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 18px !important;
+    padding: 16px 18px !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+}
+.ps-kpi-card:hover {
+    transform: translateY(-3px);
+    background: rgba(20, 27, 41, 0.80) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45) !important;
+}
+.ps-kpi-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+}
+.ik-blue   { background: rgba(59, 130, 246, 0.20); border: 1px solid rgba(59, 130, 246, 0.40); color: #60A5FA; }
+.ik-amber  { background: rgba(245, 158, 11, 0.20); border: 1px solid rgba(245, 158, 11, 0.40); color: #FBBF24; }
+.ik-green  { background: rgba(16, 185, 129, 0.20); border: 1px solid rgba(16, 185, 129, 0.40); color: #34D399; }
+.ik-red    { background: rgba(239, 68, 68, 0.20); border: 1px solid rgba(239, 68, 68, 0.40); color: #F87171; }
+.ik-teal   { background: rgba(20, 184, 166, 0.20); border: 1px solid rgba(20, 184, 166, 0.40); color: #2DD4BF; }
+.ik-purple { background: rgba(139, 92, 246, 0.20); border: 1px solid rgba(139, 92, 246, 0.40); color: #A78BFA; }
+
+.ps-kpi-info { display: flex; flex-direction: column; min-width: 0; }
+.ps-kpi-label { font-size: 11px; font-weight: 800; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+.ps-kpi-value { font-size: clamp(15px, 1.15vw, 19px); font-weight: 800; line-height: 1.2; margin-bottom: 2px; }
+.ps-kpi-sub { font-size: 11.5px; font-weight: 700; }
+
+/* Table badges */
+.cost-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.30);
+    color: #FBBF24; padding: 5px 10px; border-radius: 8px; font-size: 12.5px; font-weight: 800; white-space: nowrap;
+}
+.profit-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; white-space: nowrap;
+}
+.profit-pos {
+    background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34D399;
+}
+.profit-neg {
+    background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171;
+}
 </style>
 
 <div class="crud-header">
     <div class="crud-title">
         <h2>Property Sell</h2>
-        <p>Manage property bookings, multiple plots, and installment payments firm-wise.</p>
+        <p>Manage property sales, plot purchase costs, realized profit margins, and installments.</p>
     </div>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <a href="{{ route('property-sales.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important; border: 1px solid #F87171 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.40);">
@@ -144,6 +206,42 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
             <i class="fa-solid fa-plus"></i>
             <span>Add Property Sell</span>
         </a>
+    </div>
+</div>
+
+<!-- Top Property Sales & Profit Summary KPI Strip -->
+<div class="ps-kpi-grid">
+    <div class="ps-kpi-card">
+        <div class="ps-kpi-icon ik-blue"><i class="fa-solid fa-handshake"></i></div>
+        <div class="ps-kpi-info">
+            <span class="ps-kpi-label">Total Sales (Sell Value)</span>
+            <span class="ps-kpi-value" style="color: #60A5FA;">₹{{ number_format($totalSalesRevenue ?? 0, 2) }}</span>
+            <span class="ps-kpi-sub" style="color: #93C5FD;">{{ $totalSalesCount ?? 0 }} Transactions</span>
+        </div>
+    </div>
+    <div class="ps-kpi-card">
+        <div class="ps-kpi-icon ik-amber"><i class="fa-solid fa-cart-shopping"></i></div>
+        <div class="ps-kpi-info">
+            <span class="ps-kpi-label">Purchase Cost (Lidhi Price)</span>
+            <span class="ps-kpi-value" style="color: #FBBF24;">₹{{ number_format($totalSalesPurchaseCost ?? 0, 2) }}</span>
+            <span class="ps-kpi-sub" style="color: #FDE68A;">Acquisition Cost</span>
+        </div>
+    </div>
+    <div class="ps-kpi-card">
+        <div class="ps-kpi-icon {{ ($totalSalesProfit ?? 0) >= 0 ? 'ik-green' : 'ik-red' }}"><i class="fa-solid fa-{{ ($totalSalesProfit ?? 0) >= 0 ? 'arrow-trend-up' : 'arrow-trend-down' }}"></i></div>
+        <div class="ps-kpi-info">
+            <span class="ps-kpi-label">Total Realized Profit</span>
+            <span class="ps-kpi-value" style="color: {{ ($totalSalesProfit ?? 0) >= 0 ? '#34D399' : '#F87171' }};">₹{{ number_format($totalSalesProfit ?? 0, 2) }}</span>
+            <span class="ps-kpi-sub" style="color: {{ ($totalSalesProfit ?? 0) >= 0 ? '#34D399' : '#F87171' }};">{{ ($totalSalesProfit ?? 0) >= 0 ? '+' : '' }}{{ $salesProfitMargin ?? 0 }}% Profit Margin</span>
+        </div>
+    </div>
+    <div class="ps-kpi-card">
+        <div class="ps-kpi-icon ik-teal"><i class="fa-solid fa-wallet"></i></div>
+        <div class="ps-kpi-info">
+            <span class="ps-kpi-label">Payment Collection</span>
+            <span class="ps-kpi-value" style="color: #34D399;">₹{{ number_format($totalPaidAmount ?? 0, 2) }}</span>
+            <span class="ps-kpi-sub" style="color: #CBD5E1;">Due: <strong style="color: {{ ($totalDueAmount ?? 0) > 0 ? '#F87171' : '#94A3B8' }};">₹{{ number_format($totalDueAmount ?? 0, 2) }}</strong></span>
+        </div>
     </div>
 </div>
 
@@ -187,6 +285,8 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                     <th>Broker</th>
                     <th>Sale Date</th>
                     <th>Sale Amount</th>
+                    <th>Purchase Cost</th>
+                    <th>Net Profit / Margin</th>
                     <th>Paid / Due</th>
                     <th>Payment</th>
                     <th>Status</th>
@@ -199,6 +299,7 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                         $assignedPlots = $sale->all_properties;
                         $plotCount = $assignedPlots->count();
                         $paymentsCount = $sale->payments->count();
+                        $netP = $sale->net_profit;
                     @endphp
                     <tr>
                         <td>{{ method_exists($propertySales, 'firstItem') ? ($propertySales->firstItem() + $key) : ($key + 1) }}</td>
@@ -241,10 +342,23 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                         <td>{{ $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date)->format('d M Y') : '-' }}</td>
                         <td>
                             @if($sale->sale_amount !== null)
-                                <strong style="color: #60A5FA; font-size: 14px;">₹{{ number_format($sale->sale_amount, 2) }}</strong>
+                                <strong style="color: #60A5FA; font-size: 14.5px;">₹{{ number_format($sale->sale_amount, 2) }}</strong>
                             @else
                                 <span style="color: #94A3B8;">—</span>
                             @endif
+                        </td>
+                        <td>
+                            <div class="cost-badge" title="Total Purchase Cost (Lidhi Price)">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                                ₹{{ number_format($sale->total_purchase_cost, 2) }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="profit-badge {{ $netP >= 0 ? 'profit-pos' : 'profit-neg' }}" title="Net Realized Profit (Sale - Purchase - Commission)">
+                                <i class="fa-solid {{ $netP >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}"></i>
+                                <span>{{ $netP >= 0 ? '+' : '' }}₹{{ number_format($netP, 2) }}</span>
+                                <span style="opacity: 0.85; font-size: 11px;">({{ $sale->profit_margin_percentage }}%)</span>
+                            </div>
                         </td>
                         <td>
                             @if($sale->sale_amount > 0)

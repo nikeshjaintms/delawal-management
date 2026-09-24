@@ -89,7 +89,8 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                         <option value="">-- Select Property / Land --</option>
                         @foreach($propertyMasters as $pm)
                             <option value="{{ $pm->id }}"
-                                    data-price="{{ $pm->purchase_price ?: ($pm->plots->sum('price') ?: 0) }}"
+                                    data-price="{{ $pm->plots->sum('price') ?: 0 }}"
+                                    data-purchase-price="{{ $pm->purchase_price ?: 0 }}"
                                     data-area="{{ $pm->total_area ? ($pm->total_area . ' ' . ($pm->area_unit ?? 'Sq.Ft')) : '' }}"
                                     data-plots-count="{{ $pm->plots->count() }}"
                                     data-code="{{ $pm->property_code }}"
@@ -526,7 +527,6 @@ function onSaleScopeChange() {
 function updateEntirePropInfo() {
     const masterSelect = document.getElementById('property_master_id');
     const selectedOpt = masterSelect.selectedOptions[0];
-    const saleAmountInput = document.getElementById('sale_amount');
     const titleEl = document.getElementById('entire_prop_title');
     const descEl = document.getElementById('entire_prop_desc');
 
@@ -535,15 +535,11 @@ function updateEntirePropInfo() {
         const code = selectedOpt.dataset.code || '';
         const area = selectedOpt.dataset.area || '';
         const plotsCount = selectedOpt.dataset.plotsCount || '0';
-        const price = parseFloat(selectedOpt.dataset.price) || 0;
+        const purchasePrice = parseFloat(selectedOpt.dataset.purchasePrice) || 0;
+        const valuationPrice = parseFloat(selectedOpt.dataset.price) || 0;
 
         titleEl.innerHTML = `🏢 Selling Entire Property: <strong>${name}</strong> ${code ? `(${code})` : ''}`;
-        descEl.innerHTML = `Total Area: <strong>${area || 'N/A'}</strong> | Includes <strong>${plotsCount} Plots</strong>. All sub-plots will be marked as Sold upon confirmation.`;
-
-        if (price > 0 && (!saleAmountInput.value || saleAmountInput.value === '0' || saleAmountInput.value === '0.00')) {
-            saleAmountInput.value = price.toFixed(2);
-            calcRemaining();
-        }
+        descEl.innerHTML = `Total Area: <strong>${area || 'N/A'}</strong> | Includes <strong>${plotsCount} Plots</strong>${purchasePrice > 0 ? ` | Purchase Cost: ₹${purchasePrice.toLocaleString('en-IN', {minimumFractionDigits: 2})}` : ''}. Enter your actual agreed sale price below.`;
     } else {
         titleEl.innerHTML = `🏢 Selling Entire Property Master`;
         descEl.innerHTML = `Please select a Property / Land Master above.`;
@@ -729,11 +725,10 @@ function filterPlotsByMaster() {
 
 function updatePlotsCalculation() {
     const propSelect = document.getElementById('property_id');
-    const saleAmountInput = document.getElementById('sale_amount');
     const badge = document.getElementById('plots_summary_badge');
     const badgeText = document.getElementById('plots_summary_text');
     const badgePills = document.getElementById('plots_summary_pills');
-    if (!propSelect || !saleAmountInput) return;
+    if (!propSelect) return;
 
     let totalSum = 0;
     let selectedCount = 0;
@@ -751,15 +746,21 @@ function updatePlotsCalculation() {
     });
 
     if (selectedCount > 0) {
-        saleAmountInput.value = totalSum.toFixed(2);
-        calcRemaining();
         if (badge && badgeText) {
             badge.style.display = 'flex';
-            badgeText.innerHTML = `<strong>${selectedCount} Unit(s) Selected</strong> (Total: ₹ ${totalSum.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})})`;
+            badgeText.innerHTML = `<strong>${selectedCount} Unit(s) Selected</strong> (Base Valuation: ₹ ${totalSum.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}) <button type="button" onclick="applySuggestedPrice(${totalSum})" style="margin-left: 8px; background: rgba(59, 130, 246, 0.25); border: 1px solid #3B82F6; color: #93C5FD; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;"><i class="fa-solid fa-copy"></i> Use Valuation</button>`;
             if (badgePills) badgePills.innerHTML = pillsHtml;
         }
     } else {
         if (badge) badge.style.display = 'none';
+    }
+}
+
+function applySuggestedPrice(val) {
+    const saleAmountInput = document.getElementById('sale_amount');
+    if (saleAmountInput) {
+        saleAmountInput.value = parseFloat(val).toFixed(2);
+        calcRemaining();
     }
 }
 
