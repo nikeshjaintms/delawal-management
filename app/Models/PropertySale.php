@@ -13,6 +13,8 @@ class PropertySale extends Model
         'property_id',
         'customer_id',
         'broker_id',
+        'purchase_date',
+        'purchase_cost',
         'broker_commission_type',
         'broker_commission_rate',
         'broker_commission_amount',
@@ -43,6 +45,8 @@ class PropertySale extends Model
     ];
 
     protected $casts = [
+        'purchase_date'            => 'date',
+        'purchase_cost'            => 'decimal:2',
         'sale_date'                => 'date',
         'sale_amount'              => 'decimal:2',
         'booking_amount'           => 'decimal:2',
@@ -150,10 +154,59 @@ class PropertySale extends Model
     }
 
     /**
+     * Effective Acquisition / Purchase Date
+     */
+    public function getEffectivePurchaseDateAttribute()
+    {
+        if ($this->purchase_date) {
+            return $this->purchase_date;
+        }
+        $propDate = $this->all_properties->pluck('purchase_date')->filter()->min();
+        if ($propDate) {
+            return $propDate;
+        }
+        return $this->property?->propertyMaster?->purchase_date;
+    }
+
+    /**
+     * Holding Duration (e.g. 2 Years 3 Months)
+     */
+    public function getHeldDurationTextAttribute(): string
+    {
+        $pDate = $this->effective_purchase_date;
+        $sDate = $this->sale_date;
+        if (!$pDate || !$sDate) {
+            return 'Duration N/A';
+        }
+
+        $p = \Carbon\Carbon::parse($pDate);
+        $s = \Carbon\Carbon::parse($sDate);
+        if ($p->gt($s)) {
+            return 'Same day / Recent';
+        }
+
+        $diffYears = (int)$p->diffInYears($s);
+        $diffMonths = (int)($p->copy()->addYears($diffYears)->diffInMonths($s));
+        $diffDays = (int)($p->copy()->addYears($diffYears)->addMonths($diffMonths)->diffInDays($s));
+
+        if ($diffYears >= 1) {
+            return "Held for {$diffYears} yr" . ($diffYears > 1 ? 's ' : ' ') . ($diffMonths > 0 ? "{$diffMonths} mo" . ($diffMonths > 1 ? 's' : '') : '');
+        } elseif ($diffMonths >= 1) {
+            return "Held for {$diffMonths} month" . ($diffMonths > 1 ? 's ' : ' ') . ($diffDays > 0 ? "{$diffDays} d" : '');
+        } else {
+            $days = max(1, $p->diffInDays($s));
+            return "Held for {$days} day" . ($days > 1 ? 's' : '');
+        }
+    }
+
+    /**
      * Total Purchase Cost of all assigned properties in this sale
      */
     public function getTotalPurchaseCostAttribute(): float
     {
+        if (!is_null($this->purchase_cost) && (float)$this->purchase_cost > 0) {
+            return (float)$this->purchase_cost;
+        }
         $props = $this->all_properties;
         if ($props->isEmpty()) {
             return 0.0;

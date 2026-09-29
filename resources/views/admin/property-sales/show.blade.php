@@ -259,9 +259,17 @@
             @endif
         </div>
         <div class="detail-item">
-            <div class="detail-label"><i class="fa-regular fa-calendar"></i> Sale Date</div>
+            <div class="detail-label"><i class="fa-regular fa-calendar-check"></i> Acquisition Date</div>
+            @if($propertySale->effective_purchase_date)
+                <div class="detail-value" style="color: #93C5FD;">{{ \Carbon\Carbon::parse($propertySale->effective_purchase_date)->format('d M Y') }}</div>
+            @else
+                <div class="detail-value empty">Not set</div>
+            @endif
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-regular fa-calendar-days"></i> Sale Date</div>
             @if($propertySale->sale_date)
-                <div class="detail-value">{{ \Carbon\Carbon::parse($propertySale->sale_date)->format('d M Y') }}</div>
+                <div class="detail-value" style="color: #34D399;">{{ \Carbon\Carbon::parse($propertySale->sale_date)->format('d M Y') }}</div>
             @else
                 <div class="detail-value empty">Not set</div>
             @endif
@@ -332,10 +340,122 @@
     @endif
 
     {{-- Amounts, Cost, Profit & Financial Breakdown --}}
+    @php
+        $earliestPurchaseDate = $propertySale->effective_purchase_date;
+        $heldDurationText = $propertySale->held_duration_text;
+        $totCost = $propertySale->total_purchase_cost;
+        $totSale = $propertySale->sale_amount ?? 0;
+        $invMultiple = $totCost > 0 ? round($totSale / $totCost, 2) : 0;
+    @endphp
+
     <div class="section-title">
-        <span><i class="fa-solid fa-chart-pie"></i> Purchase, Sale &amp; Profit Analysis (ખરીદી, વેચાણ અને નફો)</span>
+        <span><i class="fa-solid fa-chart-pie"></i> Real Estate Deal & Profit Analytics</span>
     </div>
     
+    {{-- Reel-Style Deal & Profit Flow Card --}}
+    <div style="background: linear-gradient(145deg, rgba(15, 23, 42, 0.85) 0%, rgba(20, 27, 41, 0.70) 100%); border: 1.5px solid rgba(56, 189, 248, 0.25); border-radius: 20px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); margin-bottom: 22px;">
+        
+        {{-- Flow: PURCHASED -> HELD FOR -> SOLD --}}
+        <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; margin-bottom: 20px;">
+            
+            {{-- PURCHASED Box --}}
+            <div style="background: rgba(37, 99, 235, 0.12); border: 1.5px solid rgba(59, 130, 246, 0.40); border-radius: 14px; padding: 16px 18px; position: relative;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
+                    <span style="background: #2563EB; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px; letter-spacing: 0.8px; text-transform: uppercase;">
+                        PURCHASED
+                    </span>
+                    <span style="font-size: 12px; font-weight: 700; color: #93C5FD;">
+                        {{ $earliestPurchaseDate ? \Carbon\Carbon::parse($earliestPurchaseDate)->format('M Y') : '—' }}
+                    </span>
+                </div>
+                <div style="font-size: 22px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.5px;">
+                    ₹{{ number_format($totCost, 2) }}
+                </div>
+                <div style="font-size: 11.5px; color: #94A3B8; margin-top: 4px;">
+                    {{ $plotCount }} unit(s) • Total Acquisition Cost
+                </div>
+            </div>
+
+            {{-- HELD FOR Indicator --}}
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 6px;">
+                <div style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 30px; padding: 6px 14px; font-size: 12px; font-weight: 800; color: #F1F5F9; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); white-space: nowrap;">
+                    <i class="fa-regular fa-clock" style="color: #38BDF8;"></i>
+                    <span>{{ $heldDurationText }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px; margin-top: 6px; color: #64748B;">
+                    <div style="width: 16px; height: 2px; background: rgba(255,255,255,0.15);"></div>
+                    <i class="fa-solid fa-arrow-right" style="font-size: 12px; color: #38BDF8;"></i>
+                    <div style="width: 16px; height: 2px; background: rgba(255,255,255,0.15);"></div>
+                </div>
+            </div>
+
+            {{-- SOLD Box --}}
+            <div style="background: rgba(239, 68, 68, 0.09); border: 1.5px solid rgba(248, 113, 113, 0.40); border-radius: 14px; padding: 16px 18px; position: relative;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
+                    <span style="background: #DC2626; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px; letter-spacing: 0.8px; text-transform: uppercase;">
+                        SOLD
+                    </span>
+                    <span style="font-size: 12px; font-weight: 700; color: #FCA5A5;">
+                        {{ $propertySale->sale_date ? \Carbon\Carbon::parse($propertySale->sale_date)->format('M Y') : '—' }}
+                    </span>
+                </div>
+                <div style="font-size: 22px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.5px;">
+                    ₹{{ number_format($totSale, 2) }}
+                </div>
+                <div style="font-size: 11.5px; color: #94A3B8; margin-top: 4px;">
+                    Agreed Sale Contract Price
+                </div>
+            </div>
+
+        </div>
+
+        {{-- 3 Highlight Result Cards --}}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px;">
+            
+            {{-- PROFIT CARD --}}
+            @php $isProf = $propertySale->net_profit >= 0; @endphp
+            <div style="background: rgba(16, 185, 129, 0.12); border: 1.5px solid rgba(52, 211, 153, 0.35); border-radius: 14px; padding: 14px 16px; text-align: center;">
+                <div style="font-size: 11px; font-weight: 800; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">
+                    PROFIT / GAIN
+                </div>
+                <div style="font-size: 20px; font-weight: 900; color: {{ $isProf ? '#34D399' : '#F87171' }}; letter-spacing: -0.5px;">
+                    {{ $isProf ? '+' : '' }}₹{{ number_format($propertySale->net_profit, 2) }}
+                </div>
+                <div style="font-size: 11px; color: {{ $isProf ? '#A7F3D0' : '#FECACA' }}; font-weight: 700; margin-top: 2px;">
+                    {{ $propertySale->profit_margin_percentage }}% Profit Margin
+                </div>
+            </div>
+
+            {{-- RETURN (ROI %) CARD --}}
+            <div style="background: rgba(14, 165, 233, 0.12); border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 14px; padding: 14px 16px; text-align: center;">
+                <div style="font-size: 11px; font-weight: 800; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">
+                    RETURN (ROI)
+                </div>
+                <div style="font-size: 20px; font-weight: 900; color: {{ $propertySale->roi_percentage >= 0 ? '#38BDF8' : '#F87171' }}; letter-spacing: -0.5px;">
+                    {{ $propertySale->roi_percentage >= 0 ? '+' : '' }}{{ $propertySale->roi_percentage }}%
+                </div>
+                <div style="font-size: 11px; color: #BAE6FD; font-weight: 700; margin-top: 2px;">
+                    (on acquisition)
+                </div>
+            </div>
+
+            {{-- INVESTMENT MULTIPLE CARD --}}
+            <div style="background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(251, 191, 36, 0.35); border-radius: 14px; padding: 14px 16px; text-align: center;">
+                <div style="font-size: 11px; font-weight: 800; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">
+                    INVESTMENT MULTIPLE
+                </div>
+                <div style="font-size: 20px; font-weight: 900; color: #FBBF24; letter-spacing: -0.5px;">
+                    {{ $invMultiple }}X
+                </div>
+                <div style="font-size: 11px; color: #FDE68A; font-weight: 700; margin-top: 2px;">
+                    (return multiple)
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
     <div style="background: linear-gradient(135deg, rgba(20, 27, 41, 0.90) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(255, 255, 255, 0.14); border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: 0 12px 32px rgba(0,0,0,0.35);">
         
         <!-- 4 Key Financial Metrics Grid -->

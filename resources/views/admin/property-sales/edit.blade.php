@@ -65,6 +65,8 @@ textarea.form-control { resize: vertical; min-height: 85px; }
     font-size: 14px; font-weight: 600; transition: all .2s ease;
 }
 .btn-outline:hover { background: rgba(255, 255, 255, 0.10) !important; color: #FFFFFF !important; }
+.deal-flow-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; }
+@media(max-width: 768px) { .deal-flow-grid { grid-template-columns: 1fr; gap: 12px; } }
 </style>
 
 <div class="crud-header">
@@ -98,7 +100,8 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                         @foreach($propertyMasters as $pm)
                             <option value="{{ $pm->id }}"
                                     data-price="{{ $pm->plots->sum('price') ?: 0 }}"
-                                    data-purchase-price="{{ $pm->purchase_price ?: 0 }}"
+                                    data-purchase-price="{{ $pm->purchase_price ?: ($pm->plots->sum('price') ?: 0) }}"
+                                    data-purchase-date="{{ $pm->purchase_date ? $pm->purchase_date->format('Y-m-d') : '' }}"
                                     data-area="{{ $pm->total_area ? ($pm->total_area . ' ' . ($pm->area_unit ?? 'Sq.Ft')) : '' }}"
                                     data-plots-count="{{ $pm->plots->count() }}"
                                     data-code="{{ $pm->property_code }}"
@@ -207,11 +210,17 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 {{-- Hidden select kept in sync for form submit --}}
                 <select name="property_ids[]" id="property_id" multiple style="display: none;">
                     @foreach($properties as $property)
+                        @php
+                            $propPPrice = $property->purchase_rate ?: ($property->propertyMaster?->purchase_price && $property->propertyMaster->plots->count() > 0 ? round($property->propertyMaster->purchase_price / max(1, $property->propertyMaster->plots->count()), 2) : ($property->price ?? 0));
+                            $propPDate = $property->purchase_date ? $property->purchase_date->format('Y-m-d') : ($property->propertyMaster?->purchase_date ? $property->propertyMaster->purchase_date->format('Y-m-d') : '');
+                        @endphp
                         <option value="{{ $property->id }}"
                                 data-master-id="{{ $property->property_master_id ?? '' }}"
                                 data-project-id="{{ $property->project_id ?? '' }}"
                                 data-unit-no="{{ $property->unit_no ?? '' }}"
                                 data-price="{{ $property->price ?? 0 }}"
+                                data-purchase-price="{{ $propPPrice }}"
+                                data-purchase-date="{{ $propPDate }}"
                                 {{ in_array($property->id, $assignedPropIds) ? 'selected' : '' }}>
                             {{ $property->property_name }}
                         </option>
@@ -226,6 +235,8 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                 $isSelected = in_array($property->id, $assignedPropIds);
                                 $statusColor = $property->status === 'available' ? '#34D399' : ($property->status === 'booked' ? '#FBBF24' : '#F87171');
                                 $statusBg = $property->status === 'available' ? 'rgba(16, 185, 129, 0.15)' : ($property->status === 'booked' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)');
+                                $propPPrice = $property->purchase_rate ?: ($property->propertyMaster?->purchase_price && $property->propertyMaster->plots->count() > 0 ? round($property->propertyMaster->purchase_price / max(1, $property->propertyMaster->plots->count()), 2) : ($property->price ?? 0));
+                                $propPDate = $property->purchase_date ? $property->purchase_date->format('Y-m-d') : ($property->propertyMaster?->purchase_date ? $property->propertyMaster->purchase_date->format('Y-m-d') : '');
                             @endphp
                             <div class="plot-card-item {{ $isSelected ? 'is-selected' : '' }}"
                                  id="plot_card_{{ $property->id }}"
@@ -236,6 +247,8 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                  data-name="{{ strtolower($property->property_name ?? '') }}"
                                  data-code="{{ strtolower($property->property_code ?? '') }}"
                                  data-price="{{ $property->price ?? 0 }}"
+                                 data-purchase-price="{{ $propPPrice }}"
+                                 data-purchase-date="{{ $propPDate }}"
                                  data-status="{{ $property->status }}"
                                  onclick="togglePlotCardSelection({{ $property->id }})"
                                  style="cursor: pointer; user-select: none; padding: 10px 14px; border-radius: 12px; background: {{ $isSelected ? 'rgba(37, 99, 235, 0.22)' : 'rgba(20, 27, 41, 0.65)' }}; border: 1.5px solid {{ $isSelected ? '#3B82F6' : 'rgba(255, 255, 255, 0.10)' }}; transition: all .2s ease; display: flex; align-items: center; gap: 12px; box-shadow: {{ $isSelected ? '0 0 14px rgba(59, 130, 246, 0.35)' : 'none' }};">
@@ -284,7 +297,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
             </div>
 
             <div class="form-row">
-                <div class="form-group">
+                <div class="form-group" style="flex: 1.2;">
                     <label class="form-label" for="customer_id">Customer <span>*</span></label>
                     <select name="customer_id" id="customer_id" class="form-control @error('customer_id') is-invalid @enderror" required>
                         <option value="">-- Select Customer --</option>
@@ -296,10 +309,24 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                     </select>
                     @error('customer_id') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="sale_date">Sale Date</label>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="purchase_date" style="color: #60A5FA !important;">
+                        <i class="fa-regular fa-calendar-check"></i> Acquisition / Purchase Date
+                    </label>
+                    <input type="date" name="purchase_date" id="purchase_date"
+                           value="{{ old('purchase_date', $propertySale->purchase_date ? (is_string($propertySale->purchase_date) ? $propertySale->purchase_date : \Carbon\Carbon::parse($propertySale->purchase_date)->format('Y-m-d')) : ($propertySale->effective_purchase_date ? \Carbon\Carbon::parse($propertySale->effective_purchase_date)->format('Y-m-d') : '')) }}" class="form-control @error('purchase_date') is-invalid @enderror"
+                           onchange="recalcDealAnalytics()">
+                    <div class="form-hint" style="color: #93C5FD;">When property was acquired (Auto-fills / Editable).</div>
+                    @error('purchase_date') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="sale_date" style="color: #34D399 !important;">
+                        <i class="fa-regular fa-calendar-days"></i> Sale Agreement Date <span>*</span>
+                    </label>
                     <input type="date" name="sale_date" id="sale_date"
-                           value="{{ old('sale_date', is_string($propertySale->sale_date) ? $propertySale->sale_date : ($propertySale->sale_date ? \Carbon\Carbon::parse($propertySale->sale_date)->format('Y-m-d') : '')) }}" class="form-control @error('sale_date') is-invalid @enderror">
+                           value="{{ old('sale_date', is_string($propertySale->sale_date) ? $propertySale->sale_date : ($propertySale->sale_date ? \Carbon\Carbon::parse($propertySale->sale_date)->format('Y-m-d') : '')) }}" class="form-control @error('sale_date') is-invalid @enderror"
+                           onchange="recalcDealAnalytics()">
+                    <div class="form-hint" style="color: #A7F3D0;">Date of selling contract / agreement.</div>
                     @error('sale_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
@@ -310,8 +337,8 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                         <option value="">-- Select Broker (Optional) --</option>
                         @foreach($brokers as $broker)
                             <option value="{{ $broker->id }}" 
-                                    data-commission="{{ $broker->commission_percentage ?? 0 }}"
-                                    {{ old('broker_id', $propertySale->broker_id) == $broker->id ? 'selected' : '' }}>
+                                     data-commission="{{ $broker->commission_percentage ?? 0 }}"
+                                     {{ old('broker_id', $propertySale->broker_id) == $broker->id ? 'selected' : '' }}>
                                 {{ $broker->name }} — {{ $broker->mobile }} {{ $broker->commission_percentage ? '(' . $broker->commission_percentage . '%)' : '' }}
                             </option>
                         @endforeach
@@ -355,44 +382,63 @@ textarea.form-control { resize: vertical; min-height: 85px; }
 
         {{-- Amounts --}}
         <div class="form-section">
-            <div class="section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Amount & Financial Details</div>
+            <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <span><i class="fa-solid fa-indian-rupee-sign"></i> Amount & Financial Details</span>
+                <span id="financial_live_profit_badge" style="display: none; padding: 4px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 800; align-items: center; gap: 6px;"></span>
+            </div>
             <div style="background: rgba(15, 23, 42, 0.65); border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px; margin-bottom: 22px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px;">
-                    <!-- 1. Total Sale Amount -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                    <!-- 1. Base Purchase / Acquisition Cost -->
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="sale_amount" style="color: #60A5FA !important; font-size: 13.5px;">
+                        <label class="form-label" for="purchase_cost" style="color: #93C5FD !important; font-size: 13px;">
+                            <i class="fa-solid fa-receipt"></i> Purchase / Base Cost (₹)
+                        </label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 14px; top: 11px; color: #93C5FD; font-weight: 700; font-size: 15px;">₹</span>
+                            <input type="number" step="0.01" name="purchase_cost" id="purchase_cost"
+                                   value="{{ old('purchase_cost', $propertySale->purchase_cost ?: ($propertySale->total_purchase_cost > 0 ? $propertySale->total_purchase_cost : '')) }}" class="form-control @error('purchase_cost') is-invalid @enderror"
+                                   placeholder="0.00" oninput="this.dataset.autoFilled = '0'; recalcDealAnalytics();"
+                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #93C5FD !important; border-color: rgba(147, 197, 253, 0.4) !important;">
+                        </div>
+                        <div class="form-hint" style="color: #94A3B8;">Acquisition cost (auto-fills / editable).</div>
+                        @error('purchase_cost') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- 2. Total Sale Amount -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="sale_amount" style="color: #60A5FA !important; font-size: 13px;">
                             <i class="fa-solid fa-money-bill-wave"></i> Total Sale Amount (₹) <span>*</span>
                         </label>
                         <div style="position: relative;">
                             <span style="position: absolute; left: 14px; top: 11px; color: #60A5FA; font-weight: 700; font-size: 15px;">₹</span>
                             <input type="number" step="0.01" name="sale_amount" id="sale_amount"
                                    value="{{ old('sale_amount', $propertySale->sale_amount) }}" class="form-control @error('sale_amount') is-invalid @enderror"
-                                   placeholder="0.00" oninput="calcRemaining()" required
-                                   style="padding-left: 32px; font-weight: 800; font-size: 16px; color: #60A5FA !important; border-color: rgba(96, 165, 250, 0.4) !important;">
+                                   placeholder="0.00" oninput="calcRemaining(); recalcDealAnalytics();" required
+                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #60A5FA !important; border-color: rgba(96, 165, 250, 0.4) !important;">
                         </div>
                         <div class="form-hint" style="color: #93C5FD;">Total agreed sale/deal price.</div>
                         @error('sale_amount') <div class="text-error">{{ $message }}</div> @enderror
                     </div>
 
-                    <!-- 2. Paid / Booking Amount -->
+                    <!-- 3. Paid / Booking Amount -->
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="booking_amount" style="color: #34D399 !important; font-size: 13.5px;">
-                            <i class="fa-solid fa-circle-check"></i> Paid / Booking Amount (₹)
+                        <label class="form-label" for="booking_amount" style="color: #34D399 !important; font-size: 13px;">
+                            <i class="fa-solid fa-circle-check"></i> Paid / Advance Amount (₹)
                         </label>
                         <div style="position: relative;">
                             <span style="position: absolute; left: 14px; top: 11px; color: #34D399; font-weight: 700; font-size: 15px;">₹</span>
                             <input type="number" step="0.01" name="booking_amount" id="booking_amount"
                                    value="{{ old('booking_amount', $propertySale->booking_amount ?? '0.00') }}" class="form-control @error('booking_amount') is-invalid @enderror"
                                    placeholder="0.00" min="0" oninput="calcRemaining()"
-                                   style="padding-left: 32px; font-weight: 800; font-size: 16px; color: #34D399 !important; border-color: rgba(52, 211, 153, 0.4) !important;">
+                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #34D399 !important; border-color: rgba(52, 211, 153, 0.4) !important;">
                         </div>
-                        <div class="form-hint" style="color: #A7F3D0;">Received advance or paid amount.</div>
+                        <div class="form-hint" style="color: #A7F3D0;">Received advance / payments.</div>
                         @error('booking_amount') <div class="text-error">{{ $message }}</div> @enderror
                     </div>
 
-                    <!-- 3. Remaining Due Balance -->
+                    <!-- 4. Remaining Due Balance -->
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="remaining_amount" style="color: #F87171 !important; font-size: 13.5px;">
+                        <label class="form-label" for="remaining_amount" style="color: #F87171 !important; font-size: 13px;">
                             <i class="fa-solid fa-clock-rotate-left"></i> Remaining Due (₹)
                         </label>
                         <div style="position: relative;">
@@ -400,9 +446,9 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                             <input type="number" step="0.01" name="remaining_amount" id="remaining_amount"
                                    value="{{ old('remaining_amount', $propertySale->remaining_amount ?? '0.00') }}" class="form-control @error('remaining_amount') is-invalid @enderror"
                                    placeholder="0.00" readonly
-                                   style="padding-left: 32px; font-weight: 800; font-size: 16px; color: #F87171 !important; background: rgba(239, 68, 68, 0.08) !important; border-color: rgba(248, 113, 113, 0.4) !important; cursor: not-allowed;">
+                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #F87171 !important; background: rgba(239, 68, 68, 0.08) !important; border-color: rgba(248, 113, 113, 0.4) !important; cursor: not-allowed;">
                         </div>
-                        <div class="form-hint" style="color: #FCA5A5;">Auto = Total Sale − Paid Amount</div>
+                        <div class="form-hint" style="color: #FCA5A5;">Auto = Total Sale − Paid</div>
                         @error('remaining_amount') <div class="text-error">{{ $message }}</div> @enderror
                     </div>
                 </div>
@@ -420,6 +466,111 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                         <i class="fa-solid fa-xmark"></i> Unpaid (0%)
                     </button>
                 </div>
+            </div>
+        </div>
+
+        {{-- 📊 Real Estate Deal Analytics & Profit Breakdown (Dubai Reel Style) --}}
+        <div class="form-section" id="deal_analytics_section">
+            <div class="section-title" style="color: #38BDF8 !important; border-color: rgba(56, 189, 248, 0.25);">
+                <i class="fa-solid fa-chart-pie"></i> Real Estate Deal & Profit Analytics
+            </div>
+            
+            <div style="background: linear-gradient(145deg, rgba(15, 23, 42, 0.85) 0%, rgba(20, 27, 41, 0.70) 100%); border: 1.5px solid rgba(56, 189, 248, 0.25); border-radius: 20px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);">
+                
+                {{-- Flow: PURCHASED -> HELD FOR -> SOLD --}}
+                <div class="deal-flow-grid" style="margin-bottom: 20px;">
+                    
+                    {{-- PURCHASED Box --}}
+                    <div style="background: rgba(37, 99, 235, 0.12); border: 1.5px solid rgba(59, 130, 246, 0.40); border-radius: 14px; padding: 16px 18px; position: relative;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
+                            <span style="background: #2563EB; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px; letter-spacing: 0.8px; text-transform: uppercase;">
+                                PURCHASED
+                            </span>
+                            <span id="deal_purchase_date_label" style="font-size: 12px; font-weight: 700; color: #93C5FD;">—</span>
+                        </div>
+                        <div style="font-size: 22px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.5px;" id="deal_purchase_amount">
+                            ₹ 0.00
+                        </div>
+                        <div style="font-size: 11.5px; color: #94A3B8; margin-top: 4px;" id="deal_purchase_subtext">
+                            Total Acquisition Cost / Base
+                        </div>
+                    </div>
+
+                    {{-- HELD FOR Indicator --}}
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 6px;">
+                        <div style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 30px; padding: 6px 14px; font-size: 12px; font-weight: 800; color: #F1F5F9; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); white-space: nowrap;">
+                            <i class="fa-regular fa-clock" style="color: #38BDF8;"></i>
+                            <span id="deal_held_duration">Held for —</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px; margin-top: 6px; color: #64748B;">
+                            <div style="width: 16px; height: 2px; background: rgba(255,255,255,0.15);"></div>
+                            <i class="fa-solid fa-arrow-right" style="font-size: 12px; color: #38BDF8;"></i>
+                            <div style="width: 16px; height: 2px; background: rgba(255,255,255,0.15);"></div>
+                        </div>
+                    </div>
+
+                    {{-- SOLD Box --}}
+                    <div style="background: rgba(239, 68, 68, 0.09); border: 1.5px solid rgba(248, 113, 113, 0.40); border-radius: 14px; padding: 16px 18px; position: relative;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
+                            <span style="background: #DC2626; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px; letter-spacing: 0.8px; text-transform: uppercase;">
+                                SOLD
+                            </span>
+                            <span id="deal_sale_date_label" style="font-size: 12px; font-weight: 700; color: #FCA5A5;">—</span>
+                        </div>
+                        <div style="font-size: 22px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.5px;" id="deal_sold_amount">
+                            ₹ 0.00
+                        </div>
+                        <div style="font-size: 11.5px; color: #94A3B8; margin-top: 4px;" id="deal_sold_subtext">
+                            Agreed Deal Value
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- 3 Highlight Result Cards --}}
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px;">
+                    
+                    {{-- PROFIT CARD --}}
+                    <div style="background: rgba(16, 185, 129, 0.12); border: 1.5px solid rgba(52, 211, 153, 0.35); border-radius: 14px; padding: 14px 16px; text-align: center;">
+                        <div style="font-size: 11px; font-weight: 800; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">
+                            PROFIT / GAIN
+                        </div>
+                        <div id="deal_profit_amount" style="font-size: 20px; font-weight: 900; color: #34D399; letter-spacing: -0.5px;">
+                            ₹ 0.00
+                        </div>
+                        <div id="deal_profit_words" style="font-size: 11px; color: #A7F3D0; font-weight: 700; margin-top: 2px;">
+                            —
+                        </div>
+                    </div>
+
+                    {{-- RETURN (ROI %) CARD --}}
+                    <div style="background: rgba(14, 165, 233, 0.12); border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 14px; padding: 14px 16px; text-align: center;">
+                        <div style="font-size: 11px; font-weight: 800; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">
+                            RETURN (ROI)
+                        </div>
+                        <div id="deal_roi_percent" style="font-size: 20px; font-weight: 900; color: #38BDF8; letter-spacing: -0.5px;">
+                            0.0%
+                        </div>
+                        <div style="font-size: 11px; color: #BAE6FD; font-weight: 700; margin-top: 2px;">
+                            (on acquisition)
+                        </div>
+                    </div>
+
+                    {{-- INVESTMENT MULTIPLE CARD --}}
+                    <div style="background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(251, 191, 36, 0.35); border-radius: 14px; padding: 14px 16px; text-align: center;">
+                        <div style="font-size: 11px; font-weight: 800; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">
+                            INVESTMENT MULTIPLE
+                        </div>
+                        <div id="deal_multiple_val" style="font-size: 20px; font-weight: 900; color: #FBBF24; letter-spacing: -0.5px;">
+                            0.00X
+                        </div>
+                        <div style="font-size: 11px; color: #FDE68A; font-weight: 700; margin-top: 2px;">
+                            (return multiple)
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
         </div>
 
@@ -771,6 +922,8 @@ function updatePlotsCalculation() {
     } else {
         if (badge) badge.style.display = 'none';
     }
+
+    recalcDealAnalytics();
 }
 
 function applySuggestedPrice(val) {
@@ -778,6 +931,198 @@ function applySuggestedPrice(val) {
     if (saleAmountInput) {
         saleAmountInput.value = parseFloat(val).toFixed(2);
         calcRemaining();
+        recalcDealAnalytics();
+        recalcSaleBrokerage();
+    }
+}
+
+function formatIndianCurrencyCompact(num) {
+    const abs = Math.abs(num);
+    const sign = num < 0 ? '-' : '';
+    if (abs >= 10000000) {
+        return sign + '₹ ' + (abs / 10000000).toFixed(2) + ' CRORE';
+    } else if (abs >= 100000) {
+        return sign + '₹ ' + (abs / 100000).toFixed(2) + ' LAKH';
+    } else {
+        return sign + '₹ ' + abs.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+}
+
+function calculateDateDuration(startDateStr, endDateStr) {
+    if (!startDateStr || !endDateStr) return 'Duration N/A';
+    const start = new Date(startDateStr);
+    const end = new Date(endDateStr);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 'Duration N/A';
+    
+    let diffMs = end.getTime() - start.getTime();
+    if (diffMs < 0) return 'Immediate Deal';
+    
+    let days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    let years = Math.floor(days / 365.25);
+    let remainingDays = days - Math.floor(years * 365.25);
+    let months = Math.floor(remainingDays / 30.4375);
+    
+    if (years >= 1) {
+        return `Held for ${years} yr${years > 1 ? 's' : ''} ${months} mo${months !== 1 ? 's' : ''}`;
+    } else if (months >= 1) {
+        let leftDays = Math.floor(remainingDays - (months * 30.4375));
+        return `Held for ${months} month${months > 1 ? 's' : ''} ${leftDays > 0 ? leftDays + ' d' : ''}`;
+    } else {
+        return `Held for ${days} day${days !== 1 ? 's' : ''}`;
+    }
+}
+
+function recalcDealAnalytics() {
+    const masterSelect = document.getElementById('property_master_id');
+    const propSelect = document.getElementById('property_id');
+    const saleAmountInput = document.getElementById('sale_amount');
+    const saleDateInput = document.getElementById('sale_date');
+    const purchaseDateInput = document.getElementById('purchase_date');
+    const purchaseCostInput = document.getElementById('purchase_cost');
+    const isEntire = document.getElementById('sale_scope_entire') ? document.getElementById('sale_scope_entire').checked : false;
+
+    let detectedPurchaseCost = 0;
+    let detectedPurchaseDate = '';
+    let unitCount = 0;
+
+    if (isEntire && masterSelect && masterSelect.selectedOptions[0]) {
+        const opt = masterSelect.selectedOptions[0];
+        if (opt.value) {
+            detectedPurchaseCost = parseFloat(opt.dataset.purchasePrice) || parseFloat(opt.dataset.price) || 0;
+            detectedPurchaseDate = opt.dataset.purchaseDate || '';
+            unitCount = parseInt(opt.dataset.plotsCount) || 1;
+        }
+    } else if (propSelect) {
+        const selected = Array.from(propSelect.selectedOptions).filter(o => o.value);
+        unitCount = selected.length;
+        selected.forEach(opt => {
+            const card = document.getElementById('plot_card_' + opt.value);
+            const p = card ? (parseFloat(card.dataset.purchasePrice) || parseFloat(card.dataset.price) || 0) : (parseFloat(opt.dataset.purchasePrice) || parseFloat(opt.dataset.price) || 0);
+            detectedPurchaseCost += p;
+            const pDate = card ? card.dataset.purchaseDate : opt.dataset.purchaseDate;
+            if (pDate && (!detectedPurchaseDate || new Date(pDate) < new Date(detectedPurchaseDate))) {
+                detectedPurchaseDate = pDate;
+            }
+        });
+    }
+
+    // Auto-fill Red Box (#purchase_cost) if property has detected cost and user hasn't typed a custom value
+    if (detectedPurchaseCost > 0 && purchaseCostInput && (!purchaseCostInput.value || purchaseCostInput.dataset.autoFilled === '1')) {
+        purchaseCostInput.value = detectedPurchaseCost.toFixed(2);
+        purchaseCostInput.dataset.autoFilled = '1';
+    }
+
+    // Auto-fill purchase date (#purchase_date) if property has detected date and user hasn't selected a custom date
+    if (detectedPurchaseDate && purchaseDateInput && (!purchaseDateInput.value || purchaseDateInput.dataset.autoFilled === '1')) {
+        purchaseDateInput.value = detectedPurchaseDate;
+        purchaseDateInput.dataset.autoFilled = '1';
+    }
+
+    // Final active values
+    const finalPurchaseDate = (purchaseDateInput && purchaseDateInput.value) ? purchaseDateInput.value : detectedPurchaseDate;
+    const finalPurchaseCost = (purchaseCostInput && purchaseCostInput.value !== '' && !isNaN(parseFloat(purchaseCostInput.value)))
+        ? parseFloat(purchaseCostInput.value)
+        : detectedPurchaseCost;
+
+    const saleAmount = parseFloat(saleAmountInput ? saleAmountInput.value : 0) || 0;
+    const saleDate = saleDateInput ? saleDateInput.value : '';
+
+    // Update Purchase UI
+    const pDateLabel = document.getElementById('deal_purchase_date_label');
+    if (pDateLabel) {
+        pDateLabel.innerText = finalPurchaseDate ? new Date(finalPurchaseDate).toLocaleDateString('en-US', {month: 'short', year: 'numeric', day: 'numeric'}) : '—';
+    }
+    const pAmount = document.getElementById('deal_purchase_amount');
+    if (pAmount) {
+        pAmount.innerText = '₹ ' + finalPurchaseCost.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+    const pSubtext = document.getElementById('deal_purchase_subtext');
+    if (pSubtext) {
+        pSubtext.innerText = `${unitCount > 0 ? unitCount + ' Unit(s) • ' : ''}${formatIndianCurrencyCompact(finalPurchaseCost)}`;
+    }
+
+    // Update Held For Duration Live
+    const heldEl = document.getElementById('deal_held_duration');
+    if (heldEl) {
+        heldEl.innerText = calculateDateDuration(finalPurchaseDate, saleDate);
+    }
+
+    // Update Sold UI
+    const sDateLabel = document.getElementById('deal_sale_date_label');
+    if (sDateLabel) {
+        sDateLabel.innerText = saleDate ? new Date(saleDate).toLocaleDateString('en-US', {month: 'short', year: 'numeric', day: 'numeric'}) : '—';
+    }
+    const sAmount = document.getElementById('deal_sold_amount');
+    if (sAmount) {
+        sAmount.innerText = '₹ ' + saleAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+    const sSubtext = document.getElementById('deal_sold_subtext');
+    if (sSubtext) {
+        sSubtext.innerText = saleAmount > 0 ? formatIndianCurrencyCompact(saleAmount) : 'Enter Sale Amount above';
+    }
+
+    // Calculations for Profit & ROI
+    const profit = saleAmount - finalPurchaseCost;
+    const profitEl = document.getElementById('deal_profit_amount');
+    const profitWordsEl = document.getElementById('deal_profit_words');
+    const roiEl = document.getElementById('deal_roi_percent');
+    const multipleEl = document.getElementById('deal_multiple_val');
+    const finProfitBadge = document.getElementById('financial_live_profit_badge');
+
+    if (saleAmount > 0 && finalPurchaseCost > 0) {
+        const roi = (profit / finalPurchaseCost) * 100;
+        const multiple = saleAmount / finalPurchaseCost;
+        const marginPct = ((profit / saleAmount) * 100).toFixed(1);
+
+        if (finProfitBadge) {
+            finProfitBadge.style.display = 'inline-flex';
+            if (profit >= 0) {
+                finProfitBadge.style.background = 'rgba(16, 185, 129, 0.18)';
+                finProfitBadge.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+                finProfitBadge.style.color = '#34D399';
+                finProfitBadge.innerHTML = `<i class="fa-solid fa-arrow-trend-up"></i> Live Profit: +₹ ${Math.abs(profit).toLocaleString('en-IN', {minimumFractionDigits: 2})} (${marginPct}% Margin)`;
+            } else {
+                finProfitBadge.style.background = 'rgba(239, 68, 68, 0.18)';
+                finProfitBadge.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+                finProfitBadge.style.color = '#F87171';
+                finProfitBadge.innerHTML = `<i class="fa-solid fa-arrow-trend-down"></i> Loss: -₹ ${Math.abs(profit).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            }
+        }
+
+        if (profitEl) {
+            const prefix = profit >= 0 ? '+₹ ' : '-₹ ';
+            profitEl.innerText = prefix + Math.abs(profit).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            profitEl.style.color = profit >= 0 ? '#34D399' : '#F87171';
+        }
+        if (profitWordsEl) {
+            profitWordsEl.innerText = formatIndianCurrencyCompact(profit);
+            profitWordsEl.style.color = profit >= 0 ? '#A7F3D0' : '#FCA5A5';
+        }
+        if (roiEl) {
+            roiEl.innerText = (roi >= 0 ? '+' : '') + roi.toFixed(1) + '%';
+            roiEl.style.color = roi >= 0 ? '#38BDF8' : '#F87171';
+        }
+        if (multipleEl) {
+            multipleEl.innerText = multiple.toFixed(2) + 'X';
+            multipleEl.style.color = multiple >= 1 ? '#FBBF24' : '#F87171';
+        }
+    } else {
+        if (finProfitBadge) {
+            finProfitBadge.style.display = 'none';
+        }
+        if (profitEl) {
+            profitEl.innerText = '₹ 0.00';
+            profitEl.style.color = '#94A3B8';
+        }
+        if (profitWordsEl) profitWordsEl.innerText = '—';
+        if (roiEl) {
+            roiEl.innerText = '0.0%';
+            roiEl.style.color = '#94A3B8';
+        }
+        if (multipleEl) {
+            multipleEl.innerText = '0.00X';
+            multipleEl.style.color = '#94A3B8';
+        }
     }
 }
 
@@ -909,23 +1254,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const isEntire = document.getElementById('sale_scope_entire').checked;
         if (isEntire) {
             updateEntirePropInfo();
-            const opt = masterSelect.selectedOptions[0];
-            if (opt && opt.dataset.price) {
-                const price = parseFloat(opt.dataset.price);
-                if (price > 0 && (!saleAmountInput.value || saleAmountInput.value === '0')) {
-                    saleAmountInput.value = price.toFixed(2);
-                    calcRemaining();
-                    recalcSaleBrokerage();
-                }
-            }
         } else {
             filterPlotsByMaster();
         }
+        recalcDealAnalytics();
     };
 
     const handlePropChange = function() {
         updatePlotsCalculation();
         recalcSaleBrokerage();
+        recalcDealAnalytics();
     };
 
     if (masterSelect) {
@@ -946,6 +1284,7 @@ document.addEventListener('DOMContentLoaded', function() {
     syncAllCardsFromSelect();
     updatePlotsCalculation();
     recalcSaleBrokerageDue();
+    recalcDealAnalytics();
 
     const form = document.querySelector('form[action*="property-sales"]');
     if (form) {
