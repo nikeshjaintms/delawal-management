@@ -211,7 +211,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 <select name="property_ids[]" id="property_id" multiple style="display: none;">
                     @foreach($properties as $property)
                         @php
-                            $propPPrice = $property->purchase_rate ?: ($property->propertyMaster?->purchase_price && $property->propertyMaster->plots->count() > 0 ? round($property->propertyMaster->purchase_price / max(1, $property->propertyMaster->plots->count()), 2) : ($property->price ?? 0));
+                            $propPPrice = (float)($property->effective_purchase_cost ?: ($property->price ?? 0));
                             $propPDate = $property->purchase_date ? $property->purchase_date->format('Y-m-d') : ($property->propertyMaster?->purchase_date ? $property->propertyMaster->purchase_date->format('Y-m-d') : '');
                         @endphp
                         <option value="{{ $property->id }}"
@@ -235,7 +235,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                 $isSelected = in_array($property->id, $assignedPropIds);
                                 $statusColor = $property->status === 'available' ? '#34D399' : ($property->status === 'booked' ? '#FBBF24' : '#F87171');
                                 $statusBg = $property->status === 'available' ? 'rgba(16, 185, 129, 0.15)' : ($property->status === 'booked' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)');
-                                $propPPrice = $property->purchase_rate ?: ($property->propertyMaster?->purchase_price && $property->propertyMaster->plots->count() > 0 ? round($property->propertyMaster->purchase_price / max(1, $property->propertyMaster->plots->count()), 2) : ($property->price ?? 0));
+                                $propPPrice = (float)($property->effective_purchase_cost ?: ($property->price ?? 0));
                                 $propPDate = $property->purchase_date ? $property->purchase_date->format('Y-m-d') : ($property->propertyMaster?->purchase_date ? $property->propertyMaster->purchase_date->format('Y-m-d') : '');
                             @endphp
                             <div class="plot-card-item {{ $isSelected ? 'is-selected' : '' }}"

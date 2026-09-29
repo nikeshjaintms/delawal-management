@@ -307,23 +307,43 @@ class Property extends Model
      */
     public function getEffectivePurchaseCostAttribute(): float
     {
-        if ((float)($this->purchase_rate ?? 0) > 0) {
-            return (float)$this->purchase_rate;
-        }
-
+        // 1. If linked to a PropertyMaster
         if ($this->propertyMaster) {
             $pm = $this->propertyMaster;
-            $unitsCount = (int)($pm->total_units_count ?? 0);
-            $pmPrice = (float)($pm->purchase_price ?? 0);
-            if ($unitsCount > 0 && $pmPrice > 0) {
-                return round($pmPrice / $unitsCount, 2);
+            $pmPurchasePrice = (float)($pm->purchase_price ?? 0);
+            if ($pmPurchasePrice <= 0 && (float)($pm->purchase_rate ?? 0) > 0 && (float)($pm->total_area ?? 0) > 0) {
+                $pmPurchasePrice = round((float)$pm->purchase_rate * (float)$pm->total_area, 2);
             }
-            if ((float)($pm->purchase_rate ?? 0) > 0) {
-                return (float)$pm->purchase_rate;
+
+            // Entire property master (no unit_no)
+            if ($this->unit_no === null && empty($this->project_id)) {
+                if ($pmPurchasePrice > 0) return $pmPurchasePrice;
+                if ((float)($this->price ?? 0) > 0) return (float)$this->price;
             }
-            if ($pmPrice > 0) {
-                return $pmPrice;
+
+            // Sub-unit / Plot under PropertyMaster
+            $unitsCount = (int)($pm->total_units_count ?: $pm->plots->count());
+            if ($unitsCount > 0 && $pmPurchasePrice > 0) {
+                return round($pmPurchasePrice / $unitsCount, 2);
             }
+            if ($pmPurchasePrice > 0) {
+                return $pmPurchasePrice;
+            }
+        }
+
+        // 2. If individual property with size and purchase_rate
+        if ((float)($this->purchase_rate ?? 0) > 0 && (float)($this->size ?? 0) > 0) {
+            return round((float)$this->purchase_rate * (float)$this->size, 2);
+        }
+
+        // 3. If price is set
+        if ((float)($this->price ?? 0) > 0) {
+            return (float)$this->price;
+        }
+
+        // 4. Fallback to purchase_rate
+        if ((float)($this->purchase_rate ?? 0) > 0) {
+            return (float)$this->purchase_rate;
         }
 
         return 0.0;
