@@ -717,6 +717,8 @@ function onSaleScopeChange() {
 
         filterPlotsByMaster();
     }
+
+    recalcDealAnalytics();
 }
 
 function updateEntirePropInfo() {
@@ -1017,19 +1019,16 @@ function recalcDealAnalytics() {
     const selectedProjOpt = projectSelect ? projectSelect.selectedOptions[0] : null;
     const projExpenses = (selectedProjOpt && selectedProjOpt.value) ? (parseFloat(selectedProjOpt.dataset.expenses) || 0) : 0;
 
-    if (isEntire && masterSelect && masterSelect.selectedOptions[0]) {
-        const opt = masterSelect.selectedOptions[0];
-        if (opt.value) {
+    if (isEntire) {
+        if (masterSelect && masterSelect.selectedOptions[0] && masterSelect.selectedOptions[0].value) {
+            const opt = masterSelect.selectedOptions[0];
             detectedPurchaseCost = parseFloat(opt.dataset.purchasePrice) || parseFloat(opt.dataset.price) || 0;
             detectedExpenses = parseFloat(opt.dataset.expenses) || 0;
             detectedPurchaseDate = opt.dataset.purchaseDate || '';
             unitCount = parseInt(opt.dataset.plotsCount) || 1;
-        }
-        if (projExpenses > 0 && detectedExpenses === 0) {
+        } else if (projExpenses > 0) {
             detectedExpenses = projExpenses;
         }
-    } else if (isEntire && projExpenses > 0) {
-        detectedExpenses = projExpenses;
     } else if (propSelect) {
         const selected = Array.from(propSelect.selectedOptions).filter(o => o.value);
         unitCount = selected.length;
@@ -1047,8 +1046,8 @@ function recalcDealAnalytics() {
     }
 
     // Auto-fill Red Box (#purchase_cost) if property has detected cost and user hasn't typed a custom value
-    if (detectedPurchaseCost > 0 && purchaseCostInput && (!purchaseCostInput.value || purchaseCostInput.dataset.autoFilled === '1')) {
-        purchaseCostInput.value = detectedPurchaseCost.toFixed(2);
+    if (purchaseCostInput && (!purchaseCostInput.value || purchaseCostInput.dataset.autoFilled === '1')) {
+        purchaseCostInput.value = detectedPurchaseCost > 0 ? detectedPurchaseCost.toFixed(2) : '';
         purchaseCostInput.dataset.autoFilled = '1';
     }
 
@@ -1059,8 +1058,8 @@ function recalcDealAnalytics() {
     }
 
     // Auto-fill purchase date (#purchase_date) if property has detected date and user hasn't selected a custom date
-    if (detectedPurchaseDate && purchaseDateInput && (!purchaseDateInput.value || purchaseDateInput.dataset.autoFilled === '1')) {
-        purchaseDateInput.value = detectedPurchaseDate;
+    if (purchaseDateInput && (!purchaseDateInput.value || purchaseDateInput.dataset.autoFilled === '1')) {
+        purchaseDateInput.value = detectedPurchaseDate || '';
         purchaseDateInput.dataset.autoFilled = '1';
     }
 
