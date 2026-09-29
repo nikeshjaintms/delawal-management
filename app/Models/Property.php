@@ -368,23 +368,27 @@ class Property extends Model
             return (float)$pm->total_expenses;
         }
 
-        // 2. Direct expenses on this individual plot
-        $directSum = (float)$this->expenses()->sum('amount');
-        $pivotSum = (float)\Illuminate\Support\Facades\DB::table('expense_property')
-            ->where('expense_property.property_id', $this->id)
-            ->join('expenses', 'expense_property.expense_id', '=', 'expenses.id')
-            ->sum('expenses.amount');
-        $thisDirect = $directSum + $pivotSum;
+        // 2. Direct expenses on this individual plot (avoiding double counting between direct property_id column and expense_property pivot)
+        $thisDirect = (float)Expense::where(function($q) {
+            $q->where('property_id', $this->id)
+              ->orWhereIn('id', function($sub) {
+                  $sub->select('expense_id')
+                      ->from('expense_property')
+                      ->where('property_id', $this->id);
+              });
+        })->sum('amount');
 
         // 3. If under PropertyMaster with multiple plots, allocate proportional share of general PM / linked project expenses
         if ($pm && $totalPlots > 1) {
             $allPlotIds = $pm->plots()->pluck('id')->toArray();
-            $directPlotsSum = (float)\App\Models\Expense::whereIn('property_id', $allPlotIds)->sum('amount');
-            $pivotPlotsSum = (float)\Illuminate\Support\Facades\DB::table('expense_property')
-                ->whereIn('expense_property.property_id', $allPlotIds)
-                ->join('expenses', 'expense_property.expense_id', '=', 'expenses.id')
-                ->sum('expenses.amount');
-            $allPlotsDirectTotal = $directPlotsSum + $pivotPlotsSum;
+            $allPlotsDirectTotal = (float)Expense::where(function($q) use ($allPlotIds) {
+                $q->whereIn('property_id', $allPlotIds)
+                  ->orWhereIn('id', function($sub) use ($allPlotIds) {
+                      $sub->select('expense_id')
+                          ->from('expense_property')
+                          ->whereIn('property_id', $allPlotIds);
+                  });
+            })->sum('amount');
             $generalPmExpenses = max(0, $pm->total_expenses - $allPlotsDirectTotal);
             $allocatedPmShare = round($generalPmExpenses / $totalPlots, 2);
             return round($thisDirect + $allocatedPmShare, 2);

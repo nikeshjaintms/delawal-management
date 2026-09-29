@@ -337,11 +337,14 @@ class PropertyMaster extends Model
         $entirePropIds = Property::where('property_master_id', $this->id)->pluck('id')->toArray();
         $allIds = array_values(array_unique(array_merge($plotIds, $entirePropIds)));
 
-        $directSum = !empty($allIds) ? (float)Expense::whereIn('property_id', $allIds)->sum('amount') : 0.0;
-        $pivotSum = !empty($allIds) ? (float)\Illuminate\Support\Facades\DB::table('expense_property')
-            ->whereIn('expense_property.property_id', $allIds)
-            ->join('expenses', 'expense_property.expense_id', '=', 'expenses.id')
-            ->sum('expenses.amount') : 0.0;
+        $directSum = !empty($allIds) ? (float)Expense::where(function($q) use ($allIds) {
+            $q->whereIn('property_id', $allIds)
+              ->orWhereIn('id', function($sub) use ($allIds) {
+                  $sub->select('expense_id')
+                      ->from('expense_property')
+                      ->whereIn('property_id', $allIds);
+              });
+        })->sum('amount') : 0.0;
 
         // Include project-level expenses for projects linked to this property master
         $projectIds = $this->all_projects->pluck('id')->toArray();
@@ -350,7 +353,7 @@ class PropertyMaster extends Model
                 ->where(function($q) use ($allIds) {
                     $q->whereNull('property_id');
                     if (!empty($allIds)) {
-                        $q->orWhereNotIn('property_id', $allIds);
+                        $q->whereNotIn('property_id', $allIds);
                     }
                 })
                 ->whereNotIn('id', function($q) use ($allIds) {
@@ -363,6 +366,6 @@ class PropertyMaster extends Model
             $directSum += $projectExpenses;
         }
 
-        return round($directSum + $pivotSum, 2);
+        return round($directSum, 2);
     }
 }
