@@ -315,16 +315,21 @@ class Property extends Model
                 $pmPurchasePrice = round((float)$pm->purchase_rate * (float)$pm->total_area, 2);
             }
 
-            // Entire property master (no unit_no)
-            if ($this->unit_no === null && empty($this->project_id)) {
+            $totalPlots = max(1, (int)($pm->total_units_count ?: $pm->plots()->count()));
+            $isEntire = ($totalPlots <= 1) || str_contains((string)$this->property_name, '(Entire Property)') || str_ends_with((string)$this->property_code, '-ENTIRE');
+
+            // Entire property master
+            if ($isEntire) {
                 if ($pmPurchasePrice > 0) return $pmPurchasePrice;
                 if ((float)($this->price ?? 0) > 0) return (float)$this->price;
             }
 
-            // Sub-unit / Plot under PropertyMaster
-            $unitsCount = (int)($pm->total_units_count ?: $pm->plots->count());
-            if ($unitsCount > 0 && $pmPurchasePrice > 0) {
-                return round($pmPurchasePrice / $unitsCount, 2);
+            // Sub-unit / Individual Plot under PropertyMaster
+            if ($totalPlots > 1 && $pmPurchasePrice > 0) {
+                return round($pmPurchasePrice / $totalPlots, 2);
+            }
+            if ((float)($this->price ?? 0) > 0) {
+                return (float)$this->price;
             }
             if ($pmPurchasePrice > 0) {
                 return $pmPurchasePrice;
@@ -347,5 +352,60 @@ class Property extends Model
         }
 
         return 0.0;
+    }
+
+    /**
+     * Get total expenses attached to this property.
+     */
+    public function getTotalExpensesAttribute(): float
+    {
+        $pm = $this->property_master_id ? ($this->propertyMaster ?: \App\Models\PropertyMaster::find($this->property_master_id)) : null;
+        $totalPlots = $pm ? max(1, (int)($pm->total_units_count ?: $pm->plots()->count())) : 1;
+        $isEntire = ($pm && $totalPlots <= 1) || str_contains((string)$this->property_name, '(Entire Property)') || str_ends_with((string)$this->property_code, '-ENTIRE');
+
+        // 1. If this property represents an Entire Property Master
+        if ($isEntire && $pm) {
+            return (float)$pm->total_expenses;
+        }
+
+        // 2. Direct expenses on this individual plot
+        $directSum = (float)$this->expenses()->sum('amount');
+        $pivotSum = (float)\Illuminate\Support\Facades\DB::table('expense_property')
+            ->where('expense_property.property_id', $this->id)
+            ->join('expenses', 'expense_property.expense_id', '=', 'expenses.id')
+            ->sum('expenses.amount');
+        $thisDirect = $directSum + $pivotSum;
+
+        // 3. If under PropertyMaster with multiple plots, allocate proportional share of general PM / linked project expenses
+        if ($pm && $totalPlots > 1) {
+            $allPlotIds = $pm->plots()->pluck('id')->toArray();
+            $directPlotsSum = (float)\App\Models\Expense::whereIn('property_id', $allPlotIds)->sum('amount');
+            $pivotPlotsSum = (float)\Illuminate\Support\Facades\DB::table('expense_property')
+                ->whereIn('expense_property.property_id', $allPlotIds)
+                ->join('expenses', 'expense_property.expense_id', '=', 'expenses.id')
+                ->sum('expenses.amount');
+            $allPlotsDirectTotal = $directPlotsSum + $pivotPlotsSum;
+            $generalPmExpenses = max(0, $pm->total_expenses - $allPlotsDirectTotal);
+            $allocatedPmShare = round($generalPmExpenses / $totalPlots, 2);
+            return round($thisDirect + $allocatedPmShare, 2);
+        }
+
+        // 4. If this unit belongs to a standalone Project, add its proportional share of general project expenses
+        if ($this->project_id) {
+            $projUnitsCount = static::where('project_id', $this->project_id)->count();
+            if ($projUnitsCount > 0) {
+                $generalProjExpenses = (float)Expense::where('project_id', $this->project_id)
+                    ->whereNull('property_id')
+                    ->whereNotIn('id', function($q) {
+                        $q->select('expense_id')->from('expense_property');
+                    })
+                    ->sum('amount');
+                if ($generalProjExpenses > 0) {
+                    return round($thisDirect + round($generalProjExpenses / $projUnitsCount, 2), 2);
+                }
+            }
+        }
+
+        return round($thisDirect, 2);
     }
 }

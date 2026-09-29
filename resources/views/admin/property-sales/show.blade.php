@@ -343,9 +343,11 @@
     @php
         $earliestPurchaseDate = $propertySale->effective_purchase_date;
         $heldDurationText = $propertySale->held_duration_text;
-        $totCost = $propertySale->total_purchase_cost;
+        $totPurchaseCost = $propertySale->total_purchase_cost;
+        $totExpenses = $propertySale->total_property_expenses;
+        $totCostBasis = $propertySale->total_cost_basis;
         $totSale = $propertySale->sale_amount ?? 0;
-        $invMultiple = $totCost > 0 ? round($totSale / $totCost, 2) : 0;
+        $invMultiple = $totCostBasis > 0 ? round($totSale / $totCostBasis, 2) : 0;
     @endphp
 
     <div class="section-title">
@@ -355,25 +357,30 @@
     {{-- Reel-Style Deal & Profit Flow Card --}}
     <div style="background: linear-gradient(145deg, rgba(15, 23, 42, 0.85) 0%, rgba(20, 27, 41, 0.70) 100%); border: 1.5px solid rgba(56, 189, 248, 0.25); border-radius: 20px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); margin-bottom: 22px;">
         
-        {{-- Flow: PURCHASED -> HELD FOR -> SOLD --}}
+        {{-- Flow: PURCHASED + EXPENSES -> HELD FOR -> SOLD --}}
         <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; margin-bottom: 20px;">
             
-            {{-- PURCHASED Box --}}
+            {{-- PURCHASED & EXPENSES Box --}}
             <div style="background: rgba(37, 99, 235, 0.12); border: 1.5px solid rgba(59, 130, 246, 0.40); border-radius: 14px; padding: 16px 18px; position: relative;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
                     <span style="background: #2563EB; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px; letter-spacing: 0.8px; text-transform: uppercase;">
-                        PURCHASED
+                        TOTAL INVESTED BASIS
                     </span>
                     <span style="font-size: 12px; font-weight: 700; color: #93C5FD;">
                         {{ $earliestPurchaseDate ? \Carbon\Carbon::parse($earliestPurchaseDate)->format('M Y') : '—' }}
                     </span>
                 </div>
                 <div style="font-size: 22px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.5px;">
-                    ₹{{ number_format($totCost, 2) }}
+                    ₹{{ number_format($totCostBasis, 2) }}
                 </div>
                 <div style="font-size: 11.5px; color: #94A3B8; margin-top: 4px;">
-                    {{ $plotCount }} unit(s) • Total Acquisition Cost
+                    Base Cost: ₹{{ number_format($totPurchaseCost, 2) }}
                 </div>
+                @if($totExpenses > 0)
+                    <div style="font-size: 11px; color: #FCD34D; margin-top: 2px;">
+                        + ₹{{ number_format($totExpenses, 2) }} Incurred Expenses
+                    </div>
+                @endif
             </div>
 
             {{-- HELD FOR Indicator --}}
@@ -416,7 +423,7 @@
             @php $isProf = $propertySale->net_profit >= 0; @endphp
             <div style="background: rgba(16, 185, 129, 0.12); border: 1.5px solid rgba(52, 211, 153, 0.35); border-radius: 14px; padding: 14px 16px; text-align: center;">
                 <div style="font-size: 11px; font-weight: 800; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">
-                    PROFIT / GAIN
+                    NET PROFIT / GAIN
                 </div>
                 <div style="font-size: 20px; font-weight: 900; color: {{ $isProf ? '#34D399' : '#F87171' }}; letter-spacing: -0.5px;">
                     {{ $isProf ? '+' : '' }}₹{{ number_format($propertySale->net_profit, 2) }}
@@ -435,7 +442,7 @@
                     {{ $propertySale->roi_percentage >= 0 ? '+' : '' }}{{ $propertySale->roi_percentage }}%
                 </div>
                 <div style="font-size: 11px; color: #BAE6FD; font-weight: 700; margin-top: 2px;">
-                    (on acquisition)
+                    (on total invested basis)
                 </div>
             </div>
 
@@ -460,16 +467,16 @@
         
         <!-- 4 Key Financial Metrics Grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
-            <!-- 1. Total Purchase Cost -->
+            <!-- 1. Total Cost Basis (Purchase + Expenses) -->
             <div class="detail-item" style="background: rgba(245, 158, 11, 0.08) !important; border: 1.5px solid rgba(245, 158, 11, 0.35) !important;">
                 <div class="detail-label" style="color: #FBBF24 !important;">
-                    <i class="fa-solid fa-cart-shopping" style="color: #FBBF24 !important;"></i> Total Purchase Cost
+                    <i class="fa-solid fa-cart-shopping" style="color: #FBBF24 !important;"></i> Total Invested Basis
                 </div>
                 <div class="detail-value" style="font-size: 21px; font-weight: 800; color: #FBBF24 !important;">
-                    ₹{{ number_format($propertySale->total_purchase_cost, 2) }}
+                    ₹{{ number_format($totCostBasis, 2) }}
                 </div>
                 <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">
-                    {{ $plotCount }} unit(s) acquisition cost
+                    Cost: ₹{{ number_format($totPurchaseCost, 2) }} @if($totExpenses > 0) + Exp: ₹{{ number_format($totExpenses, 2) }} @endif
                 </div>
             </div>
 
@@ -525,8 +532,14 @@
                 </span>
                 <span style="color: #64748B;">—</span>
                 <span style="color: #F59E0B; font-weight: 700;">
-                    <i class="fa-solid fa-minus" style="font-size: 10px;"></i> Purchase Cost: ₹{{ number_format($propertySale->total_purchase_cost, 2) }}
+                    <i class="fa-solid fa-minus" style="font-size: 10px;"></i> Purchase Cost: ₹{{ number_format($totPurchaseCost, 2) }}
                 </span>
+                @if($totExpenses > 0)
+                    <span style="color: #64748B;">—</span>
+                    <span style="color: #FCD34D; font-weight: 700;">
+                        <i class="fa-solid fa-minus" style="font-size: 10px;"></i> Expenses: ₹{{ number_format($totExpenses, 2) }}
+                    </span>
+                @endif
                 @if(($propertySale->broker_commission_amount ?? 0) > 0)
                     <span style="color: #64748B;">—</span>
                     <span style="color: #A78BFA; font-weight: 700;">

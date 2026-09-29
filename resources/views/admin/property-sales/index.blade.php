@@ -348,10 +348,15 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                             @endif
                         </td>
                         <td>
-                            <div class="cost-badge" title="Total Purchase Cost (Lidhi Price)">
+                            <div class="cost-badge" title="Total Invested (Purchase: ₹{{ number_format($sale->total_purchase_cost, 2) }} @if($sale->total_property_expenses > 0)+ Expenses: ₹{{ number_format($sale->total_property_expenses, 2) }}@endif)">
                                 <i class="fa-solid fa-cart-shopping"></i>
-                                ₹{{ number_format($sale->total_purchase_cost, 2) }}
+                                ₹{{ number_format($sale->total_cost_basis, 2) }}
                             </div>
+                            @if($sale->total_property_expenses > 0)
+                                <div style="font-size: 10.5px; color: #FCD34D; margin-top: 2px; font-weight: 600;">
+                                    +₹{{ number_format($sale->total_property_expenses, 2) }} exp
+                                </div>
+                            @endif
                         </td>
                         <td>
                             <div class="profit-badge {{ $netP >= 0 ? 'profit-pos' : 'profit-neg' }}" title="Net Realized Profit (Sale - Purchase - Commission)">

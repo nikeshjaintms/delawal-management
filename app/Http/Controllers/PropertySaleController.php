@@ -126,7 +126,7 @@ class PropertySaleController extends Controller
         // Summary KPI calculations across all matching sales
         $summarySales = (clone $query)->get();
         $totalSalesRevenue      = (float)$summarySales->sum('sale_amount');
-        $totalSalesPurchaseCost = (float)$summarySales->sum(fn($s) => $s->total_purchase_cost);
+        $totalSalesPurchaseCost = (float)$summarySales->sum(fn($s) => $s->total_cost_basis);
         $totalSalesProfit       = (float)$summarySales->sum(fn($s) => $s->net_profit);
         $salesProfitMargin      = $totalSalesRevenue > 0 ? round(($totalSalesProfit / $totalSalesRevenue) * 100, 1) : 0.0;
         $totalSalesCount        = $summarySales->count();
@@ -208,6 +208,7 @@ class PropertySaleController extends Controller
             'broker_notes'     => 'nullable|string|max:2000',
             'purchase_date'    => 'nullable|date',
             'purchase_cost'    => 'nullable|numeric|min:0',
+            'property_expenses'=> 'nullable|numeric|min:0',
             'sale_date'        => 'nullable|date',
             'sale_amount'      => 'nullable|numeric',
             'booking_amount'   => 'nullable|numeric',
@@ -270,6 +271,7 @@ class PropertySaleController extends Controller
             'broker_id'                      => $brokerId,
             'purchase_date'                  => $request->purchase_date,
             'purchase_cost'                  => $request->filled('purchase_cost') ? (float)$request->purchase_cost : null,
+            'property_expenses'              => $request->filled('property_expenses') ? (float)$request->property_expenses : null,
             'broker_commission_type'         => $brokerCommType,
             'broker_commission_rate'         => $brokerCommRate,
             'broker_commission_amount'       => $brokerCommAmount,
@@ -425,6 +427,7 @@ class PropertySaleController extends Controller
             'broker_notes'     => 'nullable|string|max:2000',
             'purchase_date'    => 'nullable|date',
             'purchase_cost'    => 'nullable|numeric|min:0',
+            'property_expenses'=> 'nullable|numeric|min:0',
             'sale_date'        => 'nullable|date',
             'sale_amount'      => 'nullable|numeric',
             'booking_amount'   => 'nullable|numeric',
@@ -501,6 +504,7 @@ class PropertySaleController extends Controller
             'broker_id'                      => $brokerId,
             'purchase_date'                  => $request->purchase_date,
             'purchase_cost'                  => $request->filled('purchase_cost') ? (float)$request->purchase_cost : null,
+            'property_expenses'              => $request->filled('property_expenses') ? (float)$request->property_expenses : null,
             'broker_commission_type'         => $brokerCommType,
             'broker_commission_rate'         => $brokerCommRate,
             'broker_commission_amount'       => $brokerCommAmount,

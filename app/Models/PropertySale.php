@@ -15,6 +15,7 @@ class PropertySale extends Model
         'broker_id',
         'purchase_date',
         'purchase_cost',
+        'property_expenses',
         'broker_commission_type',
         'broker_commission_rate',
         'broker_commission_amount',
@@ -47,6 +48,7 @@ class PropertySale extends Model
     protected $casts = [
         'purchase_date'            => 'date',
         'purchase_cost'            => 'decimal:2',
+        'property_expenses'        => 'decimal:2',
         'sale_date'                => 'date',
         'sale_amount'              => 'decimal:2',
         'booking_amount'           => 'decimal:2',
@@ -219,24 +221,51 @@ class PropertySale extends Model
     }
 
     /**
-     * Gross Profit = Total Sale Value - Total Purchase Cost
+     * Total Incurred Property Expenses
+     */
+    public function getTotalPropertyExpensesAttribute(): float
+    {
+        if (!is_null($this->property_expenses)) {
+            return (float)$this->property_expenses;
+        }
+        $props = $this->all_properties;
+        if ($props->isEmpty()) {
+            return 0.0;
+        }
+        $total = 0.0;
+        foreach ($props as $p) {
+            $total += (float)($p->total_expenses ?? 0);
+        }
+        return round($total, 2);
+    }
+
+    /**
+     * Total Invested Basis = Purchase Cost + Incurred Property Expenses
+     */
+    public function getTotalCostBasisAttribute(): float
+    {
+        return round($this->total_purchase_cost + $this->total_property_expenses, 2);
+    }
+
+    /**
+     * Gross Profit = Total Sale Value - Total Purchase Cost - Property Expenses
      */
     public function getGrossProfitAttribute(): float
     {
         $sale = (float)($this->sale_amount ?? $this->grand_total ?? 0);
-        $cost = $this->total_purchase_cost;
-        return round($sale - $cost, 2);
+        $costBasis = $this->total_cost_basis;
+        return round($sale - $costBasis, 2);
     }
 
     /**
-     * Net Profit = Total Sale Value - Total Purchase Cost - Broker Commission
+     * Net Profit = Total Sale Value - Total Purchase Cost - Property Expenses - Broker Commission
      */
     public function getNetProfitAttribute(): float
     {
         $sale = (float)($this->sale_amount ?? $this->grand_total ?? 0);
-        $cost = $this->total_purchase_cost;
+        $costBasis = $this->total_cost_basis;
         $comm = (float)($this->broker_commission_amount ?? 0);
-        return round($sale - $cost - $comm, 2);
+        return round($sale - $costBasis - $comm, 2);
     }
 
     /**
@@ -252,15 +281,15 @@ class PropertySale extends Model
     }
 
     /**
-     * ROI % (Return on Investment) = (Net Profit / Total Purchase Cost) * 100
+     * ROI % (Return on Investment) = (Net Profit / Total Invested Cost) * 100
      */
     public function getRoiPercentageAttribute(): float
     {
-        $cost = $this->total_purchase_cost;
-        if ($cost <= 0) {
+        $costBasis = $this->total_cost_basis;
+        if ($costBasis <= 0) {
             return 0.0;
         }
-        return round(($this->net_profit / $cost) * 100, 2);
+        return round(($this->net_profit / $costBasis) * 100, 2);
     }
 
     /**

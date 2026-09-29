@@ -327,4 +327,42 @@ class PropertyMaster extends Model
     {
         return $this->getHighestPlotSequenceNumber() + 1;
     }
+
+    /**
+     * Get total expenses attached to this PropertyMaster and all its plots.
+     */
+    public function getTotalExpensesAttribute(): float
+    {
+        $plotIds = $this->plots()->pluck('id')->toArray();
+        $entirePropIds = Property::where('property_master_id', $this->id)->pluck('id')->toArray();
+        $allIds = array_values(array_unique(array_merge($plotIds, $entirePropIds)));
+
+        $directSum = !empty($allIds) ? (float)Expense::whereIn('property_id', $allIds)->sum('amount') : 0.0;
+        $pivotSum = !empty($allIds) ? (float)\Illuminate\Support\Facades\DB::table('expense_property')
+            ->whereIn('expense_property.property_id', $allIds)
+            ->join('expenses', 'expense_property.expense_id', '=', 'expenses.id')
+            ->sum('expenses.amount') : 0.0;
+
+        // Include project-level expenses for projects linked to this property master
+        $projectIds = $this->all_projects->pluck('id')->toArray();
+        if (!empty($projectIds)) {
+            $projectExpenses = (float)Expense::whereIn('project_id', $projectIds)
+                ->where(function($q) use ($allIds) {
+                    $q->whereNull('property_id');
+                    if (!empty($allIds)) {
+                        $q->orWhereNotIn('property_id', $allIds);
+                    }
+                })
+                ->whereNotIn('id', function($q) use ($allIds) {
+                    $q->select('expense_id')->from('expense_property');
+                    if (!empty($allIds)) {
+                        $q->whereIn('expense_property.property_id', $allIds);
+                    }
+                })
+                ->sum('amount');
+            $directSum += $projectExpenses;
+        }
+
+        return round($directSum + $pivotSum, 2);
+    }
 }
