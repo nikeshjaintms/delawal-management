@@ -202,6 +202,11 @@ class PropertyMaster extends Model
         return $this->belongsTo(Firm::class);
     }
 
+    public function properties()
+    {
+        return $this->hasMany(Property::class, 'property_master_id');
+    }
+
     public function plots()
     {
         return $this

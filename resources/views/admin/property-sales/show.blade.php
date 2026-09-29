@@ -276,6 +276,39 @@
         </div>
     </div>
 
+    {{-- Plot Size & Rate Details --}}
+    @if($propertySale->total_area || $propertySale->purchase_rate || $propertySale->sell_rate)
+    <div class="section-title">
+        <span><i class="fa-solid fa-ruler-combined"></i> Plot Size &amp; Rate Details</span>
+    </div>
+    <div class="detail-grid-3" style="margin-bottom: 24px;">
+        <div class="detail-item" style="background: rgba(16, 185, 129, 0.08) !important; border: 1.5px solid rgba(16, 185, 129, 0.3) !important;">
+            <div class="detail-label" style="color: #34D399 !important;"><i class="fa-solid fa-map" style="color: #34D399 !important;"></i> Total Plot Area / Size</div>
+            <div class="detail-value" style="font-size: 18px; color: #34D399 !important;">
+                {{ $propertySale->total_area ? number_format($propertySale->total_area, 2) : '—' }} <span style="font-size: 13px; font-weight: 600; color: #CBD5E1;">{{ $propertySale->area_unit ?? 'Sq.Ft' }}</span>
+            </div>
+        </div>
+        <div class="detail-item" style="background: rgba(59, 130, 246, 0.08) !important; border: 1.5px solid rgba(59, 130, 246, 0.3) !important;">
+            <div class="detail-label" style="color: #60A5FA !important;"><i class="fa-solid fa-tag" style="color: #60A5FA !important;"></i> Purchase Rate / {{ $propertySale->area_unit ?? 'Sq.Ft' }}</div>
+            <div class="detail-value" style="font-size: 18px; color: #60A5FA !important;">
+                {{ $propertySale->purchase_rate ? '₹' . number_format($propertySale->purchase_rate, 2) : '—' }}
+            </div>
+            @if($propertySale->total_area && $propertySale->purchase_rate)
+                <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">Base: ₹{{ number_format($propertySale->total_area * $propertySale->purchase_rate, 2) }}</div>
+            @endif
+        </div>
+        <div class="detail-item" style="background: rgba(245, 158, 11, 0.08) !important; border: 1.5px solid rgba(245, 158, 11, 0.3) !important;">
+            <div class="detail-label" style="color: #FBBF24 !important;"><i class="fa-solid fa-hand-holding-dollar" style="color: #FBBF24 !important;"></i> Sell Rate / {{ $propertySale->area_unit ?? 'Sq.Ft' }}</div>
+            <div class="detail-value" style="font-size: 18px; color: #FBBF24 !important;">
+                {{ $propertySale->sell_rate ? '₹' . number_format($propertySale->sell_rate, 2) : '—' }}
+            </div>
+            @if($propertySale->total_area && $propertySale->sell_rate)
+                <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">Est. Total: ₹{{ number_format($propertySale->total_area * $propertySale->sell_rate, 2) }}</div>
+            @endif
+        </div>
+    </div>
+    @endif
+
     {{-- Assigned Properties / Multiple Plots Grid --}}
     <div class="section-title">
         <span><i class="fa-solid fa-layer-group"></i> Assigned Plot(s) / Unit(s) ({{ $plotCount }})</span>
@@ -499,7 +532,7 @@
             @endphp
             <div class="detail-item" style="background: {{ $isProfit ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)' }} !important; border: 1.5px solid {{ $isProfit ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.45)' }} !important; box-shadow: 0 4px 20px {{ $isProfit ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)' }};">
                 <div class="detail-label" style="color: {{ $isProfit ? '#34D399' : '#F87171' }} !important;">
-                    <i class="fa-solid {{ $isProfit ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}" style="color: {{ $isProfit ? '#34D399' : '#F87171' }} !important;"></i> Net {{ $isProfit ? 'Profit (ચોખ્ખો નફો)' : 'Loss (ખોટ)' }}
+                    <i class="fa-solid {{ $isProfit ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}" style="color: {{ $isProfit ? '#34D399' : '#F87171' }} !important;"></i> Net {{ $isProfit ? 'Profit' : 'Loss' }}
                 </div>
                 <div class="detail-value" style="font-size: 21px; font-weight: 800; color: {{ $isProfit ? '#34D399' : '#F87171' }} !important;">
                     {{ $isProfit ? '+' : '' }}₹{{ number_format($propertySale->net_profit, 2) }}

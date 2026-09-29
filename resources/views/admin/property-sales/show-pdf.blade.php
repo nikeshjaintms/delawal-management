@@ -125,8 +125,28 @@
         @endif
         <div class="info-row">
             <span class="info-label">Size / Area:</span>
-            <span class="info-value">{{ $propertySale->property && $propertySale->property->size ? $propertySale->property->size . ' ' . ($propertySale->property->size_unit ?? 'sq.ft') : '-' }}</span>
+            <span class="info-value">
+                @if($propertySale->total_area)
+                    {{ number_format($propertySale->total_area, 2) }} {{ $propertySale->area_unit ?? 'Sq.Ft' }}
+                @elseif($propertySale->property && $propertySale->property->size)
+                    {{ $propertySale->property->size . ' ' . ($propertySale->property->size_unit ?? 'sq.ft') }}
+                @else
+                    -
+                @endif
+            </span>
         </div>
+        @if($propertySale->sell_rate)
+        <div class="info-row">
+            <span class="info-label">Selling Rate:</span>
+            <span class="info-value">₹{{ number_format($propertySale->sell_rate, 2) }} / {{ $propertySale->area_unit ?? 'Sq.Ft' }}</span>
+        </div>
+        @endif
+        @if($propertySale->purchase_rate)
+        <div class="info-row">
+            <span class="info-label">Purchase Rate:</span>
+            <span class="info-value">₹{{ number_format($propertySale->purchase_rate, 2) }} / {{ $propertySale->area_unit ?? 'Sq.Ft' }}</span>
+        </div>
+        @endif
         <div class="info-row">
             <span class="info-label">Location / City:</span>
             <span class="info-value">{{ $propertySale->property->location ?? ($propertySale->property->city ?? '-') }}</span>

@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title','Land Property Status — Details')
+@section('title','Property Status — Details')
 @section('page-title','Property Availability')
 
 @section('content')
@@ -29,7 +29,7 @@
 
 .crud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
 .crud-title h2 { font-size: 24px; font-weight: 800; color: #FFFFFF !important; margin-bottom: 6px; letter-spacing: -0.3px; }
-.crud-title p { font-size: 14px; color: #FFFFFF !important; font-weight: 700 !important; margin: 0; }
+.crud-title p { font-size: 14px; color: #CBD5E1 !important; font-weight: 500; margin: 0; }
 .header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
 .detail-card {
@@ -41,7 +41,7 @@
     padding: 28px 32px !important;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
     margin-bottom: 24px;
-    max-width: 860px;
+    max-width: 960px;
 }
 
 .section-heading {
@@ -58,130 +58,126 @@
     gap: 8px;
 }
 
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
-@media(max-width:768px){.detail-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:480px){.detail-grid{grid-template-columns:1fr}}
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
 
 .detail-label {
-    font-size: 11.5px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .8px;
-    color: #94A3B8 !important;
-    margin-bottom: 6px;
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px;
+    color: #94A3B8 !important; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
 }
-.detail-value { font-size: 15px; font-weight: 700; color: #FFFFFF !important; }
-.prop-link { color: #60A5FA !important; text-decoration: none; font-weight: 700; }
-.prop-link:hover { text-decoration: underline; }
+.detail-value { font-size: 15px; font-weight: 700; color: #FFFFFF !important; word-break: break-word; }
 
 /* Status Badges */
 .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 11.5px; font-weight: 800; border-radius: 20px; text-transform: uppercase; letter-spacing: .4px; }
 .badge i { font-size: 7px; }
-.badge-available   { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
-.badge-booked      { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
-.badge-sold        { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
-.badge-rented      { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
-.badge-reserved    { background: rgba(139, 92, 246, 0.18) !important; color: #A78BFA !important; border: 1px solid rgba(139, 92, 246, 0.35) !important; }
-.badge-under_maintenance { background: rgba(148, 163, 184, 0.18) !important; color: #CBD5E1 !important; border: 1px solid rgba(148, 163, 184, 0.35) !important; }
+.badge-available         { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
+.badge-booked            { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.4) !important; }
+.badge-sold              { background: rgba(239, 68, 68, 0.18) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.4) !important; }
+.badge-rented            { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.4) !important; }
+.badge-reserved          { background: rgba(139, 92, 246, 0.18) !important; color: #A78BFA !important; border: 1px solid rgba(139, 92, 246, 0.4) !important; }
+.badge-under_maintenance { background: rgba(148, 163, 184, 0.18) !important; color: #CBD5E1 !important; border: 1px solid rgba(148, 163, 184, 0.4) !important; }
 
-.prop-type-pill { display: inline-flex; align-items: center; gap: 5px; background: rgba(59, 130, 246, 0.15) !important; color: #60A5FA !important; font-size: 12px; font-weight: 700; border-radius: 6px; padding: 4px 10px; border: 1px solid rgba(59, 130, 246, 0.30); }
+.table-container { width: 100%; overflow-x: auto; background: rgba(16, 22, 34, 0.70); border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.10); margin-top: 14px; }
+.premium-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+.premium-table th {
+    padding: 11px 14px; background: rgba(255, 255, 255, 0.05); color: #94A3B8; font-weight: 800; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .8px; border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+.premium-table td { padding: 11px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); color: #FFFFFF; }
 </style>
+
+@php
+    $targetObj = $property ?? $propertyMaster;
+    $targetStatus = $targetObj->status ?? 'available';
+    $targetName = $targetObj->property_name ?? 'Property';
+@endphp
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2>Land Property Status Record</h2>
-        <p>Full details of this availability / status entry.</p>
+        <h2>Property Availability: {{ $targetName }}</h2>
+        <p>Live status and timeline history for this unit / property.</p>
     </div>
     <div class="header-actions">
-        <a href="{{ route('property-availability.edit', $record) }}" class="btn-pc">
-            <i class="fa fa-edit"></i> Edit
-        </a>
         <a href="{{ route('property-availability.index') }}" class="btn-sc">
-            <i class="fa fa-arrow-left"></i> Back
+            <i class="fa fa-arrow-left"></i> Back to Status List
         </a>
     </div>
 </div>
 
 <div class="detail-card">
-    <div class="section-heading"><i class="fa-solid fa-building"></i> Land Property Details</div>
+    <div class="section-heading"><i class="fa-solid fa-building"></i> Current Unit &amp; Availability Status</div>
     <div class="detail-grid">
         <div>
-            <div class="detail-label">Property Name</div>
+            <div class="detail-label"><i class="fa-solid fa-hotel"></i> Property / Plot Name</div>
+            <div class="detail-value" style="color: #60A5FA;">{{ $targetName }}</div>
+        </div>
+        <div>
+            <div class="detail-label"><i class="fa-solid fa-circle-dot"></i> Current Live Status</div>
             <div class="detail-value">
-                @if($record->property_master_id)
-                    <a href="{{ route('property-masters.show', $record->property_master_id) }}" class="prop-link">
-                        {{ $record->target_name }}
-                    </a>
-                @elseif($record->property_id)
-                    <a href="{{ route('properties.show', $record->property_id) }}" class="prop-link">
-                        {{ $record->target_name }}
-                    </a>
-                @else
-                    {{ $record->target_name }}
-                @endif
-            </div>
-        </div>
-        <div>
-            <div class="detail-label">Property Category</div>
-            <div class="detail-value">
-                <span class="prop-type-pill"><i class="fa-solid fa-map-location-dot"></i> Land / Property Master</span>
-            </div>
-        </div>
-        <div>
-            <div class="detail-label">Property Code</div>
-            <div class="detail-value">{{ $record->target_code }}</div>
-        </div>
-        <div>
-            <div class="detail-label">Location / City</div>
-            <div class="detail-value">{{ $record->target_location }}</div>
-        </div>
-        <div>
-            <div class="detail-label">Firm</div>
-            <div class="detail-value">{{ $record->firm->firm_name ?? '—' }}</div>
-        </div>
-    </div>
-</div>
-
-<div class="detail-card">
-    <div class="section-heading"><i class="fa-solid fa-circle-check"></i> Status Details</div>
-    <div class="detail-grid">
-        <div>
-            <div class="detail-label">Current Status</div>
-            <div class="detail-value">
-                <span class="badge badge-{{ $record->status }}">
+                <span class="badge badge-{{ $targetStatus }}">
                     <i class="fa-solid fa-circle"></i>
-                    {{ $record->status_label }}
+                    {{ ucfirst(str_replace('_', ' ', $targetStatus)) }}
                 </span>
             </div>
         </div>
         <div>
-            <div class="detail-label">Status Date</div>
-            <div class="detail-value">{{ $record->status_date ? $record->status_date->format('d M Y') : '—' }}</div>
+            <div class="detail-label"><i class="fa-solid fa-building-user"></i> Firm</div>
+            <div class="detail-value">{{ $targetObj->firm->firm_name ?? 'N/A' }}</div>
         </div>
-        <div>
-            <div class="detail-label">Updated By</div>
-            <div class="detail-value">{{ $record->updatedBy->name ?? '—' }}</div>
-        </div>
-        <div>
-            <div class="detail-label">Created At</div>
-            <div class="detail-value" style="font-size:13.5px;color:#CBD5E1">
-                {{ $record->created_at ? $record->created_at->format('d M Y, h:i A') : '—' }}
+        @if($property)
+            <div>
+                <div class="detail-label"><i class="fa-solid fa-hashtag"></i> Code / Unit No</div>
+                <div class="detail-value">{{ $property->property_code ?: ($property->unit_no ? 'Unit '.$property->unit_no : '—') }}</div>
             </div>
-        </div>
-        <div>
-            <div class="detail-label">Last Updated</div>
-            <div class="detail-value" style="font-size:13.5px;color:#CBD5E1">
-                {{ $record->updated_at ? $record->updated_at->format('d M Y, h:i A') : '—' }}
+            <div>
+                <div class="detail-label"><i class="fa-solid fa-ruler-combined"></i> Size / Area</div>
+                <div class="detail-value">{{ $property->size ? $property->size.' '.($property->size_unit ?? 'Sq.Ft') : '—' }}</div>
             </div>
-        </div>
-        @if($record->remarks)
-        <div style="grid-column:1/-1">
-            <div class="detail-label">Remarks</div>
-            <div class="detail-value" style="font-size:14px;line-height:1.6;color:#CBD5E1">
-                {{ $record->remarks }}
+            <div>
+                <div class="detail-label"><i class="fa-solid fa-indian-rupee-sign"></i> Price / Valuation</div>
+                <div class="detail-value" style="color:#34D399;">₹{{ number_format((float)($property->price ?? 0), 2) }}</div>
             </div>
-        </div>
         @endif
+    </div>
+</div>
+
+{{-- Status Timeline History --}}
+<div class="detail-card">
+    <div class="section-heading"><i class="fa-solid fa-clock-rotate-left"></i> Status Change Timeline History ({{ $history->count() }})</div>
+    <div class="table-container">
+        <table class="premium-table">
+            <thead>
+                <tr>
+                    <th style="width: 30px;">#</th>
+                    <th>Status</th>
+                    <th>Status Date</th>
+                    <th>Remarks</th>
+                    <th>Updated By</th>
+                    <th>Logged At</th>
+                </tr>
+            </thead>
+            <tbody>
+            @forelse($history as $i => $h)
+                <tr>
+                    <td style="color: #94A3B8;">{{ $i + 1 }}</td>
+                    <td>
+                        <span class="badge badge-{{ $h->status }}" style="font-size: 10px; padding: 3px 10px;">
+                            {{ ucfirst(str_replace('_', ' ', $h->status)) }}
+                        </span>
+                    </td>
+                    <td>{{ $h->status_date ? $h->status_date->format('d M Y') : '—' }}</td>
+                    <td style="color: #CBD5E1;">{{ $h->remarks ?: '—' }}</td>
+                    <td>{{ $h->updatedBy->name ?? 'System' }}</td>
+                    <td style="color: #94A3B8; font-size: 11.5px;">{{ $h->created_at ? $h->created_at->format('d M Y, h:i A') : '—' }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" align="center" style="padding: 24px; color: #94A3B8;">
+                        No manual status history logs recorded yet. Current status is synchronized live from system transactions.
+                    </td>
+                </tr>
+            @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
 @endsection

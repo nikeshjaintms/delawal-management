@@ -104,6 +104,9 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                     data-purchase-date="{{ $pm->purchase_date ? $pm->purchase_date->format('Y-m-d') : '' }}"
                                     data-expenses="{{ (float)$pm->total_expenses }}"
                                     data-area="{{ $pm->total_area ? ($pm->total_area . ' ' . ($pm->area_unit ?? 'Sq.Ft')) : '' }}"
+                                    data-total-area="{{ (float)($pm->total_area ?? 0) }}"
+                                    data-area-unit="{{ $pm->area_unit ?? 'Sq.Ft' }}"
+                                    data-purchase-rate="{{ (float)($pm->purchase_rate ?? 0) }}"
                                     data-plots-count="{{ $pm->plots->count() }}"
                                     data-code="{{ $pm->property_code }}"
                                     data-name="{{ $pm->property_name }}"
@@ -218,6 +221,9 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                             $propPPrice = (float)($property->effective_purchase_cost ?: ($property->price ?? 0));
                             $propPDate = $property->purchase_date ? $property->purchase_date->format('Y-m-d') : ($property->propertyMaster?->purchase_date ? $property->propertyMaster->purchase_date->format('Y-m-d') : '');
                             $propExpenses = (float)($property->total_expenses ?? 0);
+                            $propSize = (float)($property->size ?? 0);
+                            $propSizeUnit = $property->size_unit ?: ($property->propertyMaster?->area_unit ?: 'Sq.Ft');
+                            $propPRate = (float)($property->purchase_rate ?: ($property->propertyMaster?->purchase_rate ?? 0));
                         @endphp
                         <option value="{{ $property->id }}"
                                 data-master-id="{{ $property->property_master_id ?? '' }}"
@@ -227,6 +233,9 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                 data-purchase-price="{{ $propPPrice }}"
                                 data-purchase-date="{{ $propPDate }}"
                                 data-expenses="{{ $propExpenses }}"
+                                data-size="{{ $propSize }}"
+                                data-size-unit="{{ $propSizeUnit }}"
+                                data-purchase-rate="{{ $propPRate }}"
                                 {{ in_array($property->id, $assignedPropIds) ? 'selected' : '' }}>
                             {{ $property->property_name }}
                         </option>
@@ -244,6 +253,9 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                 $propPPrice = (float)($property->effective_purchase_cost ?: ($property->price ?? 0));
                                 $propPDate = $property->purchase_date ? $property->purchase_date->format('Y-m-d') : ($property->propertyMaster?->purchase_date ? $property->propertyMaster->purchase_date->format('Y-m-d') : '');
                                 $propExpenses = (float)($property->total_expenses ?? 0);
+                                $propSize = (float)($property->size ?? 0);
+                                $propSizeUnit = $property->size_unit ?: ($property->propertyMaster?->area_unit ?: 'Sq.Ft');
+                                $propPRate = (float)($property->purchase_rate ?: ($property->propertyMaster?->purchase_rate ?? 0));
                             @endphp
                             <div class="plot-card-item {{ $isSelected ? 'is-selected' : '' }}"
                                  id="plot_card_{{ $property->id }}"
@@ -257,6 +269,9 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                  data-purchase-price="{{ $propPPrice }}"
                                  data-purchase-date="{{ $propPDate }}"
                                  data-expenses="{{ $propExpenses }}"
+                                 data-size="{{ $propSize }}"
+                                 data-size-unit="{{ $propSizeUnit }}"
+                                 data-purchase-rate="{{ $propPRate }}"
                                  data-status="{{ $property->status }}"
                                  onclick="togglePlotCardSelection({{ $property->id }})"
                                  style="cursor: pointer; user-select: none; padding: 10px 14px; border-radius: 12px; background: {{ $isSelected ? 'rgba(37, 99, 235, 0.22)' : 'rgba(20, 27, 41, 0.65)' }}; border: 1.5px solid {{ $isSelected ? '#3B82F6' : 'rgba(255, 255, 255, 0.10)' }}; transition: all .2s ease; display: flex; align-items: center; gap: 12px; box-shadow: {{ $isSelected ? '0 0 14px rgba(59, 130, 246, 0.35)' : 'none' }};">
@@ -278,6 +293,11 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                         <div style="font-size: 12px; font-weight: 700; color: #34D399;">
                                             ₹ {{ number_format($property->price ?? 0, 2) }}
                                         </div>
+                                        @if($propSize > 0)
+                                            <span style="font-size: 11px; font-weight: 600; color: #CBD5E1;">
+                                                {{ $propSize }} {{ $propSizeUnit }}
+                                            </span>
+                                        @endif
                                         <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: {{ $statusBg }}; color: {{ $statusColor }};">
                                             {{ ucfirst($property->status) }}
                                         </span>
@@ -388,6 +408,119 @@ textarea.form-control { resize: vertical; min-height: 85px; }
             </div>
         </div>
 
+        {{-- Plot Size, Area & Rates Section --}}
+        <div class="form-section">
+            <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <span><i class="fa-solid fa-ruler-combined" style="color: #60A5FA;"></i> Plot Size &amp; Rate Details</span>
+                <span id="rate_calculation_badge" style="display: none; padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 700; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #93C5FD;"></span>
+            </div>
+
+            <div style="background: rgba(15, 23, 42, 0.65); border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 20px; margin-bottom: 22px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 14px;">
+                    
+                    <!-- 1. Total Plot Area / Size -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" id="areaLabel" style="color: #34D399 !important; font-size: 13px;">
+                            <i class="fa-solid fa-map" style="color: #34D399;"></i> Total Plot Area / Size <span style="color:#94A3B8; font-weight: normal;">(optional)</span>
+                        </label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" step="0.01" name="total_area" id="total_area" 
+                                   value="{{ old('total_area', $propertySale->total_area) }}" 
+                                   class="form-control @error('total_area') is-invalid @enderror" 
+                                   placeholder="e.g. 1933.00" 
+                                   style="font-weight: 700; color: #FFFFFF;"
+                                   oninput="this.dataset.autoFilled = '0'; onAreaOrRateChange();">
+                            <select name="area_unit" id="area_unit" class="form-control" style="width: 125px; flex-shrink: 0; font-weight: 700;" onchange="onAreaOrRateChange()">
+                                @foreach(['Sq.Ft', 'Sq.Yd', 'Sq.Mtr', 'Acre', 'Vigha', 'Guntha'] as $u)
+                                    <option value="{{ $u }}" {{ old('area_unit', $propertySale->area_unit ?? 'Sq.Ft') == $u ? 'selected' : '' }}>{{ $u }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-hint" style="color: #A7F3D0;">Total land/plot area (Auto-fills from plot/property).</div>
+                        @error('total_area') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- 2. Purchase Rate per Sq.Ft / Unit -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" id="purchaseRateLabel" style="color: #60A5FA !important; font-size: 13px;">
+                            <i class="fa-solid fa-tag" style="color: #60A5FA;"></i> Purchase Rate per Sq.Ft / Unit (₹) <span style="color:#94A3B8; font-weight: normal;">(optional)</span>
+                        </label>
+                        <input type="number" step="0.01" name="purchase_rate" id="purchase_rate" 
+                               value="{{ old('purchase_rate', $propertySale->purchase_rate) }}" 
+                               class="form-control @error('purchase_rate') is-invalid @enderror" 
+                               placeholder="e.g. 2500.00" 
+                               style="font-weight: 700; color: #93C5FD;"
+                               oninput="this.dataset.autoFilled = '0'; onAreaOrRateChange();">
+                        <div class="form-hint" style="color: #93C5FD;">Acquisition rate per unit (Auto-fills / Editable).</div>
+                        @error('purchase_rate') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- 3. Sell Rate per Sq.Ft / Unit -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" id="sellRateLabel" style="color: #FBBF24 !important; font-size: 13px;">
+                            <i class="fa-solid fa-hand-holding-dollar" style="color: #FBBF24;"></i> Sell Rate per Sq.Ft / Unit (₹) <span style="color:#94A3B8; font-weight: normal;">(optional)</span>
+                        </label>
+                        <input type="number" step="0.01" name="sell_rate" id="sell_rate" 
+                               value="{{ old('sell_rate', $propertySale->sell_rate) }}" 
+                               class="form-control @error('sell_rate') is-invalid @enderror" 
+                               placeholder="e.g. 3200.00" 
+                               style="font-weight: 700; color: #FDE68A;"
+                               oninput="onSellRateChange();">
+                        <div class="form-hint" style="color: #FDE68A;">Agreed selling rate (Calculates Sale Amount live).</div>
+                        @error('sell_rate') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                </div>
+
+                <!-- Live Area & Rate Calculation Summary Boxes -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-top: 14px;">
+                    
+                    <!-- Purchase Price Calc Box -->
+                    <div id="calcPurchasePriceCard" style="display: none; background: rgba(59, 130, 246, 0.10); border: 1.5px solid rgba(59, 130, 246, 0.35); border-radius: 12px; padding: 12px 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59, 130, 246, 0.20); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                                    <i class="fa-solid fa-calculator"></i>
+                                </div>
+                                <div>
+                                    <span style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: #93C5FD; font-weight: 700; display: block;">Calculated Base Purchase Price</span>
+                                    <div style="display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;">
+                                        <span id="calcPurchasePriceText" style="font-size: 16px; font-weight: 800; color: #FFFFFF;">₹ 0.00</span>
+                                        <span id="calcPurchasePriceFormula" style="font-size: 11.5px; color: #94A3B8; font-weight: 600;"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" onclick="applyCalculatedPurchasePrice()" style="padding: 6px 12px; font-size: 11.5px; border-radius: 6px; color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.50); background: rgba(59, 130, 246, 0.20); font-weight: 700; cursor: pointer;">
+                                <i class="fa-solid fa-arrow-down"></i> Auto-Apply to Purchase Cost
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sell Price Calc Box -->
+                    <div id="calcSalePriceCard" style="display: none; background: rgba(245, 158, 11, 0.10); border: 1.5px solid rgba(245, 158, 11, 0.35); border-radius: 12px; padding: 12px 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.20); color: #FBBF24; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                                    <i class="fa-solid fa-coins"></i>
+                                </div>
+                                <div>
+                                    <span style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: #FDE68A; font-weight: 700; display: block;">Calculated Total Sale Value</span>
+                                    <div style="display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;">
+                                        <span id="calcSalePriceText" style="font-size: 16px; font-weight: 800; color: #FFFFFF;">₹ 0.00</span>
+                                        <span id="calcSalePriceFormula" style="font-size: 11.5px; color: #94A3B8; font-weight: 600;"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" onclick="applyCalculatedSalePrice()" style="padding: 6px 12px; font-size: 11.5px; border-radius: 6px; color: #FDE68A; border: 1px solid rgba(245, 158, 11, 0.50); background: rgba(245, 158, 11, 0.20); font-weight: 700; cursor: pointer;">
+                                <i class="fa-solid fa-arrow-down"></i> Auto-Apply to Sale Amount
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
         {{-- Amounts --}}
         <div class="form-section">
             <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
@@ -437,7 +570,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                             <span style="position: absolute; left: 14px; top: 11px; color: #60A5FA; font-weight: 700; font-size: 15px;">₹</span>
                             <input type="number" step="0.01" name="sale_amount" id="sale_amount"
                                    value="{{ old('sale_amount', $propertySale->sale_amount) }}" class="form-control @error('sale_amount') is-invalid @enderror"
-                                   placeholder="0.00" oninput="calcRemaining(); recalcDealAnalytics();" required
+                                   placeholder="0.00" oninput="onSaleAmountInput()" required
                                    style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #60A5FA !important; border-color: rgba(96, 165, 250, 0.4) !important;">
                         </div>
                         <div class="form-hint" style="color: #93C5FD;">Total agreed sale/deal price.</div>
@@ -726,15 +859,37 @@ function updateEntirePropInfo() {
     const selectedOpt = masterSelect.selectedOptions[0];
     const titleEl = document.getElementById('entire_prop_title');
     const descEl = document.getElementById('entire_prop_desc');
+    const areaInput = document.getElementById('total_area');
+    const unitSelect = document.getElementById('area_unit');
+    const pRateInput = document.getElementById('purchase_rate');
 
     if (selectedOpt && selectedOpt.value) {
         const name = selectedOpt.dataset.name || selectedOpt.text;
         const code = selectedOpt.dataset.code || '';
         const area = selectedOpt.dataset.area || '';
+        const totArea = parseFloat(selectedOpt.dataset.totalArea) || 0;
+        const areaUnit = selectedOpt.dataset.areaUnit || 'Sq.Ft';
+        const purchaseRate = parseFloat(selectedOpt.dataset.purchaseRate) || 0;
         const plotsCount = selectedOpt.dataset.plotsCount || '0';
+        const purchasePrice = parseFloat(selectedOpt.dataset.purchasePrice) || 0;
 
         titleEl.innerHTML = `🏢 Selling Entire Property: <strong>${name}</strong> ${code ? `(${code})` : ''}`;
-        descEl.innerHTML = `Total Area: <strong>${area || 'N/A'}</strong> | Includes <strong>${plotsCount} Plots</strong>. All sub-plots will be marked as Sold upon confirmation.`;
+        descEl.innerHTML = `Total Area: <strong>${area || 'N/A'}</strong> | Includes <strong>${plotsCount} Plots</strong>${purchasePrice > 0 ? ` | Purchase Cost: ₹${purchasePrice.toLocaleString('en-IN', {minimumFractionDigits: 2})}` : ''}. All sub-plots will be marked as Sold upon confirmation.`;
+
+        // Auto-fill area & purchase rate if not manually set
+        if (areaInput && (!areaInput.value || areaInput.dataset.autoFilled === '1')) {
+            areaInput.value = totArea > 0 ? totArea.toFixed(2) : '';
+            areaInput.dataset.autoFilled = '1';
+        }
+        if (unitSelect && areaUnit) {
+            unitSelect.value = areaUnit;
+        }
+        if (pRateInput && (!pRateInput.value || pRateInput.dataset.autoFilled === '1')) {
+            pRateInput.value = purchaseRate > 0 ? purchaseRate.toFixed(2) : '';
+            pRateInput.dataset.autoFilled = '1';
+        }
+
+        onAreaOrRateChange();
     } else {
         titleEl.innerHTML = `🏢 Selling Entire Property Master`;
         descEl.innerHTML = `Please select a Property / Land Master above.`;
@@ -923,17 +1078,32 @@ function updatePlotsCalculation() {
     const badge = document.getElementById('plots_summary_badge');
     const badgeText = document.getElementById('plots_summary_text');
     const badgePills = document.getElementById('plots_summary_pills');
+    const areaInput = document.getElementById('total_area');
+    const unitSelect = document.getElementById('area_unit');
+    const pRateInput = document.getElementById('purchase_rate');
+    const isEntire = document.getElementById('sale_scope_entire') ? document.getElementById('sale_scope_entire').checked : false;
     if (!propSelect) return;
 
     let totalSum = 0;
     let selectedCount = 0;
     let pillsHtml = '';
+    let totalPlotSize = 0;
+    let firstUnit = 'Sq.Ft';
+    let avgPurchaseRate = 0;
 
     Array.from(propSelect.selectedOptions).forEach(opt => {
         if (opt.value) {
             const card = document.getElementById('plot_card_' + opt.value);
             const p = card ? (parseFloat(card.dataset.price) || 0) : (parseFloat(opt.dataset.price) || 0);
+            const size = card ? (parseFloat(card.dataset.size) || 0) : (parseFloat(opt.dataset.size) || 0);
+            const unit = card ? (card.dataset.sizeUnit || 'Sq.Ft') : (opt.dataset.sizeUnit || 'Sq.Ft');
+            const pRate = card ? (parseFloat(card.dataset.purchaseRate) || 0) : (parseFloat(opt.dataset.purchaseRate) || 0);
+
             totalSum += p;
+            totalPlotSize += size;
+            if (unit) firstUnit = unit;
+            if (pRate > 0) avgPurchaseRate = pRate;
+
             selectedCount++;
             const name = card ? card.querySelector('[style*="font-weight: 700; color: #FFFFFF"]').innerText : opt.text.trim();
             pillsHtml += `<span style="background: rgba(59, 130, 246, 0.25); border: 1px solid rgba(59, 130, 246, 0.45); padding: 2px 8px; border-radius: 6px; font-size: 11px; color: #E0F2FE;">${name}</span>`;
@@ -946,11 +1116,179 @@ function updatePlotsCalculation() {
             badgeText.innerHTML = `<strong>${selectedCount} Unit(s) Selected</strong> (Base Valuation: ₹ ${totalSum.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}) <button type="button" onclick="applySuggestedPrice(${totalSum})" style="margin-left: 8px; background: rgba(59, 130, 246, 0.25); border: 1px solid #3B82F6; color: #93C5FD; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;"><i class="fa-solid fa-copy"></i> Use Valuation</button>`;
             if (badgePills) badgePills.innerHTML = pillsHtml;
         }
+
+        if (!isEntire) {
+            if (areaInput && (!areaInput.value || areaInput.dataset.autoFilled === '1')) {
+                areaInput.value = totalPlotSize > 0 ? totalPlotSize.toFixed(2) : '';
+                areaInput.dataset.autoFilled = '1';
+            }
+            if (unitSelect && firstUnit) {
+                unitSelect.value = firstUnit;
+            }
+            if (pRateInput && (!pRateInput.value || pRateInput.dataset.autoFilled === '1')) {
+                pRateInput.value = avgPurchaseRate > 0 ? avgPurchaseRate.toFixed(2) : '';
+                pRateInput.dataset.autoFilled = '1';
+            }
+            onAreaOrRateChange();
+        }
     } else {
         if (badge) badge.style.display = 'none';
     }
 
     recalcDealAnalytics();
+}
+
+function onAreaOrRateChange() {
+    const areaInput = document.getElementById('total_area');
+    const unitSelect = document.getElementById('area_unit');
+    const pRateInput = document.getElementById('purchase_rate');
+    const sRateInput = document.getElementById('sell_rate');
+    const saleAmountInput = document.getElementById('sale_amount');
+
+    const area = parseFloat(areaInput ? areaInput.value : 0) || 0;
+    const unit = unitSelect ? unitSelect.value : 'Sq.Ft';
+    const pRate = parseFloat(pRateInput ? pRateInput.value : 0) || 0;
+    const sRate = parseFloat(sRateInput ? sRateInput.value : 0) || 0;
+
+    // 1. Base Purchase Calc Box
+    const purchCard = document.getElementById('calcPurchasePriceCard');
+    const purchText = document.getElementById('calcPurchasePriceText');
+    const purchFormula = document.getElementById('calcPurchasePriceFormula');
+
+    if (area > 0 && pRate > 0) {
+        const calcPurch = area * pRate;
+        if (purchCard) purchCard.style.display = 'block';
+        if (purchText) purchText.innerText = '₹ ' + calcPurch.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        if (purchFormula) purchFormula.innerText = `(${area.toLocaleString('en-IN')} ${unit} × ₹${pRate.toLocaleString('en-IN')})`;
+    } else {
+        if (purchCard) purchCard.style.display = 'none';
+    }
+
+    // 2. Sell Calc Box
+    const saleCard = document.getElementById('calcSalePriceCard');
+    const saleText = document.getElementById('calcSalePriceText');
+    const saleFormula = document.getElementById('calcSalePriceFormula');
+
+    if (area > 0 && sRate > 0) {
+        const calcSale = area * sRate;
+        if (saleCard) saleCard.style.display = 'block';
+        if (saleText) saleText.innerText = '₹ ' + calcSale.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        if (saleFormula) saleFormula.innerText = `(${area.toLocaleString('en-IN')} ${unit} × ₹${sRate.toLocaleString('en-IN')})`;
+
+        if (saleAmountInput && (!saleAmountInput.value || saleAmountInput.dataset.autoFilled === '1')) {
+            saleAmountInput.value = calcSale.toFixed(2);
+            calcRemaining();
+            recalcDealAnalytics();
+            recalcSaleBrokerage();
+        }
+    } else if (saleAmountInput && parseFloat(saleAmountInput.value) > 0 && area > 0) {
+        const derivedRate = parseFloat(saleAmountInput.value) / area;
+        if (sRateInput && (!sRateInput.value || sRateInput.dataset.autoFilled === '1')) {
+            sRateInput.value = derivedRate.toFixed(2);
+            sRateInput.dataset.autoFilled = '1';
+        }
+        if (saleCard) saleCard.style.display = 'block';
+        if (saleText) saleText.innerText = '₹ ' + parseFloat(saleAmountInput.value).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        if (saleFormula) saleFormula.innerText = `(${area.toLocaleString('en-IN')} ${unit} × ₹${derivedRate.toLocaleString('en-IN', {maximumFractionDigits: 2})})`;
+    } else {
+        if (saleCard) saleCard.style.display = 'none';
+    }
+}
+
+function onSellRateChange() {
+    const areaInput = document.getElementById('total_area');
+    const unitSelect = document.getElementById('area_unit');
+    const sRateInput = document.getElementById('sell_rate');
+    const saleAmountInput = document.getElementById('sale_amount');
+
+    if (sRateInput) sRateInput.dataset.autoFilled = '0';
+
+    const area = parseFloat(areaInput ? areaInput.value : 0) || 0;
+    const unit = unitSelect ? unitSelect.value : 'Sq.Ft';
+    const sRate = parseFloat(sRateInput ? sRateInput.value : 0) || 0;
+
+    const saleCard = document.getElementById('calcSalePriceCard');
+    const saleText = document.getElementById('calcSalePriceText');
+    const saleFormula = document.getElementById('calcSalePriceFormula');
+
+    if (area > 0 && sRate > 0) {
+        const calcSale = area * sRate;
+        if (saleCard) saleCard.style.display = 'block';
+        if (saleText) saleText.innerText = '₹ ' + calcSale.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        if (saleFormula) saleFormula.innerText = `(${area.toLocaleString('en-IN')} ${unit} × ₹${sRate.toLocaleString('en-IN')})`;
+
+        if (saleAmountInput) {
+            saleAmountInput.value = calcSale.toFixed(2);
+            calcRemaining();
+            recalcDealAnalytics();
+            recalcSaleBrokerage();
+        }
+    } else {
+        if (saleCard) saleCard.style.display = 'none';
+    }
+}
+
+function onSaleAmountInput() {
+    const areaInput = document.getElementById('total_area');
+    const unitSelect = document.getElementById('area_unit');
+    const sRateInput = document.getElementById('sell_rate');
+    const saleAmountInput = document.getElementById('sale_amount');
+
+    const area = parseFloat(areaInput ? areaInput.value : 0) || 0;
+    const unit = unitSelect ? unitSelect.value : 'Sq.Ft';
+    const saleAmt = parseFloat(saleAmountInput ? saleAmountInput.value : 0) || 0;
+
+    const saleCard = document.getElementById('calcSalePriceCard');
+    const saleText = document.getElementById('calcSalePriceText');
+    const saleFormula = document.getElementById('calcSalePriceFormula');
+
+    if (area > 0 && saleAmt > 0) {
+        const derivedRate = saleAmt / area;
+        if (sRateInput) {
+            sRateInput.value = derivedRate.toFixed(2);
+            sRateInput.dataset.autoFilled = '1';
+        }
+        if (saleCard) saleCard.style.display = 'block';
+        if (saleText) saleText.innerText = '₹ ' + saleAmt.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        if (saleFormula) saleFormula.innerText = `(${area.toLocaleString('en-IN')} ${unit} × ₹${derivedRate.toLocaleString('en-IN', {maximumFractionDigits: 2})})`;
+    } else {
+        if (saleCard) saleCard.style.display = 'none';
+    }
+
+    calcRemaining();
+    recalcDealAnalytics();
+    recalcSaleBrokerage();
+}
+
+function applyCalculatedPurchasePrice() {
+    const areaInput = document.getElementById('total_area');
+    const pRateInput = document.getElementById('purchase_rate');
+    const purchaseCostInput = document.getElementById('purchase_cost');
+
+    const area = parseFloat(areaInput ? areaInput.value : 0) || 0;
+    const pRate = parseFloat(pRateInput ? pRateInput.value : 0) || 0;
+
+    if (area > 0 && pRate > 0 && purchaseCostInput) {
+        purchaseCostInput.value = (area * pRate).toFixed(2);
+        purchaseCostInput.dataset.autoFilled = '0';
+        recalcDealAnalytics();
+    }
+}
+
+function applyCalculatedSalePrice() {
+    const areaInput = document.getElementById('total_area');
+    const sRateInput = document.getElementById('sell_rate');
+    const saleAmountInput = document.getElementById('sale_amount');
+
+    const area = parseFloat(areaInput ? areaInput.value : 0) || 0;
+    const sRate = parseFloat(sRateInput ? sRateInput.value : 0) || 0;
+
+    if (area > 0 && sRate > 0 && saleAmountInput) {
+        saleAmountInput.value = (area * sRate).toFixed(2);
+        calcRemaining();
+        recalcDealAnalytics();
+        recalcSaleBrokerage();
+    }
 }
 
 function applySuggestedPrice(val) {
