@@ -316,6 +316,8 @@
                 @endif
                 <a href="{{ route('property-masters.create') }}" class="dqa-btn dqa-purple"><i class="fa-solid fa-building"></i> Add Property</a>
                 <a href="{{ route('property-sales.create') }}" class="dqa-btn dqa-green"><i class="fa-solid fa-handshake"></i> Add Property Sell</a>
+                <a href="{{ route('property-availability.index') }}" class="dqa-btn dqa-teal"><i class="fa-solid fa-circle-check"></i> Property Status</a>
+                <a href="{{ route('property-documents.create') }}" class="dqa-btn dqa-sky"><i class="fa-solid fa-folder-plus"></i> Add Document</a>
                 <a href="{{ route('projects.create') }}" class="dqa-btn dqa-teal"><i class="fa-solid fa-city"></i> Add Project</a>
                 <a href="{{ route('contractors.create') }}" class="dqa-btn dqa-amber"><i class="fa-solid fa-helmet-safety"></i> Add Contractor</a>
                 <a href="{{ route('vendors.create') }}" class="dqa-btn dqa-orange"><i class="fa-solid fa-truck-field"></i> Add Vendor</a>
@@ -326,6 +328,11 @@
                 <a href="{{ route('bookings.create') }}" class="dqa-btn dqa-emerald"><i class="fa-solid fa-calendar-check"></i> Add Booking</a>
                 <a href="{{ route('payments.create') }}" class="dqa-btn dqa-rose"><i class="fa-solid fa-money-bill-wave"></i> Add Payment</a>
                 <a href="{{ route('expenses.create') }}" class="dqa-btn dqa-red"><i class="fa-solid fa-receipt"></i> Add Expense</a>
+                <a href="{{ route('expenses.property') }}" class="dqa-btn dqa-rose"><i class="fa-solid fa-file-invoice-dollar"></i> Property Expenses</a>
+                <a href="{{ route('expenses.project-wise') }}" class="dqa-btn dqa-amber"><i class="fa-solid fa-city"></i> Project Expenses</a>
+                <a href="{{ route('expenses.general') }}" class="dqa-btn dqa-slate"><i class="fa-solid fa-calculator"></i> General Expenses</a>
+                <a href="{{ route('expenses.rental') }}" class="dqa-btn dqa-cyan"><i class="fa-solid fa-house-chimney-user"></i> Rental Expenses</a>
+                <a href="{{ route('expenses.personal') }}" class="dqa-btn dqa-violet"><i class="fa-solid fa-user-lock"></i> Personal Expenses</a>
                 <a href="{{ route('incomes.create') }}" class="dqa-btn dqa-green"><i class="fa-solid fa-arrow-trend-up"></i> Add Income</a>
                 <a href="{{ route('materials.create') }}" class="dqa-btn dqa-bronze"><i class="fa-solid fa-box"></i> Add Material</a>
                 <a href="{{ route('rentals.create') }}" class="dqa-btn dqa-fuchsia"><i class="fa-solid fa-key"></i> Add Rental</a>
