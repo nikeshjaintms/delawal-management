@@ -4,10 +4,12 @@
     <meta charset="utf-8">
     <title>Seller Master Directory</title>
     <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; color: #1e293b; margin: 0; padding: 20px; }
-        .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px; }
-        .header h1 { font-size: 18px; margin: 0 0 4px 0; color: #0f172a; text-transform: uppercase; }
-        .header p { margin: 0; color: #64748b; font-size: 10px; }
+        .rpt-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2.5px solid #0f172a; padding-bottom: 14px; margin-bottom: 16px; }
+        .co-name { font-size: 20px; font-weight: 800; color: #0f172a; }
+        .co-sub { font-size: 9.5px; color: #d97706; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+        .rpt-meta { text-align: right; }
+        .rpt-meta .rpt-title { font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 3px; }
+        .rpt-meta .rpt-date { font-size: 10px; color: #64748b; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f1f5f9; color: #334155; font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 7px 8px; border: 1px solid #cbd5e1; text-align: left; }
         td { padding: 6px 8px; border: 1px solid #e2e8f0; font-size: 10.5px; }
@@ -18,9 +20,20 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Seller Master Directory</h1>
-        <p>Generated on {{ date('d M, Y h:i A') }}</p>
+@include('admin.components.pdf-action-bar', ['title' => 'Seller Master Directory', 'orientation' => 'landscape', 'backUrl' => route('sellers.index')])
+
+    <div class="rpt-header">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
+            <div>
+                <div class="co-name">Delawala</div>
+                <div class="co-sub">Properties &amp; Management</div>
+            </div>
+        </div>
+        <div class="rpt-meta">
+            <div class="rpt-title">Seller Master Directory</div>
+            <div class="rpt-date">Generated on {{ date('d M, Y h:i A') }}</div>
+        </div>
     </div>
 
     <table>

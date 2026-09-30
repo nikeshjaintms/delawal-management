@@ -164,23 +164,18 @@
     </style>
 </head>
 <body>
-
-<div class="no-print-bar">
-    <a href="{{ route('rental-payments.index', $rental->id) }}" class="btn-action btn-back">
-        <i class="fa-solid fa-arrow-left"></i> Back to Collections
-    </a>
-    <button onclick="window.print()" class="btn-action btn-print">
-        <i class="fa-solid fa-print"></i> Print Receipt
-    </button>
-</div>
+@include('admin.components.pdf-action-bar', ['title' => 'Official Rent Receipt #RCP-' . str_pad($rentalPayment->id, 5, '0', STR_PAD_LEFT), 'orientation' => 'portrait', 'backUrl' => route('rental-payments.index', $rental->id)])
 
 <div class="receipt-card">
     <!-- Header -->
     <div class="rpt-header">
-        <div>
-            <div class="co-name">Delawala</div>
-            <div class="co-sub">Properties &amp; Management</div>
-            <div class="co-firm"><i class="fa-solid fa-building"></i> {{ $rental->firm->firm_name ?? 'Delawala Group' }}</div>
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 52px; width: auto; object-fit: contain;">
+            <div>
+                <div class="co-name">Delawala</div>
+                <div class="co-sub">Properties &amp; Management</div>
+                <div class="co-firm"><i class="fa-solid fa-building"></i> {{ $rental->firm->firm_name ?? 'Delawala Group' }}</div>
+            </div>
         </div>
         <div class="rpt-meta">
             <div class="rpt-title">Official Rent Receipt</div>

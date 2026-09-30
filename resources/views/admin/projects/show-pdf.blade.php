@@ -73,11 +73,15 @@
     </style>
 </head>
 <body>
+@include('admin.components.pdf-action-bar', ['title' => 'Project Dossier: ' . $project->project_name, 'orientation' => 'portrait', 'backUrl' => route('projects.show', $project->id)])
 
 <div class="rpt-header">
-    <div>
-        <div class="co-name">Delawala</div>
-        <div class="co-sub">Properties &amp; Management</div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 52px; width: auto; object-fit: contain;">
+        <div>
+            <div class="co-name">Delawala</div>
+            <div class="co-sub">Properties &amp; Management</div>
+        </div>
     </div>
     <div class="rpt-meta">
         <div class="rpt-title">Project Overview &amp; Inventory Dossier</div>
@@ -305,6 +309,5 @@
     <span>Page 1 of 1 &nbsp;|&nbsp; {{ now()->format('d M Y') }}</span>
 </div>
 
-<script>window.onload = function(){ window.print(); }</script>
 </body>
 </html>

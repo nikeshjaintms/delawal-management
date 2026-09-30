@@ -203,7 +203,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
         <p>{{ $moduleSubtitle }}</p>
     </div>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <a href="{{ route('expenses.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important; border: 1px solid #F87171 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.40);">
+        <a href="{{ route('expenses.pdf', array_merge(request()->query(), isset($activeType) ? ['type' => $activeType] : [])) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important; border: 1px solid #F87171 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.40);">
             <i class="fa-solid fa-file-pdf"></i> Export PDF
         </a>
         <a href="{{ route('expenses.create', isset($activeType) ? ['type' => $activeType] : []) }}" class="btn-gold">

@@ -49,13 +49,21 @@
     </style>
 </head>
 <body>
+@include('admin.components.pdf-action-bar', [
+    'title' => isset($listMode) && $listMode ? 'Purchase Orders Report' : 'Purchase Order: ' . ($purchaseOrder->po_number ?? 'PO'),
+    'orientation' => isset($listMode) && $listMode ? 'landscape' : 'portrait',
+    'backUrl' => route('purchase-orders.index')
+])
 
     @if(isset($listMode) && $listMode)
         <!-- List Report Header -->
         <div class="report-header">
-            <div class="company-block">
-                <div class="company-name">Delawala</div>
-                <div class="company-sub">Properties &amp; Management</div>
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
+                <div class="company-block">
+                    <div class="company-name">Delawala</div>
+                    <div class="company-sub">Properties &amp; Management</div>
+                </div>
             </div>
             <div class="report-meta">
                 <div class="report-title">Purchase Orders Report</div>
@@ -97,9 +105,12 @@
     @else
         <!-- Single PO Document -->
         <div class="report-header">
-            <div class="company-block">
-                <div class="company-name">{{ $purchaseOrder->firm->firm_name ?? 'Delawala' }}</div>
-                <div class="company-sub">Purchase Order Contract</div>
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
+                <div class="company-block">
+                    <div class="company-name">{{ $purchaseOrder->firm->firm_name ?? 'Delawala' }}</div>
+                    <div class="company-sub">Purchase Order Contract</div>
+                </div>
             </div>
             <div class="report-meta">
                 <div class="report-title">{{ $purchaseOrder->po_number }}</div>
@@ -188,14 +199,6 @@
             <span>Delawala Management Purchase Order System</span>
             <span>Authorized Signature: __________________________</span>
         </div>
-    @endif
-
-    @if(isset($printMode) && $printMode)
-        <script>
-            window.onload = function() {
-                window.print();
-            }
-        </script>
     @endif
 
 </body>

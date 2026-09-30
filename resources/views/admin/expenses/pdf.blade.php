@@ -1,9 +1,33 @@
+@php
+    $typeTitle = 'Expenses Ledger Report';
+    $backRoute = route('expenses.index');
+    if (isset($activeType) && $activeType) {
+        if ($activeType === 'Property') {
+            $typeTitle = 'Property Expenses Report';
+            $backRoute = route('expenses.property');
+        } elseif ($activeType === 'Project') {
+            $typeTitle = 'Project Expenses Report';
+            $backRoute = route('expenses.project-wise');
+        } elseif ($activeType === 'General') {
+            $typeTitle = 'General Expenses Report';
+            $backRoute = route('expenses.general');
+        } elseif ($activeType === 'Rental') {
+            $typeTitle = 'Rental Expenses Report';
+            $backRoute = route('expenses.rental');
+        } elseif ($activeType === 'Personal') {
+            $typeTitle = 'Personal Expenses Report';
+            $backRoute = route('expenses.personal');
+        } else {
+            $typeTitle = $activeType . ' Expenses Report';
+        }
+    }
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expenses Report - Delawala Management</title>
+    <title>{{ $typeTitle }} - Delawala Management</title>
     <style>
         * { box-sizing:border-box; margin:0; padding:0; }
         body { font-family:'Segoe UI',Arial,sans-serif; font-size:11.5px; color:#0F1F35; background:#fff; padding:24px; }
@@ -56,21 +80,29 @@
     </style>
 </head>
 <body>
+@include('admin.components.pdf-action-bar', [
+    'title' => $typeTitle,
+    'orientation' => 'landscape',
+    'backUrl' => $backRoute
+])
 
 <div class="rpt-header">
-    <div>
-        <div class="co-name">Delawala</div>
-        <div class="co-sub">Properties &amp; Management</div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
+        <div>
+            <div class="co-name">Delawala</div>
+            <div class="co-sub">Properties &amp; Management</div>
+        </div>
     </div>
     <div class="rpt-meta">
-        <div class="rpt-title">Expenses Ledger Report</div>
+        <div class="rpt-title">{{ $typeTitle }}</div>
         <div class="rpt-date">Generated: {{ now()->format('d M Y, h:i A') }}</div>
     </div>
 </div>
 
 <div class="stat-row">
     <div class="stat-box">
-        <div class="s-label">Total Expense Vouchers</div>
+        <div class="s-label">Total {{ isset($activeType) && $activeType ? $activeType : '' }} Vouchers</div>
         <div class="s-value">{{ $totalExpensesCount }}</div>
     </div>
     <div class="stat-box s-orange">
@@ -87,7 +119,7 @@
     </div>
 </div>
 
-<div class="section-label">&#9632; Expense Records</div>
+<div class="section-label">&#9632; {{ isset($activeType) && $activeType ? $activeType : 'All' }} Expense Records</div>
 <table>
     <thead>
         <tr>
@@ -95,8 +127,16 @@
             <th>Date</th>
             <th>Category</th>
             <th>Paid To / Payee</th>
-            <th>Project / Property</th>
-            <th>Firm(s)</th>
+            @if(($activeType ?? '') === 'Rental')
+                <th>Rental Property</th>
+                <th>Tenant / Agreement</th>
+            @elseif(($activeType ?? '') === 'Personal')
+                <th>Expense Title / Notes</th>
+                <th>Firm(s)</th>
+            @else
+                <th>Project / Property</th>
+                <th>Firm(s)</th>
+            @endif
             <th>Mode</th>
             <th>Ref / Bill</th>
             <th class="r">Amount</th>
@@ -110,19 +150,38 @@
             <td style="white-space:nowrap;">{{ $item->expense_date ? \Carbon\Carbon::parse($item->expense_date)->format('d M Y') : '-' }}</td>
             <td><strong>{{ $item->expense_category ?: ($item->expenseCategory->name ?? '-') }}</strong></td>
             <td>{{ $item->paid_to ?: ($item->vendor->name ?? '-') }}</td>
-            <td>
-                @if($item->project)
-                    <span>{{ $item->project->project_name }}</span>
-                @elseif($item->property)
-                    <span>{{ $item->property->property_name }}</span>
-                @else
-                    <span style="color:#9CA3AF;">General</span>
-                @endif
-            </td>
-            <td>
-                @php $fNames = $item->firms->isNotEmpty() ? $item->firms->pluck('firm_name')->implode(', ') : ($item->firm->firm_name ?? '-'); @endphp
-                {{ $fNames }}
-            </td>
+
+            @if(($activeType ?? '') === 'Rental')
+                <td>
+                    @php $p = $item->property ?? ($item->rental?->property ?? null); @endphp
+                    {{ $p ? $p->property_name : '-' }}
+                </td>
+                <td>
+                    @php $t = $item->tenant ?? ($item->rental?->tenant ?? null); @endphp
+                    {{ $t ? $t->name : ($item->rental?->tenant_name ?? 'Direct Property') }}
+                </td>
+            @elseif(($activeType ?? '') === 'Personal')
+                <td>{{ $item->expense_title ?: ($item->description ?: 'Personal Drawing') }}</td>
+                <td>
+                    @php $fNames = $item->firms->isNotEmpty() ? $item->firms->pluck('firm_name')->implode(', ') : ($item->firm->firm_name ?? '-'); @endphp
+                    {{ $fNames }}
+                </td>
+            @else
+                <td>
+                    @if($item->project)
+                        <span>{{ $item->project->project_name }}</span>
+                    @elseif($item->property)
+                        <span>{{ $item->property->property_name }}</span>
+                    @else
+                        <span style="color:#9CA3AF;">General</span>
+                    @endif
+                </td>
+                <td>
+                    @php $fNames = $item->firms->isNotEmpty() ? $item->firms->pluck('firm_name')->implode(', ') : ($item->firm->firm_name ?? '-'); @endphp
+                    {{ $fNames }}
+                </td>
+            @endif
+
             <td>{{ $item->payment_mode ?: '-' }}</td>
             <td>{{ $item->reference_no ?: ($item->bill_no ?: '-') }}</td>
             <td class="r">₹{{ number_format($item->amount, 2) }}</td>
@@ -137,7 +196,12 @@
             </td>
         </tr>
         @empty
-        <tr><td colspan="10" style="text-align:center;padding:20px;color:#64748B;">No expense records found.</td></tr>
+        <tr>
+            <td colspan="10" style="text-align:center;padding:26px;color:#64748B;">
+                <div style="font-size:13px;font-weight:700;margin-bottom:4px;color:#0F1F35;">No {{ isset($activeType) && $activeType ? strtolower($activeType) . ' ' : '' }}expense records found.</div>
+                <div style="font-size:11px;color:#94A3B8;">There are no expenses recorded under this category matching the current filters.</div>
+            </td>
+        </tr>
         @endforelse
     </tbody>
     @if($expenses->count() > 0)
@@ -152,10 +216,9 @@
 </table>
 
 <div class="rpt-footer">
-    <span>Delawala Management System &nbsp;—&nbsp; Expenses Report</span>
+    <span>Delawala Management System &nbsp;—&nbsp; {{ $typeTitle }}</span>
     <span>{{ $expenses->count() }} vouchers &nbsp;|&nbsp; Total: ₹{{ number_format($totalExpenseAmount, 2) }} &nbsp;|&nbsp; {{ now()->format('d M Y') }}</span>
 </div>
 
-<script>window.onload = function(){ window.print(); }</script>
 </body>
 </html>

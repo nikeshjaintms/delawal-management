@@ -44,11 +44,15 @@
     </style>
 </head>
 <body>
+@include('admin.components.pdf-action-bar', ['title' => 'GST Purchase Report (GSTR-2/3B)', 'orientation' => 'landscape', 'backUrl' => route('reports.gst-purchase')])
 
 <div class="hdr">
-    <div>
-        <div class="co-name">Delawala</div>
-        <div class="co-sub">Properties &amp; Management</div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
+        <div>
+            <div class="co-name">Delawala</div>
+            <div class="co-sub">Properties &amp; Management</div>
+        </div>
     </div>
     <div class="rpt-meta">
         <div class="rpt-title">GST Purchase Report</div>
@@ -143,6 +147,5 @@
     <span>{{ $expenses->count() }} records · Grand Total ₹{{ number_format($grandTotal,2) }} · {{ now()->format('d M Y') }}</span>
 </div>
 
-<script>window.onload=function(){window.print();}</script>
 </body>
 </html>

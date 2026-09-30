@@ -269,4 +269,67 @@ class MaterialController extends Controller
         $material->delete();
         return redirect()->route('materials.index')->with('success', 'Material deleted successfully.');
     }
+
+    public function exportPdf(Request $request)
+    {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        $query = Material::with(['category', 'contractor.project', 'project', 'firms', 'firm']);
+
+        if (!$isAdmin) {
+            $query->where('firm_id', $firmId);
+        }
+
+        if ($request->search) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('material_name', 'like', '%'.$s.'%')
+                  ->orWhere('specification', 'like', '%'.$s.'%')
+                  ->orWhere('unit', 'like', '%'.$s.'%')
+                  ->orWhereHas('category', function ($catq) use ($s) {
+                      $catq->where('category_name', 'like', '%'.$s.'%');
+                  })
+                  ->orWhereHas('contractor', function ($cq) use ($s) {
+                      $cq->where('contractor_name', 'like', '%'.$s.'%');
+                  })
+                  ->orWhereHas('project', function ($pq) use ($s) {
+                      $pq->where('project_name', 'like', '%'.$s.'%');
+                  });
+            });
+        }
+
+        if ($request->filled('material_category_id')) {
+            $query->where('material_category_id', $request->material_category_id);
+        }
+
+        if ($request->filled('contractor_id')) {
+            $query->where('contractor_id', $request->contractor_id);
+        }
+
+        $materials = $query->latest()->get();
+        $totalMaterialsCount = $materials->count();
+        $totalStockQty = $materials->sum('opening_stock');
+        $totalEstimatedValue = $materials->sum(function($m) {
+            return (float) ($m->total_price ?? (($m->opening_stock ?? 0) * ($m->unit_price ?? 0)));
+        });
+        $activeMaterialsCount = $materials->where('status', 'active')->count();
+
+        return view('admin.materials.pdf', compact(
+            'materials', 'totalMaterialsCount', 'totalStockQty', 'totalEstimatedValue', 'activeMaterialsCount'
+        ));
+    }
+
+    public function downloadPdf(Material $material)
+    {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $material->firm_id != $firmId) abort(403);
+        $material->load(['category', 'contractor.project', 'project', 'firms', 'firm']);
+
+        return view('admin.materials.show-pdf', compact('material'));
+    }
 }

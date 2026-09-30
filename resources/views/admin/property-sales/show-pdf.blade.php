@@ -58,11 +58,15 @@
     </style>
 </head>
 <body>
+@include('admin.components.pdf-action-bar', ['title' => 'Sales Agreement #SA-' . str_pad($propertySale->id, 5, '0', STR_PAD_LEFT), 'orientation' => 'portrait', 'backUrl' => route('property-sales.show', $propertySale->id)])
 
 <div class="rpt-header">
-    <div>
-        <div class="co-name">Delawala</div>
-        <div class="co-sub">Properties &amp; Management</div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 52px; width: auto; object-fit: contain;">
+        <div>
+            <div class="co-name">Delawala</div>
+            <div class="co-sub">Properties &amp; Management</div>
+        </div>
     </div>
     <div class="rpt-meta">
         <div class="rpt-title">Official Sales Agreement / Deed</div>
@@ -245,6 +249,5 @@
     <span>Generated: {{ now()->format('d M Y, h:i A') }}</span>
 </div>
 
-<script>window.onload = function(){ window.print(); }</script>
 </body>
 </html>

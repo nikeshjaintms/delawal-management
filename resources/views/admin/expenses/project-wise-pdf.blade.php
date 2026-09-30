@@ -68,11 +68,15 @@
     </style>
 </head>
 <body>
+@include('admin.components.pdf-action-bar', ['title' => 'Project-wise Expenses & Outgoing Ledger', 'orientation' => 'landscape', 'backUrl' => route('expenses.index')])
 
 <div class="rpt-header">
-    <div>
-        <div class="co-name">Delawala</div>
-        <div class="co-sub">Properties &amp; Management</div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
+        <div>
+            <div class="co-name">Delawala</div>
+            <div class="co-sub">Properties &amp; Management</div>
+        </div>
     </div>
     <div class="rpt-meta">
         <div class="rpt-title">Project-wise Expenses &amp; Outgoing Ledger</div>

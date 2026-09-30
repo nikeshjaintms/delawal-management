@@ -54,11 +54,15 @@
     </style>
 </head>
 <body>
+@include('admin.components.pdf-action-bar', ['title' => 'Rentals & Tenancy Directory', 'orientation' => 'landscape', 'backUrl' => route('rentals.index')])
 
 <div class="rpt-header">
-    <div>
-        <div class="co-name">Delawala</div>
-        <div class="co-sub">Properties &amp; Management</div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 52px; width: auto; object-fit: contain;">
+        <div>
+            <div class="co-name">Delawala</div>
+            <div class="co-sub">Properties &amp; Management</div>
+        </div>
     </div>
     <div class="rpt-meta">
         <div class="rpt-title">Rentals &amp; Tenancy Report</div>
@@ -172,6 +176,5 @@
     <span>{{ $rentals->count() }} leases &nbsp;|&nbsp; Monthly Rent: ₹{{ number_format($totalMonthlyRent, 2) }} &nbsp;|&nbsp; {{ now()->format('d M Y') }}</span>
 </div>
 
-<script>window.onload = function(){ window.print(); }</script>
 </body>
 </html>

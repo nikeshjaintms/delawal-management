@@ -48,11 +48,13 @@
     </style>
 </head>
 <body>
-
-<button onclick="window.print()" class="print-btn no-print">Print Report</button>
+@include('admin.components.pdf-action-bar', ['title' => 'Income Accounting Report', 'orientation' => 'landscape', 'backUrl' => route('incomes.index')])
 
 <div class="rpt-header">
-    <div><div class="co-name">Delawala</div><div class="co-sub">Properties &amp; Management</div></div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
+        <div><div class="co-name">Delawala</div><div class="co-sub">Properties &amp; Management</div></div>
+    </div>
     <div class="rpt-meta">
         <div class="rpt-title">Income Report</div>
         <div class="rpt-date">Generated: {{ now()->format('d M Y, h:i A') }}</div>

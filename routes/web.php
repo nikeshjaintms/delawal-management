@@ -187,6 +187,8 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::any('material-categories/{any?}', function () {
         return redirect()->route('materials.index');
     })->where('any', '.*');
+    Route::get('materials/export-pdf', [MaterialController::class, 'exportPdf'])->name('materials.pdf')->middleware(['permission:inventory_view']);
+    Route::get('materials/{material}/pdf', [MaterialController::class, 'downloadPdf'])->name('materials.detail-pdf')->middleware(['permission:inventory_view']);
     Route::resource('materials', MaterialController::class)->middleware(['permission:inventory_view']);
     Route::resource('stock-inwards', StockInwardController::class)->middleware(['permission:inventory_view']);
     Route::resource('stock-outwards', StockOutwardController::class)->middleware(['permission:inventory_view']);

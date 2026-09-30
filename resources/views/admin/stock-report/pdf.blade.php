@@ -56,11 +56,15 @@
     </style>
 </head>
 <body>
+@include('admin.components.pdf-action-bar', ['title' => 'Current Stock Inventory Report', 'orientation' => 'landscape', 'backUrl' => route('stock-report.index')])
 
     <div class="report-header">
-        <div class="company-block">
-            <div class="company-name">Delawala</div>
-            <div class="company-sub">Properties &amp; Management</div>
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
+            <div class="company-block">
+                <div class="company-name">Delawala</div>
+                <div class="company-sub">Properties &amp; Management</div>
+            </div>
         </div>
         <div class="report-meta">
             <div class="report-title">Current Stock Report</div>
@@ -138,6 +142,5 @@
         <span>Stock report as of {{ now()->format('d M Y') }} &nbsp;|&nbsp; Total: {{ $total }} materials &nbsp;|&nbsp; Low Stock: {{ $lowCount }}</span>
     </div>
 
-    <script>window.onload = function(){ window.print(); }</script>
-</body>
+    </body>
 </html>

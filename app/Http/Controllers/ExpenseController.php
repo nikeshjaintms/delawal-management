@@ -745,7 +745,11 @@ class ExpenseController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $query = Expense::with(['firms', 'firm', 'project', 'property.propertyType', 'property.project', 'expenseCategory', 'vendor']);
+        $query = Expense::with([
+            'firms', 'firm', 'project', 'properties.propertyType',
+            'property.propertyType', 'property.project', 'expenseCategory',
+            'vendor', 'purchaseOrder.vendor', 'rental.property', 'tenant'
+        ]);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -758,6 +762,49 @@ class ExpenseController extends Controller
             $query->forFirms($firmIds);
         }
 
+        $activeType = $request->input('type', $request->input('expense_type', $request->input('filter_type')));
+        if ($activeType) {
+            if ($activeType === 'Property') {
+                $query->where(function ($q) {
+                    $q->where('expense_type', 'Property')
+                      ->orWhereNotNull('property_id')
+                      ->orWhereHas('properties');
+                });
+            } elseif ($activeType === 'Project') {
+                $query->where(function ($q) {
+                    $q->where('expense_type', 'Project')
+                      ->orWhereNotNull('project_id')
+                      ->orWhereNotNull('purchase_order_id');
+                });
+            } elseif ($activeType === 'General') {
+                $query->where(function ($q) {
+                    $q->whereIn('expense_type', ['General', 'Office'])
+                      ->orWhere(function ($sub) {
+                          $sub->whereNull('expense_type')
+                              ->whereNull('project_id')
+                              ->whereNull('property_id');
+                      });
+                });
+            } elseif ($activeType === 'Rental') {
+                $query->where(function ($q) {
+                    $q->where('expense_type', 'Rental')
+                      ->orWhereNotNull('rental_id')
+                      ->orWhereNotNull('tenant_id')
+                      ->orWhere('expense_category', 'like', '%Rental%')
+                      ->orWhere('expense_category', 'like', '%Rent%')
+                      ->orWhere('expense_category', 'like', '%Tenant%');
+                });
+            } elseif ($activeType === 'Personal') {
+                $query->where(function ($q) {
+                    $q->where('expense_type', 'Personal')
+                      ->orWhere('expense_category', 'like', '%Personal%')
+                      ->orWhere('expense_category', 'like', '%Drawing%');
+                });
+            } else {
+                $query->where('expense_type', $activeType);
+            }
+        }
+
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
@@ -765,43 +812,87 @@ class ExpenseController extends Controller
                     ->where('expense_title', 'like', "%{$s}%")
                     ->orWhere('description', 'like', "%{$s}%")
                     ->orWhere('expense_category', 'like', "%{$s}%")
+                    ->orWhere('expense_subcategory', 'like', "%{$s}%")
                     ->orWhere('expense_type', 'like', "%{$s}%")
                     ->orWhere('paid_to', 'like', "%{$s}%")
                     ->orWhere('bill_no', 'like', "%{$s}%")
                     ->orWhere('reference_no', 'like', "%{$s}%")
                     ->orWhere('payment_account', 'like', "%{$s}%")
+                    ->orWhere('notes', 'like', "%{$s}%")
+                    ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"))
+                    ->orWhereHas('tenant', fn($t) => $t->where('name', 'like', "%{$s}%")->orWhere('phone', 'like', "%{$s}%"))
+                    ->orWhereHas('rental', fn($r) => $r->where('agreement_no', 'like', "%{$s}%")->orWhere('tenant_name', 'like', "%{$s}%"))
                     ->orWhereHas('project', fn($pr) => $pr->where('project_name', 'like', "%{$s}%"))
                     ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
+                    ->orWhereHas('properties', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
                     ->orWhereHas('firms', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
-                    ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
+                    ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
+                    ->orWhereHas('purchaseOrder', fn($po) => $po->where('po_number', 'like', "%{$s}%"));
             });
         }
 
-        if ($request->filled('filter_type')) {
-            $query->where('expense_type', $request->filter_type);
-        }
         if ($request->filled('filter_project')) {
             $query->where('project_id', $request->filter_project);
         }
+
         if ($request->filled('filter_property')) {
-            $query->where('property_id', $request->filter_property);
+            $propId = $request->filter_property;
+            $query->where(function ($q) use ($propId) {
+                $q->where('property_id', $propId)
+                  ->orWhereHas('properties', fn($p) => $p->where('properties.id', $propId));
+            });
         }
+
+        if ($request->filled('filter_rental')) {
+            $query->where('rental_id', $request->filter_rental);
+        }
+
+        if ($request->filled('filter_tenant')) {
+            $query->where('tenant_id', $request->filter_tenant);
+        }
+
+        if ($request->filled('filter_recovery_status')) {
+            $query->where('recovery_status', $request->filter_recovery_status);
+        }
+
+        if ($request->filled('filter_recoverable')) {
+            $query->where('is_tenant_recoverable', (bool) $request->filter_recoverable);
+        }
+
         if ($request->filled('filter_category')) {
             $cat = $request->filter_category;
             if (is_numeric($cat)) {
                 $query->where('expense_category_id', $cat);
             } else {
-                $query->where('expense_category', $cat);
+                $query->where(function($q) use ($cat) {
+                    $q->where('expense_category', $cat)
+                      ->orWhere('expense_subcategory', $cat);
+                });
             }
         }
+
+        if ($request->filled('filter_vendor')) {
+            $query->where('vendor_id', $request->filter_vendor);
+        }
+
         if ($request->filled('filter_mode')) {
             $query->where('payment_mode', $request->filter_mode);
         }
+
         if ($request->filled('filter_status')) {
             $query->where('approval_status', $request->filter_status);
         }
+
         if ($request->filled('filter_date')) {
             $query->where('expense_date', $request->filter_date);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->where('expense_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->where('expense_date', '<=', $request->date_to);
         }
 
         $expenses = $query->orderBy('expense_date', 'desc')->get();
@@ -811,7 +902,7 @@ class ExpenseController extends Controller
         $pendingExpenseAmount = $expenses->where('approval_status', 'Pending')->sum('amount');
 
         return view('admin.expenses.pdf', compact(
-            'expenses', 'totalExpensesCount', 'totalExpenseAmount', 'approvedExpenseAmount', 'pendingExpenseAmount'
+            'expenses', 'totalExpensesCount', 'totalExpenseAmount', 'approvedExpenseAmount', 'pendingExpenseAmount', 'activeType'
         ));
     }
 

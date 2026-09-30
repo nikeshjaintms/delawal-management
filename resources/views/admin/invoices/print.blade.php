@@ -163,29 +163,24 @@
     </style>
 </head>
 <body>
-
-<div class="print-actions">
-    <a href="{{ route('invoices.show', $invoice->id) }}" class="btn-p btn-p-back">
-        <i class="fa-solid fa-arrow-left"></i> Back
-    </a>
-    <button onclick="window.print()" class="btn-p btn-p-primary">
-        <i class="fa-solid fa-print"></i> Print Invoice
-    </button>
-</div>
+@include('admin.components.pdf-action-bar', ['title' => 'Tax Invoice #' . $invoice->invoice_no, 'orientation' => 'portrait', 'backUrl' => route('invoices.show', $invoice->id)])
 
 <div class="invoice-sheet">
     <!-- Header -->
     <div class="inv-header">
-        <div>
-            <div class="firm-name">{{ $invoice->firm->firm_name ?? 'Delawala Management' }}</div>
-            <div class="firm-meta">
-                <div>{{ $invoice->firm->address ?? '' }}{{ $invoice->firm->city ? ', ' . $invoice->firm->city : '' }}</div>
-                @if($invoice->firm && $invoice->firm->mobile)
-                    <div>Phone: {{ $invoice->firm->mobile }}</div>
-                @endif
-                @if($invoice->firm && $invoice->firm->gst_number)
-                    <div><strong>GSTIN:</strong> {{ $invoice->firm->gst_number }}</div>
-                @endif
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 58px; width: auto; object-fit: contain;">
+            <div>
+                <div class="firm-name">{{ $invoice->firm->firm_name ?? 'Delawala Management' }}</div>
+                <div class="firm-meta">
+                    <div>{{ $invoice->firm->address ?? '' }}{{ $invoice->firm->city ? ', ' . $invoice->firm->city : '' }}</div>
+                    @if($invoice->firm && $invoice->firm->mobile)
+                        <div>Phone: {{ $invoice->firm->mobile }}</div>
+                    @endif
+                    @if($invoice->firm && $invoice->firm->gst_number)
+                        <div><strong>GSTIN:</strong> {{ $invoice->firm->gst_number }}</div>
+                    @endif
+                </div>
             </div>
         </div>
 

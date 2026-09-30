@@ -38,7 +38,14 @@
     .btn-outline{border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);padding:11px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:var(--transition);}
     .btn-outline:hover{background:#F9FAFB;color:var(--text-primary);border-color:#D1D5DB;}
 </style>
-<div class="crud-header"><div class="crud-title"><h2>Material Details</h2><p>Full inventory material record.</p></div></div>
+<div class="crud-header">
+    <div class="crud-title"><h2>Material Details</h2><p>Full inventory material record.</p></div>
+    <div style="display:flex; gap:10px;">
+        <a href="{{ route('materials.detail-pdf', $material->id) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important; border: 1px solid #F87171 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.40);">
+            <i class="fa-solid fa-file-pdf"></i> PDF Dossier
+        </a>
+    </div>
+</div>
 <div class="card-box">
     <div class="mat-hero">
         <div class="mat-icon"><i class="fa-solid fa-boxes-stacked"></i></div>

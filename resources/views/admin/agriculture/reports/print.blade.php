@@ -50,17 +50,16 @@
     </style>
 </head>
 <body>
-
-<div class="no-print-bar">
-    <button onclick="window.print()" class="btn-action">🖨️ Print / Save PDF</button>
-    <button onclick="window.close()" class="btn-action" style="background:#64748b;">Close</button>
-</div>
+@include('admin.components.pdf-action-bar', ['title' => 'Agriculture ERP Report', 'orientation' => 'landscape', 'backUrl' => route('agriculture.reports.index')])
 
 <div class="print-container">
     <div class="report-header">
-        <div class="company-info">
-            <h1>DELAWALA MANAGEMENT ERP</h1>
-            <p>Agriculture Business Division &bull; Land, Crop, Labour & Financial Operations</p>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 52px; width: auto; object-fit: contain;">
+            <div class="company-info">
+                <h1>DELAWALA MANAGEMENT ERP</h1>
+                <p>Agriculture Business Division &bull; Land, Crop, Labour & Financial Operations</p>
+            </div>
         </div>
         <div class="report-meta">
             <h2>

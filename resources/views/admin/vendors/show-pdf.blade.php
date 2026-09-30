@@ -61,11 +61,15 @@
     </style>
 </head>
 <body>
+@include('admin.components.pdf-action-bar', ['title' => 'Vendor Statement: ' . $vendor->name, 'orientation' => 'portrait', 'backUrl' => route('vendors.show', $vendor->id)])
 
 <div class="rpt-header">
-    <div>
-        <div class="co-name">{{ $vendor->firm->firm_name ?? 'Delawala Management' }}</div>
-        <div class="co-sub">Properties &amp; Management • Vendor Account Statement</div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
+        <div>
+            <div class="co-name">{{ $vendor->firm->firm_name ?? 'Delawala Management' }}</div>
+            <div class="co-sub">Properties &amp; Management • Vendor Account Statement</div>
+        </div>
     </div>
     <div class="rpt-meta">
         <div class="rpt-title">Vendor Statement &amp; Ledger</div>
@@ -253,6 +257,5 @@
     <span>Generated: {{ now()->format('d M Y, h:i A') }}</span>
 </div>
 
-<script>window.onload = function(){ window.print(); }</script>
 </body>
 </html>

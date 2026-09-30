@@ -30,17 +30,15 @@
     </style>
 </head>
 <body>
-
-<div class="no-print" style="margin-bottom: 15px; display: flex; justify-content: flex-end; gap: 10px;">
-    <button onclick="window.print()" style="padding: 8px 16px; background: #2563EB; color: #FFF; border: none; border-radius: 6px; font-weight: 700; cursor: pointer;">
-        Print / Save as PDF
-    </button>
-</div>
+@include('admin.components.pdf-action-bar', ['title' => 'Invoices Summary Statement', 'orientation' => 'landscape', 'backUrl' => route('invoices.index')])
 
 <div class="header">
-    <div>
-        <div class="title">Invoices Summary Statement</div>
-        <div class="meta">Delawala Management &bull; Generated on {{ date('d M, Y h:i A') }}</div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
+        <div>
+            <div class="title">Invoices Summary Statement</div>
+            <div class="meta">Delawala Management &bull; Generated on {{ date('d M, Y h:i A') }}</div>
+        </div>
     </div>
     <div style="text-align: right;">
         <div style="font-weight: 800; font-size: 14px; color: #2563EB;">Total Records: {{ $invoices->count() }}</div>

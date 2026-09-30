@@ -143,9 +143,9 @@
 <div class="crud-header">
     <div class="crud-title"><h2>Material Master</h2><p>Manage inventory materials with current stock tracking.</p></div>
     <div style="display:flex; gap:10px; align-items:center;">
-        <button type="button" class="btn-pdf" onclick="window.print()" title="Print / Save as PDF">
-            <i class="fa-solid fa-file-pdf"></i> PDF
-        </button>
+        <a href="{{ route('materials.pdf', request()->query()) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important; border: 1px solid #F87171 !important; color: #FFFFFF !important; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.40);">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </a>
         <a href="{{ route('materials.create') }}" class="btn-gold"><i class="fa-solid fa-plus"></i> Add Material</a>
     </div>
 </div>
@@ -237,6 +237,9 @@
                     <td><span class="badge badge-{{ $mat->status }}">{{ ucfirst($mat->status) }}</span></td>
                     <td style="text-align: right;">
                         <div class="table-action-buttons">
+                            <a href="{{ route('materials.detail-pdf', $mat->id) }}" target="_blank" class="btn-view" style="background: rgba(252,105,0,0.15) !important; color: #FF8A3D !important; border: 1px solid rgba(252,105,0,0.30) !important;" title="View PDF Dossier">
+                                <i class="fa fa-file-pdf"></i> PDF
+                            </a>
                             <a href="{{ route('materials.show', $mat->id) }}" class="btn-view"><i class="fa fa-eye"></i> View</a>
                             <a href="{{ route('materials.edit', $mat->id) }}" class="btn-edit"><i class="fa fa-edit"></i> Edit</a>
                             <form action="{{ route('materials.destroy', $mat->id) }}" method="POST" style="display:inline;" id="del-mat-{{ $mat->id }}">
@@ -247,7 +250,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="9" align="center" style="padding:30px;color: #CBD5E1;">No materials found.</td></tr>
+                <tr><td colspan="10" align="center" style="padding:30px;color: #CBD5E1;">No materials found.</td></tr>
                 @endforelse
             </tbody>
         </table>

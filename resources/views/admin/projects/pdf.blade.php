@@ -59,11 +59,15 @@
     </style>
 </head>
 <body>
+@include('admin.components.pdf-action-bar', ['title' => 'Projects Directory Report', 'orientation' => 'landscape', 'backUrl' => route('projects.index')])
 
 <div class="rpt-header">
-    <div>
-        <div class="co-name">Delawala</div>
-        <div class="co-sub">Properties &amp; Management</div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 52px; width: auto; object-fit: contain;">
+        <div>
+            <div class="co-name">Delawala</div>
+            <div class="co-sub">Properties &amp; Management</div>
+        </div>
     </div>
     <div class="rpt-meta">
         <div class="rpt-title">Projects Directory Report</div>
@@ -173,6 +177,5 @@
     <span>{{ $projects->count() }} projects &nbsp;|&nbsp; Total Plots: {{ $totalPlots }} &nbsp;|&nbsp; {{ now()->format('d M Y') }}</span>
 </div>
 
-<script>window.onload = function(){ window.print(); }</script>
 </body>
 </html>

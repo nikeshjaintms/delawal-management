@@ -54,9 +54,13 @@
     </style>
 </head>
 <body>
+@include('admin.components.pdf-action-bar', ['title' => 'Loan Ledger Report', 'orientation' => 'landscape', 'backUrl' => route('loan-report.index')])
 
 <div class="rpt-header">
-    <div><div class="co-name">Delawala</div><div class="co-sub">Properties &amp; Management</div></div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
+        <div><div class="co-name">Delawala</div><div class="co-sub">Properties &amp; Management</div></div>
+    </div>
     <div class="rpt-meta"><div class="rpt-title">Loan Report</div><div class="rpt-date">Generated: {{ now()->format('d M Y, h:i A') }}</div></div>
 </div>
 
@@ -177,6 +181,5 @@
     <span>{{ $loans->count() }} records · Total ₹{{ number_format($totalLoan,2) }} · {{ now()->format('d M Y') }}</span>
 </div>
 
-<script>window.onload=function(){window.print();}</script>
 </body>
 </html>
