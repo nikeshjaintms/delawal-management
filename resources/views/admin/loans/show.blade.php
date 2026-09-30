@@ -589,7 +589,10 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
                             <form action="{{ route('loans.payments.destroy', [$loan->id, $payment->id]) }}" method="POST" id="del-payment-{{ $payment->id }}" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" class="btn-delete" title="Delete Payment Record" onclick="confirmDeletePayment({{ $payment->id }}, '{{ number_format($payment->amount, 2) }}')">
+                                <button type="button" class="btn-delete" title="Delete Payment Record"
+                                    data-id="{{ $payment->id }}"
+                                    data-amount="{{ number_format($payment->amount, 2) }}"
+                                    onclick="confirmDeletePayment(this.dataset.id, this.dataset.amount)">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </form>

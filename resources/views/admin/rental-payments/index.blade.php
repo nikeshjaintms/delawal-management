@@ -245,7 +245,9 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="btn-delete"
-                                            onclick="confirmPayDelete({{ $pay->id }}, '{{ $pay->payment_month }} {{ $pay->payment_year }}')">
+                                            data-id="{{ $pay->id }}"
+                                            data-name="{{ $pay->payment_month }} {{ $pay->payment_year }}"
+                                            onclick="confirmPayDelete(this.dataset.id, this.dataset.name)">
                                             <i class="fa fa-trash"></i> Delete
                                         </button>
                                     </form>

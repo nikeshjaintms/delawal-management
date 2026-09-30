@@ -261,7 +261,10 @@
                             <a href="{{ route('property-documents.edit', $doc) }}" class="btn-edit"><i class="fa fa-edit"></i> Edit</a>
                             <form action="{{ route('property-documents.destroy', $doc) }}" method="POST" id="del-doc-{{ $doc->id }}" style="display:inline">
                                 @csrf @method('DELETE')
-                                <button type="button" class="btn-delete" onclick="confirmDelete({{ $doc->id }}, '{{ addslashes($doc->document_title) }}')">
+                                <button type="button" class="btn-delete"
+                                    data-id="{{ $doc->id }}"
+                                    data-name="{{ $doc->document_title }}"
+                                    onclick="confirmDelete(this.dataset.id, this.dataset.name)">
                                     <i class="fa fa-trash"></i> Delete
                                 </button>
                             </form>

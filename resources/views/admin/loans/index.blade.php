@@ -588,7 +588,10 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
                             <a href="{{ route('loans.edit', $loan->id) }}" class="btn-edit"><i class="fa fa-edit"></i> Edit</a>
                             <form action="{{ route('loans.destroy', $loan->id) }}" method="POST" style="display:inline;" id="del-loan-{{ $loan->id }}">
                                 @csrf @method('DELETE')
-                                <button type="button" class="btn-delete" onclick="confirmDelete({{ $loan->id }},'{{ addslashes($loan->party_display_name) }}')">
+                                <button type="button" class="btn-delete"
+                                    data-id="{{ $loan->id }}"
+                                    data-name="{{ $loan->party_display_name }}"
+                                    onclick="confirmDelete(this.dataset.id, this.dataset.name)">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </form>

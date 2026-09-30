@@ -244,7 +244,13 @@
                             <a href="{{ route('materials.edit', $mat->id) }}" class="btn-edit"><i class="fa fa-edit"></i> Edit</a>
                             <form action="{{ route('materials.destroy', $mat->id) }}" method="POST" style="display:inline;" id="del-mat-{{ $mat->id }}">
                                 @csrf @method('DELETE')
-                                <button type="button" class="btn-delete" onclick="confirmDel({{ $mat->id }},'{{ addslashes($mat->material_name) }}','del-mat-')"><i class="fa fa-trash"></i> Delete</button>
+                                <button type="button" class="btn-delete"
+                                    data-id="{{ $mat->id }}"
+                                    data-name="{{ $mat->material_name }}"
+                                    data-prefix="del-mat-"
+                                    onclick="confirmDel(this.dataset.id, this.dataset.name, this.dataset.prefix)">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
                             </form>
                         </div>
                     </td>

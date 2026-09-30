@@ -292,7 +292,9 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                                   style="display:inline;" id="del-pur-{{ $purchase->id }}">
                                 @csrf @method('DELETE')
                                 <button type="button" class="btn-delete" title="Delete"
-                                    onclick="confirmDelete({{ $purchase->id }}, '{{ addslashes($purchase->display_name) }}')">
+                                    data-id="{{ $purchase->id }}"
+                                    data-name="{{ $purchase->display_name }}"
+                                    onclick="confirmDelete(this.dataset.id, this.dataset.name)">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </form>

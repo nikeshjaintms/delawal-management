@@ -386,7 +386,7 @@
     </div>
 
     <div class="form-actions">
-        <a href="{{ route('expenses.detail-pdf', $expense->id) }}" target="_blank" class="btn-gold" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.45) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+        <a href="{{ route('expenses.detail-pdf', $expense->id) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important; border: 1px solid #FB923C !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(249, 115, 22, 0.40);">
             <i class="fa-solid fa-file-pdf"></i> Print / PDF Voucher
         </a>
         <a href="{{ route('expenses.edit', $expense->id) }}" class="btn-gold">
@@ -399,7 +399,9 @@
               style="margin-left:auto;" id="del-show-{{ $expense->id }}">
             @csrf @method('DELETE')
             <button type="button" class="btn-danger"
-                onclick="confirmDelete({{ $expense->id }}, '{{ addslashes($expense->expense_title ?? $expense->expense_category) }}')">
+                data-id="{{ $expense->id }}"
+                data-title="{{ $expense->expense_title ?? $expense->expense_category }}"
+                onclick="confirmDelete(this.dataset.id, this.dataset.title)">
                 <i class="fa-regular fa-trash-can"></i> Delete
             </button>
         </form>

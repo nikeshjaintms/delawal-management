@@ -318,7 +318,9 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                                   style="display:inline;" id="del-inc-{{ $income->id }}">
                                 @csrf @method('DELETE')
                                 <button type="button" class="btn-delete"
-                                    onclick="confirmDelete({{ $income->id }}, '{{ addslashes($income->income_type ?? 'Income') }}')">
+                                    data-id="{{ $income->id }}"
+                                    data-name="{{ $income->income_type ?? 'Income' }}"
+                                    onclick="confirmDelete(this.dataset.id, this.dataset.name)">
                                     <i class="fa fa-trash"></i> Delete
                                 </button>
                             </form>

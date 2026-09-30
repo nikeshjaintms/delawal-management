@@ -173,7 +173,9 @@
         <form action="{{ route('ledgers.destroy', $ledger->id) }}" method="POST" style="margin-left:auto;" id="del-show-{{ $ledger->id }}">
             @csrf @method('DELETE')
             <button type="button" class="btn-danger"
-                onclick="confirmDel({{ $ledger->id }},'{{ addslashes($ledger->transaction_title) }}')">
+                data-id="{{ $ledger->id }}"
+                data-title="{{ $ledger->transaction_title }}"
+                onclick="confirmDel(this.dataset.id, this.dataset.title)">
                 <i class="fa-regular fa-trash-can"></i> Delete
             </button>
         </form>

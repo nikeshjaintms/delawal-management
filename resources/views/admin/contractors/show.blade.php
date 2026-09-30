@@ -456,7 +456,7 @@
         <button type="button" class="btn-green" onclick="openPaymentModal()">
             <i class="fa-solid fa-plus-circle"></i> Add Payment Installment
         </button>
-        <a href="{{ route('contractors.detail-pdf', $contractor->id) }}" target="_blank" class="btn-pc" style="background: rgba(252,105,0,0.18) !important; border-color: rgba(252,105,0,0.45) !important; color: #FF8A3D !important; box-shadow: 0 4px 14px rgba(252,105,0,0.25);">
+        <a href="{{ route('contractors.detail-pdf', $contractor->id) }}" target="_blank" class="btn-pc" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important; border: 1px solid #FB923C !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(249, 115, 22, 0.40);">
             <i class="fa-solid fa-file-pdf"></i> Print / PDF Dossier
         </a>
         <a href="{{ route('contractors.edit', $contractor) }}" class="btn-pc">

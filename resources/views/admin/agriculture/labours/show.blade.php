@@ -281,7 +281,10 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
                         <td style="text-align:center;">
                             <form action="{{ route('agriculture.labour-payments.destroy', $pmt->id) }}" method="POST" id="del-pmt-{{ $pmt->id }}" style="display:inline;">
                                 @csrf @method('DELETE')
-                                <button type="button" class="btn-delete" title="Delete Payment" onclick="confirmDeletePmt({{ $pmt->id }}, '{{ number_format($pmt->amount, 2) }}')">
+                                <button type="button" class="btn-delete" title="Delete Payment"
+                                    data-id="{{ $pmt->id }}"
+                                    data-amount="{{ number_format($pmt->amount, 2) }}"
+                                    onclick="confirmDeletePmt(this.dataset.id, this.dataset.amount)">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </form>

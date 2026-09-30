@@ -210,7 +210,9 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
                             <form action="{{ route('debit-notes.destroy', $dn->id) }}" method="POST" style="display:inline;" id="del-dn-{{ $dn->id }}">
                                 @csrf @method('DELETE')
                                 <button type="button" class="btn-delete"
-                                    onclick="confirmDel({{ $dn->id }},'{{ addslashes($dn->debit_note_no ?? 'this note') }}')">
+                                    data-id="{{ $dn->id }}"
+                                    data-name="{{ $dn->debit_note_no ?? 'this note' }}"
+                                    onclick="confirmDel(this.dataset.id, this.dataset.name)">
                                     <i class="fa fa-trash"></i> Delete
                                 </button>
                             </form>

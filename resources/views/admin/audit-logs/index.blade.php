@@ -5,258 +5,326 @@
 
 @section('content')
 <style>
-    .crud-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
+/* ── Luxury Dark Glass System ── */
+.crud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
 
-    .crud-title h2 {
-        font-size: 22px;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 4px;
-    }
+.crud-title h2 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #FFFFFF !important;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-    .crud-title p {
-        font-size: 13.5px;
-        color: var(--text-secondary);
-    }
+.crud-title p {
+    font-size: 14px;
+    color: #CBD5E1 !important;
+    font-weight: 500;
+    margin: 0;
+}
 
-    .card-box {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: var(--soft-shadow);
-        margin-bottom: 20px;
-    }
+.card-box {
+    background: rgba(20, 27, 41, 0.60) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 20px !important;
+    padding: 24px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+    margin-bottom: 24px;
+}
 
-    /* Filters section */
-    .filter-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin-bottom: 15px;
-    }
+/* ── Filters Grid ── */
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
 
-    .filter-group {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
 
-    .filter-label {
-        font-size: 11.5px;
-        font-weight: 700;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
+.filter-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #94A3B8 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
 
-    .filter-control {
-        width: 100%;
-        padding: 10px 14px;
-        border: 1.5px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 13.5px;
-        font-family: var(--font-primary);
-        color: var(--text-primary);
-        outline: none;
-        background-color: #FFF;
-        transition: var(--transition);
-    }
+.filter-control {
+    width: 100%;
+    padding: 11px 16px;
+    background: rgba(16, 22, 34, 0.65) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px !important;
+    font-size: 13.5px;
+    color: #FFFFFF !important;
+    outline: none;
+    transition: all .2s ease;
+    box-sizing: border-box;
+}
 
-    .filter-control:focus {
-        border-color: var(--blue);
-        box-shadow: 0 0 0 3px var(--blue-glow);
-    }
+.filter-control::placeholder {
+    color: #94A3B8 !important;
+}
 
-    .filter-actions {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 12px;
-        margin-top: 15px;
-        flex-wrap: wrap;
-    }
+.filter-control option {
+    background: #101622 !important;
+    color: #FFFFFF !important;
+}
 
-    .btn-search {
-        background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-        color: #FFFFFF;
-        padding: 10px 22px;
-        border-radius: 8px;
-        border: none;
-        font-size: 13.5px;
-        font-weight: 600;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 2px 8px rgba(59,130,246,0.3);
-        transition: var(--transition);
-    }
+.filter-control:focus {
+    border-color: #3B82F6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
 
-    .btn-search:hover {
-        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(59,130,246,0.4);
-    }
+.filter-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
 
-    .btn-reset {
-        padding: 10px 18px;
-        border: 1px solid var(--border-color);
-        background: #FFF;
-        color: var(--text-secondary);
-        border-radius: 8px;
-        font-size: 13.5px;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        transition: var(--transition);
-    }
+.btn-search {
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+    padding: 11px 22px;
+    border-radius: 10px;
+    border: 1px solid #3B82F6 !important;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all .25s ease;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
 
-    .btn-reset:hover {
-        color: var(--text-primary);
-        border-color: #94A3B8;
-        background: #F8FAFC;
-    }
+.btn-search:hover {
+    background: #1D4ED8 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50);
+}
 
-    /* Table styles */
-    .table-container {
-        width: 100%;
-        overflow-x: auto;
-    }
+.btn-reset {
+    padding: 10px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    background: rgba(255, 255, 255, 0.08);
+    color: #CBD5E1 !important;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all .2s ease;
+}
 
-    .premium-table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-        font-size: 13.5px;
-    }
+.btn-reset:hover {
+    background: rgba(255, 255, 255, 0.16);
+    color: #FFFFFF !important;
+    border-color: rgba(255, 255, 255, 0.35);
+    transform: translateY(-1px);
+}
 
-    .premium-table th {
-        padding: 14px 16px;
-        background: #F8FAFC;
-        color: #475569;
-        font-weight: 700;
-        border-bottom: 2px solid var(--border-color);
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        white-space: nowrap;
-    }
+/* ── Table Styling ── */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: rgba(10, 15, 26, 0.40);
+}
 
-    .premium-table td {
-        padding: 14px 16px;
-        border-bottom: 1px solid #F1F5F9;
-        color: var(--text-primary);
-        vertical-align: middle;
-    }
+.premium-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13.5px;
+}
 
-    .premium-table tr:last-child td {
-        border-bottom: none;
-    }
+.premium-table th {
+    padding: 16px 20px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #94A3B8 !important;
+    font-weight: 800;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    white-space: nowrap !important;
+}
 
-    .premium-table tbody tr {
-        transition: background 0.15s ease;
-    }
+.premium-table td {
+    padding: 16px 20px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    font-size: 13.5px;
+    color: #E2E8F0 !important;
+    vertical-align: middle;
+}
 
-    .premium-table tbody tr:hover {
-        background-color: #F0F7FF;
-    }
+.premium-table tbody tr {
+    transition: background 0.18s ease;
+}
 
-    /* Badge actions */
-    .badge-action {
-        display: inline-block;
-        padding: 4px 10px;
-        font-size: 11px;
-        font-weight: 700;
-        border-radius: 20px;
-        text-transform: uppercase;
-    }
+.premium-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
 
-    .badge-login {
-        background: rgba(16, 185, 129, 0.1);
-        color: #059669;
-    }
+.premium-table tr:last-child td {
+    border-bottom: none;
+}
 
-    .badge-logout {
-        background: rgba(239, 68, 68, 0.1);
-        color: #DC2626;
-    }
+/* ── Action Badges ── */
+.badge-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 800;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    white-space: nowrap;
+}
 
-    .badge-create {
-        background: rgba(59, 130, 246, 0.1);
-        color: #2563EB;
-    }
+.badge-login {
+    background: rgba(16, 185, 129, 0.18) !important;
+    color: #34D399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.40) !important;
+}
 
-    .badge-update {
-        background: rgba(245, 158, 11, 0.1);
-        color: #D97706;
-    }
+.badge-logout {
+    background: rgba(239, 68, 68, 0.18) !important;
+    color: #F87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.40) !important;
+}
 
-    .badge-delete {
-        background: rgba(156, 163, 175, 0.1);
-        color: #4B5563;
-    }
+.badge-create {
+    background: rgba(59, 130, 246, 0.18) !important;
+    color: #60A5FA !important;
+    border: 1px solid rgba(59, 130, 246, 0.40) !important;
+}
 
-    .badge-export {
-        background: rgba(139, 92, 246, 0.1);
-        color: #7C3AED;
-    }
+.badge-update {
+    background: rgba(245, 158, 11, 0.18) !important;
+    color: #FBBF24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.40) !important;
+}
 
-    .badge-print {
-        background: rgba(14, 165, 233, 0.1);
-        color: #0284C7;
-    }
+.badge-delete {
+    background: rgba(239, 68, 68, 0.18) !important;
+    color: #F87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.40) !important;
+}
 
-    .badge-download {
-        background: rgba(20, 184, 166, 0.1);
-        color: #0F766E;
-    }
+.badge-export {
+    background: rgba(168, 85, 247, 0.18) !important;
+    color: #D8B4FE !important;
+    border: 1px solid rgba(168, 85, 247, 0.40) !important;
+}
 
-    .badge-backup {
-        background: rgba(249, 115, 22, 0.1);
-        color: #C2410C;
-    }
+.badge-print {
+    background: rgba(14, 165, 233, 0.18) !important;
+    color: #38BDF8 !important;
+    border: 1px solid rgba(14, 165, 233, 0.40) !important;
+}
 
-    .badge-other {
-        background: rgba(100, 116, 139, 0.1);
-        color: #475569;
-    }
+.badge-download {
+    background: rgba(20, 184, 166, 0.18) !important;
+    color: #2DD4BF !important;
+    border: 1px solid rgba(20, 184, 166, 0.40) !important;
+}
 
-    .ip-badge {
-        font-family: monospace;
-        background: #F1F5F9;
-        color: #475569;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 12px;
-    }
+.badge-backup {
+    background: rgba(249, 115, 22, 0.18) !important;
+    color: #FB923C !important;
+    border: 1px solid rgba(249, 115, 22, 0.40) !important;
+}
 
-    .empty-state {
-        text-align: center;
-        padding: 48px 24px;
-        color: var(--text-secondary);
-    }
+.badge-other {
+    background: rgba(148, 163, 184, 0.15) !important;
+    color: #CBD5E1 !important;
+    border: 1px solid rgba(148, 163, 184, 0.30) !important;
+}
 
-    .empty-state i {
-        font-size: 40px;
-        margin-bottom: 12px;
-        opacity: 0.4;
-    }
+/* ── Module & IP Badges ── */
+.module-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #FFFFFF !important;
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.ip-badge {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    background: rgba(30, 41, 59, 0.85) !important;
+    color: #93C5FD !important;
+    border: 1px solid rgba(96, 165, 250, 0.35) !important;
+    padding: 4px 11px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.desc-box {
+    color: #CBD5E1;
+    font-size: 13px;
+    line-height: 1.5;
+    word-break: break-word;
+    max-width: 480px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: #94A3B8;
+}
+
+.empty-state i {
+    font-size: 38px;
+    margin-bottom: 12px;
+    opacity: 0.35;
+    color: #60A5FA;
+}
 </style>
 
 <div class="crud-header">
     <div class="crud-title">
-        <h2><i class="fa-solid fa-clock-rotate-left" style="color: var(--blue); margin-right: 9px;"></i>Audit Logs</h2>
-        <p>Monitor system usage, data changes, exports, and administrator logins.</p>
+        <h2><i class="fa-solid fa-clock-rotate-left" style="color: #60A5FA;"></i> Audit Logs</h2>
+        <p>Monitor system usage, data changes, exports, and administrator activity.</p>
     </div>
 </div>
 
@@ -327,13 +395,13 @@
         <table class="premium-table">
             <thead>
                 <tr>
-                    <th style="width: 70px;">Sr. No.</th>
-                    <th style="width: 170px;">Date &amp; Time</th>
-                    <th style="width: 150px;">User Name</th>
-                    <th style="width: 150px;">Module Name</th>
-                    <th style="width: 140px;">Action Type</th>
+                    <th style="width: 70px; text-align: center;">Sr. No.</th>
+                    <th style="width: 175px;">Date &amp; Time</th>
+                    <th style="width: 155px;">User Name</th>
+                    <th style="width: 155px;">Module Name</th>
+                    <th style="width: 140px; text-align: center;">Action Type</th>
                     <th>Description</th>
-                    <th style="width: 130px;">IP Address</th>
+                    <th style="width: 150px; text-align: center;">IP Address</th>
                 </tr>
             </thead>
             <tbody>
@@ -342,17 +410,28 @@
                 @endphp
                 @forelse($logs as $index => $log)
                     <tr>
-                        <td>{{ $startNo + $index }}</td>
+                        <td style="text-align: center; color: #94A3B8; font-weight: 700;">
+                            {{ $startNo + $index }}
+                        </td>
                         <td style="white-space: nowrap;">
-                            {{ $log->created_at->format('d M Y, h:i A') }}
+                            <span style="display: inline-flex; align-items: center; gap: 6px; color: #CBD5E1;">
+                                <i class="fa-regular fa-clock" style="color: #60A5FA; font-size: 12px;"></i>
+                                {{ $log->created_at->format('d M Y, h:i A') }}
+                            </span>
                         </td>
                         <td>
-                            <strong>{{ $log->user_name ?? 'System/Guest' }}</strong>
+                            <div style="display: inline-flex; align-items: center; gap: 7px;">
+                                <i class="fa-solid fa-circle-user" style="color: #60A5FA; font-size: 14px;"></i>
+                                <strong style="color: #FFFFFF !important; font-weight: 700;">{{ $log->user_name ?? 'System/Guest' }}</strong>
+                            </div>
                         </td>
                         <td>
-                            <span style="font-weight: 500;">{{ $log->module_name }}</span>
+                            <span class="module-chip">
+                                <i class="fa-solid fa-layer-group" style="font-size: 11px; color: #A78BFA;"></i>
+                                {{ $log->module_name }}
+                            </span>
                         </td>
-                        <td>
+                        <td style="text-align: center;">
                             @php
                                 $badgeClass = 'badge-other';
                                 if ($log->action_type === 'Login')           $badgeClass = 'badge-login';
@@ -369,10 +448,13 @@
                             <span class="badge-action {{ $badgeClass }}">{{ $log->action_type }}</span>
                         </td>
                         <td>
-                            <span style="color: var(--text-secondary); word-break: break-all;">{{ $log->description }}</span>
+                            <div class="desc-box">{{ $log->description }}</div>
                         </td>
-                        <td>
-                            <span class="ip-badge">{{ $log->ip_address ?? '-' }}</span>
+                        <td style="text-align: center;">
+                            <span class="ip-badge">
+                                <i class="fa-solid fa-network-wired"></i>
+                                {{ $log->ip_address ?: '—' }}
+                            </span>
                         </td>
                     </tr>
                 @empty
@@ -380,7 +462,7 @@
                         <td colspan="7">
                             <div class="empty-state">
                                 <i class="fa-solid fa-circle-info"></i>
-                                <p>No audit logs found.</p>
+                                <p style="font-size: 14px; font-weight: 600; color: #CBD5E1; margin-top: 6px;">No audit logs found.</p>
                             </div>
                         </td>
                     </tr>
@@ -390,10 +472,9 @@
     </div>
 
     @if(method_exists($logs, 'hasPages') && $logs->hasPages())
-        <div style="margin-top: 20px;">
+        <div style="margin-top: 24px; display: flex; justify-content: center;">
             {{ $logs->links() }}
         </div>
     @endif
 </div>
 @endsection
-

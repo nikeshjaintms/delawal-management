@@ -139,7 +139,13 @@
                             <a href="{{ route('material-categories.edit', $cat->id) }}" class="btn-edit"><i class="fa fa-edit"></i> Edit</a>
                             <form action="{{ route('material-categories.destroy', $cat->id) }}" method="POST" style="display:inline;" id="del-cat-{{ $cat->id }}">
                                 @csrf @method('DELETE')
-                                <button type="button" class="btn-delete" onclick="confirmDel({{ $cat->id }},'{{ addslashes($cat->category_name) }}','del-cat-')"><i class="fa fa-trash"></i> Delete</button>
+                                <button type="button" class="btn-delete"
+                                    data-id="{{ $cat->id }}"
+                                    data-name="{{ $cat->category_name }}"
+                                    data-prefix="del-cat-"
+                                    onclick="confirmDel(this.dataset.id, this.dataset.name, this.dataset.prefix)">
+                                    <i class="fa fa-trash"></i> Delete
+                                </button>
                             </form>
                         </div>
                     </td>

@@ -265,7 +265,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                             @endif
                             <form action="{{ route('stock-outwards.destroy', $out->id) }}" method="POST" style="display:inline;" id="del-out-{{ $out->id }}">
                                 @csrf @method('DELETE')
-                                <button type="button" class="btn-delete" onclick="confirmDel({{ $out->id }},'{{ addslashes($out->outward_number ?: $out->id) }}','del-out-')"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                                <button type="button" class="btn-delete"
+                                    data-id="{{ $out->id }}"
+                                    data-name="{{ $out->outward_number ?: $out->id }}"
+                                    data-prefix="del-out-"
+                                    onclick="confirmDel(this.dataset.id, this.dataset.name, this.dataset.prefix)">
+                                    <i class="fa-solid fa-trash-can"></i> Delete
+                                </button>
                             </form>
                         </div>
                     </td>

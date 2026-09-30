@@ -223,7 +223,14 @@
         @if($authUser->hasPermission('purchase_order_delete') || $authUser->isAdmin())
         <form action="{{ route('purchase-orders.destroy', $purchaseOrder->id) }}" method="POST" style="display:inline;" id="del-po-{{ $purchaseOrder->id }}">
             @csrf @method('DELETE')
-            <button type="button" class="btn-delete" style="background: rgba(239, 68, 68, 0.15) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; padding: 10px 18px; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all .2s ease;" onclick="confirmDel({{ $purchaseOrder->id }},'{{ addslashes($purchaseOrder->po_number) }}','del-po-')"><i class="fa-solid fa-trash-can"></i> Delete</button>
+            <button type="button" class="btn-delete"
+                style="background: rgba(239, 68, 68, 0.15) !important; color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; padding: 10px 18px; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all .2s ease;"
+                data-id="{{ $purchaseOrder->id }}"
+                data-name="{{ $purchaseOrder->po_number }}"
+                data-prefix="del-po-"
+                onclick="confirmDel(this.dataset.id, this.dataset.name, this.dataset.prefix)">
+                <i class="fa-solid fa-trash-can"></i> Delete
+            </button>
         </form>
         @endif
     </div>

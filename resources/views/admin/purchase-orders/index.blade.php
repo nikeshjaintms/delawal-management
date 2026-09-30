@@ -363,7 +363,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                             @if($authUser->hasPermission('purchase_order_delete') || $authUser->isAdmin())
                             <form action="{{ route('purchase-orders.destroy', $po->id) }}" method="POST" style="display:inline;" id="del-po-{{ $po->id }}">
                                 @csrf @method('DELETE')
-                                <button type="button" class="btn-delete" onclick="confirmDel({{ $po->id }},'{{ addslashes($po->po_number) }}','del-po-')"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                                <button type="button" class="btn-delete"
+                                    data-id="{{ $po->id }}"
+                                    data-name="{{ $po->po_number }}"
+                                    data-prefix="del-po-"
+                                    onclick="confirmDel(this.dataset.id, this.dataset.name, this.dataset.prefix)">
+                                    <i class="fa-solid fa-trash-can"></i> Delete
+                                </button>
                             </form>
                             @endif
                         </div>

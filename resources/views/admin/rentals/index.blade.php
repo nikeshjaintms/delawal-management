@@ -351,7 +351,9 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                                         <button type="button"
                                             class="btn-delete"
                                             title="Delete Rental"
-                                            onclick="confirmDelete({{ $rental->id }}, '{{ addslashes($rental->tenant_name) }}')">
+                                            data-id="{{ $rental->id }}"
+                                            data-name="{{ $rental->tenant_name }}"
+                                            onclick="confirmDelete(this.dataset.id, this.dataset.name)">
                                             <i class="fa fa-trash"></i> Delete
                                         </button>
                                     </form>

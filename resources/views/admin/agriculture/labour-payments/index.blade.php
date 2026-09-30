@@ -310,7 +310,10 @@ select.filter-control option { background: #0F172A !important; color: #FFFFFF !i
                     <td>
                         <form action="{{ route('agriculture.labour-payments.destroy', $p->id) }}" method="POST" id="del-p-{{ $p->id }}">
                             @csrf @method('DELETE')
-                            <button type="button" class="btn-delete" title="Delete Payment Record" onclick="confirmDeletePayment({{ $p->id }}, '{{ number_format($p->amount, 2) }}')">
+                            <button type="button" class="btn-delete" title="Delete Payment Record"
+                                data-id="{{ $p->id }}"
+                                data-amount="{{ number_format($p->amount, 2) }}"
+                                onclick="confirmDeletePayment(this.dataset.id, this.dataset.amount)">
                                 <i class="fa fa-trash"></i>
                             </button>
                         </form>

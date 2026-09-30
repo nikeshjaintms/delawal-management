@@ -296,7 +296,10 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                             <a href="{{ route('agriculture.expenses.edit', $exp->id) }}" class="btn-edit" title="Edit Expense"><i class="fa fa-edit"></i> Edit</a>
                             <form action="{{ route('agriculture.expenses.destroy', $exp->id) }}" method="POST" style="display:inline;" id="del-exp-{{ $exp->id }}">
                                 @csrf @method('DELETE')
-                                <button type="button" class="btn-delete" title="Delete Expense" onclick="confirmDeleteExpense({{ $exp->id }}, '{{ number_format($exp->amount, 2) }}')">
+                                <button type="button" class="btn-delete" title="Delete Expense"
+                                    data-id="{{ $exp->id }}"
+                                    data-amount="{{ number_format($exp->amount, 2) }}"
+                                    onclick="confirmDeleteExpense(this.dataset.id, this.dataset.amount)">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </form>

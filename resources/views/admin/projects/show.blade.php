@@ -400,14 +400,14 @@
 .btn-solid-blue {
     background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
     color: #FFFFFF !important;
-    border: 1px solid #3B82F6 !important;
-    padding: 8px 16px;
-    border-radius: 9px;
-    font-size: 13px;
+    border: 1px solid #60A5FA !important;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     cursor: pointer;
     box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
     text-decoration: none !important;
@@ -415,21 +415,45 @@
 }
 .btn-solid-blue:hover {
     background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.50);
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.50);
+}
+
+.btn-solid-orange {
+    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid #FB923C !important;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+    text-decoration: none !important;
+    transition: all 0.2s;
+}
+.btn-solid-orange:hover {
+    background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.50);
 }
 
 .btn-solid-purple {
     background: linear-gradient(135deg, #9333EA 0%, #7E22CE 100%) !important;
     color: #FFFFFF !important;
     border: 1px solid #A855F7 !important;
-    padding: 8px 16px;
-    border-radius: 9px;
-    font-size: 13px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     cursor: pointer;
     box-shadow: 0 4px 14px rgba(147, 51, 234, 0.35);
     text-decoration: none !important;
@@ -437,21 +461,22 @@
 }
 .btn-solid-purple:hover {
     background: linear-gradient(135deg, #7E22CE 0%, #6B21A8 100%) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(147, 51, 234, 0.50);
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(147, 51, 234, 0.50);
 }
 
 .btn-solid-emerald {
     background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
     color: #FFFFFF !important;
     border: 1px solid #34D399 !important;
-    padding: 8px 16px;
-    border-radius: 9px;
-    font-size: 13px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     cursor: pointer;
     box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
     text-decoration: none !important;
@@ -459,30 +484,35 @@
 }
 .btn-solid-emerald:hover {
     background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.50);
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.50);
 }
 
 .btn-solid-slate {
-    background: rgba(255, 255, 255, 0.08) !important;
-    color: #CBD5E1 !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
-    padding: 8px 16px;
-    border-radius: 9px;
-    font-size: 13px;
+    background: rgba(15, 23, 42, 0.70) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
     text-decoration: none !important;
     transition: all 0.2s;
 }
 .btn-solid-slate:hover {
-    background: rgba(255, 255, 255, 0.16) !important;
+    background: rgba(255, 255, 255, 0.20) !important;
     color: #FFFFFF !important;
-    border-color: rgba(255, 255, 255, 0.30) !important;
-    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
 .filter-tabs {
@@ -822,19 +852,19 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
         <h2>{{ $project->project_name }}</h2>
         <p>Project details, associated Property Masters &amp; Plot Inventory</p>
     </div>
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <a href="{{ route('invoices.create', ['project_id' => $project->id]) }}" class="btn-gold" style="padding: 9px 18px; font-size: 13.5px;">
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('invoices.create', ['project_id' => $project->id]) }}" class="btn-solid-emerald">
             <i class="fa-solid fa-file-invoice-dollar"></i> Generate Invoice
         </a>
-        <a href="{{ route('projects.detail-pdf', $project->id) }}" target="_blank" class="btn-secondary-custom" style="background: rgba(252, 105, 0, 0.18) !important; border-color: rgba(252, 105, 0, 0.45) !important; color: #FF8A3D !important;">
+        <a href="{{ route('projects.detail-pdf', $project->id) }}" target="_blank" class="btn-solid-orange">
             <i class="fa-solid fa-file-pdf"></i> Print / PDF Dossier
         </a>
         @if($authUser && $authUser->hasPermission('project_edit'))
-            <a href="{{ route('projects.edit', $project->id) }}" class="btn-primary-custom">
+            <a href="{{ route('projects.edit', $project->id) }}" class="btn-solid-blue">
                 <i class="fa-regular fa-pen-to-square"></i> Edit Project
             </a>
         @endif
-        <a href="{{ route('projects.index') }}" class="btn-secondary-custom">
+        <a href="{{ route('projects.index') }}" class="btn-solid-slate">
             <i class="fa-solid fa-arrow-left"></i> Back to Projects
         </a>
     </div>
