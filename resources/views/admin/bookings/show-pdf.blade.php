@@ -60,13 +60,26 @@
 <body>
 @include('admin.components.pdf-action-bar', ['title' => 'Booking Slip #BK-' . str_pad($booking->id, 5, '0', STR_PAD_LEFT), 'orientation' => 'portrait', 'backUrl' => route('bookings.show', $booking->id)])
 
-<div class="rpt-header">
-    <div style="display: flex; align-items: center; gap: 14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 52px; width: auto; object-fit: contain;">
-        <div>
-            <div class="co-name">Delawala</div>
-            <div class="co-sub">Properties &amp; Management</div>
+<div class="rpt-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; margin-bottom:18px; border-bottom:2.5px solid #D97706; gap:16px;">
+    <div style="display:flex; align-items:center; gap:14px;">
+        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:52px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
+        <div style="display:flex; flex-direction:column; gap:2px;">
+            <div class="co-name" style="font-size:20px; font-weight:800; color:#0F172A; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">Delawala Properties</div>
+            <div class="co-sub" style="font-size:9.5px; color:#D97706; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Management</div>
+            <div style="font-size:10px; color:#475569; line-height:1.3; margin-top:1px;">
+                <i class="fa-solid fa-location-dot" style="color:#D97706; font-size:9px; margin-right:3px;"></i>Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam, Bharuch - 392012
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap;">
+                <span style="display:inline-flex; align-items:center; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:0.3px;"><strong>GSTIN:</strong> 24CUBPD0770R1ZI</span>
+                <span style="display:inline-flex; align-items:center; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:1px 6px; border-radius:4px; font-size:9px;"><strong>Proprietor:</strong> Delawala Zafar</span>
+            </div>
         </div>
+    </div>
+    <div class="rpt-meta" style="text-align:right; flex-shrink:0;">
+        <div class="rpt-title" style="font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.2px; line-height:1.2;">Official Document</div>
+        <div class="rpt-date" style="font-size:10px; color:#64748B; margin-top:3px;">Generated: {{ now()->format('d M Y, h:i A') }}</div>
+    </div>
+</div>
     </div>
     <div class="rpt-meta">
         <div class="rpt-title">Booking Confirmation Slip / Token Receipt</div>

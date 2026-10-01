@@ -167,21 +167,35 @@
 
 <div class="invoice-sheet">
     <!-- Header -->
-    <div class="inv-header">
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 58px; width: auto; object-fit: contain;">
-            <div>
-                <div class="firm-name">{{ $invoice->firm->firm_name ?? 'Delawala Management' }}</div>
-                <div class="firm-meta">
-                    <div>{{ $invoice->firm->address ?? '' }}{{ $invoice->firm->city ? ', ' . $invoice->firm->city : '' }}</div>
-                    @if($invoice->firm && $invoice->firm->mobile)
-                        <div>Phone: {{ $invoice->firm->mobile }}</div>
-                    @endif
-                    @if($invoice->firm && $invoice->firm->gst_number)
-                        <div><strong>GSTIN:</strong> {{ $invoice->firm->gst_number }}</div>
-                    @endif
+    <div class="inv-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:20px; border-bottom:2px solid #D97706; margin-bottom:22px; gap:16px;">
+        <div style="display:flex; align-items:center; gap:16px;">
+            <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:58px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <div class="firm-name" style="font-size:22px; font-weight:800; color:#0F172A; text-transform:uppercase;">{{ $invoice->firm->firm_name ?? 'DELAWALA PROPERTIES' }}</div>
+                <div style="font-size:10px; color:#D97706; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Construction</div>
+                <div style="color:#475569; font-size:11px; line-height:1.4; margin-top:2px;">
+                    <div><i class="fa-solid fa-location-dot" style="color:#D97706; font-size:10px; margin-right:4px;"></i>{{ $invoice->firm->address ?? 'Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam' }}, {{ $invoice->firm->city ?? 'Dahegam, Bharuch' }} - {{ $invoice->firm->pincode ?? '392012' }}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                    <span style="background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:2px 7px; border-radius:4px; font-size:10px; font-weight:700;"><strong>GSTIN:</strong> {{ $invoice->firm->gst_no ?? '24CUBPD0770R1ZI' }}</span>
+                    <span style="background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:2px 7px; border-radius:4px; font-size:10px;"><strong>Proprietor:</strong> {{ $invoice->firm->owner_name ?? 'Delawala Zafar' }}</span>
                 </div>
             </div>
+        </div>
+
+        <div style="text-align:right;">
+            <div class="tax-invoice-label" style="font-size:24px; font-weight:900; color:#D97706; letter-spacing:0.5px;">TAX INVOICE</div>
+            <div class="inv-number" style="font-size:15px; font-weight:800; color:#0F172A; margin-top:3px;">{{ $invoice->invoice_no }}</div>
+            <div style="color:#64748B; font-size:11.5px; margin-top:3px;">
+                Date: <strong>{{ $invoice->invoice_date->format('d/m/Y') }}</strong>
+            </div>
+            @if($invoice->due_date)
+                <div style="color:#64748B; font-size:11.5px;">
+                    Due Date: <strong>{{ $invoice->due_date->format('d/m/Y') }}</strong>
+                </div>
+            @endif
+        </div>
+    </div>
         </div>
 
         <div style="text-align: right;">
