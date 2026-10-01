@@ -66,45 +66,15 @@ class AuthController extends Controller
         $email = strtolower(trim((string)$request->input('email')));
         $password = (string)$request->input('password');
 
-        // Auto-heal / guarantee default admin credentials
-        if (in_array($email, ['admin@gmail.com', 'admin@delawala.com']) && $password === 'admin@123') {
-            $firm = Firm::firstOrCreate(
-                ['email' => 'admin@gmail.com'],
-                [
-                    'firm_name' => 'Delawala Properties',
-                    'mobile'    => '9999999999',
-                    'status'    => 'active',
-                    'password'  => Hash::make('admin@123'),
-                ]
-            );
-            $firm->update(['password' => Hash::make('admin@123'), 'status' => 'active']);
-
-            $adminRole = \App\Models\Role::firstOrCreate(['name' => 'Admin'], [
-                'display_name' => 'Administrator',
-            ]);
-
-            $user = User::updateOrCreate(
-                ['email' => $email],
-                [
-                    'name'     => ($email === 'admin@delawala.com' ? 'Delawala Admin' : 'Admin User'),
-                    'password' => Hash::make('admin@123'),
-                    'firm_id'  => $firm->id,
-                    'role_id'  => $adminRole->id,
-                    'role'     => 'admin',
-                    'status'   => 'active',
-                ]
-            );
-
-            Auth::login($user, $request->boolean('remember'));
-            $request->session()->regenerate();
-            $request->session()->put('login_type', 'admin');
-            AuditLog::log('Auth', 'Login', 'Admin logged in: ' . $email);
-            return $this->getIntendedOrDashboard();
-        }
-
         $user = User::where('email', $email)->first();
 
-        if ($user && $user->status !== 'active') {
+        if (!$user) {
+            return back()
+                ->withInput($request->only('email', 'login_type'))
+                ->with('error', 'Invalid email or password.');
+        }
+
+        if ($user->status !== 'active') {
             return back()
                 ->withInput($request->only('email', 'login_type'))
                 ->with('error', 'Your account is inactive. Please contact admin.');
@@ -129,44 +99,6 @@ class AuthController extends Controller
     {
         $email = strtolower(trim((string)$request->input('email')));
         $password = (string)$request->input('password');
-
-        // Auto-heal / guarantee default firm credentials
-        if (in_array($email, ['admin@gmail.com', 'admin@delawala.com']) && $password === 'admin@123') {
-            $firm = Firm::updateOrCreate(
-                ['email' => $email],
-                [
-                    'firm_name' => ($email === 'admin@delawala.com' ? 'Delawala Group' : 'Delawala Properties'),
-                    'mobile'    => '9999999999',
-                    'status'    => 'active',
-                    'password'  => Hash::make('admin@123'),
-                ]
-            );
-
-            // Ensure financial year exists
-            \App\Models\FinancialYear::firstOrCreate(
-                ['year_name' => '2025-2026'],
-                [
-                    'start_date' => '2025-04-01',
-                    'end_date'   => '2026-03-31',
-                    'is_current' => 1,
-                    'status'     => 'active',
-                ]
-            );
-
-            $request->session()->regenerate();
-            session()->forget('url.intended');
-            $request->session()->put([
-                'login_type'              => 'firm',
-                'firm_temp_authenticated' => true,
-                'temp_firm_id'            => $firm->id,
-                'temp_firm_name'          => $firm->firm_name,
-                'firm_email'              => $firm->email,
-                'firm_status'             => $firm->status,
-            ]);
-
-            AuditLog::log('Auth', 'Firm Pre-Auth', 'Firm credentials verified: ' . $firm->firm_name . ' <' . $firm->email . '>');
-            return redirect()->route('firm-selection');
-        }
 
         // Find firm by email
         $firm = Firm::where('email', $email)->first();
@@ -324,5 +256,158 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Show Change Password Form
+    // ─────────────────────────────────────────────────────────────
+    public function showChangePassword()
+    {
+        $loginType = session('login_type', 'admin');
+        if ($loginType === 'firm') {
+            $firm = Firm::find(session('firm_id'));
+            $currentUser = (object)[
+                'name'  => $firm->firm_name ?? session('firm_name', 'Firm Account'),
+                'email' => $firm->email ?? session('firm_email', '-'),
+                'role'  => 'Firm Account',
+                'type'  => 'firm',
+            ];
+        } else {
+            $user = Auth::user();
+            $currentUser = (object)[
+                'name'  => $user->name ?? 'Admin User',
+                'email' => $user->email ?? '-',
+                'role'  => is_object($user->role) ? ($user->role->name ?? $user->role->role_name ?? 'Administrator') : ucfirst($user->role ?? 'Administrator'),
+                'type'  => 'admin',
+            ];
+        }
+
+        return view('admin.profile.change-password', compact('currentUser'));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Public Change Password from Login Screen
+    // ─────────────────────────────────────────────────────────────
+    public function publicChangePassword(Request $request)
+    {
+        $request->validate([
+            'account_type'          => 'required|in:admin,firm',
+            'email'                 => 'required|email',
+            'current_password'      => 'required',
+            'password'              => 'required|min:6|confirmed',
+            'password_confirmation' => 'required',
+        ], [
+            'email.required'                 => 'Email address is required.',
+            'current_password.required'      => 'Current password is required.',
+            'password.required'              => 'New password is required.',
+            'password.min'                   => 'New password must be at least 6 characters.',
+            'password.confirmed'             => 'New password and confirmation do not match.',
+            'password_confirmation.required' => 'Please confirm your new password.',
+        ]);
+
+        $email = strtolower(trim((string)$request->input('email')));
+        $accountType = $request->input('account_type', 'admin');
+
+        if ($accountType === 'firm') {
+            $firm = Firm::where('email', $email)->first();
+            if (!$firm) {
+                return back()
+                    ->withInput($request->only('email', 'account_type'))
+                    ->with('error_change_pwd', 'Firm account not found with this email.')
+                    ->with('open_change_modal', true);
+            }
+
+            if (!Hash::check((string)$request->input('current_password'), $firm->password)) {
+                return back()
+                    ->withInput($request->only('email', 'account_type'))
+                    ->with('error_change_pwd', 'Current password does not match our records.')
+                    ->with('open_change_modal', true);
+            }
+
+            $firm->password = Hash::make((string)$request->input('password'));
+            $firm->save();
+
+            AuditLog::log('Auth', 'Public Password Change', 'Firm password changed via login page: ' . $firm->firm_name . ' (' . $email . ')');
+
+            return redirect()->route('login')->with('success', 'Password changed successfully! Please sign in with your new password.');
+        } else {
+            $user = User::where('email', $email)->first();
+            if (!$user) {
+                return back()
+                    ->withInput($request->only('email', 'account_type'))
+                    ->with('error_change_pwd', 'Admin/User account not found with this email.')
+                    ->with('open_change_modal', true);
+            }
+
+            if (!Hash::check((string)$request->input('current_password'), $user->password)) {
+                return back()
+                    ->withInput($request->only('email', 'account_type'))
+                    ->with('error_change_pwd', 'Current password does not match our records.')
+                    ->with('open_change_modal', true);
+            }
+
+            $user->password = Hash::make((string)$request->input('password'));
+            $user->save();
+
+            AuditLog::log('Auth', 'Public Password Change', 'Admin user password changed via login page: ' . $user->name . ' (' . $email . ')');
+
+            return redirect()->route('login')->with('success', 'Password changed successfully! Please sign in with your new password.');
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Process Change Password Submission
+    // ─────────────────────────────────────────────────────────────
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password'      => 'required',
+            'password'              => 'required|min:6|confirmed',
+            'password_confirmation' => 'required',
+        ], [
+            'current_password.required'      => 'Current password is required.',
+            'password.required'              => 'New password is required.',
+            'password.min'                   => 'New password must be at least 6 characters long.',
+            'password.confirmed'             => 'New password and confirmation password do not match.',
+            'password_confirmation.required' => 'Please confirm your new password.',
+        ]);
+
+        $loginType = session('login_type', 'admin');
+
+        // Firm account password update
+        if ($loginType === 'firm') {
+            $firm = Firm::find(session('firm_id'));
+            if (!$firm) {
+                return back()->with('error', 'Firm session not found.');
+            }
+
+            if (!Hash::check($request->current_password, $firm->password)) {
+                return back()->withErrors(['current_password' => 'The provided current password does not match our records.'])->withInput();
+            }
+
+            $firm->password = Hash::make($request->password);
+            $firm->save();
+
+            AuditLog::log('Auth', 'Change Password', 'Firm password updated: ' . $firm->firm_name . ' (' . $firm->email . ')');
+
+            return redirect()->route('change-password')->with('success', 'Password updated successfully!');
+        }
+
+        // Admin user password update
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'The provided current password does not match our records.'])->withInput();
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        AuditLog::log('Auth', 'Change Password', 'Admin user password updated: ' . $user->name . ' (' . $user->email . ')');
+
+        return redirect()->route('change-password')->with('success', 'Password updated successfully!');
     }
 }

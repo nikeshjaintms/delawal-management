@@ -57,6 +57,7 @@ Route::get('/', function () {
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::post('/login/change-password', [AuthController::class, 'publicChangePassword'])->name('login.change-password');
 Route::get('/firm-selection', [AuthController::class, 'showFirmSelection'])->name('firm-selection');
 Route::post('/firm-selection', [AuthController::class, 'submitFirmSelection'])->name('firm-selection.submit');
 
@@ -331,6 +332,10 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::resource('form-submissions', FormSubmissionController::class)->only(['index', 'show', 'destroy'])->middleware(['permission:form_management_view']);
     Route::resource('invoice-settings', InvoiceSettingController::class);
     Route::get('invoice-settings/{invoiceSetting}/preview', [InvoiceSettingController::class, 'preview'])->name('invoice-settings.preview');
+
+    // ── User Profile & Security ───────────────────────────────────────
+    Route::get('/change-password', [AuthController::class, 'showChangePassword'])->name('change-password');
+    Route::post('/change-password', [AuthController::class, 'updatePassword'])->name('change-password.update');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
