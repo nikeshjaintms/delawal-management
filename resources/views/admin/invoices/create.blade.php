@@ -146,6 +146,83 @@
     color: #FFFFFF;
 }
 
+/* ── 1-Click Auto-Create Action Buttons ── */
+.auto-card {
+    background: rgba(15, 23, 42, 0.70) !important;
+    padding: 16px !important;
+    border-radius: 14px !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.10) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    transition: all 0.25s ease !important;
+}
+.auto-card:hover {
+    background: rgba(20, 30, 50, 0.85) !important;
+    transform: translateY(-2px);
+}
+.auto-card.card-sale { border-color: rgba(59, 130, 246, 0.30) !important; }
+.auto-card.card-sale:hover { border-color: rgba(59, 130, 246, 0.60) !important; box-shadow: 0 8px 24px rgba(37, 99, 235, 0.20) !important; }
+
+.auto-card.card-booking { border-color: rgba(16, 185, 129, 0.30) !important; }
+.auto-card.card-booking:hover { border-color: rgba(16, 185, 129, 0.60) !important; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.20) !important; }
+
+.auto-card.card-rental { border-color: rgba(245, 158, 11, 0.30) !important; }
+.auto-card.card-rental:hover { border-color: rgba(245, 158, 11, 0.60) !important; box-shadow: 0 8px 24px rgba(245, 158, 11, 0.20) !important; }
+
+.btn-auto-action {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 11px 16px !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.3px !important;
+    cursor: pointer !important;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    border: none !important;
+    text-decoration: none !important;
+    margin-top: 10px !important;
+}
+.btn-auto-blue {
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(96, 165, 250, 0.50) !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+}
+.btn-auto-blue:hover {
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.55) !important;
+}
+
+.btn-auto-green {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(52, 211, 153, 0.50) !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+}
+.btn-auto-green:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55) !important;
+}
+
+.btn-auto-amber {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(251, 191, 36, 0.50) !important;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+}
+.btn-auto-amber:hover {
+    background: linear-gradient(135deg, #D97706 0%, #B45309 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.55) !important;
+}
+
 /* Calculation Summary Card */
 .calc-summary-card {
     background: rgba(15, 23, 42, 0.75);
@@ -331,6 +408,93 @@
 
 <form action="{{ route('invoices.store') }}" method="POST" id="invoiceForm">
     @csrf
+
+    <!-- SECTION 0: 1-CLICK INSTANT AUTO-FETCH & AUTO-FILL FROM EXISTING AGREEMENTS -->
+    <div class="form-section-card" style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.16) 0%, rgba(15, 23, 42, 0.85) 100%) !important; border: 1.5px solid rgba(96, 165, 250, 0.35) !important; padding: 22px 24px;">
+        <div class="section-head" style="color: #93C5FD; border-bottom-color: rgba(96, 165, 250, 0.20); margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-bolt-lightning" style="color: #FBBF24; font-size: 20px;"></i>
+                    <span style="font-size: 16px; font-weight: 800; color: #FFFFFF;">Instant Auto-Fetch &amp; Auto-Generate from Agreements</span>
+                </div>
+                <span style="font-size: 11.5px; background: rgba(59, 130, 246, 0.25); color: #93C5FD; padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(96, 165, 250, 0.35); font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                    <i class="fa-solid fa-circle-check" style="color: #34D399;"></i> 100% Automated GST Auto-Fill
+                </span>
+            </div>
+        </div>
+
+        <p style="font-size: 13px; color: #CBD5E1; margin-top: 0; margin-bottom: 16px; line-height: 1.5;">
+            Select any active Property Sale, Booking, or Rental agreement below to auto-fetch customer info, property descriptions, HSN codes (9954/9972), 18% GST and advance token amounts in 1 click!
+        </p>
+
+        <div class="form-grid-3">
+            {{-- Property Sale Selector --}}
+            <div class="auto-card card-sale">
+                <div>
+                    <label class="form-label" style="color: #60A5FA; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                        <i class="fa-solid fa-house-chimney"></i> Auto-Fetch Property Sale
+                    </label>
+                    <select id="quickPropertySaleSelect" class="f-control" style="width: 100%;" onchange="autoFillFromRecord('property_sale', this.value)">
+                        <option value="">-- Select Property Sale --</option>
+                        @if(isset($propertySales))
+                            @foreach($propertySales as $ps)
+                                <option value="{{ $ps->id }}">
+                                    {{ $ps->agreement_no ?: ('SALE #' . $ps->id) }} - {{ $ps->customer->name ?? 'Customer' }} (₹{{ number_format($ps->sale_amount ?? 0) }})
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                <button type="button" class="btn-auto-action btn-auto-blue" onclick="trigger1ClickAutoGenerate('sale')">
+                    <i class="fa-solid fa-bolt"></i> 1-Click Auto-Create Invoice
+                </button>
+            </div>
+
+            {{-- Booking Selector --}}
+            <div class="auto-card card-booking">
+                <div>
+                    <label class="form-label" style="color: #34D399; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                        <i class="fa-solid fa-bookmark"></i> Auto-Fetch Booking
+                    </label>
+                    <select id="quickBookingSelect" class="f-control" style="width: 100%;" onchange="autoFillFromRecord('booking', this.value)">
+                        <option value="">-- Select Booking --</option>
+                        @if(isset($bookings))
+                            @foreach($bookings as $bk)
+                                <option value="{{ $bk->id }}">
+                                    {{ $bk->booking_code ?: ('BK #' . $bk->id) }} - {{ $bk->customer->name ?? 'Customer' }} (₹{{ number_format($bk->final_amount ?? 0) }})
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                <button type="button" class="btn-auto-action btn-auto-green" onclick="trigger1ClickAutoGenerate('booking')">
+                    <i class="fa-solid fa-bolt"></i> 1-Click Auto-Create Invoice
+                </button>
+            </div>
+
+            {{-- Rental Selector --}}
+            <div class="auto-card card-rental">
+                <div>
+                    <label class="form-label" style="color: #FBBF24; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                        <i class="fa-solid fa-key"></i> Auto-Fetch Rental Agreement
+                    </label>
+                    <select id="quickRentalSelect" class="f-control" style="width: 100%;" onchange="autoFillFromRecord('rental', this.value)">
+                        <option value="">-- Select Rental --</option>
+                        @if(isset($rentals))
+                            @foreach($rentals as $rt)
+                                <option value="{{ $rt->id }}">
+                                    {{ $rt->agreement_no ?: ('RA #' . $rt->id) }} - {{ $rt->tenant_name ?? ($rt->tenant->name ?? 'Tenant') }} (₹{{ number_format($rt->rent_amount ?? 0) }}/mo)
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                <button type="button" class="btn-auto-action btn-auto-amber" onclick="trigger1ClickAutoGenerate('rental')">
+                    <i class="fa-solid fa-bolt"></i> 1-Click Auto-Create Invoice
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- SECTION 1: INVOICE TYPE & MAIN CONFIG -->
     <div class="form-section-card">
@@ -837,6 +1001,103 @@ function calculateTotals() {
     const grandTotal = Math.max(0, taxable + totalTax + roundOff);
 
     document.getElementById('grandTotalDisplay').textContent = '₹' + grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function autoFillFromRecord(type, id) {
+    if (!id) return;
+
+    fetch(`{{ route('invoices.ajax-data') }}?type=${type}&id=${id}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            // 1. Set Invoice Type Pill & Hidden Input
+            if (type === 'property_sale' || type === 'booking') {
+                const salePill = document.querySelector('.type-pill:nth-child(1)');
+                if (salePill) {
+                    document.querySelectorAll('.type-pill').forEach(el => el.classList.remove('active'));
+                    salePill.classList.add('active');
+                }
+                document.getElementById('invoiceTypeInput').value = 'sale';
+            } else if (type === 'rental') {
+                const rentPill = document.querySelector('.type-pill:nth-child(2)');
+                if (rentPill) {
+                    document.querySelectorAll('.type-pill').forEach(el => el.classList.remove('active'));
+                    rentPill.classList.add('active');
+                }
+                document.getElementById('invoiceTypeInput').value = 'rental';
+            }
+
+            // 2. Set Project & Firm if available
+            if (data.project_id) {
+                const projEl = document.getElementById('projectSelect');
+                if (projEl) projEl.value = data.project_id;
+            }
+            if (data.firm_id) {
+                const firmEl = document.getElementById('firmSelect');
+                if (firmEl) firmEl.value = data.firm_id;
+            }
+
+            // 3. Set Recipient Fields
+            if (data.recipient_name) document.getElementById('recipientName').value = data.recipient_name;
+            if (data.recipient_phone) document.getElementById('recipientPhone').value = data.recipient_phone;
+            if (data.recipient_email) document.getElementById('recipientEmail').value = data.recipient_email;
+            if (data.recipient_address) document.getElementById('recipientAddress').value = data.recipient_address;
+            if (data.recipient_gstin) document.getElementById('recipientGstin').value = data.recipient_gstin;
+
+            // 4. Set Line Item 1
+            const firstRow = document.querySelector('.item-row');
+            if (firstRow) {
+                if (data.item_description) {
+                    firstRow.querySelector('.item-desc').value = data.item_description;
+                }
+                if (data.hsn_sac_code) {
+                    firstRow.querySelector('.item-hsn').value = data.hsn_sac_code;
+                }
+                if (data.unit_price) {
+                    firstRow.querySelector('.item-price').value = parseFloat(data.unit_price).toFixed(2);
+                }
+                firstRow.querySelector('.item-qty').value = 1;
+            }
+
+            // 5. Set Initial Payment (Token advance already received)
+            if (data.paid_amount && parseFloat(data.paid_amount) > 0) {
+                const initPayEl = document.getElementById('initialPaymentAmount');
+                if (initPayEl) {
+                    initPayEl.value = parseFloat(data.paid_amount).toFixed(2);
+                }
+            }
+
+            // 6. Ensure 18% GST intra is set
+            const taxTypeEl = document.getElementById('taxType');
+            if (taxTypeEl) taxTypeEl.value = 'gst_intra';
+            const taxPctEl = document.getElementById('taxPercent');
+            if (taxPctEl) taxPctEl.value = 18;
+
+            // Recalculate Totals
+            calculateTotals();
+        })
+        .catch(err => {
+            console.error('Error auto-fetching record:', err);
+        });
+}
+
+function trigger1ClickAutoGenerate(type) {
+    let selectEl = null;
+    if (type === 'sale') selectEl = document.getElementById('quickPropertySaleSelect');
+    else if (type === 'booking') selectEl = document.getElementById('quickBookingSelect');
+    else if (type === 'rental') selectEl = document.getElementById('quickRentalSelect');
+
+    if (!selectEl || !selectEl.value) {
+        alert('Please select an item from the dropdown first.');
+        return;
+    }
+
+    const sourceId = selectEl.value;
+    window.location.href = `{{ route('invoices.auto-generate') }}?source_type=${type}&source_id=${sourceId}`;
 }
 
 function loadRecipientData(type, id) {

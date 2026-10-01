@@ -157,7 +157,10 @@
         <h2>Property Sale Details</h2>
         <p>Full record of this firm-wise property sale agreement and installment payment breakdown.</p>
     </div>
-    <div style="display: flex; gap: 10px; align-items: center;">
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('invoices.auto-generate', ['source_type' => 'sale', 'source_id' => $propertySale->id]) }}" class="btn-gold" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important; border: 1px solid #3B82F6 !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.40);">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Generate GST Invoice
+        </a>
         @if(($propertySale->remaining_amount ?? 0) > 0)
             <button type="button" class="btn-pay-record" onclick="openRecordPaymentModal()">
                 <i class="fa-solid fa-circle-plus"></i> + Record Installment Payment

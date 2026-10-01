@@ -198,6 +198,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('stock-report/export-excel', [StockReportController::class, 'exportExcel'])->name('stock-report.excel')->middleware(['permission:inventory_export']);
 
     // ── Finance & Invoices ───────────────────────────────────────────
+    Route::get('invoices/auto-generate', [InvoiceController::class, 'autoGenerate'])->name('invoices.auto-generate');
     Route::get('invoices/ajax-data', [InvoiceController::class, 'ajaxData'])->name('invoices.ajax-data');
     Route::get('invoices/export-pdf', [InvoiceController::class, 'exportPdf'])->name('invoices.pdf');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');

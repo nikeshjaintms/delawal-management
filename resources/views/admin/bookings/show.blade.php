@@ -212,7 +212,10 @@
             <div class="detail-value" style="font-weight:500;color:#CBD5E1;">{{ $booking->remarks ?: '-' }}</div>
         </div>
     </div>
-    <div class="form-actions">
+    <div class="form-actions" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ route('invoices.auto-generate', ['source_type' => 'booking', 'source_id' => $booking->id]) }}" class="btn-gold" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important; border: 1px solid #3B82F6 !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.40);">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Generate GST Invoice
+        </a>
         <a href="{{ route('bookings.receipt-pdf', $booking->id) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important; border: 1px solid #FB923C !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(249, 115, 22, 0.40);">
             <i class="fa-solid fa-file-pdf"></i> Print / PDF Slip
         </a>
