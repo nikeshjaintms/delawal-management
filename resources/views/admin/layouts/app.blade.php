@@ -455,28 +455,6 @@
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5) !important;
     }
-    .topbar-change-pwd {
-        background: rgba(59, 130, 246, 0.18) !important;
-        color: #93C5FD !important;
-        border: 1px solid rgba(59, 130, 246, 0.35) !important;
-        padding: 8px 14px;
-        font-size: 12.5px;
-        font-weight: 700;
-        font-family: var(--font-primary);
-        cursor: pointer;
-        border-radius: var(--radius-sm);
-        display: inline-flex; align-items: center; gap: 7px;
-        text-decoration: none !important;
-        transition: var(--transition);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-    }
-    .topbar-change-pwd:hover, .topbar-change-pwd.active {
-        background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
-        color: #FFFFFF !important;
-        border-color: #3B82F6 !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45) !important;
-    }
 
     /* ================================================================
        CONTENT BODY
@@ -2828,10 +2806,6 @@
                 <i class="fa-solid fa-plus"></i><span>Expense</span>
             </a>
             @endif
-
-            <a href="{{ route('change-password') }}" class="topbar-change-pwd {{ request()->routeIs('change-password*') ? 'active' : '' }}" title="Change Password">
-                <i class="fa-solid fa-key"></i><span>Password</span>
-            </a>
 
             <div class="user-panel">
                 @php
