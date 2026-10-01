@@ -455,6 +455,28 @@
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5) !important;
     }
+    .topbar-quick-invoice {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.35) 0%, rgba(30, 58, 138, 0.55) 100%) !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(96, 165, 250, 0.50) !important;
+        padding: 8px 14px;
+        font-size: 12.5px;
+        font-weight: 700;
+        font-family: var(--font-primary);
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        display: inline-flex; align-items: center; gap: 7px;
+        text-decoration: none !important;
+        transition: var(--transition);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.30);
+    }
+    .topbar-quick-invoice:hover {
+        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+        border-color: #60A5FA !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.55) !important;
+        color: #FFFFFF !important;
+    }
 
     /* ================================================================
        CONTENT BODY
@@ -2801,6 +2823,10 @@
             <h1 class="page-header-title">@yield('page-title')</h1>
         </div>
         <div class="topbar-right">
+            <a href="{{ route('invoices.create') }}" class="topbar-quick-invoice" title="Quick Generate GST Invoice">
+                <i class="fa-solid fa-file-invoice-dollar"></i><span>+ Invoice</span>
+            </a>
+
             @if($authUser && $authUser->hasPermission('expense_create'))
             <a href="{{ route('expenses.create') }}" class="topbar-quick-expense" title="Quick Add Expense">
                 <i class="fa-solid fa-plus"></i><span>Expense</span>
