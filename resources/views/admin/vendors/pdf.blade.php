@@ -3,135 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vendors / Suppliers Directory Report - Delawala Management</title>
-    <style>
-        * { box-sizing:border-box; margin:0; padding:0; }
-        body { font-family:'Segoe UI',Arial,sans-serif; font-size:11.5px; color:#0F1F35; background:#fff; padding:24px; }
-
-        /* ── Header ── */
-        .rpt-header { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:16px; margin-bottom:20px; border-bottom:2.5px solid #fc6900ff; }
-        .co-name  { font-size:22px; font-weight:800; color:#0F1F35; letter-spacing:0.4px; }
-        .co-sub   { font-size:10px; color:#fc6900ff; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-top:3px; }
-        .rpt-meta { text-align:right; }
-        .rpt-meta .rpt-title { font-size:16px; font-weight:700; color:#0F1F35; margin-bottom:4px; }
-        .rpt-meta .rpt-date  { font-size:11px; color:#64748B; }
-
-        /* ── Stat Row ── */
-        .stat-row { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
-        .stat-box { flex:1; min-width:110px; border:1px solid #E5E7EB; border-radius:8px; padding:10px 12px; background:#F8FAFC; }
-        .stat-box .s-label { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#64748B; }
-        .stat-box .s-value { font-size:16px; font-weight:800; margin-top:4px; color:#0F1F35; }
-        .stat-box.s-green { border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.03); }
-        .stat-box.s-green .s-value { color:#059669; }
-
-        /* ── Main table ── */
-        .section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#fc6900ff; margin-bottom:8px; margin-top:16px; padding-bottom:4px; border-bottom:1px solid #E5E7EB; }
-        table { width:100%; border-collapse:collapse; font-size:11px; }
-        thead tr { background:#0F172A; }
-        thead th { padding:8px 10px; color:#FFF; font-weight:600; text-align:left; font-size:9.5px; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
-        thead th.c { text-align:center; }
-        tbody tr:nth-child(even) { background:#F9FAFB; }
-        tbody td { padding:8px 10px; border-bottom:1px solid #F1F5F9; vertical-align:middle; }
-        tbody td.c { text-align:center; }
-        tbody tr:last-child td { border-bottom:none; }
-
-        .badge { display:inline-block; padding:2px 7px; border-radius:10px; font-size:9px; font-weight:700; text-transform:uppercase; }
-        .badge-success { background:#ECFDF5; color:#059669; border:1px solid #A7F3D0; }
-        .badge-danger  { background:#FEF2F2; color:#DC2626; border:1px solid #FECACA; }
-
-        /* ── Footer ── */
-        .rpt-footer { margin-top:24px; padding-top:10px; border-top:1px solid #E5E7EB; display:flex; justify-content:space-between; color:#9CA3AF; font-size:9.5px; }
-
-        @media print { body { padding:10px; } @page { margin:8mm; size:landscape; } }
-    </style>
+    <title>Vendors & Suppliers Directory - Delawala Management</title>
+    @include('admin.components.pdf-styles', ['orientation' => 'landscape'])
 </head>
 <body>
-@include('admin.components.pdf-action-bar', ['title' => 'Vendors Directory Report', 'orientation' => 'landscape', 'backUrl' => route('vendors.index')])
+@include('admin.components.pdf-action-bar', [
+    'title' => 'Vendors & Suppliers Directory',
+    'orientation' => 'landscape',
+    'backUrl' => route('vendors.index')
+])
 
-<div class="rpt-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; margin-bottom:18px; border-bottom:2.5px solid #D97706; gap:16px;">
-    <div style="display:flex; align-items:center; gap:14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:52px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            <div class="co-name" style="font-size:20px; font-weight:800; color:#0F172A; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">Delawala Properties</div>
-            <div class="co-sub" style="font-size:9.5px; color:#D97706; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Management</div>
-            <div style="font-size:10px; color:#475569; line-height:1.3; margin-top:1px;">
-                <i class="fa-solid fa-location-dot" style="color:#D97706; font-size:9px; margin-right:3px;"></i>Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam, Bharuch - 392012
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap;">
-                <span style="display:inline-flex; align-items:center; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:0.3px;"><strong>GSTIN:</strong> 24CUBPD0770R1ZI</span>
-                <span style="display:inline-flex; align-items:center; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:1px 6px; border-radius:4px; font-size:9px;"><strong>Proprietor:</strong> Delawala Zafar</span>
-            </div>
-        </div>
-    </div>
-    <div class="rpt-meta" style="text-align:right; flex-shrink:0;">
-        <div class="rpt-title" style="font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.2px; line-height:1.2;">Official Document</div>
-        <div class="rpt-date" style="font-size:10px; color:#64748B; margin-top:3px;">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
-    </div>
-    <div class="rpt-meta">
-        <div class="rpt-title">Vendors &amp; Suppliers Directory</div>
-        <div class="rpt-date">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
+@include('admin.components.pdf-header', [
+    'title' => 'Vendors & Suppliers Directory',
+    'subtitle' => 'Procurement & Material Vendor Ledger'
+])
 
 <div class="stat-row">
     <div class="stat-box">
         <div class="s-label">Total Vendors</div>
-        <div class="s-value">{{ $totalVendors }}</div>
+        <div class="s-value">{{ $totalVendors ?? $vendors->count() }}</div>
     </div>
     <div class="stat-box s-green">
-        <div class="s-label">Active Vendors</div>
-        <div class="s-value">{{ $activeVendors }}</div>
+        <div class="s-label">Active Suppliers</div>
+        <div class="s-value">{{ $activeVendors ?? $vendors->where('status', 'active')->count() }}</div>
     </div>
 </div>
 
-<div class="section-label">&#9632; Vendor Records</div>
+<div class="section-label"><i class="fa-solid fa-truck"></i> Vendors &amp; Material Suppliers</div>
 <table>
     <thead>
         <tr>
-            <th style="width:24px;">#</th>
+            <th style="width:24px;" class="c">#</th>
             <th>Vendor Name</th>
-            <th>Project</th>
-            <th>Mobile</th>
+            <th>Mobile Number</th>
+            <th>GSTIN Number</th>
             <th>Email</th>
-            <th>Firm</th>
-            <th>GST Number</th>
             <th>City</th>
-            <th>Payment Terms</th>
+            <th>Address</th>
             <th class="c">Status</th>
         </tr>
     </thead>
     <tbody>
-        @forelse($vendors as $i => $item)
+        @forelse($vendors as $i => $v)
         <tr>
-            <td style="color:#9CA3AF;">{{ $i+1 }}</td>
-            <td><strong>{{ $item->name }}</strong></td>
-            <td>{{ $item->project->project_name ?? 'All Projects' }}</td>
-            <td>{{ $item->mobile ?: '-' }}</td>
-            <td>{{ $item->email ?: '-' }}</td>
-            <td>{{ $item->firm->firm_name ?? '-' }}</td>
-            <td>{{ $item->gst_no ?: '-' }}</td>
-            <td>{{ $item->city ?: '-' }}</td>
-            <td>{{ $item->payment_terms ?: '-' }}</td>
-            <td class="c">
-                @if($item->status === 'active')
-                    <span class="badge badge-success">Active</span>
-                @else
-                    <span class="badge badge-danger">{{ ucfirst($item->status) }}</span>
-                @endif
-            </td>
+            <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
+            <td><strong>{{ $v->name }}</strong></td>
+            <td>{{ $v->mobile ?: '—' }}</td>
+            <td><span class="badge badge-info">{{ $v->gst_no ?: 'Unregistered' }}</span></td>
+            <td>{{ $v->email ?: '—' }}</td>
+            <td>{{ $v->city ?: 'Dahegam' }}</td>
+            <td>{{ $v->address ?: '—' }}</td>
+            <td class="c"><span class="badge badge-success">{{ ucfirst($v->status ?? 'Active') }}</span></td>
         </tr>
         @empty
-        <tr><td colspan="10" style="text-align:center;padding:20px;color:#64748B;">No vendor records found.</td></tr>
+        <tr><td colspan="8" class="c" style="padding:20px;color:#64748B;">No vendor records found.</td></tr>
         @endforelse
     </tbody>
 </table>
 
-<div class="rpt-footer">
-    <span>Delawala Management System &nbsp;—&nbsp; Vendors Directory</span>
-    <span>{{ $vendors->count() }} vendors &nbsp;|&nbsp; {{ now()->format('d M Y') }}</span>
-</div>
-
+@include('admin.components.pdf-footer')
 </body>
 </html>

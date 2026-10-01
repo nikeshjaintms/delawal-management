@@ -3,324 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $project->project_name }} - Project Overview Dossier</title>
-    <style>
-        * { box-sizing:border-box; margin:0; padding:0; }
-        body { font-family:'Segoe UI',Arial,sans-serif; font-size:11.5px; color:#0F1F35; background:#fff; padding:24px; line-height:1.4; }
-
-        /* ── Header ── */
-        .rpt-header { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:16px; margin-bottom:18px; border-bottom:2.5px solid #fc6900ff; }
-        .co-name  { font-size:22px; font-weight:800; color:#0F1F35; letter-spacing:0.4px; }
-        .co-sub   { font-size:10px; color:#fc6900ff; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-top:3px; }
-        .rpt-meta { text-align:right; }
-        .rpt-meta .rpt-title { font-size:16px; font-weight:700; color:#0F1F35; margin-bottom:4px; }
-        .rpt-meta .rpt-date  { font-size:11px; color:#64748B; }
-
-        /* ── Title Banner ── */
-        .prop-banner { background:linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color:#fff; border-radius:8px; padding:16px 20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; }
-        .prop-banner h1 { font-size:18px; font-weight:700; color:#F8FAFC; margin-bottom:4px; }
-        .prop-banner .code-badge { background:rgba(37,99,235,0.3); color:#60A5FA; font-size:11px; font-weight:700; padding:3px 10px; border-radius:4px; border:1px solid rgba(59,130,246,0.4); display:inline-block; }
-
-        /* ── Two Col Grid ── */
-        .grid-2 { display:flex; gap:16px; margin-bottom:18px; }
-        .grid-col { flex:1; border:1px solid #E2E8F0; border-radius:8px; padding:14px; background:#F8FAFC; }
-        .col-heading { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#fc6900ff; margin-bottom:10px; border-bottom:1px solid #E2E8F0; padding-bottom:4px; }
-
-        .info-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed #E2E8F0; font-size:11px; }
-        .info-row:last-child { border-bottom:none; }
-        .info-label { color:#64748B; font-weight:500; }
-        .info-value { color:#0F1F35; font-weight:700; text-align:right; }
-
-        /* ── Financial Highlight Cards ── */
-        .stat-row { display:flex; gap:10px; margin-bottom:20px; }
-        .stat-box { flex:1; border:1px solid #E2E8F0; border-radius:8px; padding:10px 12px; background:#fff; text-align:center; }
-        .stat-box .s-label { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#64748B; margin-bottom:3px; }
-        .stat-box .s-value { font-size:16px; font-weight:800; color:#0F1F35; }
-        .stat-box.s-green { border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.03); }
-        .stat-box.s-green .s-value { color:#059669; }
-        .stat-box.s-amber { border-color:rgba(245,158,11,0.3); background:rgba(245,158,11,0.03); }
-        .stat-box.s-amber .s-value { color:#B45309; }
-        .stat-box.s-blue { border-color:rgba(37,99,235,0.3); background:rgba(37,99,235,0.03); }
-        .stat-box.s-blue .s-value { color:#1D4ED8; }
-
-        /* ── Plots Table ── */
-        .section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#fc6900ff; margin-bottom:8px; margin-top:16px; padding-bottom:4px; border-bottom:1px solid #E5E7EB; }
-        table { width:100%; border-collapse:collapse; font-size:10.5px; margin-bottom:20px; }
-        thead tr { background:#0F172A; }
-        thead th { padding:7px 8px; color:#FFF; font-weight:600; text-align:left; font-size:9px; text-transform:uppercase; letter-spacing:0.5px; }
-        thead th.r { text-align:right; }
-        thead th.c { text-align:center; }
-        tbody tr:nth-child(even) { background:#F9FAFB; }
-        tbody td { padding:6px 8px; border-bottom:1px solid #F1F5F9; vertical-align:middle; }
-        tbody td.r { text-align:right; font-weight:700; color:#0F1F35; }
-        tbody td.c { text-align:center; }
-        
-        .badge { display:inline-block; padding:2px 6px; border-radius:8px; font-size:8.5px; font-weight:700; text-transform:uppercase; }
-        .badge-success { background:#ECFDF5; color:#059669; border:1px solid #A7F3D0; }
-        .badge-warning { background:#FFFBEB; color:#D97706; border:1px solid #FDE68A; }
-        .badge-danger  { background:#FEF2F2; color:#DC2626; border:1px solid #FECACA; }
-        .badge-info    { background:#EFF6FF; color:#2563EB; border:1px solid #BFDBFE; }
-
-        /* ── Signature / Auth Block ── */
-        .auth-block { margin-top:30px; padding-top:14px; display:flex; justify-content:space-between; page-break-inside:avoid; }
-        .auth-col { width:220px; text-align:center; }
-        .auth-line { border-top:1.5px solid #0F1F35; margin-top:40px; padding-top:4px; font-size:10px; font-weight:700; }
-
-        /* ── Footer ── */
-        .rpt-footer { margin-top:20px; padding-top:10px; border-top:1px solid #E5E7EB; display:flex; justify-content:space-between; color:#9CA3AF; font-size:9px; }
-
-        @media print { body { padding:10px; } @page { margin:8mm; } }
-    </style>
+    <title>Project Master - {{ $project->project_name }} - Delawala Management</title>
+    @include('admin.components.pdf-styles', ['orientation' => 'portrait'])
 </head>
 <body>
-@include('admin.components.pdf-action-bar', ['title' => 'Project Dossier: ' . $project->project_name, 'orientation' => 'portrait', 'backUrl' => route('projects.show', $project->id)])
+@include('admin.components.pdf-action-bar', [
+    'title' => 'Project Dossier: ' . $project->project_name,
+    'orientation' => 'portrait',
+    'backUrl' => route('projects.show', $project->id)
+])
 
-<div class="rpt-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; margin-bottom:18px; border-bottom:2.5px solid #D97706; gap:16px;">
-    <div style="display:flex; align-items:center; gap:14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:52px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            <div class="co-name" style="font-size:20px; font-weight:800; color:#0F172A; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">Delawala Properties</div>
-            <div class="co-sub" style="font-size:9.5px; color:#D97706; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Management</div>
-            <div style="font-size:10px; color:#475569; line-height:1.3; margin-top:1px;">
-                <i class="fa-solid fa-location-dot" style="color:#D97706; font-size:9px; margin-right:3px;"></i>Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam, Bharuch - 392012
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap;">
-                <span style="display:inline-flex; align-items:center; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:0.3px;"><strong>GSTIN:</strong> 24CUBPD0770R1ZI</span>
-                <span style="display:inline-flex; align-items:center; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:1px 6px; border-radius:4px; font-size:9px;"><strong>Proprietor:</strong> Delawala Zafar</span>
-            </div>
-        </div>
-    </div>
-    <div class="rpt-meta" style="text-align:right; flex-shrink:0;">
-        <div class="rpt-title" style="font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.2px; line-height:1.2;">Official Document</div>
-        <div class="rpt-date" style="font-size:10px; color:#64748B; margin-top:3px;">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
-    </div>
-    <div class="rpt-meta">
-        <div class="rpt-title">Project Overview &amp; Inventory Dossier</div>
-        <div class="rpt-date">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
-
-<div class="prop-banner">
-    <div>
-        <h1>{{ $project->project_name }}</h1>
-        <div style="font-size:11px; color:#94A3B8;">
-            Type: {{ ucfirst(str_replace('_', ' ', $project->project_type ?: 'General Project')) }} &nbsp;|&nbsp; Location: {{ $project->city ?: ($project->address ?: 'N/A') }}
-        </div>
-    </div>
-    <div style="text-align:right;">
-        <span class="code-badge">{{ $project->project_code }}</span><br>
-        <span style="font-size:9.5px; color:#94A3B8; margin-top:4px; display:inline-block;">Firm: {{ $project->firm->firm_name ?? '-' }}</span>
-    </div>
-</div>
+@include('admin.components.pdf-header', [
+    'title' => 'Project Dossier & Site Profile',
+    'subtitle' => 'Development Status & Unit Inventory',
+    'firm' => $project->firm ?? null,
+    'docRef' => $project->project_code ?: ('PROJ-' . $project->id)
+])
 
 <div class="stat-row">
+    <div class="stat-box s-gold">
+        <div class="s-label">Project Code</div>
+        <div class="s-value" style="font-size:14px;">{{ $project->project_code ?: ('PROJ-' . $project->id) }}</div>
+    </div>
     <div class="stat-box s-blue">
-        <div class="s-label">Total Assigned Plots</div>
-        <div class="s-value">{{ $totalPlots }}</div>
+        <div class="s-label">Total Units / Plots</div>
+        <div class="s-value">{{ $project->total_plots ?? ($totalPlots ?? 0) }}</div>
     </div>
     <div class="stat-box s-green">
-        <div class="s-label">Available Plots</div>
-        <div class="s-value">{{ $availablePlots }}</div>
-    </div>
-    <div class="stat-box s-amber">
-        <div class="s-label">Booked Plots</div>
-        <div class="s-value">{{ $bookedPlots }}</div>
-    </div>
-    <div class="stat-box" style="border-color:rgba(220,38,38,0.3); background:rgba(220,38,38,0.03);">
-        <div class="s-label">Sold Units</div>
-        <div class="s-value" style="color:#DC2626;">{{ $soldPlots }}</div>
-    </div>
-    <div class="stat-box" style="border-color:rgba(252,105,0,0.3); background:rgba(252,105,0,0.03);">
-        <div class="s-label">Total Inventory Value</div>
-        <div class="s-value" style="color:#e05c00;">₹{{ number_format($totalValue, 2) }}</div>
+        <div class="s-label">Available Units</div>
+        <div class="s-value">{{ $project->available_plots ?? ($availablePlots ?? 0) }}</div>
     </div>
 </div>
 
 <div class="grid-2">
     <div class="grid-col">
-        <div class="col-heading">&#9632; Project Specifications</div>
+        <div class="col-heading"><i class="fa-solid fa-city"></i> Project Information</div>
         <div class="info-row">
-            <span class="info-label">Project Code:</span>
-            <span class="info-value">{{ $project->project_code }}</span>
+            <span class="info-label">Project Name:</span>
+            <span class="info-val">{{ $project->project_name }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Project Type:</span>
-            <span class="info-value">{{ ucfirst(str_replace('_', ' ', $project->project_type ?: 'General')) }}</span>
+            <span class="info-label">Type:</span>
+            <span class="info-val">{{ ucfirst($project->project_type ?: 'Plotted Development') }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Location / City:</span>
-            <span class="info-value">{{ $project->city ?: '-' }}</span>
+            <span class="info-label">Firm:</span>
+            <span class="info-val">{{ $project->firm->firm_name ?? 'Delawala Infra Co.' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Full Address:</span>
-            <span class="info-value">{{ $project->address ?: '-' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">State / Pincode:</span>
-            <span class="info-value">{{ $project->state ?: '-' }} {{ $project->pincode ? '('.$project->pincode.')' : '' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Project Status:</span>
-            <span class="info-value">{{ ucfirst($project->status) }}</span>
+            <span class="info-label">Status:</span>
+            <span class="info-val"><span class="badge badge-success">{{ ucfirst($project->status ?: 'Active') }}</span></span>
         </div>
     </div>
 
     <div class="grid-col">
-        <div class="col-heading">&#9632; Source Properties &amp; Contractors</div>
+        <div class="col-heading"><i class="fa-solid fa-location-dot"></i> Location & Area</div>
         <div class="info-row">
-            <span class="info-label">Parent Property Master(s):</span>
-            <span class="info-value">
-                @php
-                    $pMasters = $project->propertyMasters->isNotEmpty() ? $project->propertyMasters : ($project->propertyMaster ? collect([$project->propertyMaster]) : collect());
-                @endphp
-                @if($pMasters->isNotEmpty())
-                    {{ $pMasters->pluck('property_name')->implode(', ') }}
-                @else
-                    N/A
-                @endif
-            </span>
+            <span class="info-label">Site Address:</span>
+            <span class="info-val">{{ $project->display_address ?: ($project->address ?: 'Dahegam Road') }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Contractors ({{ $project->contractors->count() }}):</span>
-            <span class="info-value">
-                @if($project->contractors->isNotEmpty())
-                    {{ $project->contractors->pluck('name')->implode(', ') }}
-                @else
-                    None assigned
-                @endif
-            </span>
+            <span class="info-label">City / District:</span>
+            <span class="info-val">{{ $project->city ?: 'Dahegam, Bharuch' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Firm Name:</span>
-            <span class="info-value">{{ $project->firm->firm_name ?? '-' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Created At:</span>
-            <span class="info-value">{{ $project->created_at ? $project->created_at->format('d M Y') : '-' }}</span>
+            <span class="info-label">Total Area:</span>
+            <span class="info-val">{{ $project->total_area ? ($project->total_area . ' ' . ($project->area_unit ?: 'Sq.Ft')) : '—' }}</span>
         </div>
     </div>
 </div>
 
-@if($project->description)
-<div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:10px 14px; margin-bottom:18px; font-size:10.5px;">
-    <strong style="color:#0F1F35;">Project Scope / Remarks:</strong> {{ $project->description }}
-</div>
-@endif
-
-<div class="section-label">&#9632; Project Units &amp; Plots Inventory ({{ $project->properties->count() }} Total)</div>
-<table>
-    <thead>
-        <tr>
-            <th style="width:20px;">#</th>
-            <th>Plot / Unit Name</th>
-            <th>Unit No</th>
-            <th>Type</th>
-            <th>Parent Property</th>
-            <th>Size</th>
-            <th>Facing</th>
-            <th class="r">Rate (₹)</th>
-            <th class="r">Price (₹)</th>
-            <th class="c">Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($project->properties as $i => $plot)
-        <tr>
-            <td style="color:#9CA3AF;">{{ $i+1 }}</td>
-            <td><strong>{{ $plot->property_name }}</strong></td>
-            <td>{{ $plot->unit_no ?: '-' }}</td>
-            <td>{{ $plot->propertyType->name ?? '-' }}</td>
-            <td>{{ $plot->propertyMaster->property_name ?? '-' }}</td>
-            <td>{{ $plot->size ? number_format($plot->size, 2).' '.($plot->size_unit ?? '') : '-' }}</td>
-            <td>{{ $plot->facing ?: '-' }}</td>
-            <td class="r">₹{{ number_format($plot->purchase_rate ?: ($plot->price ?: 0), 2) }}</td>
-            <td class="r">₹{{ number_format($plot->price ?: ($plot->purchase_rate ?: 0), 2) }}</td>
-            <td class="c">
-                @if($plot->status === 'available')
-                    <span class="badge badge-success">Available</span>
-                @elseif($plot->status === 'booked')
-                    <span class="badge badge-warning">Booked</span>
-                @elseif($plot->status === 'sold')
-                    <span class="badge badge-danger">Sold</span>
-                @else
-                    <span class="badge badge-info">{{ ucfirst($plot->status) }}</span>
-                @endif
-            </td>
-        </tr>
-        @empty
-        <tr><td colspan="9" style="text-align:center;padding:14px;color:#64748B;">No plots assigned to this project yet.</td></tr>
-        @endforelse
-    </tbody>
-</table>
-
-@if(isset($projectExpenses) && $projectExpenses->isNotEmpty())
-    <div class="section-label">&#9632; Project Expenses &amp; Procurement Summary (Total: ₹{{ number_format($totalExpenses ?? 0, 2) }})</div>
-    <table style="margin-bottom: 20px;">
-        <thead>
-            <tr>
-                <th style="width:25px;">#</th>
-                <th>Date</th>
-                <th>Expense Title</th>
-                <th>Source</th>
-                <th>Category</th>
-                <th>Paid To / Vendor</th>
-                <th>Mode</th>
-                <th class="r">Amount (₹)</th>
-                <th class="c">Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($projectExpenses as $ei => $exp)
-            <tr>
-                <td style="color:#9CA3AF;">{{ $ei + 1 }}</td>
-                <td>{{ \Carbon\Carbon::parse($exp->expense_date)->format('d M Y') }}</td>
-                <td><strong>{{ $exp->expense_title }}</strong></td>
-                <td>
-                    @if($exp->purchase_order_id && $exp->purchaseOrder)
-                        PO #{{ $exp->purchaseOrder->po_number }}
-                    @else
-                        Direct Expense
-                    @endif
-                </td>
-                <td>{{ $exp->expenseCategory->name ?? ($exp->expense_category ?? '-') }}</td>
-                <td>{{ $exp->paid_to ?: ($exp->purchaseOrder?->vendor?->vendor_name ?? '-') }}</td>
-                <td>{{ $exp->payment_mode ?: '-' }}</td>
-                <td class="r" style="color: #DC2626;">₹{{ number_format($exp->amount, 2) }}</td>
-                <td class="c">
-                    @if(strtolower($exp->approval_status ?? '') === 'approved')
-                        <span class="badge badge-success">Approved</span>
-                    @elseif(strtolower($exp->approval_status ?? '') === 'rejected')
-                        <span class="badge badge-danger">Rejected</span>
-                    @else
-                        <span class="badge badge-warning">Pending</span>
-                    @endif
-                </td>
-            </tr>
-            @endforeach
-            <tr style="background:#F1F5F9; font-weight:bold;">
-                <td colspan="7" style="text-align:right; padding:8px; font-weight:700;">Total Project Expenditure:</td>
-                <td class="r" style="color:#DC2626; font-size:11px; padding:8px;">₹{{ number_format($totalExpenses ?? 0, 2) }}</td>
-                <td></td>
-            </tr>
-        </tbody>
-    </table>
-@endif
-
-<div class="auth-block">
-    <div class="auth-col">
-        <div class="auth-line">Project Manager / Architect</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Authorized Signatory / Delawala</div>
-    </div>
-</div>
-
-<div class="rpt-footer">
-    <span>Delawala Management System &nbsp;—&nbsp; Project Dossier &nbsp;—&nbsp; {{ $project->project_code }}</span>
-    <span>Page 1 of 1 &nbsp;|&nbsp; {{ now()->format('d M Y') }}</span>
-</div>
-
+@include('admin.components.pdf-footer')
 </body>
 </html>

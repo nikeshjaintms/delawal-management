@@ -3,216 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purchase Order - {{ isset($purchaseOrder) ? $purchaseOrder->po_number : 'Report' }}</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11.5px; color: #0F1F35; background: #fff; padding: 30px; }
-
-        .report-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2px solid #C5A87E; }
-        .company-block .company-name { font-size: 24px; font-weight: 800; color: #0F1F35; letter-spacing: 0.5px; }
-        .company-block .company-sub  { font-size: 11px; color: #C5A87E; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-top: 3px; }
-        .report-meta { text-align: right; }
-        .report-meta .report-title { font-size: 18px; font-weight: 800; color: #0F1F35; margin-bottom: 4px; }
-        .report-meta .report-date  { font-size: 11px; color: #64748B; }
-
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .info-box { border: 1px solid #E5E7EB; border-radius: 8px; padding: 14px 18px; background: #FAFAFA; }
-        .info-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; margin-bottom: 8px; border-bottom: 1px dashed #E5E7EB; padding-bottom: 4px;}
-        .info-row { display: flex; margin-bottom: 4px; }
-        .info-label { width: 110px; font-weight: 600; color: #64748B; }
-        .info-value { flex: 1; color: #0F1F35; font-weight: 500; }
-
-        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
-        thead tr { background: #0F1F35; }
-        thead th { padding: 8px 10px; color: #FFFFFF; font-weight: 600; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-        thead th.num { text-align: right; }
-        tbody tr:nth-child(even) { background: #F9FAFB; }
-        tbody td { padding: 9px 10px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
-        tbody td.num { text-align: right; }
-        tbody tr:last-child td { border-bottom: none; }
-
-        .summary-wrapper { display: flex; justify-content: flex-end; margin-top: 20px; }
-        .summary-box { width: 280px; border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px; background: #FAFAFA; }
-        .summary-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #E5E7EB; font-size: 11px; }
-        .summary-row:last-child { border-bottom: none; font-weight: 700; font-size: 13px; color: #059669; }
-
-        .remarks-box { margin-top: 30px; border: 1px solid #E5E7EB; border-radius: 8px; padding: 14px; background: #FAFAFA; }
-        .remarks-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; margin-bottom: 6px; }
-
-        .report-footer { margin-top: 40px; padding-top: 14px; border-top: 1px solid #E5E7EB; display: flex; justify-content: space-between; color: #9CA3AF; font-size: 9.5px; }
-
-        @media print {
-            body { padding: 15px; }
-            @page { margin: 10mm; }
-            .no-print { display: none; }
-        }
-    </style>
+    <title>Purchase Orders Report - Delawala Management</title>
+    @include('admin.components.pdf-styles', ['orientation' => isset($purchaseOrder) ? 'portrait' : 'landscape'])
 </head>
 <body>
 @include('admin.components.pdf-action-bar', [
-    'title' => isset($listMode) && $listMode ? 'Purchase Orders Report' : 'Purchase Order: ' . ($purchaseOrder->po_number ?? 'PO'),
-    'orientation' => isset($listMode) && $listMode ? 'landscape' : 'portrait',
+    'title' => isset($purchaseOrder) ? ('PO #' . $purchaseOrder->po_number) : 'Purchase Orders Report',
+    'orientation' => isset($purchaseOrder) ? 'portrait' : 'landscape',
     'backUrl' => route('purchase-orders.index')
 ])
 
-    @if(isset($listMode) && $listMode)
-        <!-- List Report Header -->
-        <div class="rpt-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; margin-bottom:18px; border-bottom:2.5px solid #D97706; gap:16px;">
-    <div style="display:flex; align-items:center; gap:14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:52px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            <div class="co-name" style="font-size:20px; font-weight:800; color:#0F172A; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">Delawala Properties</div>
-            <div class="co-sub" style="font-size:9.5px; color:#D97706; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Management</div>
-            <div style="font-size:10px; color:#475569; line-height:1.3; margin-top:1px;">
-                <i class="fa-solid fa-location-dot" style="color:#D97706; font-size:9px; margin-right:3px;"></i>Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam, Bharuch - 392012
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap;">
-                <span style="display:inline-flex; align-items:center; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:0.3px;"><strong>GSTIN:</strong> 24CUBPD0770R1ZI</span>
-                <span style="display:inline-flex; align-items:center; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:1px 6px; border-radius:4px; font-size:9px;"><strong>Proprietor:</strong> Delawala Zafar</span>
-            </div>
+@if(isset($purchaseOrder))
+    @include('admin.components.pdf-header', [
+        'title' => 'PURCHASE ORDER',
+        'subtitle' => 'Vendor Procurement Contract',
+        'firm' => $purchaseOrder->firm ?? null,
+        'docRef' => $purchaseOrder->po_number
+    ])
+
+    <div class="grid-2">
+        <div class="grid-col">
+            <div class="col-heading"><i class="fa-solid fa-truck"></i> Vendor Particulars</div>
+            <div class="info-row"><span class="info-label">Vendor Name:</span><span class="info-val">{{ $purchaseOrder->vendor->name ?? '—' }}</span></div>
+            <div class="info-row"><span class="info-label">Mobile:</span><span class="info-val">{{ $purchaseOrder->vendor->mobile ?? '—' }}</span></div>
+            <div class="info-row"><span class="info-label">GSTIN:</span><span class="info-val">{{ $purchaseOrder->vendor->gst_no ?? 'N/A' }}</span></div>
+        </div>
+        <div class="grid-col">
+            <div class="col-heading"><i class="fa-solid fa-file-lines"></i> Order Particulars</div>
+            <div class="info-row"><span class="info-label">PO Date:</span><span class="info-val">{{ $purchaseOrder->po_date ? $purchaseOrder->po_date->format('d M Y') : '—' }}</span></div>
+            <div class="info-row"><span class="info-label">Project:</span><span class="info-val">{{ $purchaseOrder->project->project_name ?? 'General' }}</span></div>
+            <div class="info-row"><span class="info-label">Status:</span><span class="info-val"><span class="badge badge-success">{{ ucfirst($purchaseOrder->status) }}</span></span></div>
         </div>
     </div>
-    <div class="rpt-meta" style="text-align:right; flex-shrink:0;">
-        <div class="rpt-title" style="font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.2px; line-height:1.2;">Official Report</div>
-        <div class="rpt-date" style="font-size:10px; color:#64748B; margin-top:3px;">Generated: {{ now()->format('d M Y, h:i A') }}</div>
+
+    <div class="section-label"><i class="fa-solid fa-boxes-stacked"></i> Ordered Materials</div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:28px;" class="c">#</th>
+                <th>Material Description</th>
+                <th class="r">Quantity</th>
+                <th class="r">Rate (₹)</th>
+                <th class="r">Line Total (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($purchaseOrder->items ?? [] as $idx => $it)
+            <tr>
+                <td class="c">{{ $idx + 1 }}</td>
+                <td><strong>{{ $it->material->material_name ?? 'Item' }}</strong></td>
+                <td class="r">{{ number_format($it->qty ?? 0, 2) }} {{ $it->material->unit ?? '' }}</td>
+                <td class="r">{{ number_format($it->rate ?? 0, 2) }}</td>
+                <td class="r" style="font-weight:700;">₹{{ number_format($it->line_total ?? 0, 2) }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+        <tfoot>
+            <tr style="background:#0F172A; color:#FFF;">
+                <td colspan="4" class="r" style="color:#FFF;">Grand Total</td>
+                <td class="r" style="color:#FFF; font-weight:800;">₹{{ number_format($purchaseOrder->grand_total ?? 0, 2) }}</td>
+            </tr>
+        </tfoot>
+    </table>
+@else
+    @include('admin.components.pdf-header', [
+        'title' => 'Purchase Orders Report',
+        'subtitle' => 'Vendor Orders & Procurement Registry'
+    ])
+
+    <div class="stat-row">
+        <div class="stat-box s-blue">
+            <div class="s-label">Total Purchase Orders</div>
+            <div class="s-value">{{ $totalOrders ?? ($purchaseOrders ? $purchaseOrders->count() : 0) }}</div>
+        </div>
+        <div class="stat-box s-green">
+            <div class="s-label">Total Procurement Value</div>
+            <div class="s-value">₹{{ number_format($totalAmount ?? ($purchaseOrders ? $purchaseOrders->sum('grand_total') : 0), 2) }}</div>
+        </div>
     </div>
-</div>
-            </div>
-            <div class="report-meta">
-                <div class="report-title">Purchase Orders Report</div>
-                <div class="report-date">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-            </div>
-        </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>PO Number</th>
-                    <th>Firm</th>
-                    <th>Supplier</th>
-                    <th>PO Date</th>
-                    <th>Delivery Date</th>
-                    <th>Status</th>
-                    <th class="num">Grand Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($purchaseOrders as $po)
-                <tr>
-                    <td><strong>{{ $po->po_number }}</strong></td>
-                    <td>{{ $po->firm->firm_name ?? '-' }}</td>
-                    <td>{{ $po->vendor->name ?? '-' }}</td>
-                    <td>{{ $po->po_date ? $po->po_date->format('d M Y') : '-' }}</td>
-                    <td>{{ $po->delivery_date ? $po->delivery_date->format('d M Y') : '—' }}</td>
-                    <td>{{ $po->status }}</td>
-                    <td class="num" style="font-weight:600;">₹{{ number_format($po->grand_total, 2) }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+    <div class="section-label"><i class="fa-solid fa-truck"></i> Purchase Orders Ledger</div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:28px;" class="c">#</th>
+                <th>PO Number</th>
+                <th>Vendor / Supplier</th>
+                <th>Project</th>
+                <th>PO Date</th>
+                <th>Delivery Date</th>
+                <th class="r">Grand Total</th>
+                <th class="c">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($purchaseOrders ?? [] as $i => $po)
+            <tr>
+                <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
+                <td><strong>{{ $po->po_number }}</strong></td>
+                <td>{{ $po->vendor->name ?? '—' }}</td>
+                <td>{{ $po->project->project_name ?? '—' }}</td>
+                <td>{{ $po->po_date ? $po->po_date->format('d M Y') : '—' }}</td>
+                <td>{{ $po->delivery_date ? $po->delivery_date->format('d M Y') : '—' }}</td>
+                <td class="r" style="font-weight:700;">₹{{ number_format($po->grand_total ?? 0, 2) }}</td>
+                <td class="c"><span class="badge badge-success">{{ ucfirst($po->status) }}</span></td>
+            </tr>
+            @empty
+            <tr><td colspan="8" class="c" style="padding:20px;color:#64748B;">No purchase orders found.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+@endif
 
-        <div class="report-footer">
-            <span>Delawala Management System</span>
-            <span>Page 1 of 1</span>
-        </div>
-    @else
-        <!-- Single PO Document -->
-        <div class="report-header">
-            <div style="display: flex; align-items: center; gap: 14px;">
-                <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
-                <div class="company-block">
-                    <div class="company-name">{{ $purchaseOrder->firm->firm_name ?? 'Delawala' }}</div>
-                    <div class="company-sub">Purchase Order Contract</div>
-                </div>
-            </div>
-            <div class="report-meta">
-                <div class="report-title">{{ $purchaseOrder->po_number }}</div>
-                <div class="report-date">Date: {{ $purchaseOrder->po_date->format('d M Y') }}</div>
-            </div>
-        </div>
-
-        <div class="info-grid">
-            <div class="info-box">
-                <div class="info-title">Vendor &amp; Supplier Details</div>
-                <div class="info-row"><span class="info-label">Vendor:</span><span class="info-value"><strong>{{ $purchaseOrder->vendor->name ?? '-' }}</strong></span></div>
-                @if($purchaseOrder->seller)
-                    <div class="info-row"><span class="info-label">Seller:</span><span class="info-value"><strong>{{ $purchaseOrder->seller->name }}</strong>{{ $purchaseOrder->seller->mobile ? ' ('.$purchaseOrder->seller->mobile.')' : '' }}</span></div>
-                @elseif($purchaseOrder->supplier_name)
-                    <div class="info-row"><span class="info-label">Supplier / Store:</span><span class="info-value">{{ $purchaseOrder->supplier_name }}</span></div>
-                @endif
-                <div class="info-row"><span class="info-label">GSTIN:</span><span class="info-value">{{ $purchaseOrder->vendor->gst_no ?? 'N/A' }}</span></div>
-                <div class="info-row"><span class="info-label">Mobile:</span><span class="info-value">{{ $purchaseOrder->vendor->mobile ?? '-' }}</span></div>
-                <div class="info-row"><span class="info-label">Address:</span><span class="info-value">{{ $purchaseOrder->vendor->address ?? '-' }}{{ $purchaseOrder->vendor->city ? ', '.$purchaseOrder->vendor->city : '' }}</span></div>
-            </div>
-            <div class="info-box">
-                <div class="info-title">Order &amp; Contractor Details</div>
-                <div class="info-row"><span class="info-label">Order Number:</span><span class="info-value"><strong>{{ $purchaseOrder->po_number }}</strong></span></div>
-                @if($purchaseOrder->project)
-                    <div class="info-row"><span class="info-label">Project:</span><span class="info-value">{{ $purchaseOrder->project->project_name }}</span></div>
-                @endif
-                <div class="info-row"><span class="info-label">Contractor(s):</span><span class="info-value"><strong>{{ $purchaseOrder->contractor_names }}</strong></span></div>
-                <div class="info-row"><span class="info-label">Expected Date:</span><span class="info-value">{{ $purchaseOrder->delivery_date ? $purchaseOrder->delivery_date->format('d M Y') : '—' }}</span></div>
-                <div class="info-row"><span class="info-label">Order Status:</span><span class="info-value">{{ $purchaseOrder->status }}</span></div>
-                <div class="info-row"><span class="info-label">Created By:</span><span class="info-value">{{ $purchaseOrder->creator->name ?? '-' }}</span></div>
-            </div>
-        </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:5%;">#</th>
-                    <th>Item Description</th>
-                    <th class="num" style="width:12%;">Qty</th>
-                    <th class="num" style="width:15%;">Rate</th>
-                    <th class="num" style="width:10%;">Disc %</th>
-                    <th class="num" style="width:10%;">GST %</th>
-                    <th class="num" style="width:15%;">GST Amount</th>
-                    <th class="num" style="width:15%;">Line Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($purchaseOrder->items as $index => $item)
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td><strong>{{ $item->material->material_name ?? '-' }}</strong></td>
-                    <td class="num">{{ number_format($item->qty, 2) }} {{ $item->material->unit ?? '' }}</td>
-                    <td class="num">₹{{ number_format($item->rate, 2) }}</td>
-                    <td class="num">{{ number_format($item->discount_pct, 2) }}%</td>
-                    <td class="num">{{ number_format($item->gst_pct, 2) }}%</td>
-                    <td class="num">₹{{ number_format($item->gst_amount, 2) }}</td>
-                    <td class="num" style="font-weight:600;">₹{{ number_format($item->line_total, 2) }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-
-        <div class="summary-wrapper">
-            <div class="summary-box">
-                <div class="summary-row"><span>Sub Total:</span><span>₹{{ number_format($purchaseOrder->sub_total, 2) }}</span></div>
-                <div class="summary-row"><span>Discount:</span><span>₹{{ number_format($purchaseOrder->discount_amount, 2) }}</span></div>
-                <div class="summary-row"><span>Taxable Value:</span><span>₹{{ number_format($purchaseOrder->taxable_amount, 2) }}</span></div>
-                @if($purchaseOrder->igst_amount > 0)
-                    <div class="summary-row"><span>IGST:</span><span>₹{{ number_format($purchaseOrder->igst_amount, 2) }}</span></div>
-                @else
-                    <div class="summary-row"><span>CGST:</span><span>₹{{ number_format($purchaseOrder->cgst_amount, 2) }}</span></div>
-                    <div class="summary-row"><span>SGST:</span><span>₹{{ number_format($purchaseOrder->sgst_amount, 2) }}</span></div>
-                @endif
-                <div class="summary-row"><span>Grand Total:</span><span>₹{{ number_format($purchaseOrder->grand_total, 2) }}</span></div>
-            </div>
-        </div>
-
-        @if($purchaseOrder->remarks)
-        <div class="remarks-box">
-            <div class="remarks-title">Terms, Conditions &amp; Notes</div>
-            <p style="white-space:pre-wrap; line-height:1.5;">{{ $purchaseOrder->remarks }}</p>
-        </div>
-        @endif
-
-        <div class="report-footer">
-            <span>Delawala Management Purchase Order System</span>
-            <span>Authorized Signature: __________________________</span>
-        </div>
-    @endif
-
+@include('admin.components.pdf-footer')
 </body>
 </html>

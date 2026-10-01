@@ -2,102 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Invoices Export Report - Delawala Management</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
-        body { padding: 25px; color: #1E293B; background: #FFFFFF; font-size: 12px; }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 16px; border-bottom: 2px solid #0F172A; margin-bottom: 20px; }
-        .title { font-size: 20px; font-weight: 800; color: #0F172A; }
-        .meta { font-size: 11px; color: #64748B; margin-top: 4px; }
-        .kpi-row { display: flex; gap: 15px; margin-bottom: 20px; }
-        .kpi-box { flex: 1; padding: 12px 14px; border: 1px solid #CBD5E1; border-radius: 6px; background: #F8FAFC; }
-        .kpi-lbl { font-size: 10px; font-weight: 700; color: #64748B; text-transform: uppercase; }
-        .kpi-val { font-size: 16px; font-weight: 800; color: #0F172A; margin-top: 2px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #0F172A; color: #FFFFFF; font-size: 11px; text-transform: uppercase; padding: 8px 10px; border: 1px solid #0F172A; text-align: left; }
-        td { padding: 8px 10px; border: 1px solid #CBD5E1; font-size: 11.5px; }
-        tr:nth-child(even) { background: #F8FAFC; }
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
-        .badge-paid { background: #DCFCE7; color: #166534; }
-        .badge-partial { background: #FEF3C7; color: #92400E; }
-        .badge-unpaid { background: #FEE2E2; color: #991B1B; }
-        @media print {
-            .no-print { display: none !important; }
-            body { padding: 0; }
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoices Register Report - Delawala Management</title>
+    @include('admin.components.pdf-styles', ['orientation' => 'landscape'])
 </head>
 <body>
-@include('admin.components.pdf-action-bar', ['title' => 'Invoices Summary Statement', 'orientation' => 'landscape', 'backUrl' => route('invoices.index')])
+@include('admin.components.pdf-action-bar', [
+    'title' => 'Tax Invoices Register Report',
+    'orientation' => 'landscape',
+    'backUrl' => route('invoices.index')
+])
 
-<div class="header">
-    <div style="display: flex; align-items: center; gap: 14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height: 50px; width: auto; object-fit: contain;">
-        <div>
-            <div class="title">Invoices Summary Statement</div>
-            <div class="meta">Delawala Management &bull; Generated on {{ date('d M, Y h:i A') }}</div>
-        </div>
+@include('admin.components.pdf-header', [
+    'title' => 'Tax Invoices Register Report',
+    'subtitle' => 'Billing Register & GST Breakdown'
+])
+
+<div class="stat-row">
+    <div class="stat-box">
+        <div class="s-label">Total Invoices</div>
+        <div class="s-value">{{ $totalInvoices ?? $invoices->count() }}</div>
     </div>
-    <div style="text-align: right;">
-        <div style="font-weight: 800; font-size: 14px; color: #2563EB;">Total Records: {{ $invoices->count() }}</div>
+    <div class="stat-box s-green">
+        <div class="s-label">Total Invoiced</div>
+        <div class="s-value">₹{{ number_format($totalInvoiced ?? $invoices->sum('total_amount'), 2) }}</div>
+    </div>
+    <div class="stat-box s-blue">
+        <div class="s-label">Total Collected</div>
+        <div class="s-value">₹{{ number_format($totalPaid ?? $invoices->sum('paid_amount'), 2) }}</div>
+    </div>
+    <div class="stat-box s-red">
+        <div class="s-label">Total Balance Due</div>
+        <div class="s-value">₹{{ number_format($totalBalance ?? ($totalDue ?? $invoices->sum('balance_amount')), 2) }}</div>
     </div>
 </div>
 
-<div class="kpi-row">
-    <div class="kpi-box">
-        <div class="kpi-lbl">Total Invoiced</div>
-        <div class="kpi-val">₹{{ number_format($totalInvoiced, 2) }}</div>
-    </div>
-    <div class="kpi-box">
-        <div class="kpi-lbl">Total Collected</div>
-        <div class="kpi-val" style="color: #166534;">₹{{ number_format($totalPaid, 2) }}</div>
-    </div>
-    <div class="kpi-box">
-        <div class="kpi-lbl">Total Outstanding Balance</div>
-        <div class="kpi-val" style="color: #991B1B;">₹{{ number_format($totalBalance, 2) }}</div>
-    </div>
-</div>
-
+<div class="section-label"><i class="fa-solid fa-file-invoice-dollar"></i> Tax Invoices Register</div>
 <table>
     <thead>
         <tr>
-            <th>Inv No</th>
+            <th style="width:28px;" class="c">#</th>
+            <th>Invoice No</th>
+            <th>Recipient Name</th>
             <th>Date</th>
-            <th>Recipient / Client</th>
-            <th>Project</th>
-            <th>Type</th>
-            <th class="text-right">Total (₹)</th>
-            <th class="text-right">Paid (₹)</th>
-            <th class="text-right">Balance (₹)</th>
-            <th class="text-center">Status</th>
+            <th class="r">Taxable</th>
+            <th class="r">GST</th>
+            <th class="r">Total Amount</th>
+            <th class="r">Paid</th>
+            <th class="r">Balance</th>
+            <th class="c">Status</th>
         </tr>
     </thead>
     <tbody>
-        @forelse($invoices as $inv)
-            <tr>
-                <td style="font-weight: 700;">{{ $inv->invoice_no }}</td>
-                <td>{{ $inv->invoice_date->format('d/m/Y') }}</td>
-                <td>{{ $inv->recipient_name }}</td>
-                <td>{{ $inv->project->project_name ?? '—' }}</td>
-                <td>{{ $inv->type_label }}</td>
-                <td class="text-right" style="font-weight: 700;">{{ number_format($inv->total_amount, 2) }}</td>
-                <td class="text-right" style="color: #166534;">{{ number_format($inv->paid_amount, 2) }}</td>
-                <td class="text-right" style="color: {{ $inv->balance_amount > 0 ? '#991B1B' : '#64748B' }};">{{ number_format($inv->balance_amount, 2) }}</td>
-                <td class="text-center">
-                    <span class="badge badge-{{ $inv->payment_status }}">
-                        {{ str_replace('_', ' ', $inv->payment_status) }}
-                    </span>
-                </td>
-            </tr>
+        @forelse($invoices as $i => $inv)
+        <tr>
+            <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
+            <td><strong>{{ $inv->invoice_no }}</strong></td>
+            <td>{{ $inv->recipient_name }}</td>
+            <td>{{ $inv->invoice_date ? $inv->invoice_date->format('d/m/Y') : '—' }}</td>
+            <td class="r">₹{{ number_format($inv->subtotal ?? 0, 2) }}</td>
+            <td class="r">₹{{ number_format($inv->tax_amount ?? 0, 2) }}</td>
+            <td class="r" style="font-weight:700;">₹{{ number_format($inv->total_amount ?? 0, 2) }}</td>
+            <td class="r" style="color:#059669; font-weight:700;">₹{{ number_format($inv->paid_amount ?? 0, 2) }}</td>
+            <td class="r" style="color:#DC2626; font-weight:700;">₹{{ number_format($inv->balance_amount ?? 0, 2) }}</td>
+            <td class="c">
+                @if($inv->payment_status === 'paid')
+                    <span class="badge badge-success">Paid</span>
+                @elseif($inv->payment_status === 'partial')
+                    <span class="badge badge-warning">Partial</span>
+                @else
+                    <span class="badge badge-danger">Unpaid</span>
+                @endif
+            </td>
+        </tr>
         @empty
-            <tr>
-                <td colspan="9" class="text-center" style="padding: 20px;">No invoices found.</td>
-            </tr>
+        <tr><td colspan="10" class="c" style="padding:20px;color:#64748B;">No invoice records found.</td></tr>
         @endforelse
     </tbody>
 </table>
 
+@include('admin.components.pdf-footer')
 </body>
 </html>

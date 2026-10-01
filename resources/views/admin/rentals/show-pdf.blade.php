@@ -3,240 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenancy Agreement #{{ $rental->agreement_no ?: $rental->id }} - Delawala Management</title>
-    <style>
-        * { box-sizing:border-box; margin:0; padding:0; }
-        body { font-family:'Segoe UI',Arial,sans-serif; font-size:11.5px; color:#0F1F35; background:#fff; padding:28px; line-height:1.45; }
-
-        /* ── Header ── */
-        .rpt-header { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:16px; margin-bottom:20px; border-bottom:2.5px solid #fc6900ff; }
-        .co-name  { font-size:24px; font-weight:800; color:#0F1F35; letter-spacing:0.4px; }
-        .co-sub   { font-size:10px; color:#fc6900ff; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-top:3px; }
-        .rpt-meta { text-align:right; }
-        .rpt-meta .rpt-title { font-size:17px; font-weight:800; color:#0F1F35; margin-bottom:4px; }
-        .rpt-meta .rpt-date  { font-size:11px; color:#64748B; }
-
-        /* ── Banner ── */
-        .banner { background:#0F172A; color:#fff; border-radius:8px; padding:16px 20px; margin-bottom:22px; display:flex; justify-content:space-between; align-items:center; }
-        .banner h2 { font-size:17px; font-weight:700; color:#F8FAFC; margin-bottom:4px; }
-        .badge-pill { background:rgba(37,99,235,0.3); color:#60A5FA; font-size:11px; font-weight:700; padding:4px 12px; border-radius:4px; border:1px solid rgba(59,130,246,0.4); display:inline-block; }
-
-        /* ── 2 Column Grid ── */
-        .grid-2 { display:flex; gap:18px; margin-bottom:20px; }
-        .grid-col { flex:1; border:1px solid #E2E8F0; border-radius:8px; padding:14px; background:#F8FAFC; }
-        .col-heading { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#fc6900ff; margin-bottom:10px; border-bottom:1px solid #E2E8F0; padding-bottom:4px; }
-
-        .info-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed #E2E8F0; font-size:11px; }
-        .info-row:last-child { border-bottom:none; }
-        .info-label { color:#64748B; font-weight:500; }
-        .info-value { color:#0F1F35; font-weight:700; text-align:right; }
-
-        /* ── Commercials Box ── */
-        .finance-card { border:1.5px solid #CBD5E1; border-radius:8px; overflow:hidden; margin-bottom:22px; }
-        .finance-header { background:#1E293B; color:#fff; padding:10px 16px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
-        .finance-body { padding:14px 16px; background:#fff; }
-        .finance-table { width:100%; border-collapse:collapse; }
-        .finance-table td { padding:6px 0; font-size:11.5px; }
-        .finance-table td.label { color:#475569; font-weight:500; }
-        .finance-table td.value { text-align:right; font-weight:700; color:#0F1F35; }
-        .finance-table tr.total td { font-size:13.5px; font-weight:800; border-top:2px solid #E2E8F0; padding-top:8px; }
-        .finance-table tr.total td.value { color:#e05c00; }
-
-        /* ── Remarks / Terms ── */
-        .terms-box { background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:12px 16px; margin-bottom:24px; font-size:10.5px; color:#475569; }
-        .terms-box strong { color:#0F1F35; }
-
-        /* ── Signatures ── */
-        .auth-block { margin-top:36px; padding-top:14px; display:flex; justify-content:space-between; page-break-inside:avoid; }
-        .auth-col { width:200px; text-align:center; }
-        .auth-line { border-top:1.5px solid #0F1F35; margin-top:44px; padding-top:5px; font-size:10px; font-weight:700; color:#0F1F35; }
-
-        /* ── Footer ── */
-        .rpt-footer { margin-top:26px; padding-top:10px; border-top:1px solid #E5E7EB; display:flex; justify-content:space-between; color:#9CA3AF; font-size:9.5px; }
-
-        @media print { body { padding:14px; } @page { margin:10mm; } }
-    </style>
+    <title>Rental Agreement - {{ $rental->agreement_no ?? ('RA-' . $rental->id) }} - Delawala Management</title>
+    @include('admin.components.pdf-styles', ['orientation' => 'portrait'])
 </head>
 <body>
-@include('admin.components.pdf-action-bar', ['title' => 'Tenancy Agreement #' . ($rental->agreement_no ?: $rental->id), 'orientation' => 'portrait', 'backUrl' => route('rentals.show', $rental->id)])
+@include('admin.components.pdf-action-bar', [
+    'title' => 'Rental Agreement: ' . ($rental->agreement_no ?? ('RA-' . $rental->id)),
+    'orientation' => 'portrait',
+    'backUrl' => route('rentals.show', $rental->id)
+])
 
-<div class="rpt-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; margin-bottom:18px; border-bottom:2.5px solid #D97706; gap:16px;">
-    <div style="display:flex; align-items:center; gap:14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:52px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            <div class="co-name" style="font-size:20px; font-weight:800; color:#0F172A; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">Delawala Properties</div>
-            <div class="co-sub" style="font-size:9.5px; color:#D97706; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Management</div>
-            <div style="font-size:10px; color:#475569; line-height:1.3; margin-top:1px;">
-                <i class="fa-solid fa-location-dot" style="color:#D97706; font-size:9px; margin-right:3px;"></i>Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam, Bharuch - 392012
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap;">
-                <span style="display:inline-flex; align-items:center; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:0.3px;"><strong>GSTIN:</strong> 24CUBPD0770R1ZI</span>
-                <span style="display:inline-flex; align-items:center; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:1px 6px; border-radius:4px; font-size:9px;"><strong>Proprietor:</strong> Delawala Zafar</span>
-            </div>
-        </div>
-    </div>
-    <div class="rpt-meta" style="text-align:right; flex-shrink:0;">
-        <div class="rpt-title" style="font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.2px; line-height:1.2;">Official Document</div>
-        <div class="rpt-date" style="font-size:10px; color:#64748B; margin-top:3px;">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
-    </div>
-    <div class="rpt-meta">
-        <div class="rpt-title">Tenancy &amp; Lease Agreement Deed</div>
-        <div class="rpt-date">Effective: {{ $rental->rent_start_date ? \Carbon\Carbon::parse($rental->rent_start_date)->format('d M Y') : now()->format('d M Y') }}</div>
-    </div>
-</div>
+@include('admin.components.pdf-header', [
+    'title' => 'Tenancy & Lease Agreement',
+    'subtitle' => 'Terms of Tenancy & Monthly Rent Deed',
+    'docRef' => $rental->agreement_no ?? ('RA-' . $rental->id)
+])
 
-<div class="banner">
-    <div>
-        <h2>Lease Agreement #{{ $rental->agreement_no ?: ('RA-' . str_pad($rental->id, 5, '0', STR_PAD_LEFT)) }}</h2>
-        <div style="font-size:11px; color:#94A3B8;">
-            Lessor: {{ $rental->firm->firm_name ?? 'Delawala Management' }} &nbsp;|&nbsp; Status: {{ ucfirst($rental->rental_status) }}
-        </div>
+<div class="stat-row">
+    <div class="stat-box s-gold">
+        <div class="s-label">Agreement No</div>
+        <div class="s-value" style="font-size:14px;">{{ $rental->agreement_no ?: ('RA-' . $rental->id) }}</div>
     </div>
-    <div>
-        <span class="badge-pill">MONTHLY: ₹{{ number_format($rental->rent_amount, 2) }}</span>
+    <div class="stat-box s-blue">
+        <div class="s-label">Monthly Rent</div>
+        <div class="s-value">₹{{ number_format($rental->monthly_rent, 2) }}</div>
+    </div>
+    <div class="stat-box s-green">
+        <div class="s-label">Security Deposit</div>
+        <div class="s-value">₹{{ number_format($rental->security_deposit, 2) }}</div>
     </div>
 </div>
 
 <div class="grid-2">
-    <!-- Property Info -->
-    @php
-        $allProps = $rental->all_properties;
-        $firstProp = $allProps->first();
-    @endphp
     <div class="grid-col">
-        <div class="col-heading">&#9632; Demised Premises / Property @if($allProps->count() > 1) ({{ $allProps->count() }} Units) @endif</div>
-        @if($allProps->count() > 1)
-            <div class="info-row">
-                <span class="info-label">Rented Units:</span>
-                <span class="info-value" style="color: #2563EB;">
-                    @foreach($allProps as $p)
-                        {{ $p->property_name ?: ($p->unit_no ? 'Unit #' . $p->unit_no : 'Property #' . $p->id) }}@if(!$loop->last), @endif
-                    @endforeach
-                </span>
-            </div>
-        @else
-            <div class="info-row">
-                <span class="info-label">Property Name:</span>
-                <span class="info-value">{{ $firstProp->property_name ?? ($rental->property->property_name ?? '-') }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Property Code:</span>
-                <span class="info-value">{{ $firstProp->property_code ?? ($rental->property->property_code ?? '-') }}</span>
-            </div>
-        @endif
-        @if($firstProp && $firstProp->project)
-        <div class="info-row">
-            <span class="info-label">Project:</span>
-            <span class="info-value">{{ $firstProp->project->project_name }}</span>
-        </div>
-        @endif
-        <div class="info-row">
-            <span class="info-label">Property Type:</span>
-            <span class="info-value">{{ $firstProp->propertyType->name ?? ($rental->property->propertyType->name ?? 'Residential / Commercial') }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Location / Address:</span>
-            <span class="info-value">{{ $firstProp->location ?? ($firstProp->address ?? ($rental->property->location ?? ($rental->property->address ?? '-'))) }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Size / Area:</span>
-            <span class="info-value">
-                @if($allProps->count() > 1)
-                    {{ $allProps->sum('size') > 0 ? $allProps->sum('size') . ' ' . ($firstProp->size_unit ?? 'sq.ft') : '-' }}
-                @else
-                    {{ $firstProp && $firstProp->size ? $firstProp->size . ' ' . ($firstProp->size_unit ?? 'sq.ft') : '-' }}
-                @endif
-            </span>
-        </div>
-    </div>
-
-    <!-- Tenant Info -->
-    <div class="grid-col">
-        <div class="col-heading">&#9632; Lessee / Tenant Details</div>
+        <div class="col-heading"><i class="fa-solid fa-user"></i> Tenant Particulars</div>
         <div class="info-row">
             <span class="info-label">Tenant Name:</span>
-            <span class="info-value">{{ $rental->tenant_name ?: ($rental->tenant->name ?? '-') }}</span>
+            <span class="info-val">{{ $rental->tenant_name ?? ($rental->tenant->name ?? '—') }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Mobile Number:</span>
-            <span class="info-value">{{ $rental->tenant_mobile ?: ($rental->tenant->phone ?? '-') }}</span>
+            <span class="info-val">{{ $rental->tenant_mobile ?? ($rental->tenant->mobile ?? '—') }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Email Address:</span>
-            <span class="info-value">{{ $rental->tenant_email ?: ($rental->tenant->email ?? '-') }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Lock-in Period:</span>
-            <span class="info-value">{{ $rental->lock_in_period ?: 'N/A' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Notice Period:</span>
-            <span class="info-value">{{ $rental->notice_period ?: '1 Month' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Rent Due Day:</span>
-            <span class="info-value">{{ $rental->rent_due_date ? 'Day ' . $rental->rent_due_date . ' of month' : '5th of month' }}</span>
+            <span class="info-label">ID / Aadhar:</span>
+            <span class="info-val">{{ $rental->tenant_id_proof ?: '—' }}</span>
         </div>
     </div>
-</div>
 
-<div class="finance-card">
-    <div class="finance-header">Rental Commercials &amp; Deposit Schedule</div>
-    <div class="finance-body">
-        <table class="finance-table">
-            <tr>
-                <td class="label">Monthly Agreed Net Rent</td>
-                <td class="value">₹{{ number_format($rental->rent_amount, 2) }}</td>
-            </tr>
-            @if($rental->maintenance_amount > 0)
-            <tr>
-                <td class="label">Monthly Maintenance Contribution</td>
-                <td class="value">₹{{ number_format($rental->maintenance_amount, 2) }}</td>
-            </tr>
-            @endif
-            @if($rental->escalation_percent > 0)
-            <tr>
-                <td class="label">Annual Escalation Rate</td>
-                <td class="value">{{ $rental->escalation_percent }}%</td>
-            </tr>
-            @endif
-            <tr class="total">
-                <td class="label">Security Deposit (Refundable upon vacating)</td>
-                <td class="value">₹{{ number_format($rental->security_deposit, 2) }}</td>
-            </tr>
-        </table>
+    <div class="grid-col">
+        <div class="col-heading"><i class="fa-solid fa-building"></i> Tenancy Property Terms</div>
+        <div class="info-row">
+            <span class="info-label">Property:</span>
+            <span class="info-val">{{ $rental->property->property_name ?? '—' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Start Date:</span>
+            <span class="info-val">{{ $rental->start_date ? \Carbon\Carbon::parse($rental->start_date)->format('d M Y') : '—' }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">End Date:</span>
+            <span class="info-val">{{ $rental->end_date ? \Carbon\Carbon::parse($rental->end_date)->format('d M Y') : '—' }}</span>
+        </div>
     </div>
-</div>
-
-@if($rental->remarks)
-<div class="terms-box">
-    <strong>Special Terms &amp; Inventory Notes:</strong><br>
-    {{ $rental->remarks }}
-</div>
-@endif
-
-<div class="terms-box" style="font-size:10px; line-height:1.4;">
-    <strong>Standard Clauses:</strong>
-    1. The Tenant shall pay the monthly rental on or before the due date each month.
-    2. The premises shall be used strictly in accordance with approved tenancy laws.
-    3. The security deposit is refundable upon termination subject to inspection and utility clearance.
 </div>
 
 <div class="auth-block">
     <div class="auth-col">
-        <div class="auth-line">Tenant / Lessee Signature</div>
+        <div class="auth-line">Tenant Signature</div>
     </div>
     <div class="auth-col">
-        <div class="auth-line">Lessor / Delawala Authorized Signatory</div>
+        <div class="auth-line">Landlord / Delawala Infra Co.</div>
     </div>
 </div>
 
-<div class="rpt-footer">
-    <span>Delawala Management System &nbsp;—&nbsp; Tenancy Agreement #{{ $rental->agreement_no ?: $rental->id }}</span>
-    <span>Generated: {{ now()->format('d M Y, h:i A') }}</span>
-</div>
-
+@include('admin.components.pdf-footer')
 </body>
 </html>

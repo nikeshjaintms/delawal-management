@@ -1,123 +1,55 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Seller Dossier - {{ $seller->name }}</title>
-    <style>
-        .rpt-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2.5px solid #0f172a; padding-bottom: 14px; margin-bottom: 16px; }
-        .co-name { font-size: 20px; font-weight: 800; color: #0f172a; }
-        .co-sub { font-size: 9.5px; color: #d97706; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
-        .rpt-meta { text-align: right; }
-        .rpt-meta .rpt-title { font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 3px; }
-        .rpt-meta .rpt-date { font-size: 10px; color: #64748b; }
-        .section-title { font-size: 12px; font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin: 16px 0 10px 0; }
-        .grid { display: table; width: 100%; margin-bottom: 12px; }
-        .row { display: table-row; }
-        .cell { display: table-cell; padding: 4px 8px; width: 50%; vertical-align: top; }
-        .label { font-size: 9.5px; font-weight: bold; color: #64748b; text-transform: uppercase; }
-        .value { font-size: 11px; font-weight: bold; color: #0f172a; margin-top: 2px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #f1f5f9; color: #334155; font-size: 9.5px; font-weight: bold; text-transform: uppercase; padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left; }
-        td { padding: 6px 8px; border: 1px solid #e2e8f0; font-size: 10px; }
-        .footer { margin-top: 30px; font-size: 9px; color: #94a3b8; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 8px; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dossier - {{ $seller->name }} - Delawala Management</title>
+    @include('admin.components.pdf-styles', ['orientation' => 'portrait'])
 </head>
 <body>
-@include('admin.components.pdf-action-bar', ['title' => 'Seller Dossier: ' . $seller->name, 'orientation' => 'portrait', 'backUrl' => route('sellers.show', $seller->id)])
+@include('admin.components.pdf-action-bar', [
+    'title' => 'Seller Dossier: ' . $seller->name,
+    'orientation' => 'portrait',
+    'backUrl' => isset($seller->id) ? route('sellers.show', $seller->id) : route('sellers.index')
+])
 
-    <div class="rpt-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; margin-bottom:18px; border-bottom:2.5px solid #D97706; gap:16px;">
-    <div style="display:flex; align-items:center; gap:14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:52px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            <div class="co-name" style="font-size:20px; font-weight:800; color:#0F172A; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">Delawala Properties</div>
-            <div class="co-sub" style="font-size:9.5px; color:#D97706; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Management</div>
-            <div style="font-size:10px; color:#475569; line-height:1.3; margin-top:1px;">
-                <i class="fa-solid fa-location-dot" style="color:#D97706; font-size:9px; margin-right:3px;"></i>Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam, Bharuch - 392012
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap;">
-                <span style="display:inline-flex; align-items:center; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:0.3px;"><strong>GSTIN:</strong> 24CUBPD0770R1ZI</span>
-                <span style="display:inline-flex; align-items:center; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:1px 6px; border-radius:4px; font-size:9px;"><strong>Proprietor:</strong> Delawala Zafar</span>
-            </div>
-        </div>
+@include('admin.components.pdf-header', [
+    'title' => 'Seller Dossier & Property History',
+    'subtitle' => 'Land Acquisition & Payment Ledger',
+    'firm' => $seller->firm ?? null,
+    'docRef' => 'SELLER-' . ($seller->id ?? 1)
+])
+
+<div class="stat-row">
+    <div class="stat-box s-blue">
+        <div class="s-label">Seller Name</div>
+        <div class="s-value" style="font-size:14px;">{{ $seller->name }}</div>
     </div>
-    <div class="rpt-meta" style="text-align:right; flex-shrink:0;">
-        <div class="rpt-title" style="font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.2px; line-height:1.2;">Official Document</div>
-        <div class="rpt-date" style="font-size:10px; color:#64748B; margin-top:3px;">Generated: {{ now()->format('d M Y, h:i A') }}</div>
+    <div class="stat-box s-gold">
+        <div class="s-label">Mobile</div>
+        <div class="s-value" style="font-size:13px;">{{ $seller->mobile ?: '—' }}</div>
+    </div>
+    <div class="stat-box s-green">
+        <div class="s-label">Status</div>
+        <div class="s-value" style="font-size:13px;">{{ strtoupper($seller->status ?: 'ACTIVE') }}</div>
     </div>
 </div>
-        </div>
-        <div class="rpt-meta">
-            <div class="rpt-title">Seller Dossier: {{ $seller->name }}</div>
-            <div class="rpt-date">Landowner Profile &bull; {{ date('d M, Y h:i A') }}</div>
-        </div>
-    </div>
 
-    <div class="section-title">1. Personal &amp; Legal Identity</div>
-    <div class="grid">
-        <div class="row">
-            <div class="cell"><span class="label">Seller Name:</span><div class="value">{{ $seller->name }}</div></div>
-            <div class="cell"><span class="label">Seller Type:</span><div class="value">{{ ucfirst(str_replace('_', ' ', $seller->seller_type ?? 'Individual')) }}</div></div>
-        </div>
-        <div class="row">
-            <div class="cell"><span class="label">Mobile Number:</span><div class="value">{{ $seller->mobile ?: ($seller->phone ?: '-') }}</div></div>
-            <div class="cell"><span class="label">Email:</span><div class="value">{{ $seller->email ?: '-' }}</div></div>
-        </div>
-        <div class="row">
-            <div class="cell"><span class="label">PAN Number:</span><div class="value">{{ $seller->pan_no ?: '-' }}</div></div>
-            <div class="cell"><span class="label">Aadhaar Number:</span><div class="value">{{ $seller->aadhaar_no ?: '-' }}</div></div>
-        </div>
-        <div class="row">
-            <div class="cell"><span class="label">Address:</span><div class="value">{{ $seller->address ?: '-' }} ({{ $seller->city ?: '-' }})</div></div>
-            <div class="cell"><span class="label">Status:</span><div class="value">{{ ucfirst($seller->status) }}</div></div>
-        </div>
+<div class="grid-2">
+    <div class="grid-col">
+        <div class="col-heading"><i class="fa-solid fa-user"></i> Seller Particulars</div>
+        <div class="info-row"><span class="info-label">Full Name:</span><span class="info-val">{{ $seller->name }}</span></div>
+        <div class="info-row"><span class="info-label">Mobile:</span><span class="info-val">{{ $seller->mobile ?: '—' }}</span></div>
+        <div class="info-row"><span class="info-label">Email:</span><span class="info-val">{{ $seller->email ?: '—' }}</span></div>
     </div>
-
-    <div class="section-title">2. Bank Payment Coordinates</div>
-    <div class="grid">
-        <div class="row">
-            <div class="cell"><span class="label">Bank Name:</span><div class="value">{{ $seller->bank_name ?: '-' }}</div></div>
-            <div class="cell"><span class="label">Account Number:</span><div class="value">{{ $seller->account_number ?: '-' }}</div></div>
-        </div>
-        <div class="row">
-            <div class="cell"><span class="label">IFSC Code:</span><div class="value">{{ $seller->ifsc_code ?: '-' }}</div></div>
-            <div class="cell"><span class="label">Branch Name:</span><div class="value">{{ $seller->branch_name ?: '-' }}</div></div>
-        </div>
+    <div class="grid-col">
+        <div class="col-heading"><i class="fa-solid fa-location-dot"></i> Location &amp; Firm</div>
+        <div class="info-row"><span class="info-label">Address:</span><span class="info-val">{{ $seller->address ?: 'Dahegam, Bharuch' }}</span></div>
+        <div class="info-row"><span class="info-label">City:</span><span class="info-val">{{ $seller->city ?: 'Dahegam' }}</span></div>
+        <div class="info-row"><span class="info-label">Firm:</span><span class="info-val">{{ $seller->firm->firm_name ?? 'Delawala Infra Co.' }}</span></div>
     </div>
+</div>
 
-    <div class="section-title">3. Linked Property Acquisitions ({{ $seller->propertyMasters->count() }})</div>
-    <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Property Master</th>
-                <th>Code</th>
-                <th>Acquired Date</th>
-                <th>Total Area</th>
-                <th>Deal Amount (₹)</th>
-                <th>Paid Amount (₹)</th>
-                <th>Due Balance (₹)</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($seller->propertyMasters as $idx => $pm)
-                <tr>
-                    <td>{{ $idx + 1 }}</td>
-                    <td><strong>{{ $pm->property_name }}</strong></td>
-                    <td>{{ $pm->property_code }}</td>
-                    <td>{{ $pm->purchase_date ? date('d M, Y', strtotime($pm->purchase_date)) : '-' }}</td>
-                    <td>{{ number_format($pm->total_area, 2) }} {{ $pm->area_unit ?? 'Sq.Ft' }}</td>
-                    <td>₹{{ number_format($pm->purchase_price, 2) }}</td>
-                    <td>₹{{ number_format($pm->paid_amount, 2) }}</td>
-                    <td>₹{{ number_format($pm->due_amount, 2) }}</td>
-                </tr>
-            @empty
-                <tr><td colspan="8" style="text-align: center;">No property acquisitions linked.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
-
-    <div class="footer">
-        Delawala Management System &bull; Confidential
-    </div>
+@include('admin.components.pdf-footer')
 </body>
 </html>

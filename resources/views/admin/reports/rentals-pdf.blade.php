@@ -2,182 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Rental Report</title>
-    <style>
-        *{box-sizing:border-box;margin:0;padding:0;}
-        body{font-family:'Segoe UI',Arial,sans-serif;font-size:11.5px;color:#0F172A;background:#fff;padding:26px;}
-        .rpt-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;margin-bottom:20px;border-bottom:2.5px solid#14B8A6;}
-        .co-name{font-size:22px;font-weight:800;color:#0F172A;}
-        .co-sub{font-size:10px;color:#14B8A6;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
-        .rpt-meta{text-align:right;}
-        .rpt-meta .rpt-title{font-size:15px;font-weight:700;color:#0F172A;margin-bottom:3px;}
-        .rpt-meta .rpt-date{font-size:11px;color:#64748B;}
-
-        .filter-row{background:#F0FDFA;border:1px solid#99F6E4;border-radius:6px;padding:9px 14px;margin-bottom:16px;font-size:11px;color:#115E59;display:flex;flex-wrap:wrap;gap:12px;}
-        .filter-row strong{color:#134E4A;}
-
-        .stat-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
-        .stat-box{flex:1;min-width:110px;border:1px solid#E5E7EB;border-radius:7px;padding:11px 13px;}
-        .stat-box .s-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#64748B;}
-        .stat-box .s-value{font-size:17px;font-weight:800;margin-top:3px;color:#0F172A;}
-        .stat-box.s-teal{border-color:rgba(20,184,166,.3);background:rgba(20,184,166,.04);}
-        .stat-box.s-teal .s-value{color:#0F766E;}
-        .stat-box.s-green{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.04);}
-        .stat-box.s-green .s-value{color:#059669;}
-        .stat-box.s-amber{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.04);}
-        .stat-box.s-amber .s-value{color:#D97706;}
-
-        .section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#14B8A6;margin-bottom:9px;margin-top:20px;padding-bottom:5px;border-bottom:1px solid#E5E7EB;}
-        table{width:100%;border-collapse:collapse;font-size:10.5px;}
-        thead tr{background:#0F172A;}
-        thead th{padding:8px 9px;color:#FFF;font-weight:600;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
-        thead th.r{text-align:right;}
-        thead th.c{text-align:center;}
-        tbody tr:nth-child(even){background:#F9FAFB;}
-        tbody td{padding:7.5px 9px;border-bottom:1px solid#F1F5F9;vertical-align:middle;}
-        tbody td.r{text-align:right;}
-        tbody td.c{text-align:center;}
-        tbody tr:last-child td{border-bottom:none;}
-        tfoot tr{background:#F0FDFA;}
-        tfoot td{padding:9px 9px;font-weight:800;border-top:2px solid#E5E7EB;}
-        tfoot td.r{text-align:right;font-size:12px;}
-
-        .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9.5px;font-weight:700;text-transform:uppercase;}
-        .b-paid{background:rgba(16,185,129,.12);color:#059669;}
-        .b-partial{background:rgba(245,158,11,.12);color:#D97706;}
-        .b-pending{background:rgba(239,68,68,.12);color:#DC2626;}
-
-        .rpt-footer{margin-top:22px;padding-top:10px;border-top:1px solid#E5E7EB;display:flex;justify-content:space-between;color:#9CA3AF;font-size:10px;}
-        @media print{body{padding:10px;}@page{margin:8mm;}}
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Portfolio Report - Delawala Management</title>
+    @include('admin.components.pdf-styles', ['orientation' => 'landscape'])
 </head>
 <body>
-@include('admin.components.pdf-action-bar', ['title' => 'Rental Accounting Report', 'orientation' => 'landscape', 'backUrl' => route('reports.rentals')])
+@include('admin.components.pdf-action-bar', [
+    'title' => 'Rental Portfolio Report',
+    'orientation' => 'landscape',
+    'backUrl' => route('reports.rentals')
+])
 
-<div class="rpt-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; margin-bottom:18px; border-bottom:2.5px solid #D97706; gap:16px;">
-    <div style="display:flex; align-items:center; gap:14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:52px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            <div class="co-name" style="font-size:20px; font-weight:800; color:#0F172A; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">Delawala Properties</div>
-            <div class="co-sub" style="font-size:9.5px; color:#D97706; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Management</div>
-            <div style="font-size:10px; color:#475569; line-height:1.3; margin-top:1px;">
-                <i class="fa-solid fa-location-dot" style="color:#D97706; font-size:9px; margin-right:3px;"></i>Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam, Bharuch - 392012
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap;">
-                <span style="display:inline-flex; align-items:center; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:0.3px;"><strong>GSTIN:</strong> 24CUBPD0770R1ZI</span>
-                <span style="display:inline-flex; align-items:center; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:1px 6px; border-radius:4px; font-size:9px;"><strong>Proprietor:</strong> Delawala Zafar</span>
-            </div>
-        </div>
-    </div>
-    <div class="rpt-meta" style="text-align:right; flex-shrink:0;">
-        <div class="rpt-title" style="font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.2px; line-height:1.2;">Official Document</div>
-        <div class="rpt-date" style="font-size:10px; color:#64748B; margin-top:3px;">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
-    </div>
-    <div class="rpt-meta">
-        <div class="rpt-title">Rental Report</div>
-        <div class="rpt-date">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
-
-@if(request()->hasAny(['from_date','to_date','filter_status','filter_mode','filter_tenant','filter_property']))
-<div class="filter-row">
-    <span><strong>Filters Applied:</strong></span>
-    @if(request('from_date')) <span>From: {{ \Carbon\Carbon::parse(request('from_date'))->format('d M Y') }}</span> @endif
-    @if(request('to_date'))   <span>To: {{ \Carbon\Carbon::parse(request('to_date'))->format('d M Y') }}</span> @endif
-    @if(request('filter_mode')) <span>Mode: {{ request('filter_mode') }}</span> @endif
-    @if(request('filter_status')) <span>Status: {{ ucfirst(request('filter_status')) }}</span> @endif
-</div>
-@endif
+@include('admin.components.pdf-header', [
+    'title' => 'Rental Portfolio Report',
+    'subtitle' => 'Rental Income & Occupancy Ledger'
+])
 
 <div class="stat-row">
-    <div class="stat-box s-teal">
-        <div class="s-label">Total Rent Amount</div>
-        <div class="s-value">₹{{ number_format($totalRentAmt, 2) }}</div>
+    <div class="stat-box s-blue">
+        <div class="s-label">Total Monthly Rent Demand</div>
+        <div class="s-value">₹{{ number_format($totalRentAmt ?? 0, 2) }}</div>
     </div>
     <div class="stat-box s-green">
-        <div class="s-label">Total Received</div>
-        <div class="s-value">₹{{ number_format($totalReceived, 2) }}</div>
+        <div class="s-label">Total Rent Collected</div>
+        <div class="s-value">₹{{ number_format($totalReceived ?? 0, 2) }}</div>
     </div>
-    <div class="stat-box s-amber">
-        <div class="s-label">Total Pending</div>
-        <div class="s-value">₹{{ number_format($totalPending, 2) }}</div>
+    <div class="stat-box s-red">
+        <div class="s-label">Total Rent Due</div>
+        <div class="s-value">₹{{ number_format($totalPending ?? 0, 2) }}</div>
     </div>
 </div>
 
-<div class="section-label">&#9632; Rental Payment Records</div>
+<div class="section-label"><i class="fa-solid fa-house-user"></i> Rental Tenancy Agreements</div>
 <table>
     <thead>
         <tr>
-            <th>#</th>
-            <th>Firm</th>
-            <th>Payment Date</th>
-            <th>Month/Year</th>
-            <th>Tenant</th>
-            <th>Property</th>
-            <th>Payment Mode</th>
-            <th class="r">Rent Amount</th>
-            <th class="r">Paid Amount</th>
-            <th class="r">Pending</th>
+            <th style="width:24px;" class="c">#</th>
+            <th>Agreement No</th>
+            <th>Tenant Name</th>
+            <th>Property / Unit</th>
+            <th>Start Date</th>
+            <th class="r">Monthly Rent</th>
+            <th class="r">Security Deposit</th>
             <th class="c">Status</th>
         </tr>
     </thead>
     <tbody>
         @forelse($records as $i => $r)
-        @php
-            $status = strtolower($r->payment_status ?? 'pending');
-            $badgeClass = $status === 'paid' ? 'b-paid' : ($status === 'partial' ? 'b-partial' : 'b-pending');
-            $monthVal = $r->payment_month;
-            if (is_numeric($monthVal) && (int)$monthVal >= 1 && (int)$monthVal <= 12) {
-                $dt = \DateTime::createFromFormat('!m', (int)$monthVal);
-                $monthName = $dt ? $dt->format('M') : (string)$monthVal;
-            } else {
-                $monthName = (string)($monthVal ?? '—');
-            }
-        @endphp
         <tr>
-            <td style="color:#9CA3AF;">{{ $i+1 }}</td>
-            <td><strong>{{ $r->firm->firm_name ?? $r->rental?->firm?->firm_name ?? '—' }}</strong></td>
-            <td style="white-space:nowrap;">{{ $r->payment_date ? \Carbon\Carbon::parse($r->payment_date)->format('d M Y') : '—' }}</td>
-            <td><span style="background:rgba(20,184,166,.1);color:#0F766E;padding:2px 7px;border-radius:4px;font-weight:700;font-size:10px;">{{ $monthName }} {{ $r->payment_year }}</span></td>
-            <td><strong>{{ $r->rental?->tenant_name ?? '—' }}</strong></td>
-            <td>
-                <div>{{ $r->property->property_name ?? $r->rental?->property?->property_name ?? '—' }}</div>
-                <div style="font-size: 9px; color: #6B7280;">
-                    Type: {{ $r->property->propertyType->name ?? $r->rental?->property?->propertyType->name ?? '—' }} 
-                    @if($r->property?->property_code || $r->rental?->property?->property_code)
-                        | Code: {{ $r->property->property_code ?? $r->rental?->property?->property_code }}
-                    @endif
-                </div>
-            </td>
-            <td><span style="background:#F1F5F9;color:#475569;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;">{{ $r->payment_mode ?? '—' }}</span></td>
-            <td class="r" style="color:#0F766E;font-weight:700;">₹{{ number_format($r->rent_amount, 2) }}</td>
-            <td class="r" style="color:#059669;font-weight:700;">₹{{ number_format($r->paid_amount, 2) }}</td>
-            <td class="r" style="color:#D97706;font-weight:700;">₹{{ number_format($r->pending_amount, 2) }}</td>
-            <td class="c"><span class="badge {{ $badgeClass }}">{{ ucfirst($r->payment_status ?? 'Pending') }}</span></td>
+            <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
+            <td><strong>{{ $r->agreement_no ?: ('RA-' . $r->id) }}</strong></td>
+            <td>{{ $r->tenant_name ?? ($r->tenant->name ?? '—') }}</td>
+            <td>{{ $r->property->property_name ?? '—' }}</td>
+            <td>{{ $r->start_date ? \Carbon\Carbon::parse($r->start_date)->format('d M Y') : '—' }}</td>
+            <td class="r" style="color:#2563EB; font-weight:700;">₹{{ number_format($r->monthly_rent, 2) }}</td>
+            <td class="r">₹{{ number_format($r->security_deposit, 2) }}</td>
+            <td class="c"><span class="badge badge-success">Active</span></td>
         </tr>
         @empty
-        <tr><td colspan="11" style="text-align:center;padding:20px;color:#64748B;">No records found.</td></tr>
+        <tr><td colspan="8" class="c" style="padding:20px;color:#64748B;">No rental portfolio records found.</td></tr>
         @endforelse
     </tbody>
-    @if($records->count() > 0)
-    <tfoot>
-        <tr>
-            <td colspan="7" style="font-size:11px;">Total ({{ $records->count() }} payments)</td>
-            <td class="r" style="color:#0F766E;">₹{{ number_format($totalRentAmt, 2) }}</td>
-            <td class="r" style="color:#059669;">₹{{ number_format($totalReceived, 2) }}</td>
-            <td class="r" style="color:#D97706;">₹{{ number_format($totalPending, 2) }}</td>
-            <td></td>
-        </tr>
-    </tfoot>
-    @endif
 </table>
 
-<div class="rpt-footer">
-    <span>Delawala Management System — Rental Report</span>
-    <span>{{ $records->count() }} payments · Total Received ₹{{ number_format($totalReceived, 2) }} · {{ now()->format('d M Y') }}</span>
-</div>
-
+@include('admin.components.pdf-footer')
 </body>
 </html>

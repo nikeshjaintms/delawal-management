@@ -2,200 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Loan Report</title>
-    <style>
-        *{box-sizing:border-box;margin:0;padding:0;}
-        body{font-family:'Segoe UI',Arial,sans-serif;font-size:11.5px;color:#0F1F35;background:#fff;padding:26px;}
-        .rpt-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;margin-bottom:20px;border-bottom:2.5px solid #D4AF37;}
-        .co-name{font-size:22px;font-weight:800;color:#0F1F35;}
-        .co-sub{font-size:10px;color:#D4AF37;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
-        .rpt-meta{text-align:right;}
-        .rpt-meta .rpt-title{font-size:15px;font-weight:700;color:#0F1F35;margin-bottom:3px;}
-        .rpt-meta .rpt-date{font-size:11px;color:#64748B;}
-        .stat-row{display:flex;gap:12px;margin-bottom:20px;}
-        .stat-box{flex:1;border:1px solid #E5E7EB;border-radius:7px;padding:12px 14px;}
-        .stat-box .s-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#64748B;}
-        .stat-box .s-value{font-size:18px;font-weight:800;margin-top:3px;color:#0F1F35;}
-        .stat-box.s-gold{border-color:rgba(212,175,55,0.3);background:rgba(212,175,55,0.05);}
-        .stat-box.s-gold .s-value{color:#92710A;}
-        .stat-box.s-green .s-value{color:#16803D;}
-        .stat-box.s-red .s-value{color:#DC2626;}
-        .section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#D4AF37;margin-bottom:8px;margin-top:20px;padding-bottom:5px;border-bottom:1px solid #E5E7EB;}
-        table{width:100%;border-collapse:collapse;font-size:10.5px;}
-        thead tr{background:#0F1F35;}
-        thead th{padding:8px 9px;color:#FFF;font-weight:600;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
-        thead th.r{text-align:right;}
-        thead th.c{text-align:center;}
-        tbody tr:nth-child(even){background:#F9FAFB;}
-        tbody td{padding:7px 9px;border-bottom:1px solid #F1F5F9;vertical-align:middle;}
-        tbody td.r{text-align:right;}
-        tbody td.c{text-align:center;}
-        tfoot tr{background:#F1F5F9;}
-        tfoot td{padding:8px 9px;font-weight:800;border-top:2px solid #E5E7EB;}
-        tfoot td.r{text-align:right;}
-        .ls{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;}
-        .ls-approved      {background:rgba(16,185,129,0.12);color:#065F46;}
-        .ls-active        {background:rgba(16,185,129,0.12);color:#16803D;}
-        .ls-pending       {background:rgba(245,158,11,0.12);color:#92400E;}
-        .ls-rejected      {background:rgba(239,68,68,0.12);color:#991B1B;}
-        .ls-under-process {background:rgba(99,102,241,0.12);color:#3730A3;}
-        .ls-completed     {background:rgba(59,130,246,0.12);color:#1D4ED8;}
-        .ls-closed        {background:rgba(100,116,139,0.12);color:#475569;}
-        .ls-cancelled     {background:rgba(239,68,68,0.12);color:#DC2626;}
-        .sum-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:20px;}
-        .sum-table{width:100%;border-collapse:collapse;font-size:10.5px;}
-        .sum-table th{padding:7px 9px;background:#F9FAFB;color:#64748B;font-weight:600;border-bottom:1px solid #E5E7EB;font-size:9.5px;text-transform:uppercase;}
-        .sum-table td{padding:7px 9px;border-bottom:1px solid #F1F5F9;}
-        .sum-table td.r{text-align:right;font-weight:700;color:#92710A;}
-        .sum-table tfoot td{font-weight:800;border-top:1.5px solid #E5E7EB;}
-        .sum-table tfoot td.r{color:#92710A;}
-        .rpt-footer{margin-top:22px;padding-top:10px;border-top:1px solid #E5E7EB;display:flex;justify-content:space-between;color:#9CA3AF;font-size:10px;}
-        @media print{body{padding:10px;}@page{margin:8mm;}}
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loans & Liabilities Report - Delawala Management</title>
+    @include('admin.components.pdf-styles', ['orientation' => 'landscape'])
 </head>
 <body>
-@include('admin.components.pdf-action-bar', ['title' => 'Loan Ledger Report', 'orientation' => 'landscape', 'backUrl' => route('loan-report.index')])
+@include('admin.components.pdf-action-bar', [
+    'title' => 'Loans & Liabilities Report',
+    'orientation' => 'landscape',
+    'backUrl' => route('loan-report.index')
+])
 
-<div class="rpt-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; margin-bottom:18px; border-bottom:2.5px solid #D97706; gap:16px;">
-    <div style="display:flex; align-items:center; gap:14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:52px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            <div class="co-name" style="font-size:20px; font-weight:800; color:#0F172A; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">Delawala Properties</div>
-            <div class="co-sub" style="font-size:9.5px; color:#D97706; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Management</div>
-            <div style="font-size:10px; color:#475569; line-height:1.3; margin-top:1px;">
-                <i class="fa-solid fa-location-dot" style="color:#D97706; font-size:9px; margin-right:3px;"></i>Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam, Bharuch - 392012
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap;">
-                <span style="display:inline-flex; align-items:center; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:0.3px;"><strong>GSTIN:</strong> 24CUBPD0770R1ZI</span>
-                <span style="display:inline-flex; align-items:center; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:1px 6px; border-radius:4px; font-size:9px;"><strong>Proprietor:</strong> Delawala Zafar</span>
-            </div>
-        </div>
-    </div>
-    <div class="rpt-meta" style="text-align:right; flex-shrink:0;">
-        <div class="rpt-title" style="font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.2px; line-height:1.2;">Official Document</div>
-        <div class="rpt-date" style="font-size:10px; color:#64748B; margin-top:3px;">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
-    </div>
-    <div class="rpt-meta"><div class="rpt-title">Loan Report</div><div class="rpt-date">Generated: {{ now()->format('d M Y, h:i A') }}</div></div>
-</div>
-
-@php
-    $totalLoan    = $loans->sum('loan_amount');
-    $totalPaid    = $loans->sum('paid_amount');
-    $totalPending = $loans->sum('pending_amount');
-@endphp
+@include('admin.components.pdf-header', [
+    'title' => 'Loans & Liabilities Report',
+    'subtitle' => 'Principal, Interest & Repayment Statement'
+])
 
 <div class="stat-row">
-    <div class="stat-box s-gold"><div class="s-label">Total Loan Amount</div><div class="s-value">₹{{ number_format($totalLoan,2) }}</div></div>
-    <div class="stat-box"><div class="s-label">Total Loans</div><div class="s-value">{{ $loans->count() }}</div></div>
-    <div class="stat-box s-green"><div class="s-label">Total Paid</div><div class="s-value">₹{{ number_format($totalPaid,2) }}</div></div>
-    <div class="stat-box s-red"><div class="s-label">Total Pending</div><div class="s-value">₹{{ number_format($totalPending,2) }}</div></div>
+    <div class="stat-box s-red">
+        <div class="s-label">Total Borrowings / Loans</div>
+        <div class="s-value">₹{{ number_format($totalLoanAmount ?? 0, 2) }}</div>
+    </div>
+    <div class="stat-box s-green">
+        <div class="s-label">Principal Repaid</div>
+        <div class="s-value">₹{{ number_format($totalPaidAmount ?? 0, 2) }}</div>
+    </div>
+    <div class="stat-box s-gold">
+        <div class="s-label">Outstanding Liability</div>
+        <div class="s-value">₹{{ number_format($totalPendingAmount ?? 0, 2) }}</div>
+    </div>
 </div>
 
-<div class="section-label">&#9632; Loan Records</div>
+<div class="section-label"><i class="fa-solid fa-landmark"></i> Loans &amp; Advances Register</div>
 <table>
     <thead>
         <tr>
-            <th style="width:20px;">#</th>
+            <th style="width:28px;" class="c">#</th>
+            <th>Lender / Bank</th>
             <th>Loan Type</th>
-            <th>Bank / Person</th>
-            <th>Customer</th>
-            <th>Property</th>
-            <th class="r">Loan Amount</th>
-            <th class="r">EMI/mo</th>
-            <th>EMIs</th>
-            <th>Start</th>
-            <th class="r">Paid</th>
-            <th class="r">Pending</th>
+            <th>Sanction Date</th>
+            <th class="r">Sanctioned Amount</th>
+            <th class="r">Repaid</th>
+            <th class="r">Outstanding</th>
             <th class="c">Status</th>
         </tr>
     </thead>
     <tbody>
-        @forelse($loans as $i => $loan)
+        @forelse($loans ?? [] as $i => $l)
         <tr>
-            <td style="color:#9CA3AF;">{{ $i+1 }}</td>
-            <td>{{ $loan->loan_type }}</td>
-            <td style="font-weight:600;">
-                @if($loan->loan_type === 'Personal Loan')
-                    {{ $loan->person_name }}
-                @else
-                    {{ $loan->bank_name }}
-                @endif
-            </td>
-            <td>{{ $loan->customer?->name ?? '—' }}</td>
-            <td>{{ $loan->property?->property_name ?? '—' }}</td>
-            <td class="r" style="color:#92710A;font-weight:700;">₹{{ number_format($loan->loan_amount,2) }}</td>
-            <td class="r" style="color:#B91C1C;">₹{{ number_format($loan->emi_amount ?? 0,2) }}</td>
-            <td>{{ $loan->total_emi_months ?? '—' }}</td>
-            <td style="white-space:nowrap;">{{ \Carbon\Carbon::parse($loan->loan_start_date)->format('d M Y') }}</td>
-            <td class="r" style="color:#16803D;">₹{{ number_format($loan->paid_amount,2) }}</td>
-            <td class="r" style="color:#DC2626;">₹{{ number_format($loan->pending_amount,2) }}</td>
-            <td class="c"><span class="ls ls-{{ strtolower(str_replace(' ', '-', $loan->loan_status)) }}">{{ $loan->loan_status }}</span></td>
+            <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
+            <td><strong>{{ $l->lender_name ?? $l->bank_name ?? '—' }}</strong></td>
+            <td>{{ $l->loan_type ?? 'Term Loan' }}</td>
+            <td>{{ $l->sanction_date ? \Carbon\Carbon::parse($l->sanction_date)->format('d M Y') : '—' }}</td>
+            <td class="r">₹{{ number_format($l->loan_amount ?? 0, 2) }}</td>
+            <td class="r" style="color:#059669; font-weight:700;">₹{{ number_format($l->paid_amount ?? 0, 2) }}</td>
+            <td class="r" style="color:#DC2626; font-weight:700;">₹{{ number_format($l->pending_amount ?? 0, 2) }}</td>
+            <td class="c"><span class="badge badge-success">{{ ucfirst($l->status ?? 'Active') }}</span></td>
         </tr>
         @empty
-        <tr><td colspan="12" style="text-align:center;padding:20px;color:#64748B;">No records found.</td></tr>
+        <tr><td colspan="8" class="c" style="padding:20px;color:#64748B;">No loan records found.</td></tr>
         @endforelse
     </tbody>
-    @if($loans->count() > 0)
-    <tfoot>
-        <tr>
-            <td colspan="5">Total ({{ $loans->count() }} records)</td>
-            <td class="r">₹{{ number_format($totalLoan,2) }}</td>
-            <td colspan="3"></td>
-            <td class="r" style="color:#16803D;">₹{{ number_format($totalPaid,2) }}</td>
-            <td class="r" style="color:#DC2626;">₹{{ number_format($totalPending,2) }}</td>
-            <td></td>
-        </tr>
-    </tfoot>
-    @endif
 </table>
 
-@if($loans->count() > 0)
-<div class="sum-grid">
-    <div>
-        <div class="section-label" style="margin-top:14px;">&#9632; Bank-wise</div>
-        <table class="sum-table">
-            <thead><tr><th>Bank</th><th class="r">Amount</th></tr></thead>
-            <tbody>
-                @foreach($byBank as $bank => $amt)
-                <tr><td>{{ $bank }}</td><td class="r">₹{{ number_format($amt,2) }}</td></tr>
-                @endforeach
-            </tbody>
-            <tfoot><tr><td><strong>Total</strong></td><td class="r"><strong>₹{{ number_format($totalLoan,2) }}</strong></td></tr></tfoot>
-        </table>
-    </div>
-    <div>
-        <div class="section-label" style="margin-top:14px;">&#9632; Customer-wise</div>
-        <table class="sum-table">
-            <thead><tr><th>Customer</th><th class="r">Amount</th></tr></thead>
-            <tbody>
-                @foreach($byCustomer as $cust => $amt)
-                <tr><td>{{ $cust }}</td><td class="r">₹{{ number_format($amt,2) }}</td></tr>
-                @endforeach
-            </tbody>
-            <tfoot><tr><td><strong>Total</strong></td><td class="r"><strong>₹{{ number_format($totalLoan,2) }}</strong></td></tr></tfoot>
-        </table>
-    </div>
-    <div>
-        <div class="section-label" style="margin-top:14px;">&#9632; Type-wise</div>
-        <table class="sum-table">
-            <thead><tr><th>Type</th><th class="r">Amount</th></tr></thead>
-            <tbody>
-                @foreach($byType as $type => $amt)
-                <tr><td>{{ $type }}</td><td class="r">₹{{ number_format($amt,2) }}</td></tr>
-                @endforeach
-            </tbody>
-            <tfoot><tr><td><strong>Total</strong></td><td class="r"><strong>₹{{ number_format($totalLoan,2) }}</strong></td></tr></tfoot>
-        </table>
-    </div>
-</div>
-@endif
-
-<div class="rpt-footer">
-    <span>Delawala Management System — Loan Report</span>
-    <span>{{ $loans->count() }} records · Total ₹{{ number_format($totalLoan,2) }} · {{ now()->format('d M Y') }}</span>
-</div>
-
+@include('admin.components.pdf-footer')
 </body>
 </html>

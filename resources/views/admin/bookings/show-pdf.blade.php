@@ -3,258 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking Confirmation #BK-{{ str_pad($booking->id, 5, '0', STR_PAD_LEFT) }} - Delawala Management</title>
-    <style>
-        * { box-sizing:border-box; margin:0; padding:0; }
-        body { font-family:'Segoe UI',Arial,sans-serif; font-size:11.5px; color:#0F1F35; background:#fff; padding:28px; line-height:1.45; }
-
-        /* ── Header ── */
-        .rpt-header { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:16px; margin-bottom:20px; border-bottom:2.5px solid #fc6900ff; }
-        .co-name  { font-size:24px; font-weight:800; color:#0F1F35; letter-spacing:0.4px; }
-        .co-sub   { font-size:10px; color:#fc6900ff; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-top:3px; }
-        .rpt-meta { text-align:right; }
-        .rpt-meta .rpt-title { font-size:17px; font-weight:800; color:#0F1F35; margin-bottom:4px; }
-        .rpt-meta .rpt-date  { font-size:11px; color:#64748B; }
-
-        /* ── Header Banner ── */
-        .banner { background:#0F172A; color:#fff; border-radius:8px; padding:16px 20px; margin-bottom:22px; display:flex; justify-content:space-between; align-items:center; }
-        .banner h2 { font-size:17px; font-weight:700; color:#F8FAFC; margin-bottom:4px; }
-        .token-badge { background:rgba(16,185,129,0.25); color:#34D399; font-size:11px; font-weight:700; padding:4px 12px; border-radius:4px; border:1px solid rgba(16,185,129,0.4); display:inline-block; }
-
-        /* ── 2 Column Grid ── */
-        .grid-2 { display:flex; gap:18px; margin-bottom:20px; }
-        .grid-col { flex:1; border:1px solid #E2E8F0; border-radius:8px; padding:14px; background:#F8FAFC; }
-        .col-heading { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#fc6900ff; margin-bottom:10px; border-bottom:1px solid #E2E8F0; padding-bottom:4px; }
-
-        .info-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed #E2E8F0; font-size:11px; }
-        .info-row:last-child { border-bottom:none; }
-        .info-label { color:#64748B; font-weight:500; }
-        .info-value { color:#0F1F35; font-weight:700; text-align:right; }
-
-        /* ── Financial Summary Box ── */
-        .finance-card { border:1.5px solid #CBD5E1; border-radius:8px; overflow:hidden; margin-bottom:22px; }
-        .finance-header { background:#1E293B; color:#fff; padding:10px 16px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
-        .finance-body { padding:14px 16px; background:#fff; }
-        .finance-table { width:100%; border-collapse:collapse; }
-        .finance-table td { padding:6px 0; font-size:11.5px; }
-        .finance-table td.label { color:#475569; font-weight:500; }
-        .finance-table td.value { text-align:right; font-weight:700; color:#0F1F35; }
-        .finance-table tr.total td { font-size:13.5px; font-weight:800; border-top:2px solid #E2E8F0; padding-top:8px; }
-        .finance-table tr.total td.value { color:#e05c00; }
-
-        /* ── Notes / Terms ── */
-        .terms-box { background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:12px 16px; margin-bottom:24px; font-size:10.5px; color:#475569; }
-        .terms-box strong { color:#0F1F35; }
-
-        /* ── Signatures ── */
-        .auth-block { margin-top:36px; padding-top:14px; display:flex; justify-content:space-between; page-break-inside:avoid; }
-        .auth-col { width:200px; text-align:center; }
-        .auth-line { border-top:1.5px solid #0F1F35; margin-top:44px; padding-top:5px; font-size:10px; font-weight:700; color:#0F1F35; }
-
-        /* ── Footer ── */
-        .rpt-footer { margin-top:26px; padding-top:10px; border-top:1px solid #E5E7EB; display:flex; justify-content:space-between; color:#9CA3AF; font-size:9.5px; }
-
-        @media print { body { padding:14px; } @page { margin:10mm; } }
-    </style>
+    <title>Booking Slip - {{ $booking->booking_code ?? ('BK-' . $booking->id) }} - Delawala Management</title>
+    @include('admin.components.pdf-styles', ['orientation' => 'portrait'])
 </head>
 <body>
-@include('admin.components.pdf-action-bar', ['title' => 'Booking Slip #BK-' . str_pad($booking->id, 5, '0', STR_PAD_LEFT), 'orientation' => 'portrait', 'backUrl' => route('bookings.show', $booking->id)])
+@include('admin.components.pdf-action-bar', [
+    'title' => 'Booking Slip: ' . ($booking->booking_code ?? ('BK-' . $booking->id)),
+    'orientation' => 'portrait',
+    'backUrl' => route('bookings.show', $booking->id)
+])
 
-<div class="rpt-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; margin-bottom:18px; border-bottom:2.5px solid #D97706; gap:16px;">
-    <div style="display:flex; align-items:center; gap:14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:52px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            <div class="co-name" style="font-size:20px; font-weight:800; color:#0F172A; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">Delawala Properties</div>
-            <div class="co-sub" style="font-size:9.5px; color:#D97706; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Management</div>
-            <div style="font-size:10px; color:#475569; line-height:1.3; margin-top:1px;">
-                <i class="fa-solid fa-location-dot" style="color:#D97706; font-size:9px; margin-right:3px;"></i>Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam, Bharuch - 392012
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap;">
-                <span style="display:inline-flex; align-items:center; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:0.3px;"><strong>GSTIN:</strong> 24CUBPD0770R1ZI</span>
-                <span style="display:inline-flex; align-items:center; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:1px 6px; border-radius:4px; font-size:9px;"><strong>Proprietor:</strong> Delawala Zafar</span>
-            </div>
-        </div>
-    </div>
-    <div class="rpt-meta" style="text-align:right; flex-shrink:0;">
-        <div class="rpt-title" style="font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.2px; line-height:1.2;">Official Document</div>
-        <div class="rpt-date" style="font-size:10px; color:#64748B; margin-top:3px;">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
-    </div>
-    <div class="rpt-meta">
-        <div class="rpt-title">Booking Confirmation Slip / Token Receipt</div>
-        <div class="rpt-date">Booking Date: {{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') : now()->format('d M Y') }}</div>
-    </div>
-</div>
+@include('admin.components.pdf-header', [
+    'title' => 'Official Booking Slip & Token Advance',
+    'subtitle' => 'Property Reservation Agreement',
+    'docRef' => $booking->booking_code ?? ('BK-' . $booking->id)
+])
 
-<div class="banner">
-    <div>
-        <h2>Booking Ref #BK-{{ str_pad($booking->id, 5, '0', STR_PAD_LEFT) }}</h2>
-        <div style="font-size:11px; color:#94A3B8;">
-            Firm: {{ $booking->firm->firm_name ?? 'Delawala Management' }} &nbsp;|&nbsp; Type: <strong style="color:#FBBF24; text-transform:uppercase;">{{ $booking->booking_type ?? 'booking' }}</strong> &nbsp;|&nbsp; Status: {{ ucfirst($booking->status) }}
-        </div>
+<div class="stat-row">
+    <div class="stat-box s-gold">
+        <div class="s-label">Booking Code</div>
+        <div class="s-value" style="font-size:14px;">{{ $booking->booking_code ?: ('BK-' . $booking->id) }}</div>
     </div>
-    <div>
-        <span class="token-badge">TOKEN ADVANCE: ₹{{ number_format($booking->booking_amount, 2) }}</span>
+    <div class="stat-box s-green">
+        <div class="s-label">Token Advance Paid</div>
+        <div class="s-value">₹{{ number_format($booking->booking_amount, 2) }}</div>
+    </div>
+    <div class="stat-box s-blue">
+        <div class="s-label">Final Agreed Amount</div>
+        <div class="s-value">₹{{ number_format($booking->final_amount, 2) }}</div>
     </div>
 </div>
 
 <div class="grid-2">
-    <!-- Property Details -->
     <div class="grid-col">
-        @php
-            $allProps = $booking->properties->isNotEmpty() ? $booking->properties : ($booking->property ? collect([$booking->property]) : collect([]));
-            $mainProp = $booking->property ?: $allProps->first();
-        @endphp
-        <div class="col-heading">&#9632; Booked Unit / Property Details ({{ $allProps->count() }} {{ $allProps->count() > 1 ? 'Units' : 'Unit' }})</div>
-        <div class="info-row">
-            <span class="info-label">Property / Unit(s):</span>
-            <span class="info-value">
-                @if($allProps->count() > 1)
-                    {{ $allProps->pluck('property_name')->implode(', ') }}
-                @else
-                    {{ $mainProp->property_name ?? '-' }}
-                @endif
-            </span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Property Code:</span>
-            <span class="info-value">
-                @if($allProps->count() > 1)
-                    {{ $allProps->pluck('property_code')->filter()->implode(', ') ?: '-' }}
-                @else
-                    {{ $mainProp->property_code ?? '-' }}
-                @endif
-            </span>
-        </div>
-        @if($mainProp && $mainProp->project)
-        <div class="info-row">
-            <span class="info-label">Project:</span>
-            <span class="info-value">{{ $mainProp->project->project_name }}</span>
-        </div>
-        @endif
-        @if($mainProp && $mainProp->propertyMaster)
-        <div class="info-row">
-            <span class="info-label">Property Master:</span>
-            <span class="info-value">{{ $mainProp->propertyMaster->property_name }}</span>
-        </div>
-        @endif
-        <div class="info-row">
-            <span class="info-label">Property Type:</span>
-            <span class="info-value">{{ $mainProp?->propertyType->name ?? 'Residential / Commercial' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Size / Area:</span>
-            <span class="info-value">{{ $mainProp && $mainProp->size ? $mainProp->size . ' ' . ($mainProp->size_unit ?? 'sq.ft') : '-' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Location / City:</span>
-            <span class="info-value">{{ $mainProp->location ?? ($mainProp->city ?? '-') }}</span>
-        </div>
-    </div>
-
-    <!-- Customer Details -->
-    <div class="grid-col">
-        <div class="col-heading">&#9632; Customer &amp; Intermediary Details</div>
+        <div class="col-heading"><i class="fa-solid fa-user"></i> Customer Details</div>
         <div class="info-row">
             <span class="info-label">Customer Name:</span>
-            <span class="info-value">{{ $booking->customer->name ?? '-' }}</span>
+            <span class="info-val">{{ $booking->customer->name ?? '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Customer Phone:</span>
-            <span class="info-value">{{ $booking->customer->phone ?? '-' }}</span>
+            <span class="info-label">Mobile Number:</span>
+            <span class="info-val">{{ $booking->customer->mobile ?? '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Customer Email:</span>
-            <span class="info-value">{{ $booking->customer->email ?? '-' }}</span>
+            <span class="info-label">Email:</span>
+            <span class="info-val">{{ $booking->customer->email ?? '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Address:</span>
-            <span class="info-value">{{ $booking->customer->address ?? ($booking->customer->city ?? '-') }}</span>
+            <span class="info-label">City:</span>
+            <span class="info-val">{{ $booking->customer->city ?? 'Dahegam' }}</span>
+        </div>
+    </div>
+
+    <div class="grid-col">
+        <div class="col-heading"><i class="fa-solid fa-building"></i> Property & Booking Info</div>
+        <div class="info-row">
+            <span class="info-label">Property:</span>
+            <span class="info-val">{{ $booking->property->property_name ?? '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Transaction Type:</span>
-            <span class="info-value" style="text-transform:uppercase; color:#e05c00;">{{ $booking->booking_type ?? 'booking' }}</span>
+            <span class="info-label">Project:</span>
+            <span class="info-val">{{ $booking->property?->project?->project_name ?? 'Direct Property' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Broker / Agent:</span>
-            <span class="info-value">{{ $booking->broker->name ?? 'Direct (No Broker)' }}</span>
+            <span class="info-label">Booking Date:</span>
+            <span class="info-val">{{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') : '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Payment Mode:</span>
-            <span class="info-value">{{ $booking->payment_mode ?: ($booking->paymentMode->name ?? 'Cash') }}</span>
+            <span class="info-label">Status:</span>
+            <span class="info-val"><span class="badge badge-success">{{ ucfirst($booking->status) }}</span></span>
         </div>
-        @if($booking->transaction_ref)
-        <div class="info-row">
-            <span class="info-label">Transaction Ref:</span>
-            <span class="info-value">{{ $booking->transaction_ref }}</span>
-        </div>
-        @endif
     </div>
 </div>
 
-<div class="finance-card">
-    <div class="finance-header">Commercial Summary &amp; Booking Token Details</div>
-    <div class="finance-body">
-        <table class="finance-table">
-            <tr>
-                <td class="label">Gross Property Consideration Price</td>
-                <td class="value">₹{{ number_format($booking->total_amount, 2) }}</td>
-            </tr>
-            @if($booking->discount_amount > 0)
-            <tr>
-                <td class="label">Applicable Discount / Concession ({{ $booking->discount_value }}{{ $booking->discount_type === 'percentage' ? '%' : ' Fixed' }})</td>
-                <td class="value" style="color:#DC2626;">- ₹{{ number_format($booking->discount_amount, 2) }}</td>
-            </tr>
-            @endif
-            <tr>
-                <td class="label">Net Agreed Final Selling Price</td>
-                <td class="value">₹{{ number_format($booking->final_amount, 2) }}</td>
-            </tr>
-            <tr>
-                <td class="label">Advance Booking / Token Amount Received (Paid)</td>
-                <td class="value" style="color:#059669;">- ₹{{ number_format($booking->booking_amount, 2) }}</td>
-            </tr>
-            <tr class="total">
-                <td class="label">Remaining Balance Consideration to be Paid</td>
-                <td class="value">₹{{ number_format($booking->remaining_amount, 2) }}</td>
-            </tr>
-        </table>
-    </div>
-</div>
-
-@if($booking->remarks)
-<div class="terms-box">
-    <strong>Remarks / Booking Notes:</strong><br>
-    {{ $booking->remarks }}
-</div>
-@endif
-
-<div class="terms-box" style="font-size:10px; line-height:1.4;">
-    <strong>Terms &amp; Conditions:</strong>
-    1. The token amount confirms the provisional reservation of the property unit.
-    2. Final sale agreement deed shall be prepared by the agreed date: <strong>{{ $booking->agreement_date ? \Carbon\Carbon::parse($booking->agreement_date)->format('d M Y') : 'Prior to handover' }}</strong>.
-    3. Failure to pay the balance installment as per schedule may result in cancellation per company policies.
-</div>
+<div class="section-label"><i class="fa-solid fa-calculator"></i> Payment Summary</div>
+<table>
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th class="r">Amount (₹)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Total Agreed Sale / Booking Amount</td>
+            <td class="r"><strong>₹{{ number_format($booking->final_amount, 2) }}</strong></td>
+        </tr>
+        <tr>
+            <td>Advance Token Paid</td>
+            <td class="r" style="color:#059669; font-weight:700;">₹{{ number_format($booking->booking_amount, 2) }}</td>
+        </tr>
+        <tr>
+            <td>Remaining Balance Payable</td>
+            <td class="r" style="color:#B45309; font-weight:700;">₹{{ number_format($booking->remaining_amount, 2) }}</td>
+        </tr>
+    </tbody>
+</table>
 
 <div class="auth-block">
     <div class="auth-col">
-        <div class="auth-line">Customer / Applicant Signature</div>
+        <div class="auth-line">Customer Signature</div>
     </div>
-    @if($booking->broker)
     <div class="auth-col">
-        <div class="auth-line">Broker / Witness Signature</div>
-    </div>
-    @endif
-    <div class="auth-col">
-        <div class="auth-line">Authorized Signatory (Delawala)</div>
+        <div class="auth-line">Authorized Signatory &amp; Stamp</div>
     </div>
 </div>
 
-<div class="rpt-footer">
-    <span>Delawala Management System &nbsp;—&nbsp; Booking Slip #BK-{{ str_pad($booking->id, 5, '0', STR_PAD_LEFT) }}</span>
-    <span>Generated: {{ now()->format('d M Y, h:i A') }}</span>
-</div>
-
+@include('admin.components.pdf-footer')
 </body>
 </html>

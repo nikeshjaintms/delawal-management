@@ -2,173 +2,107 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GST Sales Report</title>
-    <style>
-        *{box-sizing:border-box;margin:0;padding:0;}
-        body{font-family:'Segoe UI',Arial,sans-serif;font-size:11.5px;color:#0F172A;background:#fff;padding:26px;}
-        /* Header */
-        .hdr{display:flex;justify-content:space-between;align-items:flex-start;
-            padding-bottom:16px;margin-bottom:18px;border-bottom:2.5px solid #F59E0B;}
-        .co-name{font-size:21px;font-weight:800;color:#0F172A;}
-        .co-sub{font-size:10px;color:#F59E0B;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
-        .rpt-meta{text-align:right;}
-        .rpt-meta .rpt-title{font-size:15px;font-weight:700;margin-bottom:3px;}
-        .rpt-meta .rpt-date{font-size:11px;color:#64748B;}
-        /* Filter applied */
-        .filter-row{background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;
-            padding:9px 14px;margin-bottom:16px;font-size:11px;color:#78350F;display:flex;flex-wrap:wrap;gap:12px;}
-        /* Stat boxes */
-        .stat-row{display:flex;gap:10px;margin-bottom:18px;}
-        .sbox{flex:1;border:1px solid #E2E8F0;border-radius:7px;padding:12px 14px;}
-        .sbox .sl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#64748B;}
-        .sbox .sv{font-size:17px;font-weight:800;margin-top:3px;}
-        .sbox.s-amber{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.04);}
-        .sbox.s-amber .sv{color:#D97706;}
-        .sbox.s-red{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04);}
-        .sbox.s-red .sv{color:#DC2626;}
-        .sbox.s-green{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.04);}
-        .sbox.s-green .sv{color:#059669;}
-        /* Table */
-        table{width:100%;border-collapse:collapse;font-size:10.5px;}
-        thead tr{background:#0F172A;}
-        thead th{padding:8px 9px;color:#fff;font-weight:600;text-align:left;
-            font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
-        thead th.r{text-align:right;}
-        thead th.c{text-align:center;}
-        tbody tr:nth-child(even){background:#F8FAFC;}
-        tbody td{padding:7.5px 9px;border-bottom:1px solid #F1F5F9;vertical-align:middle;}
-        tbody td.r{text-align:right;}
-        tbody td.c{text-align:center;}
-        tfoot tr{background:#F1F5F9;}
-        tfoot td{padding:8px 9px;font-weight:800;border-top:2px solid #E2E8F0;}
-        tfoot td.r{text-align:right;}
-        .badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;}
-        .pb-paid{background:rgba(16,185,129,.12);color:#065F46;}
-        .pb-pending{background:rgba(245,158,11,.12);color:#92400E;}
-        .pb-partial{background:rgba(59,130,246,.12);color:#1E40AF;}
-        .pb-cancelled{background:rgba(239,68,68,.12);color:#991B1B;}
-        /* Footer */
-        .rpt-foot{margin-top:20px;padding-top:10px;border-top:1px solid #E2E8F0;
-            display:flex;justify-content:space-between;color:#94A3B8;font-size:10px;}
-        @media print{body{padding:10px;}@page{margin:8mm;}}
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GST Sales Report (GSTR-1) - Delawala Management</title>
+    @include('admin.components.pdf-styles', ['orientation' => 'landscape'])
 </head>
 <body>
-@include('admin.components.pdf-action-bar', ['title' => 'GST Sales Report (GSTR-1)', 'orientation' => 'landscape', 'backUrl' => route('reports.gst-sales')])
+@include('admin.components.pdf-action-bar', [
+    'title' => 'GST Sales Report (GSTR-1)',
+    'orientation' => 'landscape',
+    'backUrl' => route('reports.gst-sales')
+])
 
-<div class="rpt-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; margin-bottom:18px; border-bottom:2.5px solid #D97706; gap:16px;">
-    <div style="display:flex; align-items:center; gap:14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:52px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            <div class="co-name" style="font-size:20px; font-weight:800; color:#0F172A; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">Delawala Properties</div>
-            <div class="co-sub" style="font-size:9.5px; color:#D97706; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Management</div>
-            <div style="font-size:10px; color:#475569; line-height:1.3; margin-top:1px;">
-                <i class="fa-solid fa-location-dot" style="color:#D97706; font-size:9px; margin-right:3px;"></i>Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam, Bharuch - 392012
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap;">
-                <span style="display:inline-flex; align-items:center; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:0.3px;"><strong>GSTIN:</strong> 24CUBPD0770R1ZI</span>
-                <span style="display:inline-flex; align-items:center; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:1px 6px; border-radius:4px; font-size:9px;"><strong>Proprietor:</strong> Delawala Zafar</span>
-            </div>
-        </div>
-    </div>
-    <div class="rpt-meta" style="text-align:right; flex-shrink:0;">
-        <div class="rpt-title" style="font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.2px; line-height:1.2;">Official Report</div>
-        <div class="rpt-date" style="font-size:10px; color:#64748B; margin-top:3px;">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
-    </div>
-    <div class="rpt-meta">
-        <div class="rpt-title">GST Sales Report</div>
-        <div class="rpt-date">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
-
-@php
-    $hasFilter = request()->hasAny(['from_date','to_date','filter_customer','filter_status']);
-@endphp
-@if($hasFilter)
-<div class="filter-row">
-    <span><strong>Filters applied:</strong></span>
-    @if(request('from_date'))<span>From: {{ \Carbon\Carbon::parse(request('from_date'))->format('d M Y') }}</span>@endif
-    @if(request('to_date'))<span>To: {{ \Carbon\Carbon::parse(request('to_date'))->format('d M Y') }}</span>@endif
-    @if(request('filter_status'))<span>Status: {{ ucfirst(request('filter_status')) }}</span>@endif
-</div>
-@endif
+@include('admin.components.pdf-header', [
+    'title' => 'GST Sales Report (GSTR-1)',
+    'subtitle' => 'Outward Supplies & Tax Liability Register'
+])
 
 <div class="stat-row">
-    <div class="sbox"><div class="sl">Total Invoices</div><div class="sv">{{ $sales->count() }}</div></div>
-    <div class="sbox s-amber"><div class="sl">Taxable Amount</div><div class="sv">₹{{ number_format($totalTaxable,2) }}</div></div>
-    <div class="sbox"><div class="sl">CGST</div><div class="sv" style="color:#0EA5E9;">₹{{ number_format($totalCgst,2) }}</div></div>
-    <div class="sbox"><div class="sl">SGST</div><div class="sv" style="color:#14B8A6;">₹{{ number_format($totalSgst,2) }}</div></div>
-    <div class="sbox"><div class="sl">IGST</div><div class="sv" style="color:#8B5CF6;">₹{{ number_format($totalIgst,2) }}</div></div>
-    <div class="sbox s-red"><div class="sl">Total GST</div><div class="sv">₹{{ number_format($totalGst,2) }}</div></div>
-    <div class="sbox s-green"><div class="sl">Grand Total</div><div class="sv">₹{{ number_format($grandTotal,2) }}</div></div>
+    <div class="stat-box">
+        <div class="s-label">Total Invoices</div>
+        <div class="s-value">{{ $sales->count() }}</div>
+    </div>
+    <div class="stat-box s-gold">
+        <div class="s-label">Taxable Value</div>
+        <div class="s-value">₹{{ number_format($totalTaxable, 2) }}</div>
+    </div>
+    <div class="stat-box s-blue">
+        <div class="s-label">CGST Amount</div>
+        <div class="s-value">₹{{ number_format($totalCgst, 2) }}</div>
+    </div>
+    <div class="stat-box s-blue">
+        <div class="s-label">SGST Amount</div>
+        <div class="s-value">₹{{ number_format($totalSgst, 2) }}</div>
+    </div>
+    <div class="stat-box s-purple">
+        <div class="s-label">IGST Amount</div>
+        <div class="s-value">₹{{ number_format($totalIgst, 2) }}</div>
+    </div>
+    <div class="stat-box s-red">
+        <div class="s-label">Total GST Liability</div>
+        <div class="s-value">₹{{ number_format($totalGst, 2) }}</div>
+    </div>
+    <div class="stat-box s-green">
+        <div class="s-label">Grand Total Realized</div>
+        <div class="s-value">₹{{ number_format($grandTotal, 2) }}</div>
+    </div>
 </div>
 
+<div class="section-label"><i class="fa-solid fa-file-invoice"></i> Outward Supplies Register</div>
 <table>
     <thead>
         <tr>
-            <th style="width:24px;">#</th>
+            <th style="width:24px;" class="c">#</th>
             <th>Invoice No</th>
-            <th>Date</th>
-            <th>Customer</th>
-            <th>Property</th>
-            <th>HSN</th>
-            <th class="r">Taxable</th>
-            <th class="r">CGST</th>
-            <th class="r">SGST</th>
-            <th class="r">IGST</th>
-            <th class="r">Total GST</th>
-            <th class="r">Grand Total</th>
+            <th>Invoice Date</th>
+            <th>Customer Name</th>
+            <th>Customer GSTIN</th>
+            <th class="r">Taxable (₹)</th>
+            <th class="r">CGST (₹)</th>
+            <th class="r">SGST (₹)</th>
+            <th class="r">IGST (₹)</th>
+            <th class="r">Total GST (₹)</th>
+            <th class="r">Invoice Total (₹)</th>
             <th class="c">Status</th>
         </tr>
     </thead>
     <tbody>
-        @forelse($sales as $i => $sale)
-        @php
-            $badge = match(strtolower($sale->payment_status ?? 'pending')) {
-                'paid'=>'pb-paid','partial'=>'pb-partial','cancelled'=>'pb-cancelled',default=>'pb-pending'
-            };
-        @endphp
+        @forelse($sales as $i => $s)
         <tr>
-            <td style="color:#94A3B8;">{{ $i+1 }}</td>
-            <td style="font-weight:600;">{{ $sale->invoice_no ?? '—' }}</td>
-            <td style="white-space:nowrap;">{{ $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date)->format('d M Y') : '—' }}</td>
-            <td>{{ $sale->customer?->name ?? '—' }}</td>
-            <td style="font-size:10px;color:#475569;">{{ $sale->property?->property_name ?? '—' }}</td>
-            <td>{{ $sale->hsn_code ?? '—' }}</td>
-            <td class="r">₹{{ number_format($sale->computed_taxable,2) }}</td>
-            <td class="r" style="color:#0EA5E9;">₹{{ number_format($sale->computed_cgst,2) }}</td>
-            <td class="r" style="color:#14B8A6;">₹{{ number_format($sale->computed_sgst,2) }}</td>
-            <td class="r" style="color:#8B5CF6;">₹{{ number_format($sale->computed_igst,2) }}</td>
-            <td class="r" style="color:#DC2626;font-weight:700;">₹{{ number_format($sale->computed_total_gst,2) }}</td>
-            <td class="r" style="color:#059669;font-weight:800;">₹{{ number_format($sale->computed_grand_total,2) }}</td>
-            <td class="c"><span class="badge {{ $badge }}">{{ ucfirst($sale->payment_status ?? 'Pending') }}</span></td>
+            <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
+            <td><strong>{{ $s->invoice_no ?? ($s->agreement_no ?? 'INV-'.str_pad($s->id, 5, '0', STR_PAD_LEFT)) }}</strong></td>
+            <td>{{ $s->invoice_date ? \Carbon\Carbon::parse($s->invoice_date)->format('d M Y') : ($s->sale_date ? \Carbon\Carbon::parse($s->sale_date)->format('d M Y') : '—') }}</td>
+            <td><strong>{{ $s->customer->name ?? ($s->recipient_name ?? '—') }}</strong></td>
+            <td>{{ $s->customer->gst_no ?? ($s->recipient_gstin ?? 'Unregistered') }}</td>
+            <td class="r">₹{{ number_format($s->taxable_amount ?? ($s->subtotal ?? ($s->sale_amount ?? 0)), 2) }}</td>
+            <td class="r" style="color:#2563EB;">₹{{ number_format($s->cgst_amount ?? 0, 2) }}</td>
+            <td class="r" style="color:#2563EB;">₹{{ number_format($s->sgst_amount ?? 0, 2) }}</td>
+            <td class="r" style="color:#7C3AED;">₹{{ number_format($s->igst_amount ?? 0, 2) }}</td>
+            <td class="r" style="color:#DC2626; font-weight:700;">₹{{ number_format($s->tax_amount ?? 0, 2) }}</td>
+            <td class="r" style="color:#059669; font-weight:800;">₹{{ number_format($s->total_amount ?? ($s->sale_amount ?? 0), 2) }}</td>
+            <td class="c"><span class="badge badge-success">Completed</span></td>
         </tr>
         @empty
-        <tr><td colspan="13" style="text-align:center;padding:20px;color:#94A3B8;">No records found.</td></tr>
+        <tr><td colspan="12" class="c" style="padding:20px;color:#64748B;">No GST sales records found.</td></tr>
         @endforelse
     </tbody>
     @if($sales->count() > 0)
     <tfoot>
         <tr>
-            <td colspan="6" style="font-size:11px;">Total ({{ $sales->count() }} records)</td>
-            <td class="r" style="color:#D97706;">₹{{ number_format($totalTaxable,2) }}</td>
-            <td class="r" style="color:#0EA5E9;">₹{{ number_format($totalCgst,2) }}</td>
-            <td class="r" style="color:#14B8A6;">₹{{ number_format($totalSgst,2) }}</td>
-            <td class="r" style="color:#8B5CF6;">₹{{ number_format($totalIgst,2) }}</td>
-            <td class="r" style="color:#DC2626;font-size:13px;">₹{{ number_format($totalGst,2) }}</td>
-            <td class="r" style="color:#059669;font-size:13px;">₹{{ number_format($grandTotal,2) }}</td>
+            <td colspan="5" class="r">Grand Total</td>
+            <td class="r" style="color:#D97706;">₹{{ number_format($totalTaxable, 2) }}</td>
+            <td class="r" style="color:#2563EB;">₹{{ number_format($totalCgst, 2) }}</td>
+            <td class="r" style="color:#2563EB;">₹{{ number_format($totalSgst, 2) }}</td>
+            <td class="r" style="color:#7C3AED;">₹{{ number_format($totalIgst, 2) }}</td>
+            <td class="r" style="color:#DC2626; font-weight:800;">₹{{ number_format($totalGst, 2) }}</td>
+            <td class="r" style="color:#059669; font-weight:800; font-size:12px;">₹{{ number_format($grandTotal, 2) }}</td>
             <td></td>
         </tr>
     </tfoot>
     @endif
 </table>
 
-<div class="rpt-foot">
-    <span>Delawala Management System — GST Sales Report</span>
-    <span>{{ $sales->count() }} records · Grand Total ₹{{ number_format($grandTotal,2) }} · {{ now()->format('d M Y') }}</span>
-</div>
-
+@include('admin.components.pdf-footer')
 </body>
 </html>

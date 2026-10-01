@@ -3,264 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Agreement #{{ $propertySale->id }} - Delawala Management</title>
-    <style>
-        * { box-sizing:border-box; margin:0; padding:0; }
-        body { font-family:'Segoe UI',Arial,sans-serif; font-size:11.5px; color:#0F1F35; background:#fff; padding:28px; line-height:1.45; }
-
-        /* ── Header ── */
-        .rpt-header { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:16px; margin-bottom:20px; border-bottom:2.5px solid #fc6900ff; }
-        .co-name  { font-size:24px; font-weight:800; color:#0F1F35; letter-spacing:0.4px; }
-        .co-sub   { font-size:10px; color:#fc6900ff; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-top:3px; }
-        .rpt-meta { text-align:right; }
-        .rpt-meta .rpt-title { font-size:17px; font-weight:800; color:#0F1F35; margin-bottom:4px; }
-        .rpt-meta .rpt-date  { font-size:11px; color:#64748B; }
-
-        /* ── Agreement Header Banner ── */
-        .agreement-banner { background:#0F172A; color:#fff; border-radius:8px; padding:16px 20px; margin-bottom:22px; display:flex; justify-content:space-between; align-items:center; }
-        .agreement-banner h2 { font-size:17px; font-weight:700; color:#F8FAFC; margin-bottom:4px; }
-        .agreement-badge { background:rgba(252,105,0,0.25); color:#FF8A3D; font-size:11px; font-weight:700; padding:4px 12px; border-radius:4px; border:1px solid rgba(252,105,0,0.4); display:inline-block; }
-
-        /* ── 2 Column Detail Grids ── */
-        .grid-2 { display:flex; gap:18px; margin-bottom:20px; }
-        .grid-col { flex:1; border:1px solid #E2E8F0; border-radius:8px; padding:14px; background:#F8FAFC; }
-        .col-heading { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#fc6900ff; margin-bottom:10px; border-bottom:1px solid #E2E8F0; padding-bottom:4px; }
-
-        .info-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed #E2E8F0; font-size:11px; }
-        .info-row:last-child { border-bottom:none; }
-        .info-label { color:#64748B; font-weight:500; }
-        .info-value { color:#0F1F35; font-weight:700; text-align:right; }
-
-        /* ── Financial Summary Box ── */
-        .finance-card { border:1.5px solid #CBD5E1; border-radius:8px; overflow:hidden; margin-bottom:22px; }
-        .finance-header { background:#1E293B; color:#fff; padding:10px 16px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
-        .finance-body { padding:14px 16px; background:#fff; }
-        .finance-table { width:100%; border-collapse:collapse; }
-        .finance-table td { padding:7px 0; font-size:12px; }
-        .finance-table td.label { color:#475569; font-weight:500; }
-        .finance-table td.value { text-align:right; font-weight:700; color:#0F1F35; }
-        .finance-table tr.total td { font-size:14px; font-weight:800; border-top:2px solid #E2E8F0; padding-top:10px; }
-        .finance-table tr.total td.value { color:#e05c00; }
-
-        /* ── Terms / Notes Box ── */
-        .terms-box { background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:12px 16px; margin-bottom:26px; font-size:10.5px; color:#475569; }
-        .terms-box strong { color:#0F1F35; }
-
-        /* ── Signatures ── */
-        .auth-block { margin-top:36px; padding-top:14px; display:flex; justify-content:space-between; page-break-inside:avoid; }
-        .auth-col { width:200px; text-align:center; }
-        .auth-line { border-top:1.5px solid #0F1F35; margin-top:48px; padding-top:5px; font-size:10px; font-weight:700; color:#0F1F35; }
-
-        /* ── Footer ── */
-        .rpt-footer { margin-top:26px; padding-top:10px; border-top:1px solid #E5E7EB; display:flex; justify-content:space-between; color:#9CA3AF; font-size:9.5px; }
-
-        @media print { body { padding:14px; } @page { margin:10mm; } }
-    </style>
+    <title>Sale Agreement - {{ $sale->agreement_no ?? ('SALE-' . $sale->id) }} - Delawala Management</title>
+    @include('admin.components.pdf-styles', ['orientation' => 'portrait'])
 </head>
 <body>
-@include('admin.components.pdf-action-bar', ['title' => 'Sales Agreement #SA-' . str_pad($propertySale->id, 5, '0', STR_PAD_LEFT), 'orientation' => 'portrait', 'backUrl' => route('property-sales.show', $propertySale->id)])
+@include('admin.components.pdf-action-bar', [
+    'title' => 'Sale Agreement: ' . ($sale->agreement_no ?? ('SALE-' . $sale->id)),
+    'orientation' => 'portrait',
+    'backUrl' => route('property-sales.show', $sale->id)
+])
 
-<div class="rpt-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; margin-bottom:18px; border-bottom:2.5px solid #D97706; gap:16px;">
-    <div style="display:flex; align-items:center; gap:14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:52px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            <div class="co-name" style="font-size:20px; font-weight:800; color:#0F172A; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">Delawala Properties</div>
-            <div class="co-sub" style="font-size:9.5px; color:#D97706; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Management</div>
-            <div style="font-size:10px; color:#475569; line-height:1.3; margin-top:1px;">
-                <i class="fa-solid fa-location-dot" style="color:#D97706; font-size:9px; margin-right:3px;"></i>Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam, Bharuch - 392012
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap;">
-                <span style="display:inline-flex; align-items:center; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:0.3px;"><strong>GSTIN:</strong> 24CUBPD0770R1ZI</span>
-                <span style="display:inline-flex; align-items:center; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:1px 6px; border-radius:4px; font-size:9px;"><strong>Proprietor:</strong> Delawala Zafar</span>
-            </div>
-        </div>
-    </div>
-    <div class="rpt-meta" style="text-align:right; flex-shrink:0;">
-        <div class="rpt-title" style="font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.2px; line-height:1.2;">Official Document</div>
-        <div class="rpt-date" style="font-size:10px; color:#64748B; margin-top:3px;">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
-    </div>
-    <div class="rpt-meta">
-        <div class="rpt-title">Official Sales Agreement / Deed</div>
-        <div class="rpt-date">Date: {{ $propertySale->sale_date ? \Carbon\Carbon::parse($propertySale->sale_date)->format('d M Y') : now()->format('d M Y') }}</div>
-    </div>
-</div>
+@include('admin.components.pdf-header', [
+    'title' => 'Property Sale Agreement & Deed',
+    'subtitle' => 'Official Conveyance & Payment Terms',
+    'docRef' => $sale->agreement_no ?? ('SALE-' . $sale->id)
+])
 
-<div class="agreement-banner">
-    <div>
-        <h2>Sales Agreement #SA-{{ str_pad($propertySale->id, 5, '0', STR_PAD_LEFT) }}</h2>
-        <div style="font-size:11px; color:#94A3B8;">
-            Firm: {{ $propertySale->firm->firm_name ?? 'Delawala Management' }} &nbsp;|&nbsp; Status: {{ ucfirst($propertySale->sale_status) }}
-        </div>
+<div class="stat-row">
+    <div class="stat-box s-gold">
+        <div class="s-label">Agreement No</div>
+        <div class="s-value" style="font-size:14px;">{{ $sale->agreement_no ?: ('SALE-' . $sale->id) }}</div>
     </div>
-    <div>
-        <span class="agreement-badge">Payment: {{ strtoupper($propertySale->payment_status ?: 'Pending') }}</span>
+    <div class="stat-box s-green">
+        <div class="s-label">Total Sale Value</div>
+        <div class="s-value">₹{{ number_format($sale->sale_amount, 2) }}</div>
+    </div>
+    <div class="stat-box s-blue">
+        <div class="s-label">Amount Received</div>
+        <div class="s-value">₹{{ number_format($sale->booking_amount, 2) }}</div>
     </div>
 </div>
 
 <div class="grid-2">
-    <!-- Property Details -->
     <div class="grid-col">
-        <div class="col-heading">&#9632; Property / Unit Information</div>
-        @php $pdfPlots = $propertySale->all_properties; @endphp
+        <div class="col-heading"><i class="fa-solid fa-user"></i> Purchaser / Customer Details</div>
         <div class="info-row">
-            <span class="info-label">Property / Plot(s):</span>
-            <span class="info-value">
-                @if($pdfPlots->count() > 1)
-                    {{ $pdfPlots->pluck('property_name')->implode(', ') }} ({{ $pdfPlots->count() }} Units)
-                @else
-                    {{ $propertySale->property->property_name ?? '-' }}
-                @endif
-            </span>
+            <span class="info-label">Customer Name:</span>
+            <span class="info-val">{{ $sale->customer->name ?? '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Property Code(s):</span>
-            <span class="info-value">
-                @if($pdfPlots->count() > 1)
-                    {{ $pdfPlots->pluck('property_code')->filter()->implode(', ') }}
-                @else
-                    {{ $propertySale->property->property_code ?? '-' }}
-                @endif
-            </span>
+            <span class="info-label">Mobile Number:</span>
+            <span class="info-val">{{ $sale->customer->mobile ?? '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Property Type:</span>
-            <span class="info-value">{{ $propertySale->property->propertyType->name ?? 'General Property' }}</span>
+            <span class="info-label">Address:</span>
+            <span class="info-val">{{ $sale->customer->address ?? 'Dahegam, Bharuch' }}</span>
         </div>
-        @if($propertySale->property && $propertySale->property->project)
+    </div>
+
+    <div class="grid-col">
+        <div class="col-heading"><i class="fa-solid fa-building"></i> Property & Sale Specifications</div>
+        <div class="info-row">
+            <span class="info-label">Property:</span>
+            <span class="info-val">{{ $sale->property->property_name ?? '—' }}</span>
+        </div>
         <div class="info-row">
             <span class="info-label">Project:</span>
-            <span class="info-value">{{ $propertySale->property->project->project_name }}</span>
-        </div>
-        @endif
-        @if($propertySale->property && $propertySale->property->propertyMaster)
-        <div class="info-row">
-            <span class="info-label">Property Master:</span>
-            <span class="info-value">{{ $propertySale->property->propertyMaster->property_name }}</span>
-        </div>
-        @endif
-        <div class="info-row">
-            <span class="info-label">Size / Area:</span>
-            <span class="info-value">
-                @if($propertySale->total_area)
-                    {{ number_format($propertySale->total_area, 2) }} {{ $propertySale->area_unit ?? 'Sq.Ft' }}
-                @elseif($propertySale->property && $propertySale->property->size)
-                    {{ $propertySale->property->size . ' ' . ($propertySale->property->size_unit ?? 'sq.ft') }}
-                @else
-                    -
-                @endif
-            </span>
-        </div>
-        @if($propertySale->sell_rate)
-        <div class="info-row">
-            <span class="info-label">Selling Rate:</span>
-            <span class="info-value">₹{{ number_format($propertySale->sell_rate, 2) }} / {{ $propertySale->area_unit ?? 'Sq.Ft' }}</span>
-        </div>
-        @endif
-        @if($propertySale->purchase_rate)
-        <div class="info-row">
-            <span class="info-label">Purchase Rate:</span>
-            <span class="info-value">₹{{ number_format($propertySale->purchase_rate, 2) }} / {{ $propertySale->area_unit ?? 'Sq.Ft' }}</span>
-        </div>
-        @endif
-        <div class="info-row">
-            <span class="info-label">Location / City:</span>
-            <span class="info-value">{{ $propertySale->property->location ?? ($propertySale->property->city ?? '-') }}</span>
-        </div>
-    </div>
-
-    <!-- Customer & Broker Details -->
-    <div class="grid-col">
-        <div class="col-heading">&#9632; Buyer &amp; Intermediary Details</div>
-        <div class="info-row">
-            <span class="info-label">Buyer / Customer:</span>
-            <span class="info-value">{{ $propertySale->customer->name ?? '-' }}</span>
+            <span class="info-val">{{ $sale->property?->project?->project_name ?? 'Direct Property' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Customer Phone:</span>
-            <span class="info-value">{{ $propertySale->customer->phone ?? ($propertySale->customer->mobile ?? '-') }}</span>
+            <span class="info-label">Sale Date:</span>
+            <span class="info-val">{{ $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date)->format('d M Y') : '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Customer Email:</span>
-            <span class="info-value">{{ $propertySale->customer->email ?? '-' }}</span>
+            <span class="info-label">Status:</span>
+            <span class="info-val"><span class="badge badge-success">{{ ucfirst($sale->sale_status) }}</span></span>
         </div>
-        <div class="info-row">
-            <span class="info-label">Customer Address:</span>
-            <span class="info-value">{{ $propertySale->customer->address ?? ($propertySale->customer->city ?? '-') }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Facilitating Broker:</span>
-            <span class="info-value">{{ $propertySale->broker->name ?? 'Direct Sale (No Broker)' }}</span>
-        </div>
-        @if($propertySale->broker && ($propertySale->broker->phone || $propertySale->broker->mobile))
-        <div class="info-row">
-            <span class="info-label">Broker Contact:</span>
-            <span class="info-value">{{ $propertySale->broker->phone ?? $propertySale->broker->mobile }}</span>
-        </div>
-        @endif
     </div>
 </div>
 
-<div class="finance-card">
-    <div class="finance-header">Financial Consideration &amp; Payment Breakdown</div>
-    <div class="finance-body">
-        <table class="finance-table">
-            <tr>
-                <td class="label">Agreed Total Sale Consideration Amount</td>
-                <td class="value">₹{{ number_format($propertySale->sale_amount, 2) }}</td>
-            </tr>
-            <tr>
-                <td class="label">Total Paid Consideration Amount Received</td>
-                <td class="value" style="color:#059669;">- ₹{{ number_format($propertySale->booking_amount, 2) }}</td>
-            </tr>
-            @if($propertySale->payments->count() > 0)
-                @foreach($propertySale->payments as $idx => $p)
-                <tr>
-                    <td class="label" style="padding-left: 20px; font-size: 11px; color: #64748B;">
-                        ↳ Installment #{{ $idx + 1 }} ({{ $p->payment_date ? \Carbon\Carbon::parse($p->payment_date)->format('d M Y') : '—' }} - {{ $p->payment_mode }})
-                    </td>
-                    <td class="value" style="font-size: 11px; color: #059669;">₹{{ number_format($p->payment_amount, 2) }}</td>
-                </tr>
-                @endforeach
-            @endif
-            <tr class="total">
-                <td class="label">Net Outstanding Balance Consideration Due</td>
-                <td class="value">₹{{ number_format($propertySale->remaining_amount, 2) }}</td>
-            </tr>
-        </table>
-    </div>
-</div>
-
-@if($propertySale->note)
-<div class="terms-box">
-    <strong>Terms &amp; Special Conditions / Remarks:</strong><br>
-    {{ $propertySale->note }}
-</div>
-@endif
-
-<div class="terms-box" style="font-size:10px; line-height:1.4;">
-    <strong>Declaration:</strong> This official sales agreement represents the binding commercial terms agreed between Delawala Management and the Purchaser named herein. Full conveyance and deed handover shall be executed upon complete clearance of all outstanding balances.
-</div>
+<div class="section-label"><i class="fa-solid fa-receipt"></i> Financial Settlement Statement</div>
+<table>
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th class="r">Amount (₹)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Total Agreed Consideration / Sale Price</td>
+            <td class="r"><strong>₹{{ number_format($sale->sale_amount, 2) }}</strong></td>
+        </tr>
+        <tr>
+            <td>Advance / Booking Amount Received</td>
+            <td class="r" style="color:#059669; font-weight:700;">₹{{ number_format($sale->booking_amount, 2) }}</td>
+        </tr>
+        <tr>
+            <td>Balance Outstanding Payable</td>
+            <td class="r" style="color:#B45309; font-weight:700;">₹{{ number_format($sale->remaining_amount, 2) }}</td>
+        </tr>
+    </tbody>
+</table>
 
 <div class="auth-block">
     <div class="auth-col">
-        <div class="auth-line">Purchaser / Buyer Signature</div>
+        <div class="auth-line">Purchaser Signature</div>
     </div>
-    @if($propertySale->broker)
     <div class="auth-col">
-        <div class="auth-line">Broker / Witness Signature</div>
-    </div>
-    @endif
-    <div class="auth-col">
-        <div class="auth-line">Authorized Signatory (Delawala)</div>
+        <div class="auth-line">For Delawala Infra Co. / Signatory</div>
     </div>
 </div>
 
-<div class="rpt-footer">
-    <span>Delawala Management System &nbsp;—&nbsp; Agreement #SA-{{ str_pad($propertySale->id, 5, '0', STR_PAD_LEFT) }}</span>
-    <span>Generated: {{ now()->format('d M Y, h:i A') }}</span>
-</div>
-
+@include('admin.components.pdf-footer')
 </body>
 </html>

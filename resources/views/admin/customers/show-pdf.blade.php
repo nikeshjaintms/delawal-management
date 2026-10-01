@@ -3,164 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Dossier - {{ $customer->name }}</title>
-    <style>
-        * { box-sizing:border-box; margin:0; padding:0; }
-        body { font-family:'Segoe UI',Arial,sans-serif; font-size:11.5px; color:#0F1F35; background:#fff; padding:28px; line-height:1.45; }
-
-        /* ── Header ── */
-        .rpt-header { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:16px; margin-bottom:20px; border-bottom:2.5px solid #fc6900ff; }
-        .co-name  { font-size:24px; font-weight:800; color:#0F1F35; letter-spacing:0.4px; }
-        .co-sub   { font-size:10px; color:#fc6900ff; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-top:3px; }
-        .rpt-meta { text-align:right; }
-        .rpt-meta .rpt-title { font-size:17px; font-weight:800; color:#0F1F35; margin-bottom:4px; }
-        .rpt-meta .rpt-date  { font-size:11px; color:#64748B; }
-
-        /* ── Banner ── */
-        .banner { background:#0F172A; color:#fff; border-radius:8px; padding:16px 20px; margin-bottom:22px; display:flex; justify-content:space-between; align-items:center; }
-        .banner h2 { font-size:17px; font-weight:700; color:#F8FAFC; margin-bottom:4px; }
-        .badge-pill { background:rgba(37,99,235,0.3); color:#60A5FA; font-size:11px; font-weight:700; padding:4px 12px; border-radius:4px; border:1px solid rgba(59,130,246,0.4); display:inline-block; }
-
-        /* ── 2 Column Grid ── */
-        .grid-2 { display:flex; gap:18px; margin-bottom:20px; }
-        .grid-col { flex:1; border:1px solid #E2E8F0; border-radius:8px; padding:14px; background:#F8FAFC; }
-        .col-heading { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#fc6900ff; margin-bottom:10px; border-bottom:1px solid #E2E8F0; padding-bottom:4px; }
-
-        .info-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed #E2E8F0; font-size:11px; }
-        .info-row:last-child { border-bottom:none; }
-        .info-label { color:#64748B; font-weight:500; }
-        .info-value { color:#0F1F35; font-weight:700; text-align:right; }
-
-        /* ── History Tables ── */
-        .section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#fc6900ff; margin-bottom:8px; margin-top:16px; padding-bottom:4px; border-bottom:1px solid #E5E7EB; }
-        table { width:100%; border-collapse:collapse; font-size:10.5px; margin-bottom:20px; }
-        thead tr { background:#0F172A; }
-        thead th { padding:7px 8px; color:#FFF; font-weight:600; text-align:left; font-size:9px; text-transform:uppercase; letter-spacing:0.5px; }
-        thead th.r { text-align:right; }
-        tbody tr:nth-child(even) { background:#F9FAFB; }
-        tbody td { padding:6px 8px; border-bottom:1px solid #F1F5F9; vertical-align:middle; }
-        tbody td.r { text-align:right; font-weight:700; color:#0F1F35; }
-
-        /* ── Footer ── */
-        .rpt-footer { margin-top:26px; padding-top:10px; border-top:1px solid #E5E7EB; display:flex; justify-content:space-between; color:#9CA3AF; font-size:9.5px; }
-
-        @media print { body { padding:14px; } @page { margin:10mm; } }
-    </style>
+    <title>Customer Dossier - {{ $customer->name }} - Delawala Management</title>
+    @include('admin.components.pdf-styles', ['orientation' => 'portrait'])
 </head>
 <body>
-@include('admin.components.pdf-action-bar', ['title' => 'Customer Dossier: ' . $customer->name, 'orientation' => 'portrait', 'backUrl' => route('customers.show', $customer->id)])
+@include('admin.components.pdf-action-bar', [
+    'title' => 'Customer Dossier: ' . $customer->name,
+    'orientation' => 'portrait',
+    'backUrl' => isset($customer->id) ? route('customers.show', $customer->id) : route('customers.index')
+])
 
-<div class="rpt-header" style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; margin-bottom:18px; border-bottom:2.5px solid #D97706; gap:16px;">
-    <div style="display:flex; align-items:center; gap:14px;">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties" style="height:52px; width:auto; object-fit:contain;" onerror="this.style.display='none';">
-        <div style="display:flex; flex-direction:column; gap:2px;">
-            <div class="co-name" style="font-size:20px; font-weight:800; color:#0F172A; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">Delawala Properties</div>
-            <div class="co-sub" style="font-size:9.5px; color:#D97706; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;">Delawala Infra Co. &bull; Real Estate &amp; Management</div>
-            <div style="font-size:10px; color:#475569; line-height:1.3; margin-top:1px;">
-                <i class="fa-solid fa-location-dot" style="color:#D97706; font-size:9px; margin-right:3px;"></i>Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road, Dahegam, Bharuch - 392012
-            </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:3px; flex-wrap:wrap;">
-                <span style="display:inline-flex; align-items:center; background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:0.3px;"><strong>GSTIN:</strong> 24CUBPD0770R1ZI</span>
-                <span style="display:inline-flex; align-items:center; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1; padding:1px 6px; border-radius:4px; font-size:9px;"><strong>Proprietor:</strong> Delawala Zafar</span>
-            </div>
-        </div>
-    </div>
-    <div class="rpt-meta" style="text-align:right; flex-shrink:0;">
-        <div class="rpt-title" style="font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.2px; line-height:1.2;">Official Document</div>
-        <div class="rpt-date" style="font-size:10px; color:#64748B; margin-top:3px;">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
-    </div>
-    <div class="rpt-meta">
-        <div class="rpt-title">Customer Dossier &amp; Profile</div>
-        <div class="rpt-date">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-    </div>
-</div>
+@include('admin.components.pdf-header', [
+    'title' => 'Customer Dossier & Profile',
+    'subtitle' => 'Account Ledger & Transaction History',
+    'firm' => $customer->firm ?? null,
+    'docRef' => 'CUST-' . ($customer->id ?? 1)
+])
 
-<div class="banner">
-    <div>
-        <h2>{{ $customer->name }}</h2>
-        <div style="font-size:11px; color:#94A3B8;">
-            Firm: {{ $customer->firm->firm_name ?? 'Delawala Management' }} &nbsp;|&nbsp; Type: {{ ucfirst($customer->customer_type ?: 'Individual') }}
-        </div>
+<div class="stat-row">
+    <div class="stat-box s-blue">
+        <div class="s-label">Customer Name</div>
+        <div class="s-value" style="font-size:14px;">{{ $customer->name }}</div>
     </div>
-    <div>
-        <span class="badge-pill">STATUS: {{ strtoupper($customer->status ?: 'ACTIVE') }}</span>
+    <div class="stat-box s-gold">
+        <div class="s-label">Associated Firm</div>
+        <div class="s-value" style="font-size:13px;">{{ $customer->firm->firm_name ?? 'Delawala Management' }}</div>
+    </div>
+    <div class="stat-box s-green">
+        <div class="s-label">Account Status</div>
+        <div class="s-value" style="font-size:13px;">{{ strtoupper($customer->status ?: 'ACTIVE') }}</div>
     </div>
 </div>
 
 <div class="grid-2">
-    <!-- Contact Info -->
     <div class="grid-col">
-        <div class="col-heading">&#9632; Contact Details</div>
-        <div class="info-row">
-            <span class="info-label">Customer Name:</span>
-            <span class="info-value">{{ $customer->name }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Primary Mobile:</span>
-            <span class="info-value">{{ $customer->mobile ?: '-' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Alternate Mobile:</span>
-            <span class="info-value">{{ $customer->alternate_mobile ?: '-' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Email Address:</span>
-            <span class="info-value">{{ $customer->email ?: '-' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Customer Type:</span>
-            <span class="info-value">{{ ucfirst($customer->customer_type ?: 'Individual') }}</span>
-        </div>
+        <div class="col-heading"><i class="fa-solid fa-address-card"></i> Contact Information</div>
+        <div class="info-row"><span class="info-label">Customer Name:</span><span class="info-val">{{ $customer->name }}</span></div>
+        <div class="info-row"><span class="info-label">Primary Mobile:</span><span class="info-val">{{ $customer->mobile ?: '—' }}</span></div>
+        <div class="info-row"><span class="info-label">Alternate Mobile:</span><span class="info-val">{{ $customer->alternate_mobile ?: '—' }}</span></div>
+        <div class="info-row"><span class="info-label">Email Address:</span><span class="info-val">{{ $customer->email ?: '—' }}</span></div>
+        <div class="info-row"><span class="info-label">Customer Type:</span><span class="info-val">{{ ucfirst($customer->customer_type ?: 'Individual') }}</span></div>
     </div>
 
-    <!-- Address Info -->
     <div class="grid-col">
-        <div class="col-heading">&#9632; Location &amp; Address</div>
-        <div class="info-row">
-            <span class="info-label">Full Address:</span>
-            <span class="info-value">{{ $customer->address ?: '-' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">City:</span>
-            <span class="info-value">{{ $customer->city ?: '-' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Firm Link:</span>
-            <span class="info-value">{{ $customer->firm->firm_name ?? '-' }}</span>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Created At:</span>
-            <span class="info-value">{{ $customer->created_at->format('d M Y, h:i A') }}</span>
-        </div>
+        <div class="col-heading"><i class="fa-solid fa-location-dot"></i> Location &amp; Registration</div>
+        <div class="info-row"><span class="info-label">Full Address:</span><span class="info-val">{{ $customer->address ?: '—' }}</span></div>
+        <div class="info-row"><span class="info-label">City:</span><span class="info-val">{{ $customer->city ?: 'Dahegam' }}</span></div>
+        <div class="info-row"><span class="info-label">Firm Link:</span><span class="info-val">{{ $customer->firm->firm_name ?? '—' }}</span></div>
+        <div class="info-row"><span class="info-label">Created At:</span><span class="info-val">{{ $customer->created_at ? $customer->created_at->format('d M Y, h:i A') : '—' }}</span></div>
     </div>
 </div>
 
 @if($customer->propertySales && $customer->propertySales->isNotEmpty())
-<div class="section-label">&#9632; Property Purchases / Sales Agreements</div>
+<div class="section-label"><i class="fa-solid fa-file-contract"></i> Property Purchases &amp; Sales Deeds</div>
 <table>
     <thead>
         <tr>
-            <th style="width:20px;">#</th>
+            <th style="width:24px;" class="c">#</th>
             <th>Property / Unit</th>
-            <th>Date</th>
-            <th class="r">Sale Amount</th>
-            <th class="r">Paid / Token</th>
+            <th>Sale Date</th>
+            <th class="r">Total Amount</th>
+            <th class="r">Paid Amount</th>
             <th class="r">Due Balance</th>
-            <th>Status</th>
+            <th class="c">Status</th>
         </tr>
     </thead>
     <tbody>
         @foreach($customer->propertySales as $i => $s)
         <tr>
-            <td style="color:#9CA3AF;">{{ $i+1 }}</td>
-            <td><strong>{{ $s->property->property_name ?? '-' }}</strong></td>
-            <td>{{ $s->sale_date ? \Carbon\Carbon::parse($s->sale_date)->format('d M Y') : '-' }}</td>
+            <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
+            <td><strong>{{ $s->property->property_name ?? '—' }}</strong></td>
+            <td>{{ $s->sale_date ? \Carbon\Carbon::parse($s->sale_date)->format('d M Y') : '—' }}</td>
             <td class="r">₹{{ number_format($s->sale_amount, 2) }}</td>
-            <td class="r" style="color:#059669;">₹{{ number_format($s->booking_amount, 2) }}</td>
-            <td class="r" style="color:#B45309;">₹{{ number_format($s->remaining_amount, 2) }}</td>
-            <td>{{ ucfirst($s->sale_status) }}</td>
+            <td class="r" style="color:#059669; font-weight:700;">₹{{ number_format($s->booking_amount, 2) }}</td>
+            <td class="r" style="color:#B45309; font-weight:700;">₹{{ number_format($s->remaining_amount, 2) }}</td>
+            <td class="c"><span class="badge badge-info">{{ ucfirst($s->sale_status) }}</span></td>
         </tr>
         @endforeach
     </tbody>
@@ -168,50 +85,45 @@
 @endif
 
 @if($customer->bookings && $customer->bookings->isNotEmpty())
-<div class="section-label">&#9632; Property Bookings</div>
+<div class="section-label"><i class="fa-solid fa-bookmark"></i> Property Bookings &amp; Token Advances</div>
 <table>
     <thead>
         <tr>
-            <th style="width:20px;">#</th>
+            <th style="width:24px;" class="c">#</th>
             <th>Property / Unit</th>
             <th>Booking Date</th>
             <th class="r">Final Price</th>
             <th class="r">Token Advance</th>
             <th class="r">Pending Due</th>
-            <th>Status</th>
+            <th class="c">Status</th>
         </tr>
     </thead>
     <tbody>
         @foreach($customer->bookings as $i => $b)
         <tr>
-            <td style="color:#9CA3AF;">{{ $i+1 }}</td>
+            <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
             <td>
                 @php $allP = $b->properties->isNotEmpty() ? $b->properties : ($b->property ? collect([$b->property]) : collect([])); @endphp
                 @if($allP->count() > 1)
                     @foreach($allP as $p)
                         <div>• <strong>{{ $p->property_name }}</strong> @if($p->unit_no)<span style="color:#64748B;">({{ $p->unit_no }})</span>@endif</div>
                     @endforeach
-                    <small style="color:#2563EB; font-weight:700;">({{ $allP->count() }} Units)</small>
                 @else
-                    <strong>{{ $b->property->property_name ?? '-' }}</strong>
+                    <strong>{{ $b->property->property_name ?? '—' }}</strong>
                     @if($b->property?->unit_no) <span style="color:#64748B;">({{ $b->property->unit_no }})</span> @endif
                 @endif
             </td>
-            <td>{{ $b->booking_date ? \Carbon\Carbon::parse($b->booking_date)->format('d M Y') : '-' }}</td>
+            <td>{{ $b->booking_date ? \Carbon\Carbon::parse($b->booking_date)->format('d M Y') : '—' }}</td>
             <td class="r">₹{{ number_format($b->final_amount, 2) }}</td>
-            <td class="r" style="color:#059669;">₹{{ number_format($b->booking_amount, 2) }}</td>
-            <td class="r" style="color:#B45309;">₹{{ number_format($b->remaining_amount, 2) }}</td>
-            <td>{{ ucfirst($b->status) }}</td>
+            <td class="r" style="color:#059669; font-weight:700;">₹{{ number_format($b->booking_amount, 2) }}</td>
+            <td class="r" style="color:#B45309; font-weight:700;">₹{{ number_format($b->remaining_amount, 2) }}</td>
+            <td class="c"><span class="badge badge-success">{{ ucfirst($b->status) }}</span></td>
         </tr>
         @endforeach
     </tbody>
 </table>
 @endif
 
-<div class="rpt-footer">
-    <span>Delawala Management System &nbsp;—&nbsp; Customer Dossier</span>
-    <span>Generated: {{ now()->format('d M Y, h:i A') }}</span>
-</div>
-
+@include('admin.components.pdf-footer')
 </body>
 </html>
