@@ -518,7 +518,7 @@
                         </label>
                         <div class="input-luxury-group border-emerald">
                             <span class="input-luxury-addon text-emerald">₹</span>
-                            <input type="number" step="0.01" name="purchase_price" id="purchase_price" value="{{ old('purchase_price') }}" placeholder="0.00" oninput="recalculatePayment()">
+                            <input type="number" step="0.01" name="purchase_price" id="purchase_price" value="{{ old('purchase_price') }}" placeholder="0.00" oninput="onPurchasePriceInput()">
                         </div>
                         <small style="color: #A7F3D0; font-size: 11.5px; margin-top: 4px; display: block;">Total purchase amount agreed</small>
                         @error('purchase_price') <span class="invalid-feedback">{{ $message }}</span> @enderror
@@ -710,7 +710,7 @@
                 </div>
 
                 <!-- Brokerage Balance & Mode -->
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 14px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 14px;">
                     <!-- Brokerage Due Balance -->
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label" style="color: #FBBF24; font-weight: 700;">
@@ -736,6 +736,15 @@
                             <option value="Other" {{ old('broker_commission_payment_mode') === 'Other' ? 'selected' : '' }}>✨ Other</option>
                         </select>
                         @error('broker_commission_payment_mode') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Broker Payment Date -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="color: #34D399; font-weight: 700;">
+                            <i class="fa-regular fa-calendar-days"></i> Broker Payment Date
+                        </label>
+                        <input type="date" name="broker_commission_payment_date" id="pm_broker_commission_payment_date" value="{{ old('broker_commission_payment_date', date('Y-m-d')) }}" class="form-control">
+                        @error('broker_commission_payment_date') <span class="invalid-feedback">{{ $message }}</span> @enderror
                     </div>
 
                     <!-- Broker Payment Status -->
@@ -953,7 +962,7 @@ function handlePropertyTypeChange(type) {
     handleUnitNumbersInput();
 }
 
-function calculateLandTotalPrice(autoFillIfEmpty = true) {
+function calculateLandTotalPrice(autoFillPrice = true) {
     const areaInput = document.getElementById('total_area');
     const rateInput = document.getElementById('purchase_rate');
     const unitSelect = document.getElementById('area_unit');
@@ -975,13 +984,52 @@ function calculateLandTotalPrice(autoFillIfEmpty = true) {
         if (formulaSpan) formulaSpan.textContent = `(${area.toLocaleString('en-IN')} ${unit} × ₹${rate.toLocaleString('en-IN')})`;
 
         // Auto-fill purchase price
-        if (autoFillIfEmpty && priceInput) {
+        if (autoFillPrice && priceInput) {
             priceInput.value = total.toFixed(2);
-            recalculatePayment();
         }
+    } else if (priceInput && parseFloat(priceInput.value) > 0 && area > 0) {
+        const derivedRate = parseFloat(priceInput.value) / area;
+        if (rateInput && (!rateInput.value || parseFloat(rateInput.value) === 0)) {
+            rateInput.value = derivedRate.toFixed(2);
+        }
+        if (card) card.style.display = 'block';
+        if (textSpan) textSpan.textContent = '₹ ' + parseFloat(priceInput.value).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (formulaSpan) formulaSpan.textContent = `(${area.toLocaleString('en-IN')} ${unit} × ₹${derivedRate.toLocaleString('en-IN', {maximumFractionDigits: 2})})`;
     } else {
         if (card) card.style.display = 'none';
     }
+
+    recalculatePayment();
+    recalculateBrokerage();
+}
+
+function onPurchasePriceInput() {
+    const areaInput = document.getElementById('total_area');
+    const rateInput = document.getElementById('purchase_rate');
+    const unitSelect = document.getElementById('area_unit');
+    const card = document.getElementById('calculatedPriceCard');
+    const textSpan = document.getElementById('calculatedPriceText');
+    const formulaSpan = document.getElementById('calculatedPriceFormula');
+    const priceInput = document.getElementById('purchase_price');
+
+    const area = parseFloat(areaInput ? areaInput.value : 0) || 0;
+    const price = parseFloat(priceInput ? priceInput.value : 0) || 0;
+    const unit = unitSelect ? unitSelect.value : 'Sq.Ft';
+
+    if (area > 0 && price > 0) {
+        const derivedRate = price / area;
+        if (rateInput) {
+            rateInput.value = derivedRate.toFixed(2);
+        }
+        if (card) card.style.display = 'block';
+        if (textSpan) textSpan.textContent = '₹ ' + price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (formulaSpan) formulaSpan.textContent = `(${area.toLocaleString('en-IN')} ${unit} × ₹${derivedRate.toLocaleString('en-IN', {maximumFractionDigits: 2})})`;
+    } else {
+        if (card) card.style.display = 'none';
+    }
+
+    recalculatePayment();
+    recalculateBrokerage();
 }
 
 function applyCalculatedToPurchasePrice() {
@@ -1231,10 +1279,27 @@ document.addEventListener('DOMContentLoaded', function() {
     if (currentPlotSource) {
         switchPlotSource(currentPlotSource.value);
     }
-    recalculatePayment();
-    recalculateBrokerageDue();
+
+    const areaInput = document.getElementById('total_area');
+    const rateInput = document.getElementById('purchase_rate');
+    const priceInput = document.getElementById('purchase_price');
+
+    const initArea = parseFloat(areaInput ? areaInput.value : 0) || 0;
+    const initRate = parseFloat(rateInput ? rateInput.value : 0) || 0;
+    const initPrice = parseFloat(priceInput ? priceInput.value : 0) || 0;
+
+    if (initArea > 0) {
+        if (initPrice > 0 && (!initRate || initRate === 0) && rateInput) {
+            rateInput.value = (initPrice / initArea).toFixed(2);
+        } else if (initRate > 0 && (!initPrice || initPrice === 0) && priceInput) {
+            priceInput.value = (initArea * initRate).toFixed(2);
+        }
+    }
+
     handleUnitNumbersInput();
     calculateLandTotalPrice(false);
+    recalculatePayment();
+    recalculateBrokerageDue();
 });
 </script>
 @endsection

@@ -377,6 +377,45 @@ class LoanController extends Controller
             ->with('success', 'Payment of ₹' . number_format($amount, 2) . ' recorded successfully. Pending balance: ₹' . number_format($loan->pending_amount, 2));
     }
 
+    public function updatePayment(Request $request, Loan $loan, \App\Models\LoanPayment $payment)
+    {
+        $this->authorise($loan);
+
+        if ($payment->loan_id != $loan->id) {
+            abort(404);
+        }
+
+        $request->validate([
+            'paid_amount'     => 'required|numeric|min:0.01',
+            'payment_date'    => 'required|date',
+            'payment_mode'    => 'nullable|string|max:100',
+            'payment_mode_id' => 'nullable|exists:payment_modes,id',
+            'reference_no'    => 'nullable|string|max:100',
+            'remarks'         => 'nullable|string|max:500',
+        ]);
+
+        $amount = (float) $request->paid_amount;
+        $paymentModeName = $request->payment_mode;
+        if (!$paymentModeName && $request->filled('payment_mode_id')) {
+            $paymentModeName = \App\Models\PaymentMode::find($request->payment_mode_id)?->name;
+        }
+
+        $payment->update([
+            'payment_mode_id' => $request->payment_mode_id ?: null,
+            'amount'          => $amount,
+            'payment_date'    => $request->payment_date,
+            'payment_mode'    => $paymentModeName,
+            'reference_no'    => $request->reference_no,
+            'remarks'         => $request->remarks,
+        ]);
+
+        $this->recalculateLoan($loan);
+        $loan->refresh();
+
+        return redirect()->back()
+            ->with('success', 'Payment of ₹' . number_format($amount, 2) . ' updated successfully. Pending balance: ₹' . number_format($loan->pending_amount, 2));
+    }
+
     public function destroyPayment(Loan $loan, \App\Models\LoanPayment $payment)
     {
         $this->authorise($loan);

@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PropertySaleController extends Controller
 {
-    private function getDropdownData($selectedFirmId = null)
+    private function getDropdownData($selectedFirmId = null, $currentPropertySale = null)
     {
         $user = Auth::user();
         $firmId = $selectedFirmId ?? ($user ? $user->firm_id : session('firm_id'));
@@ -27,6 +27,7 @@ class PropertySaleController extends Controller
         $propertiesQuery      = Property::with(['project.propertyMaster', 'propertyMaster'])->orderBy('property_name');
         $propertyMastersQuery = \App\Models\PropertyMaster::with(['plots', 'projects'])->orderBy('property_name');
         $customersQuery       = Customer::where('status', 'active')->orderBy('name');
+        $sellersQuery         = \App\Models\Seller::where('status', 'active')->orderBy('name');
         $brokersQuery         = Broker::where('status', 'active')->orderBy('name');
 
         if ($firmId && (!$user || !$user->isAdmin())) {
@@ -34,16 +35,51 @@ class PropertySaleController extends Controller
             $propertiesQuery->where('firm_id', $firmId);
             $propertyMastersQuery->where('firm_id', $firmId);
             $customersQuery->where('firm_id', $firmId);
+            $sellersQuery->where('firm_id', $firmId);
             $brokersQuery->where('firm_id', $firmId);
+        }
+
+        if ($currentPropertySale) {
+            $currentSalePropertyIds = $currentPropertySale->all_properties->pluck('id')->toArray();
+            $propertiesQuery->where(function ($q) use ($currentSalePropertyIds, $currentPropertySale) {
+                $q->where(function ($sq) use ($currentPropertySale) {
+                    $sq->where('status', '!=', 'sold')
+                       ->whereDoesntHave('sales', function ($ssq) use ($currentPropertySale) {
+                           $ssq->where('sale_status', '!=', 'cancelled')
+                               ->where('property_sales.id', '!=', $currentPropertySale->id);
+                       })
+                       ->whereDoesntHave('salesList', function ($ssq) use ($currentPropertySale) {
+                           $ssq->where('sale_status', '!=', 'cancelled')
+                               ->where('property_sales.id', '!=', $currentPropertySale->id);
+                       });
+                })->orWhereIn('id', $currentSalePropertyIds);
+            });
+
+            $currentMasterId = $currentPropertySale->property?->property_master_id;
+            $propertyMastersQuery->where(function ($q) use ($currentMasterId) {
+                $q->where('status', '!=', 'sold')
+                  ->orWhere('id', $currentMasterId);
+            });
+        } else {
+            // In create / new sale: completely exclude sold properties and any property linked to active sale
+            $propertiesQuery->where('status', '!=', 'sold')
+                            ->whereDoesntHave('sales', function ($sq) {
+                                $sq->where('sale_status', '!=', 'cancelled');
+                            })
+                            ->whereDoesntHave('salesList', function ($sq) {
+                                $sq->where('sale_status', '!=', 'cancelled');
+                            });
+            $propertyMastersQuery->where('status', '!=', 'sold');
         }
 
         $projects        = $projectsQuery->get();
         $properties      = Property::naturalSort($propertiesQuery->get());
         $propertyMasters = $propertyMastersQuery->get();
         $customers       = $customersQuery->get();
+        $sellers         = $sellersQuery->get();
         $brokers         = $brokersQuery->get();
 
-        return compact('firms', 'projects', 'properties', 'propertyMasters', 'customers', 'brokers');
+        return compact('firms', 'projects', 'properties', 'propertyMasters', 'customers', 'sellers', 'brokers');
     }
 
     private function updatePropertyStatus(PropertySale $sale, array $allPropertyIds = [])
@@ -65,12 +101,25 @@ class PropertySaleController extends Controller
 
             // If any of the properties is an entire PropertyMaster, cascade to its plots
             foreach ($properties as $property) {
-                if ($property->property_master_id && $property->unit_no === null && empty($property->project_id)) {
+                if ($property->property_master_id) {
                     $pm = \App\Models\PropertyMaster::find($property->property_master_id);
-                    if ($pm && $pm->all_projects->isEmpty()) {
-                        $pmStatus = ($targetStatus === 'available') ? 'active' : $targetStatus;
-                        $pm->update(['status' => $pmStatus]);
-                        $pm->plots()->update(['status' => $targetStatus]);
+                    if ($pm) {
+                        if ($property->unit_no === null && empty($property->project_id) && $pm->all_projects->isEmpty()) {
+                            $pmStatus = ($targetStatus === 'available') ? 'active' : $targetStatus;
+                            $pm->update(['status' => $pmStatus]);
+                            $pm->plots()->update(['status' => $targetStatus]);
+                        } else {
+                            // Check if all plots in this PropertyMaster are now sold
+                            $totalPlots = $pm->plots()->count();
+                            if ($totalPlots > 0) {
+                                $unsoldPlots = $pm->plots()->where('status', '!=', 'sold')->count();
+                                if ($unsoldPlots === 0) {
+                                    $pm->update(['status' => 'sold']);
+                                } elseif ($pm->status === 'sold') {
+                                    $pm->update(['status' => 'active']);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -115,6 +164,7 @@ class PropertySaleController extends Controller
                 ->orWhereHas('broker', function ($b) use ($search) {
                     $b->where('name', 'like', "%{$search}%");
                 })
+                ->orWhere('broker_name', 'like', "%{$search}%")
                 ->orWhereHas('firm', function ($f) use ($search) {
                     $f->where('firm_name', 'like', "%{$search}%");
                 })
@@ -197,13 +247,17 @@ class PropertySaleController extends Controller
             'firm_id'          => 'required|exists:firms,id',
             'property_id'      => 'required|exists:properties,id',
             'customer_id'      => 'required|exists:customers,id',
+            'seller_id'        => 'nullable|exists:sellers,id',
+            'seller_name'      => 'nullable|string|max:255',
             'broker_id'        => 'nullable|exists:brokers,id',
+            'broker_name'      => 'nullable|string|max:255',
             'broker_commission_type' => 'nullable|in:percentage,fixed',
             'broker_commission_rate' => 'nullable|numeric|min:0',
             'broker_commission_amount' => 'nullable|numeric|min:0',
             'broker_commission_paid' => 'nullable|numeric|min:0',
             'broker_commission_due'  => 'nullable|numeric|min:0',
             'broker_commission_payment_mode' => 'nullable|string|max:100',
+            'broker_commission_payment_date' => 'nullable|date',
             'broker_commission_status' => 'nullable|string|max:50',
             'broker_notes'     => 'nullable|string|max:2000',
             'purchase_date'    => 'nullable|date',
@@ -243,12 +297,17 @@ class PropertySaleController extends Controller
             }
         }
 
+        // Seller data
+        $sellerId = $request->seller_id ?: null;
+        $sellerName = $request->filled('seller_name') ? $request->seller_name : ($sellerId ? (\App\Models\Seller::find($sellerId)?->name) : null);
+
         // Broker commission calculation
         $brokerId = $request->broker_id ?: null;
+        $brokerName = $request->filled('broker_name') ? $request->broker_name : ($brokerId ? (\App\Models\Broker::find($brokerId)?->name) : null);
         $brokerCommType = $request->broker_commission_type ?: 'percentage';
         $brokerCommRate = $request->filled('broker_commission_rate') ? floatval($request->broker_commission_rate) : null;
         $brokerCommAmount = $request->filled('broker_commission_amount') ? floatval($request->broker_commission_amount) : 0.00;
-        if ($brokerId && $brokerCommType === 'percentage' && $brokerCommRate && $brokerCommAmount == 0 && $saleAmount > 0) {
+        if (($brokerId || $brokerName) && $brokerCommType === 'percentage' && $brokerCommRate && $brokerCommAmount == 0 && $saleAmount > 0) {
             $brokerCommAmount = round(($saleAmount * $brokerCommRate) / 100, 2);
         }
         $brokerCommPaid = $request->filled('broker_commission_paid') ? floatval($request->broker_commission_paid) : 0.00;
@@ -272,7 +331,10 @@ class PropertySaleController extends Controller
             'firm_id'                        => $request->firm_id,
             'property_id'                    => $request->property_id,
             'customer_id'                    => $request->customer_id,
+            'seller_id'                      => $sellerId,
+            'seller_name'                    => $sellerName,
             'broker_id'                      => $brokerId,
+            'broker_name'                    => $brokerName,
             'purchase_date'                  => $request->purchase_date,
             'purchase_cost'                  => $request->filled('purchase_cost') ? (float)$request->purchase_cost : null,
             'property_expenses'              => $request->filled('property_expenses') ? (float)$request->property_expenses : null,
@@ -286,6 +348,7 @@ class PropertySaleController extends Controller
             'broker_commission_paid'         => $brokerCommPaid,
             'broker_commission_due'          => $brokerCommDue,
             'broker_commission_payment_mode' => $request->broker_commission_payment_mode,
+            'broker_commission_payment_date' => $request->broker_commission_payment_date,
             'broker_commission_status'       => $brokerCommStatus,
             'broker_notes'                   => $request->broker_notes,
             'sale_date'                      => $request->sale_date,
@@ -367,7 +430,7 @@ class PropertySaleController extends Controller
 
         return view('admin.property-sales.edit', array_merge(
             ['propertySale' => $propertySale],
-            $this->getDropdownData($propertySale->firm_id)
+            $this->getDropdownData($propertySale->firm_id, $propertySale)
         ));
     }
 
@@ -425,12 +488,14 @@ class PropertySaleController extends Controller
             'property_id'      => 'required|exists:properties,id',
             'customer_id'      => 'required|exists:customers,id',
             'broker_id'        => 'nullable|exists:brokers,id',
+            'broker_name'      => 'nullable|string|max:255',
             'broker_commission_type' => 'nullable|in:percentage,fixed',
             'broker_commission_rate' => 'nullable|numeric|min:0',
             'broker_commission_amount' => 'nullable|numeric|min:0',
             'broker_commission_paid' => 'nullable|numeric|min:0',
             'broker_commission_due'  => 'nullable|numeric|min:0',
             'broker_commission_payment_mode' => 'nullable|string|max:100',
+            'broker_commission_payment_date' => 'nullable|date',
             'broker_commission_status' => 'nullable|string|max:50',
             'broker_notes'     => 'nullable|string|max:2000',
             'purchase_date'    => 'nullable|date',
@@ -481,12 +546,17 @@ class PropertySaleController extends Controller
             }
         }
 
+        // Seller data
+        $sellerId = $request->filled('seller_id') ? $request->seller_id : ($request->has('seller_id') ? null : $propertySale->seller_id);
+        $sellerName = $request->filled('seller_name') ? $request->seller_name : ($sellerId ? ($propertySale->seller_id == $sellerId ? ($propertySale->seller_name ?: \App\Models\Seller::find($sellerId)?->name) : (\App\Models\Seller::find($sellerId)?->name ?? null)) : null);
+
         // Broker commission calculation
         $brokerId = $request->filled('broker_id') ? $request->broker_id : ($request->has('broker_id') ? null : $propertySale->broker_id);
+        $brokerName = $request->filled('broker_name') ? $request->broker_name : ($brokerId ? ($propertySale->broker_id == $brokerId ? ($propertySale->broker_name ?: \App\Models\Broker::find($brokerId)?->name) : (\App\Models\Broker::find($brokerId)?->name ?? null)) : null);
         $brokerCommType = $request->filled('broker_commission_type') ? $request->broker_commission_type : ($propertySale->broker_commission_type ?? 'percentage');
         $brokerCommRate = $request->filled('broker_commission_rate') ? floatval($request->broker_commission_rate) : ($request->has('broker_commission_rate') ? null : $propertySale->broker_commission_rate);
         $brokerCommAmount = $request->filled('broker_commission_amount') ? floatval($request->broker_commission_amount) : ($propertySale->broker_commission_amount ?? 0.00);
-        if ($brokerId && $brokerCommType === 'percentage' && $brokerCommRate && ($brokerCommAmount == 0 || $request->filled('broker_commission_rate')) && $saleAmount > 0) {
+        if (($brokerId || $brokerName) && $brokerCommType === 'percentage' && $brokerCommRate && ($brokerCommAmount == 0 || $request->filled('broker_commission_rate')) && $saleAmount > 0) {
             $brokerCommAmount = round(($saleAmount * $brokerCommRate) / 100, 2);
         }
         $brokerCommPaid = $request->filled('broker_commission_paid') ? floatval($request->broker_commission_paid) : ($propertySale->broker_commission_paid ?? 0.00);
@@ -513,7 +583,10 @@ class PropertySaleController extends Controller
             'firm_id'                        => $request->firm_id,
             'property_id'                    => $request->property_id,
             'customer_id'                    => $request->customer_id,
+            'seller_id'                      => $sellerId,
+            'seller_name'                    => $sellerName,
             'broker_id'                      => $brokerId,
+            'broker_name'                    => $brokerName,
             'purchase_date'                  => $request->purchase_date,
             'purchase_cost'                  => $request->filled('purchase_cost') ? (float)$request->purchase_cost : null,
             'property_expenses'              => $request->filled('property_expenses') ? (float)$request->property_expenses : null,
@@ -527,6 +600,7 @@ class PropertySaleController extends Controller
             'broker_commission_paid'         => $brokerCommPaid,
             'broker_commission_due'          => $brokerCommDue,
             'broker_commission_payment_mode' => $request->broker_commission_payment_mode ?: $propertySale->broker_commission_payment_mode,
+            'broker_commission_payment_date' => $request->has('broker_commission_payment_date') ? $request->broker_commission_payment_date : $propertySale->broker_commission_payment_date,
             'broker_commission_status'       => $brokerCommStatus,
             'broker_notes'                   => $request->broker_notes ?: $propertySale->broker_notes,
             'sale_date'                      => $request->sale_date,
@@ -631,6 +705,41 @@ class PropertySaleController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Installment payment of ₹' . number_format($newPaymentAmt, 2) . ' recorded successfully.');
+    }
+
+    public function updatePayment(Request $request, PropertySale $propertySale, Payment $payment)
+    {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $propertySale->firm_id != $firmId) {
+            abort(403);
+        }
+
+        if ($payment->property_sale_id != $propertySale->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'payment_amount'  => 'required|numeric|min:0.01',
+            'payment_date'    => 'required|date',
+            'payment_mode'    => 'required|string|max:100',
+            'transaction_ref' => 'nullable|string|max:150',
+            'remarks'         => 'nullable|string|max:1000',
+        ]);
+
+        $payment->update([
+            'payment_amount'  => (float)$validated['payment_amount'],
+            'payment_date'    => $validated['payment_date'],
+            'payment_mode'    => $validated['payment_mode'],
+            'transaction_ref' => $validated['transaction_ref'] ?? null,
+            'remarks'         => $validated['remarks'] ?? null,
+        ]);
+
+        $propertySale->recalculatePaymentStatus();
+
+        return redirect()->back()->with('success', 'Payment installment updated and balances recalculated successfully.');
     }
 
     public function destroyPayment(PropertySale $propertySale, Payment $payment)
@@ -757,6 +866,7 @@ class PropertySaleController extends Controller
             'payments',
         ]);
 
-        return view('admin.property-sales.show-pdf', compact('propertySale'));
+        $sale = $propertySale;
+        return view('admin.property-sales.show-pdf', compact('propertySale', 'sale'));
     }
 }

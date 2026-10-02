@@ -182,4 +182,60 @@ class Invoice extends Model
         $this->saveQuietly();
         return $this;
     }
+
+    /**
+     * Generate the next guaranteed unique invoice number.
+     * Prevents duplicate key errors by inspecting the highest DB sequence and incrementing safely.
+     */
+    public static function generateNextInvoiceNumber(string $type = 'sales'): string
+    {
+        $activeSetting = \App\Models\InvoiceSetting::activeSetting();
+        $prefix = 'INV';
+        if ($activeSetting) {
+            $prefixField = $type . '_prefix';
+            $prefix = $activeSetting->$prefixField ?? ($activeSetting->sales_prefix ?? 'INV');
+        }
+
+        $year = ($activeSetting && $activeSetting->financialYear)
+            ? substr($activeSetting->financialYear->year_name, 0, 4)
+            : date('Y');
+
+        // Search for existing invoice numbers starting with prefix-year-
+        $searchPrefix = "{$prefix}-{$year}-";
+        $existingInvoices = self::where('invoice_no', 'like', "{$searchPrefix}%")
+            ->pluck('invoice_no')
+            ->toArray();
+
+        $maxNum = 0;
+        foreach ($existingInvoices as $invNo) {
+            $parts = explode('-', $invNo);
+            $last = end($parts);
+            if (is_numeric($last)) {
+                $val = (int) $last;
+                if ($val > $maxNum) {
+                    $maxNum = $val;
+                }
+            }
+        }
+
+        if ($activeSetting && $activeSetting->current_number > $maxNum) {
+            $maxNum = $activeSetting->current_number - 1;
+        }
+
+        $nextNum = $maxNum + 1;
+        $candidate = sprintf('%s-%s-%04d', $prefix, $year, $nextNum);
+
+        // Safety loop to ensure uniqueness
+        while (self::where('invoice_no', $candidate)->exists()) {
+            $nextNum++;
+            $candidate = sprintf('%s-%s-%04d', $prefix, $year, $nextNum);
+        }
+
+        // Update active setting counter
+        if ($activeSetting) {
+            $activeSetting->update(['current_number' => $nextNum + 1]);
+        }
+
+        return $candidate;
+    }
 }

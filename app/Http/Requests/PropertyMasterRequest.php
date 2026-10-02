@@ -72,6 +72,7 @@ class PropertyMasterRequest extends FormRequest
             'broker_commission_paid' => 'nullable|numeric|min:0|max:999999999999999',
             'broker_commission_due' => 'nullable|numeric|min:0|max:999999999999999',
             'broker_commission_payment_mode' => 'nullable|string|max:100',
+            'broker_commission_payment_date' => 'nullable|date',
             'broker_commission_status' => 'nullable|string|max:50',
             'broker_notes'   => 'nullable|string|max:2000',
             'payment_mode'   => 'nullable|string|max:100',

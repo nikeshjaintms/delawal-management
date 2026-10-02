@@ -104,6 +104,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::post('property-masters/{propertyMaster}/import-plots', [PropertyMasterController::class, 'importPlots'])->name('property-masters.import-plots')->middleware(['permission:property_edit']);
     Route::resource('property-masters', PropertyMasterController::class)->middleware(['permission:property_view']);
     Route::post('property-masters/{propertyMaster}/payments', [PropertyMasterController::class, 'storePayment'])->name('property-masters.payments.store')->middleware(['permission:property_edit']);
+    Route::put('property-masters/{propertyMaster}/payments/{payment}', [PropertyMasterController::class, 'updatePayment'])->name('property-masters.payments.update')->middleware(['permission:property_edit']);
     Route::delete('property-masters/{propertyMaster}/payments/{payment}', [PropertyMasterController::class, 'destroyPayment'])->name('property-masters.payments.destroy')->middleware(['permission:property_edit']);
 
     Route::get('projects/plots/template', [\App\Http\Controllers\ProjectController::class, 'downloadPlotsTemplate'])->name('projects.plots.template')->middleware(['permission:project_view']);
@@ -121,6 +122,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('contractors/{contractor}/pdf', [\App\Http\Controllers\ContractorController::class, 'downloadPdf'])->name('contractors.detail-pdf')->middleware(['permission:project_view']);
     Route::get('projects/{project}/contractors', [\App\Http\Controllers\ContractorController::class, 'getByProject'])->name('projects.contractors')->middleware(['auth']);
     Route::post('contractors/{contractor}/payments', [\App\Http\Controllers\ContractorController::class, 'storePayment'])->name('contractors.payments.store')->middleware(['permission:project_edit']);
+    Route::put('contractors/{contractor}/payments/{payment}', [\App\Http\Controllers\ContractorController::class, 'updatePayment'])->name('contractors.payments.update')->middleware(['permission:project_edit']);
     Route::delete('contractors/{contractor}/payments/{payment}', [\App\Http\Controllers\ContractorController::class, 'destroyPayment'])->name('contractors.payments.destroy')->middleware(['permission:project_edit']);
     Route::resource('contractors', \App\Http\Controllers\ContractorController::class)->middleware(['permission:project_view']);
 
@@ -135,6 +137,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('property-sales/export-pdf', [PropertySaleController::class, 'exportPdf'])->name('property-sales.pdf')->middleware(['permission:property_sales_view']);
     Route::get('property-sales/{propertySale}/pdf', [PropertySaleController::class, 'downloadPdf'])->name('property-sales.receipt-pdf')->middleware(['permission:property_sales_view']);
     Route::post('property-sales/{propertySale}/payments', [PropertySaleController::class, 'storePayment'])->name('property-sales.payments.store')->middleware(['permission:property_sales_view']);
+    Route::put('property-sales/{propertySale}/payments/{payment}', [PropertySaleController::class, 'updatePayment'])->name('property-sales.payments.update')->middleware(['permission:property_sales_view']);
     Route::delete('property-sales/{propertySale}/payments/{payment}', [PropertySaleController::class, 'destroyPayment'])->name('property-sales.payments.destroy')->middleware(['permission:property_sales_view']);
     Route::resource('property-sales', PropertySaleController::class)->middleware(['permission:property_sales_view']);
 
@@ -202,6 +205,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('invoices/export-pdf', [InvoiceController::class, 'exportPdf'])->name('invoices.pdf');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
     Route::post('invoices/{invoice}/payments', [InvoiceController::class, 'recordPayment'])->name('invoices.payments.store');
+    Route::put('invoices/{invoice}/payments/{payment}', [InvoiceController::class, 'updatePayment'])->name('invoices.payments.update');
     Route::delete('invoices/{invoice}/payments/{payment}', [InvoiceController::class, 'destroyPayment'])->name('invoices.payments.destroy');
     Route::resource('invoices', InvoiceController::class);
 
@@ -219,6 +223,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('loans/{loan}/emi-schedule', [LoanController::class, 'emiSchedule'])->name('loans.emi-schedule')->middleware(['permission:loan_view']);
     Route::post('loans/{loan}/emi-schedule/{emi}/pay', [LoanController::class, 'emiPay'])->name('loans.emi-pay')->middleware(['permission:loan_view']);
     Route::post('loans/{loan}/record-payment', [LoanController::class, 'recordPayment'])->name('loans.record-payment')->middleware(['permission:loan_view']);
+    Route::put('loans/{loan}/payments/{payment}', [LoanController::class, 'updatePayment'])->name('loans.payments.update')->middleware(['permission:loan_view']);
     Route::delete('loans/{loan}/payments/{payment}', [LoanController::class, 'destroyPayment'])->name('loans.payments.destroy')->middleware(['permission:loan_view']);
 
     // ── Loan Report ──────────────────────────────────────────────────
@@ -243,7 +248,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
         Route::resource('labours', AgriLabourController::class);
 
         // Labour Payments & Wage Logs
-        Route::resource('labour-payments', AgriLabourPaymentController::class)->except(['edit', 'update']);
+        Route::resource('labour-payments', AgriLabourPaymentController::class);
 
         // Agriculture Expenses
         Route::resource('expenses', AgriExpenseController::class);

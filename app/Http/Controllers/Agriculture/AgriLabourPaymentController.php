@@ -210,8 +210,122 @@ class AgriLabourPaymentController extends Controller
             ->with('success', 'Labour payment of ₹' . number_format($amount, 2) . ' recorded and balances updated successfully.');
     }
 
-    public function destroy(AgriLabourPayment $payment)
+    public function edit(AgriLabourPayment $labour_payment)
     {
+        $this->authorise($labour_payment);
+        $labour_payment->load(['labour', 'farm', 'paymentMode', 'firm']);
+
+        $dropdowns = $this->dropdowns($labour_payment->firm_id);
+        $payment = $labour_payment;
+
+        return view('admin.agriculture.labour-payments.edit', array_merge($dropdowns, compact('payment')));
+    }
+
+    public function update(Request $request, AgriLabourPayment $labour_payment)
+    {
+        $payment = $labour_payment;
+        $this->authorise($payment);
+
+        $request->validate([
+            'labour_id'        => 'required|exists:agri_labours,id',
+            'payment_type'     => 'required|string|max:50',
+            'payment_date'     => 'required|date',
+            'working_days'     => 'nullable|numeric|min:0',
+            'daily_wage_rate'  => 'nullable|numeric|min:0',
+            'gross_amount'     => 'nullable|numeric|min:0',
+            'advance_deducted' => 'nullable|numeric|min:0',
+            'amount'           => 'required|numeric|min:0',
+            'payment_mode_id'  => 'nullable|exists:payment_modes,id',
+            'payment_mode'     => 'nullable|string|max:100',
+            'reference_no'     => 'nullable|string|max:100',
+            'payment_status'   => 'required|string|max:50',
+            'sync_to_expense'  => 'nullable|boolean',
+            'notes'            => 'nullable|string',
+        ]);
+
+        $labour = AgriLabour::findOrFail($request->labour_id);
+        $farmId = $request->farm_id ?: $labour->farm_id;
+
+        $paymentModeName = $request->payment_mode;
+        if (!$paymentModeName && $request->filled('payment_mode_id')) {
+            $paymentModeName = PaymentMode::find($request->payment_mode_id)?->name;
+        }
+
+        $syncToExpense = $request->has('sync_to_expense') ? (bool)$request->sync_to_expense : true;
+        $amount = (float) $request->amount;
+        $grossAmount = $request->filled('gross_amount') ? (float)$request->gross_amount : $amount;
+        $advanceDeducted = $request->filled('advance_deducted') ? (float)$request->advance_deducted : 0;
+
+        $payment->update([
+            'farm_id'          => $farmId,
+            'labour_id'        => $labour->id,
+            'payment_type'     => $request->payment_type,
+            'payment_date'     => $request->payment_date,
+            'working_days'     => (float)$request->working_days,
+            'daily_wage_rate'  => (float)$request->daily_wage_rate,
+            'gross_amount'     => $grossAmount,
+            'advance_deducted' => $advanceDeducted,
+            'amount'           => $amount,
+            'payment_mode_id'  => $request->payment_mode_id ?: null,
+            'payment_mode'     => $paymentModeName ?: 'Cash',
+            'reference_no'     => $request->reference_no,
+            'payment_status'   => $request->payment_status,
+            'sync_to_expense'  => $syncToExpense,
+            'notes'            => $request->notes,
+        ]);
+
+        // Sync or remove linked AgriExpense
+        $linkedExpense = AgriExpense::where('labour_payment_id', $payment->id)->first();
+        if ($syncToExpense && $amount > 0 && in_array($request->payment_type, ['Daily Wage', 'Salary', 'Advance Given', 'Bonus'])) {
+            $expDesc = $request->payment_type . ' Payment: ' . $labour->name;
+            if ($request->payment_type === 'Daily Wage' && (float)$request->working_days > 0) {
+                $expDesc .= ' (' . (float)$request->working_days . ' days @ ₹' . number_format((float)$request->daily_wage_rate, 2) . ')';
+            }
+
+            if ($linkedExpense) {
+                $linkedExpense->update([
+                    'farm_id'         => $farmId,
+                    'expense_date'    => $request->payment_date,
+                    'labour_id'       => $labour->id,
+                    'amount'          => $amount,
+                    'payment_mode_id' => $request->payment_mode_id ?: null,
+                    'payment_method'  => $paymentModeName ?: 'Cash',
+                    'payment_status'  => $request->payment_status,
+                    'description'     => $expDesc,
+                    'notes'           => $request->notes ?: 'Auto-synced from Labour Payment',
+                ]);
+            } else {
+                AgriExpense::create([
+                    'firm_id'           => $payment->firm_id,
+                    'farm_id'           => $farmId,
+                    'expense_date'      => $request->payment_date,
+                    'category'          => 'Labour',
+                    'expense_type'      => 'Labour Payment',
+                    'labour_id'         => $labour->id,
+                    'labour_payment_id' => $payment->id,
+                    'amount'            => $amount,
+                    'payment_mode_id'   => $request->payment_mode_id ?: null,
+                    'payment_method'    => $paymentModeName ?: 'Cash',
+                    'payment_status'    => $request->payment_status,
+                    'description'       => $expDesc,
+                    'notes'             => $request->notes ?: 'Auto-synced from Labour Payment',
+                    'created_by'        => Auth::id(),
+                ]);
+            }
+        } elseif ($linkedExpense) {
+            $linkedExpense->delete();
+        }
+
+        // Recalculate labour balance
+        $labour->recalculateBalances();
+
+        return redirect()->route('agriculture.labours.show', $labour->id)
+            ->with('success', 'Labour payment updated and balances recalculated successfully.');
+    }
+
+    public function destroy(AgriLabourPayment $labour_payment)
+    {
+        $payment = $labour_payment;
         $this->authorise($payment);
         $labour = $payment->labour;
 

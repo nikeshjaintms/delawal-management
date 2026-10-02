@@ -100,36 +100,45 @@ class AuthController extends Controller
         $email = strtolower(trim((string)$request->input('email')));
         $password = (string)$request->input('password');
 
-        // Find firm by email
-        $firm = Firm::where('email', $email)->first();
+        // Find firms by email
+        $allFirms = Firm::where('email', $email)->get();
 
         // Email not found — don't reveal whether it's the email or password
-        if (! $firm) {
+        if ($allFirms->isEmpty()) {
             return back()
                 ->withInput($request->only('email', 'login_type'))
                 ->with('error', 'Invalid Login ID or Password.');
         }
 
-        // Check for inactive firm BEFORE password check
-        if ($firm->status !== 'active') {
+        // Filter active firms
+        $activeFirms = $allFirms->where('status', 'active');
+        if ($activeFirms->isEmpty()) {
             return back()
                 ->withInput($request->only('email', 'login_type'))
                 ->with('error', 'Your account is inactive. Please contact the administrator.');
         }
 
-        // Password not set
-        if (empty($firm->password)) {
-            return back()
-                ->withInput($request->only('email', 'login_type'))
-                ->with('error', 'No password set for this account. Please contact the administrator.');
-        }
+        // Match firms where password matches
+        $matchedFirms = $activeFirms->filter(function ($firm) use ($password) {
+            return !empty($firm->password) && Hash::check($password, $firm->password);
+        });
 
-        // Password mismatch
-        if (! Hash::check($password, $firm->password)) {
+        if ($matchedFirms->isEmpty()) {
+            // Check if any active firm had no password set
+            $hasNoPassword = $activeFirms->contains(fn($f) => empty($f->password));
+            if ($hasNoPassword && $activeFirms->count() === 1) {
+                return back()
+                    ->withInput($request->only('email', 'login_type'))
+                    ->with('error', 'No password set for this account. Please contact the administrator.');
+            }
+
             return back()
                 ->withInput($request->only('email', 'login_type'))
                 ->with('error', 'Invalid Login ID or Password.');
         }
+
+        $matchedIds = $matchedFirms->pluck('id')->toArray();
+        $primaryFirm = $matchedFirms->first();
 
         // ✅ Authenticated — store temporary authenticated firm session
         $request->session()->regenerate();
@@ -137,13 +146,14 @@ class AuthController extends Controller
         $request->session()->put([
             'login_type'              => 'firm',
             'firm_temp_authenticated' => true,
-            'temp_firm_id'            => $firm->id,
-            'temp_firm_name'          => $firm->firm_name,
-            'firm_email'              => $firm->email,
-            'firm_status'             => $firm->status,
+            'temp_firm_id'            => $primaryFirm->id,
+            'temp_firm_ids'           => $matchedIds,
+            'temp_firm_name'          => $primaryFirm->firm_name,
+            'firm_email'              => $primaryFirm->email,
+            'firm_status'             => $primaryFirm->status,
         ]);
 
-        AuditLog::log('Auth', 'Firm Pre-Auth', 'Firm credentials verified: ' . $firm->firm_name . ' <' . $firm->email . '>');
+        AuditLog::log('Auth', 'Firm Pre-Auth', 'Firm credentials verified: ' . $matchedFirms->pluck('firm_name')->implode(', ') . ' <' . $email . '>');
 
         return redirect()->route('firm-selection');
     }
@@ -157,8 +167,9 @@ class AuthController extends Controller
             return redirect()->route('login');
         }
 
-        // Only allow access to the specific firm they logged in as
-        $firms = Firm::where('id', session('temp_firm_id'))->where('status', 'active')->get();
+        // Allow access to matching firms they logged in as
+        $firmIds = session('temp_firm_ids', [session('temp_firm_id')]);
+        $firms = Firm::whereIn('id', (array)$firmIds)->where('status', 'active')->get();
 
         if ($firms->isEmpty()) {
             return redirect()->route('login')->with('error', 'Your firm account is inactive or not found.');
@@ -184,8 +195,9 @@ class AuthController extends Controller
             'financial_year_id' => 'required|integer',
         ]);
 
-        // Security: Validate selected firm matches their logged-in temp_firm_id
-        if ((int)$request->firm_id !== (int)session('temp_firm_id')) {
+        // Security: Validate selected firm matches their logged-in temp_firm_ids
+        $allowedIds = session('temp_firm_ids', [session('temp_firm_id')]);
+        if (!in_array((int)$request->firm_id, array_map('intval', (array)$allowedIds))) {
             return back()->with('error', 'Unauthorized firm selection.');
         }
 

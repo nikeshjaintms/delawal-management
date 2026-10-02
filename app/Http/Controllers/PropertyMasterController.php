@@ -56,7 +56,11 @@ class PropertyMasterController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if ($request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+        } else {
+            $query->where('status', '!=', 'sold');
         }
 
         $propertyMasters = $query->latest()->paginate(15)->withQueryString();
@@ -207,6 +211,7 @@ class PropertyMasterController extends Controller
             'broker_commission_paid' => $brokerCommPaid,
             'broker_commission_due' => $brokerCommDue,
             'broker_commission_payment_mode' => $request->broker_commission_payment_mode,
+            'broker_commission_payment_date' => $request->broker_commission_payment_date,
             'broker_commission_status' => $brokerCommStatus,
             'broker_notes' => $request->broker_notes,
             'payment_mode' => $request->payment_mode,
@@ -319,7 +324,7 @@ class PropertyMasterController extends Controller
             'vendor',
             'broker',
             'projects.properties',
-            'plots' => fn($q) => $q->with(['project', 'propertyType', 'bookings.customer', 'bookingsList.customer']),
+            'plots' => fn($q) => $q->where('status', '!=', 'sold')->with(['project', 'propertyType', 'bookings.customer', 'bookingsList.customer']),
             'payments.creator',
             'payments.paymentMode'
         ]);
@@ -441,8 +446,8 @@ class PropertyMasterController extends Controller
             'paid_amount' => $paidAmount,
             'due_amount' => $dueAmount,
             'purchase_date' => $request->purchase_date ?: $propertyMaster->purchase_date,
-            'purchase_rate' => $request->purchase_rate ?: $propertyMaster->purchase_rate,
-            'total_area' => $request->total_area ?: $propertyMaster->total_area,
+            'purchase_rate' => $request->filled('purchase_rate') ? floatval($request->purchase_rate) : ($request->has('purchase_rate') ? null : $propertyMaster->purchase_rate),
+            'total_area' => $request->filled('total_area') ? floatval($request->total_area) : ($request->has('total_area') ? null : $propertyMaster->total_area),
             'area_unit' => $request->area_unit ?: ($propertyMaster->area_unit ?? 'Sq.Ft'),
             'total_units_count' => $totalUnitsCount,
             'unit_numbers_list' => $unitNumbersList,
@@ -458,6 +463,7 @@ class PropertyMasterController extends Controller
             'broker_commission_paid' => $brokerCommPaid,
             'broker_commission_due' => $brokerCommDue,
             'broker_commission_payment_mode' => $request->broker_commission_payment_mode ?: $propertyMaster->broker_commission_payment_mode,
+            'broker_commission_payment_date' => $request->has('broker_commission_payment_date') ? $request->broker_commission_payment_date : $propertyMaster->broker_commission_payment_date,
             'broker_commission_status' => $brokerCommStatus,
             'broker_notes' => $request->broker_notes ?: $propertyMaster->broker_notes,
             'payment_mode' => $request->payment_mode ?: $propertyMaster->payment_mode,
@@ -586,6 +592,43 @@ class PropertyMasterController extends Controller
         return redirect()
             ->route('property-masters.show', $propertyMaster->id)
             ->with('success', 'Payment installment of ₹' . number_format($validated['amount'], 2) . ' recorded successfully.');
+    }
+
+    public function updatePayment(Request $request, PropertyMaster $propertyMaster, PropertyMasterPayment $payment)
+    {
+        $this->authorise($propertyMaster);
+
+        if ($payment->property_master_id != $propertyMaster->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'payment_mode' => 'required|string|max:100',
+            'reference_no' => 'nullable|string|max:150',
+            'bank_name' => 'nullable|string|max:150',
+            'remarks' => 'nullable|string|max:1000',
+        ]);
+
+        $pm = PaymentMode::where('name', $validated['payment_mode'])->first();
+        $paymentModeId = $pm ? $pm->id : $payment->payment_mode_id;
+
+        $payment->update([
+            'payment_mode_id' => $paymentModeId,
+            'amount' => (float) $validated['amount'],
+            'payment_date' => $validated['payment_date'],
+            'payment_mode' => $validated['payment_mode'],
+            'reference_no' => $validated['reference_no'] ?? null,
+            'bank_name' => $validated['bank_name'] ?? null,
+            'remarks' => $validated['remarks'] ?? null,
+        ]);
+
+        $propertyMaster->recalculatePaymentStatus();
+
+        return redirect()
+            ->route('property-masters.show', $propertyMaster->id)
+            ->with('success', 'Payment installment updated and balances recalculated successfully.');
     }
 
     public function destroyPayment(PropertyMaster $propertyMaster, PropertyMasterPayment $payment)

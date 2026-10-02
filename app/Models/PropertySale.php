@@ -12,7 +12,10 @@ class PropertySale extends Model
         'firm_id',
         'property_id',
         'customer_id',
+        'seller_id',
+        'seller_name',
         'broker_id',
+        'broker_name',
         'purchase_date',
         'purchase_cost',
         'property_expenses',
@@ -26,6 +29,7 @@ class PropertySale extends Model
         'broker_commission_paid',
         'broker_commission_due',
         'broker_commission_payment_mode',
+        'broker_commission_payment_date',
         'broker_commission_status',
         'broker_notes',
         'sale_date',
@@ -50,21 +54,22 @@ class PropertySale extends Model
     ];
 
     protected $casts = [
-        'purchase_date'            => 'date',
-        'purchase_cost'            => 'decimal:2',
-        'property_expenses'        => 'decimal:2',
-        'total_area'               => 'decimal:2',
-        'purchase_rate'            => 'decimal:2',
-        'sell_rate'                => 'decimal:2',
-        'sale_date'                => 'date',
-        'sale_amount'              => 'decimal:2',
-        'booking_amount'           => 'decimal:2',
-        'remaining_amount'         => 'decimal:2',
-        'grand_total'              => 'decimal:2',
-        'broker_commission_rate'   => 'decimal:2',
-        'broker_commission_amount' => 'decimal:2',
-        'broker_commission_paid'   => 'decimal:2',
-        'broker_commission_due'    => 'decimal:2',
+        'purchase_date'                  => 'date',
+        'purchase_cost'                  => 'decimal:2',
+        'property_expenses'              => 'decimal:2',
+        'total_area'                     => 'decimal:2',
+        'purchase_rate'                  => 'decimal:2',
+        'sell_rate'                      => 'decimal:2',
+        'sale_date'                      => 'date',
+        'sale_amount'                    => 'decimal:2',
+        'booking_amount'                 => 'decimal:2',
+        'remaining_amount'               => 'decimal:2',
+        'grand_total'                    => 'decimal:2',
+        'broker_commission_rate'         => 'decimal:2',
+        'broker_commission_amount'       => 'decimal:2',
+        'broker_commission_paid'         => 'decimal:2',
+        'broker_commission_due'          => 'decimal:2',
+        'broker_commission_payment_date' => 'date',
     ];
 
     public function firm()
@@ -105,6 +110,11 @@ class PropertySale extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function seller()
+    {
+        return $this->belongsTo(Seller::class);
     }
 
     public function broker()
@@ -311,5 +321,13 @@ class PropertySale extends Model
             return 'loss';
         }
         return 'breakeven';
+    }
+
+    /**
+     * Get broker display name (from relation or manual broker_name)
+     */
+    public function getBrokerDisplayNameAttribute(): string
+    {
+        return $this->broker->name ?? ($this->broker_name ?: 'Direct / None');
     }
 }

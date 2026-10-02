@@ -414,13 +414,21 @@ textarea.form-control { resize: vertical; min-height: 75px; }
                     <td style="text-align:center;">
                         <span class="emi-status {{ $stClass }}">{{ $emi->emi_status }}</span>
                     </td>
-                    <td style="text-align:center;">
+                    <td style="text-align:center; white-space: nowrap;">
                         @if(in_array($emi->emi_status, ['Pending','Partial','Overdue']))
-                            <button type="button" class="btn-pay" onclick="openPayModal({{ $emi->id }},'{{ $monthName }}',{{ $emi->emi_amount }},{{ $emi->paid_amount }})">
-                                <i class="fa-solid fa-wallet"></i> Pay
+                            <button type="button" class="btn-pay" onclick="openPayModal({{ $emi->id }}, '{{ $monthName }}', {{ $emi->emi_amount }}, {{ $emi->paid_amount }}, '{{ $emi->payment_date ? \Carbon\Carbon::parse($emi->payment_date)->format('Y-m-d') : date('Y-m-d') }}', '{{ addslashes($emi->payment_mode ?? '') }}', '{{ addslashes($emi->remarks ?? '') }}')">
+                                <i class="fa-solid fa-wallet"></i> {{ $emi->emi_status === 'Partial' ? 'Edit / Pay' : 'Pay' }}
                             </button>
                         @else
-                            <span style="color:#34D399;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;gap:5px;"><i class="fa-solid fa-circle-check"></i> Paid</span>
+                            <div style="display: inline-flex; align-items: center; gap: 8px;">
+                                <span style="color:#34D399;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;gap:5px;"><i class="fa-solid fa-circle-check"></i> Paid</span>
+                                <button type="button" 
+                                        onclick="openPayModal({{ $emi->id }}, '{{ $monthName }}', {{ $emi->emi_amount }}, {{ $emi->paid_amount }}, '{{ $emi->payment_date ? \Carbon\Carbon::parse($emi->payment_date)->format('Y-m-d') : date('Y-m-d') }}', '{{ addslashes($emi->payment_mode ?? '') }}', '{{ addslashes($emi->remarks ?? '') }}')" 
+                                        style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60A5FA; padding: 4px 10px; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer; transition: all .2s;" 
+                                        title="Edit EMI Payment Details">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
+                            </div>
                         @endif
                     </td>
                 </tr>
@@ -438,7 +446,7 @@ textarea.form-control { resize: vertical; min-height: 75px; }
 <div class="modal" id="payModal">
     <div class="modal-box">
         <div class="modal-header">
-            <h3><i class="fa-solid fa-wallet" style="color:{{ $isGiven ? '#34D399' : '#60A5FA' }};"></i> {{ $isGiven ? 'Record Received EMI' : 'Pay EMI' }}</h3>
+            <h3><i class="fa-solid fa-wallet" style="color:{{ $isGiven ? '#34D399' : '#60A5FA' }};"></i> <span id="modal_header_title">{{ $isGiven ? 'Record Received EMI' : 'Pay EMI' }}</span></h3>
             <button type="button" class="modal-close" onclick="closePayModal()">&times;</button>
         </div>
         <form method="POST" id="payForm" action="">
@@ -460,11 +468,11 @@ textarea.form-control { resize: vertical; min-height: 75px; }
             </div>
             <div class="form-group">
                 <label class="form-label">{{ $isGiven ? 'Received Date' : 'Payment Date' }} <span>*</span></label>
-                <input type="date" name="payment_date" value="{{ date('Y-m-d') }}" class="form-control @error('payment_date') is-invalid @enderror" required>
+                <input type="date" name="payment_date" id="modal_payment_date" value="{{ date('Y-m-d') }}" class="form-control @error('payment_date') is-invalid @enderror" required>
             </div>
             <div class="form-group">
                 <label class="form-label">Payment Mode <span>*</span></label>
-                <select name="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror" required>
+                <select name="payment_mode" id="modal_payment_mode" class="form-control @error('payment_mode') is-invalid @enderror" required>
                     <option value="">— Select Mode —</option>
                     @foreach($paymentModes as $pm)
                         <option value="{{ $pm->name }}">{{ $pm->name }}</option>
@@ -473,10 +481,10 @@ textarea.form-control { resize: vertical; min-height: 75px; }
             </div>
             <div class="form-group">
                 <label class="form-label">Remarks</label>
-                <textarea name="remarks" class="form-control @error('remarks') is-invalid @enderror" placeholder="Any notes..."></textarea>
+                <textarea name="remarks" id="modal_remarks" class="form-control @error('remarks') is-invalid @enderror" placeholder="Any notes..."></textarea>
             </div>
             <div class="modal-actions">
-                <button type="submit" class="btn-submit" style="background:{{ $isGiven ? '#059669' : '#2563EB' }} !important;border-color:{{ $isGiven ? '#10B981' : '#3B82F6' }} !important;"><i class="fa-solid fa-check"></i> {{ $isGiven ? 'Record Collection' : 'Submit Payment' }}</button>
+                <button type="submit" class="btn-submit" style="background:{{ $isGiven ? '#059669' : '#2563EB' }} !important;border-color:{{ $isGiven ? '#10B981' : '#3B82F6' }} !important;"><i class="fa-solid fa-check"></i> <span id="modal_submit_btn_text">{{ $isGiven ? 'Record Collection' : 'Submit Payment' }}</span></button>
                 <button type="button" class="btn-cancel" onclick="closePayModal()">Cancel</button>
             </div>
         </form>
@@ -484,11 +492,27 @@ textarea.form-control { resize: vertical; min-height: 75px; }
 </div>
 
 <script>
-function openPayModal(emiId, month, emiAmt, alreadyPaid) {
+function openPayModal(emiId, month, emiAmt, alreadyPaid, pDate, pMode, pRemarks) {
     document.getElementById('modal_month').textContent = month;
     document.getElementById('modal_emi').textContent = Number(emiAmt).toFixed(2);
     document.getElementById('modal_already_paid').textContent = Number(alreadyPaid).toFixed(2);
-    document.getElementById('paid_amount').value = '';
+    
+    const isEdit = (Number(alreadyPaid) > 0);
+    const isGiven = {{ $isGiven ? 'true' : 'false' }};
+    
+    document.getElementById('paid_amount').value = isEdit ? Number(alreadyPaid).toFixed(2) : Number(emiAmt).toFixed(2);
+    document.getElementById('modal_payment_date').value = pDate ? pDate : "{{ date('Y-m-d') }}";
+    document.getElementById('modal_payment_mode').value = pMode ? pMode : '';
+    document.getElementById('modal_remarks').value = pRemarks ? pRemarks : '';
+    
+    if (isEdit) {
+        document.getElementById('modal_header_title').textContent = isGiven ? 'Edit Received EMI' : 'Edit EMI Payment';
+        document.getElementById('modal_submit_btn_text').textContent = 'Update EMI Payment';
+    } else {
+        document.getElementById('modal_header_title').textContent = isGiven ? 'Record Received EMI' : 'Pay EMI';
+        document.getElementById('modal_submit_btn_text').textContent = isGiven ? 'Record Collection' : 'Submit Payment';
+    }
+    
     document.getElementById('payForm').action = "{{ route('loans.emi-pay', [$loan->id, '__EMI__']) }}".replace('__EMI__', emiId);
     document.getElementById('payModal').classList.add('active');
 }

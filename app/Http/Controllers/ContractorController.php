@@ -364,6 +364,70 @@ class ContractorController extends Controller
             ->with('success', 'Payment installment of ₹' . number_format($validated['amount'], 2) . ' recorded successfully.');
     }
 
+    public function updatePayment(Request $request, Contractor $contractor, ContractorPayment $payment)
+    {
+        $this->authorise($contractor);
+
+        if ($payment->contractor_id != $contractor->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'project_id'    => 'nullable|exists:projects,id',
+            'property_id'   => 'nullable|exists:properties,id',
+            'amount'        => 'required|numeric|min:0.01',
+            'payment_date'  => 'required|date',
+            'payment_mode'  => 'required|string|max:100',
+            'reference_no'  => 'nullable|string|max:150',
+            'bank_name'     => 'nullable|string|max:150',
+            'bill_no'       => 'nullable|string|max:100',
+            'payment_type'  => 'nullable|string|max:50',
+            'remarks'       => 'nullable|string|max:1000',
+            'document_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $pmId = null;
+        $pm = PaymentMode::where('name', $validated['payment_mode'])->first();
+        if ($pm) {
+            $pmId = $pm->id;
+        }
+
+        $docPath = $payment->document_file;
+        if ($request->hasFile('document_file')) {
+            if ($docPath) {
+                Storage::disk('public')->delete($docPath);
+            }
+            $docPath = $request->file('document_file')->store('contractors/payments', 'public');
+        }
+
+        $payment->update([
+            'project_id'      => $validated['project_id'] ?? null,
+            'property_id'     => $validated['property_id'] ?? null,
+            'payment_mode_id' => $pmId,
+            'amount'          => (float)$validated['amount'],
+            'payment_date'    => $validated['payment_date'],
+            'payment_mode'    => $validated['payment_mode'],
+            'reference_no'    => $validated['reference_no'] ?? null,
+            'bank_name'       => $validated['bank_name'] ?? null,
+            'bill_no'         => $validated['bill_no'] ?? null,
+            'document_file'   => $docPath,
+            'payment_type'    => $validated['payment_type'] ?? 'Part Payment',
+            'remarks'         => $validated['remarks'] ?? null,
+            'updated_by'      => Auth::id(),
+        ]);
+
+        $contractor->recalculatePaymentStatus();
+
+        \App\Models\AuditLog::log(
+            'Contractor Management',
+            'Update Payment',
+            "Updated payment installment of ₹" . number_format($validated['amount'], 2) . " for contractor '{$contractor->contractor_name}'"
+        );
+
+        return redirect()->route('contractors.show', $contractor->id)
+            ->with('success', 'Payment installment updated and balances recalculated successfully.');
+    }
+
     public function destroyPayment(Contractor $contractor, ContractorPayment $payment)
     {
         $this->authorise($contractor);

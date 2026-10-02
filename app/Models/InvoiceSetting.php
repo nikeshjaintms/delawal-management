@@ -27,28 +27,17 @@ class InvoiceSetting extends Model
 
     /**
      * Generate the next invoice number for a given prefix type.
-     * Example: SAL-2026-0001
+     * Example: INV-2026-0002
      */
     public function generateNumber(string $type): string
     {
-        $prefixField = $type . '_prefix';
-        $prefix = $this->$prefixField ?? strtoupper(substr($type, 0, 3));
-
-        $year = $this->financialYear
-            ? substr($this->financialYear->year_name, 0, 4)
-            : date('Y');
-
-        $number = str_pad($this->current_number, 4, '0', STR_PAD_LEFT);
-
-        return "{$prefix}-{$year}-{$number}";
+        return Invoice::generateNextInvoiceNumber($type);
     }
 
     /** Increment current_number and return the generated invoice number */
     public function nextNumber(string $type): string
     {
-        $invoice = $this->generateNumber($type);
-        $this->increment('current_number');
-        return $invoice;
+        return Invoice::generateNextInvoiceNumber($type);
     }
 
     public static function activeSetting(): ?self

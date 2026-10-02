@@ -48,6 +48,7 @@ class PropertyMaster extends Model
         'broker_commission_paid',
         'broker_commission_due',
         'broker_commission_payment_mode',
+        'broker_commission_payment_date',
         'broker_commission_status',
         'broker_notes',
         'payment_mode',
@@ -77,6 +78,7 @@ class PropertyMaster extends Model
         'broker_commission_amount' => 'decimal:2',
         'broker_commission_paid' => 'decimal:2',
         'broker_commission_due' => 'decimal:2',
+        'broker_commission_payment_date' => 'date',
         'purchase_date' => 'date',
     ];
 

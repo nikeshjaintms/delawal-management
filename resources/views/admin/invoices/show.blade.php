@@ -305,7 +305,7 @@
             </div>
 
             <div style="text-align: right;">
-                <div class="addr-block-title">TAX INVOICE</div>
+                <div class="addr-block-title">{{ ((float)($invoice->tax_amount ?? 0) > 0 || (float)($invoice->tax_percent ?? 0) > 0) ? 'TAX INVOICE' : 'INVOICE / BILL' }}</div>
                 <div class="inv-no-badge">{{ $invoice->invoice_no }}</div>
                 <div style="font-size: 13px; color: #CBD5E1; margin-top: 4px;">
                     Date: <strong>{{ $invoice->invoice_date->format('d M, Y') }}</strong>
@@ -513,13 +513,28 @@
                                     @endif
                                 </div>
                             </div>
-                            <form action="{{ route('invoices.payments.destroy', [$invoice->id, $pmt->id]) }}" method="POST" onsubmit="return confirm('Delete this payment entry?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn-act btn-act-del" style="width: 28px; height: 28px; font-size: 11px;" title="Delete Payment">
-                                    <i class="fa-solid fa-trash-can"></i>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <button type="button" 
+                                    class="btn-act btn-act-edit" 
+                                    style="width: 28px; height: 28px; font-size: 11px; background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.38); color: #FBBF24; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" 
+                                    title="Edit Payment"
+                                    data-id="{{ $pmt->id }}"
+                                    data-amount="{{ $pmt->amount }}"
+                                    data-date="{{ $pmt->payment_date ? $pmt->payment_date->format('Y-m-d') : '' }}"
+                                    data-mode-id="{{ $pmt->payment_mode_id }}"
+                                    data-ref="{{ $pmt->transaction_reference ?? '' }}"
+                                    data-notes="{{ $pmt->notes ?? '' }}"
+                                    onclick="openEditInvoicePaymentModal(this)">
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
-                            </form>
+                                <form action="{{ route('invoices.payments.destroy', [$invoice->id, $pmt->id]) }}" method="POST" onsubmit="return confirm('Delete this payment entry?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-act btn-act-del" style="width: 28px; height: 28px; font-size: 11px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Delete Payment">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -590,6 +605,61 @@
     </div>
 </div>
 
+<!-- EDIT PAYMENT MODAL -->
+<div class="modal-overlay" id="editInvoicePaymentModal">
+    <div class="modal-content-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.10);">
+            <div style="font-size: 18px; font-weight: 800; color: #FFFFFF;">
+                <i class="fa-solid fa-pen-to-square" style="color: #FBBF24; margin-right: 6px;"></i> Edit Payment
+            </div>
+            <button type="button" onclick="closeEditInvoicePaymentModal()" style="background: none; border: none; color: #94A3B8; font-size: 18px; cursor: pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form method="POST" id="editInvoicePaymentForm" action="">
+            @csrf
+            @method('PUT')
+
+            <div class="form-group">
+                <label class="form-label">Payment Amount (₹) <span class="req">*</span></label>
+                <input type="number" step="0.01" min="0.01" name="amount" id="edit_inv_amount" class="f-control" required placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Payment Date <span class="req">*</span></label>
+                <input type="date" name="payment_date" id="edit_inv_payment_date" class="f-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Payment Mode</label>
+                <select name="payment_mode_id" id="edit_inv_payment_mode_id" class="f-control">
+                    @foreach($paymentModes as $pm)
+                        <option value="{{ $pm->id }}">{{ $pm->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Transaction / Cheque Reference</label>
+                <input type="text" name="transaction_reference" id="edit_inv_transaction_reference" class="f-control" placeholder="e.g. UTR12345678 or Chq #00123">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notes / Remarks</label>
+                <textarea name="notes" id="edit_inv_notes" class="f-control" rows="2" placeholder="Optional notes..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px;">
+                <button type="button" class="btn-secondary-custom" onclick="closeEditInvoicePaymentModal()">Cancel</button>
+                <button type="submit" class="btn-gold" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important; border: 1px solid #FBBF24 !important;">
+                    <i class="fa-solid fa-check"></i> Update Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openPaymentModal() {
     document.getElementById('paymentModal').style.display = 'flex';
@@ -597,5 +667,45 @@ function openPaymentModal() {
 function closePaymentModal() {
     document.getElementById('paymentModal').style.display = 'none';
 }
+
+function openEditInvoicePaymentModal(btn) {
+    const id = btn.dataset.id;
+    const amount = btn.dataset.amount;
+    const date = btn.dataset.date;
+    const modeId = btn.dataset.modeId;
+    const ref = btn.dataset.ref;
+    const notes = btn.dataset.notes;
+
+    const form = document.getElementById('editInvoicePaymentForm');
+    form.action = "{{ url('invoices/' . $invoice->id . '/payments') }}/" + id;
+
+    document.getElementById('edit_inv_amount').value = amount;
+    document.getElementById('edit_inv_payment_date').value = date;
+    if (modeId && document.getElementById('edit_inv_payment_mode_id')) {
+        document.getElementById('edit_inv_payment_mode_id').value = modeId;
+    }
+    document.getElementById('edit_inv_transaction_reference').value = ref;
+    document.getElementById('edit_inv_notes').value = notes;
+
+    document.getElementById('editInvoicePaymentModal').style.display = 'flex';
+}
+function closeEditInvoicePaymentModal() {
+    document.getElementById('editInvoicePaymentModal').style.display = 'none';
+}
+
+window.addEventListener('click', function(e) {
+    if (e.target === document.getElementById('paymentModal')) {
+        closePaymentModal();
+    }
+    if (e.target === document.getElementById('editInvoicePaymentModal')) {
+        closeEditInvoicePaymentModal();
+    }
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closePaymentModal();
+        closeEditInvoicePaymentModal();
+    }
+});
 </script>
 @endsection

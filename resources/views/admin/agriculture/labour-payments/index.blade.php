@@ -92,10 +92,27 @@ select.filter-control option { background: #0F172A !important; color: #FFFFFF !i
 .badge-adv-d  { background: rgba(168, 85, 247, 0.15) !important; color: #C084FC !important; border: 1px solid rgba(168, 85, 247, 0.30); padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; }
 .badge-bonus  { background: rgba(236, 72, 153, 0.15) !important; color: #F472B6 !important; border: 1px solid rgba(236, 72, 153, 0.30); padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; }
 
-.badge-synced { background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.25); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+.btn-edit {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(245, 158, 11, 0.15) !important; color: #FBBF24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important; text-decoration: none;
+    transition: all .2s; font-size: 12.5px;
+}
+.btn-edit:hover { background: #F59E0B !important; color: #000000 !important; transform: translateY(-2px); }
 
-.alert-success { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; color: #34D399 !important; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
-.pagination-wrapper { margin-top: 24px; display: flex; justify-content: center; }
+.btn-delete {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(239, 68, 68, 0.15) !important; color: #F87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.35) !important;
+    cursor: pointer; transition: all .2s; font-size: 12.5px;
+}
+.btn-delete:hover { background: #EF4444 !important; color: #FFFFFF !important; transform: translateY(-2px); }
+
+.action-btns-wrap {
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
 </style>
 
 <div class="crud-header">
@@ -308,15 +325,20 @@ select.filter-control option { background: #0F172A !important; color: #FFFFFF !i
                         @endif
                     </td>
                     <td>
-                        <form action="{{ route('agriculture.labour-payments.destroy', $p->id) }}" method="POST" id="del-p-{{ $p->id }}">
-                            @csrf @method('DELETE')
-                            <button type="button" class="btn-delete" title="Delete Payment Record"
-                                data-id="{{ $p->id }}"
-                                data-amount="{{ number_format($p->amount, 2) }}"
-                                onclick="confirmDeletePayment(this.dataset.id, this.dataset.amount)">
-                                <i class="fa fa-trash"></i>
-                            </button>
-                        </form>
+                        <div class="action-btns-wrap">
+                            <a href="{{ route('agriculture.labour-payments.edit', $p->id) }}" class="btn-edit" title="Edit Payment Record">
+                                <i class="fa fa-edit"></i>
+                            </a>
+                            <form action="{{ route('agriculture.labour-payments.destroy', $p->id) }}" method="POST" id="del-p-{{ $p->id }}">
+                                @csrf @method('DELETE')
+                                <button type="button" class="btn-delete" title="Delete Payment Record"
+                                    data-id="{{ $p->id }}"
+                                    data-amount="{{ number_format($p->amount, 2) }}"
+                                    onclick="confirmDeletePayment(this.dataset.id, this.dataset.amount)">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 @empty

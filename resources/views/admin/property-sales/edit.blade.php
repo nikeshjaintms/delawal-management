@@ -306,9 +306,9 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                             </div>
                         @endforeach
                     </div>
-                    <div id="no_plots_msg" style="display: none; text-align: center; padding: 30px 15px; color: #94A3B8; font-size: 13.5px;">
+                    <div id="no_plots_msg" style="{{ count($properties) === 0 ? 'display: block;' : 'display: none;' }} text-align: center; padding: 30px 15px; color: #94A3B8; font-size: 13.5px;">
                         <i class="fa-solid fa-circle-exclamation" style="font-size: 24px; margin-bottom: 8px; color: #64748B; display: block;"></i>
-                        No plots/units match the selected Property Master or search filter.
+                        {{ count($properties) === 0 ? 'All units/plots under this property have already been sold.' : 'No available plots/units match the selected Property Master or search filter.' }}
                     </div>
                 </div>
 
@@ -359,28 +359,85 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 </div>
             </div>
             <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label" for="broker_id">Broker / Agent (Optional)</label>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="seller_id">
+                        <i class="fa-solid fa-user-tie" style="color: #60A5FA;"></i> Registered Seller (Optional)
+                    </label>
+                    <select name="seller_id" id="seller_id" class="form-control @error('seller_id') is-invalid @enderror" onchange="handleSaleSellerChange(this)">
+                        <option value="">-- Select Registered Seller --</option>
+                        @if(isset($sellers))
+                            @foreach($sellers as $seller)
+                                <option value="{{ $seller->id }}" 
+                                         data-name="{{ $seller->name }}"
+                                         {{ old('seller_id', $propertySale->seller_id) == $seller->id ? 'selected' : '' }}>
+                                    {{ $seller->name }} {{ ($seller->mobile ?: $seller->phone) ? '— ' . ($seller->mobile ?: $seller->phone) : '' }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                    <div class="form-hint" style="color: #94A3B8;">Select an existing seller from system or leave empty.</div>
+                    @error('seller_id') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="sale_seller_name">
+                        <i class="fa-solid fa-user-tag" style="color: #93C5FD;"></i> Custom / Unregistered Seller Name
+                    </label>
+                    <input type="text" name="seller_name" id="sale_seller_name" 
+                           value="{{ old('seller_name', $propertySale->seller_name ?? ($propertySale->seller->name ?? '')) }}" 
+                           class="form-control @error('seller_name') is-invalid @enderror" 
+                           placeholder="e.g. Mukeshbhai Patel / Land Owner"
+                           oninput="handleSaleSellerNameInput(this)">
+                    <div class="form-hint" style="color: #BFDBFE;">Auto-populates from selected property or type any new name.</div>
+                    @error('seller_name') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="broker_id">
+                        <i class="fa-solid fa-user-tie" style="color: #A78BFA;"></i> Registered Broker (Optional)
+                    </label>
                     <select name="broker_id" id="broker_id" class="form-control @error('broker_id') is-invalid @enderror" onchange="handleSaleBrokerChange(this)">
-                        <option value="">-- Select Broker (Optional) --</option>
+                        <option value="">-- Select Registered Broker --</option>
                         @foreach($brokers as $broker)
                             <option value="{{ $broker->id }}" 
+                                     data-name="{{ $broker->name }}"
                                      data-commission="{{ $broker->commission_percentage ?? 0 }}"
                                      {{ old('broker_id', $propertySale->broker_id) == $broker->id ? 'selected' : '' }}>
                                 {{ $broker->name }} — {{ $broker->mobile }} {{ $broker->commission_percentage ? '(' . $broker->commission_percentage . '%)' : '' }}
                             </option>
                         @endforeach
                     </select>
+                    <div class="form-hint" style="color: #94A3B8;">Select an existing broker from system or leave empty.</div>
                     @error('broker_id') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label" for="sale_broker_name">
+                        <i class="fa-solid fa-user-tag" style="color: #A78BFA;"></i> Custom / Unregistered Broker Name
+                    </label>
+                    <input type="text" name="broker_name" id="sale_broker_name" 
+                           value="{{ old('broker_name', $propertySale->broker_name ?? ($propertySale->broker->name ?? '')) }}" 
+                           class="form-control @error('broker_name') is-invalid @enderror" 
+                           placeholder="e.g. Ramesh Patel / Direct Agent"
+                           oninput="handleSaleBrokerNameInput(this)">
+                    <div class="form-hint" style="color: #DDD6FE;">Auto-populates from selected broker or type any new name.</div>
+                    @error('broker_name') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
 
             <!-- Broker Commission Section -->
-            <div id="sale_broker_commission_box" style="{{ ($propertySale->broker_id || old('broker_id')) ? 'display:block;' : 'display:none;' }} background: rgba(167, 139, 250, 0.08); border: 1.5px solid rgba(167, 139, 250, 0.3); border-radius: 12px; padding: 16px; margin-top: 10px;">
-                <div style="font-size: 13px; font-weight: 700; color: #A78BFA; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-percent"></i> Broker Commission Details
+            <div id="sale_broker_commission_box" style="{{ ($propertySale->broker_id || $propertySale->broker_name || old('broker_id') || old('broker_name')) ? 'display:block;' : 'display:none;' }} background: rgba(167, 139, 250, 0.08); border: 1.5px solid rgba(167, 139, 250, 0.3); border-radius: 14px; padding: 18px; margin-top: 14px;">
+                <div style="font-size: 13.5px; font-weight: 800; color: #C4B5FD; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-hand-holding-dollar" style="color: #A78BFA;"></i> Broker &amp; Commission Payment Details
+                    </div>
+                    <span style="font-size: 11.5px; color: #DDD6FE; font-weight: normal;">(Auto-calculates brokerage &amp; links commission)</span>
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;">
+                
+                {{-- Row 1: Commission Type, Rate, Total, Paid, Due --}}
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 14px;">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label" style="color: #DDD6FE;">Commission Type</label>
                         <select name="broker_commission_type" id="sale_broker_comm_type" class="form-control" onchange="recalcSaleBrokerage()">
@@ -402,7 +459,40 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label" style="color: #FBBF24; font-weight: 700;">Commission Due (₹)</label>
-                        <input type="number" step="0.01" name="broker_commission_due" id="sale_broker_comm_due" value="{{ old('broker_commission_due', $propertySale->broker_commission_due ?? 0) }}" class="form-control" placeholder="0.00" readonly style="background: rgba(0,0,0,0.15);">
+                        <input type="number" step="0.01" name="broker_commission_due" id="sale_broker_comm_due" value="{{ old('broker_commission_due', $propertySale->broker_commission_due ?? 0) }}" class="form-control" placeholder="0.00" readonly style="background: rgba(0,0,0,0.20);">
+                    </div>
+                </div>
+
+                {{-- Row 2: Payment Mode, Payment Date, Commission Status, Broker Notes --}}
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; padding-top: 12px; border-top: 1px dashed rgba(167, 139, 250, 0.25);">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="color: #DDD6FE;">Broker Payment Mode</label>
+                        <select name="broker_commission_payment_mode" id="sale_broker_payment_mode" class="form-control">
+                            <option value="">— Select Mode —</option>
+                            <option value="Cash" {{ old('broker_commission_payment_mode', $propertySale->broker_commission_payment_mode) === 'Cash' ? 'selected' : '' }}>💵 Cash</option>
+                            <option value="Cheque" {{ old('broker_commission_payment_mode', $propertySale->broker_commission_payment_mode) === 'Cheque' ? 'selected' : '' }}>📝 Cheque</option>
+                            <option value="Bank Transfer / RTGS" {{ old('broker_commission_payment_mode', $propertySale->broker_commission_payment_mode) === 'Bank Transfer / RTGS' ? 'selected' : '' }}>🏦 Bank Transfer / RTGS</option>
+                            <option value="UPI" {{ old('broker_commission_payment_mode', $propertySale->broker_commission_payment_mode) === 'UPI' ? 'selected' : '' }}>📱 UPI (GPay/PhonePe)</option>
+                            <option value="Other" {{ old('broker_commission_payment_mode', $propertySale->broker_commission_payment_mode) === 'Other' ? 'selected' : '' }}>✨ Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="color: #34D399; font-weight: 700;">
+                            <i class="fa-regular fa-calendar-days"></i> Broker Payment Date
+                        </label>
+                        <input type="date" name="broker_commission_payment_date" id="sale_broker_payment_date" value="{{ old('broker_commission_payment_date', $propertySale->broker_commission_payment_date ? $propertySale->broker_commission_payment_date->format('Y-m-d') : '') }}" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="color: #DDD6FE;">Commission Status</label>
+                        <select name="broker_commission_status" id="sale_broker_comm_status" class="form-control" style="font-weight: 700;">
+                            <option value="unpaid" {{ old('broker_commission_status', $propertySale->broker_commission_status ?? 'unpaid') === 'unpaid' ? 'selected' : '' }}>Unpaid (0%)</option>
+                            <option value="partial" {{ old('broker_commission_status', $propertySale->broker_commission_status) === 'partial' ? 'selected' : '' }}>Partial Paid</option>
+                            <option value="paid" {{ old('broker_commission_status', $propertySale->broker_commission_status) === 'paid' ? 'selected' : '' }}>Full Paid (100%)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="color: #DDD6FE;">Broker Notes / Terms</label>
+                        <input type="text" name="broker_notes" id="sale_broker_notes" value="{{ old('broker_notes', $propertySale->broker_notes) }}" class="form-control" placeholder="e.g. 1% commission on registry">
                     </div>
                 </div>
             </div>
@@ -538,7 +628,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                             <span style="position: absolute; left: 14px; top: 11px; color: #93C5FD; font-weight: 700; font-size: 15px;">₹</span>
                             <input type="number" step="0.01" name="purchase_cost" id="purchase_cost"
                                    value="{{ old('purchase_cost', $propertySale->purchase_cost ?: ($propertySale->total_purchase_cost > 0 ? $propertySale->total_purchase_cost : '')) }}" class="form-control @error('purchase_cost') is-invalid @enderror"
-                                   placeholder="0.00" oninput="this.dataset.autoFilled = '0'; recalcDealAnalytics();"
+                                   placeholder="0.00" oninput="onPurchaseCostInput()"
                                    style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #93C5FD !important; border-color: rgba(147, 197, 253, 0.4) !important;">
                         </div>
                         <div class="form-hint" style="color: #94A3B8;">Acquisition cost (auto-fills / editable).</div>
@@ -1143,6 +1233,7 @@ function onAreaOrRateChange() {
     const unitSelect = document.getElementById('area_unit');
     const pRateInput = document.getElementById('purchase_rate');
     const sRateInput = document.getElementById('sell_rate');
+    const purchaseCostInput = document.getElementById('purchase_cost');
     const saleAmountInput = document.getElementById('sale_amount');
 
     const area = parseFloat(areaInput ? areaInput.value : 0) || 0;
@@ -1150,7 +1241,7 @@ function onAreaOrRateChange() {
     const pRate = parseFloat(pRateInput ? pRateInput.value : 0) || 0;
     const sRate = parseFloat(sRateInput ? sRateInput.value : 0) || 0;
 
-    // 1. Base Purchase Calc Box
+    // 1. Base Purchase Calc Box & Auto-Update Purchase Cost
     const purchCard = document.getElementById('calcPurchasePriceCard');
     const purchText = document.getElementById('calcPurchasePriceText');
     const purchFormula = document.getElementById('calcPurchasePriceFormula');
@@ -1160,11 +1251,24 @@ function onAreaOrRateChange() {
         if (purchCard) purchCard.style.display = 'block';
         if (purchText) purchText.innerText = '₹ ' + calcPurch.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         if (purchFormula) purchFormula.innerText = `(${area.toLocaleString('en-IN')} ${unit} × ₹${pRate.toLocaleString('en-IN')})`;
+
+        if (purchaseCostInput) {
+            purchaseCostInput.value = calcPurch.toFixed(2);
+        }
+    } else if (purchaseCostInput && parseFloat(purchaseCostInput.value) > 0 && area > 0) {
+        const derivedRate = parseFloat(purchaseCostInput.value) / area;
+        if (pRateInput && (!pRateInput.value || pRateInput.dataset.autoFilled === '1')) {
+            pRateInput.value = derivedRate.toFixed(2);
+            pRateInput.dataset.autoFilled = '1';
+        }
+        if (purchCard) purchCard.style.display = 'block';
+        if (purchText) purchText.innerText = '₹ ' + parseFloat(purchaseCostInput.value).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        if (purchFormula) purchFormula.innerText = `(${area.toLocaleString('en-IN')} ${unit} × ₹${derivedRate.toLocaleString('en-IN', {maximumFractionDigits: 2})})`;
     } else {
         if (purchCard) purchCard.style.display = 'none';
     }
 
-    // 2. Sell Calc Box
+    // 2. Sell Calc Box & Auto-Update Sale Amount
     const saleCard = document.getElementById('calcSalePriceCard');
     const saleText = document.getElementById('calcSalePriceText');
     const saleFormula = document.getElementById('calcSalePriceFormula');
@@ -1175,11 +1279,8 @@ function onAreaOrRateChange() {
         if (saleText) saleText.innerText = '₹ ' + calcSale.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         if (saleFormula) saleFormula.innerText = `(${area.toLocaleString('en-IN')} ${unit} × ₹${sRate.toLocaleString('en-IN')})`;
 
-        if (saleAmountInput && (!saleAmountInput.value || saleAmountInput.dataset.autoFilled === '1')) {
+        if (saleAmountInput) {
             saleAmountInput.value = calcSale.toFixed(2);
-            calcRemaining();
-            recalcDealAnalytics();
-            recalcSaleBrokerage();
         }
     } else if (saleAmountInput && parseFloat(saleAmountInput.value) > 0 && area > 0) {
         const derivedRate = parseFloat(saleAmountInput.value) / area;
@@ -1193,6 +1294,42 @@ function onAreaOrRateChange() {
     } else {
         if (saleCard) saleCard.style.display = 'none';
     }
+
+    calcRemaining();
+    recalcSaleBrokerage();
+    recalcDealAnalytics();
+}
+
+function onPurchaseCostInput() {
+    const areaInput = document.getElementById('total_area');
+    const pRateInput = document.getElementById('purchase_rate');
+    const purchaseCostInput = document.getElementById('purchase_cost');
+    const unitSelect = document.getElementById('area_unit');
+
+    if (purchaseCostInput) purchaseCostInput.dataset.autoFilled = '0';
+
+    const area = parseFloat(areaInput ? areaInput.value : 0) || 0;
+    const unit = unitSelect ? unitSelect.value : 'Sq.Ft';
+    const cost = parseFloat(purchaseCostInput ? purchaseCostInput.value : 0) || 0;
+
+    const purchCard = document.getElementById('calcPurchasePriceCard');
+    const purchText = document.getElementById('calcPurchasePriceText');
+    const purchFormula = document.getElementById('calcPurchasePriceFormula');
+
+    if (area > 0 && cost > 0) {
+        const derivedRate = cost / area;
+        if (pRateInput) {
+            pRateInput.value = derivedRate.toFixed(2);
+            pRateInput.dataset.autoFilled = '1';
+        }
+        if (purchCard) purchCard.style.display = 'block';
+        if (purchText) purchText.innerText = '₹ ' + cost.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        if (purchFormula) purchFormula.innerText = `(${area.toLocaleString('en-IN')} ${unit} × ₹${derivedRate.toLocaleString('en-IN', {maximumFractionDigits: 2})})`;
+    } else {
+        if (purchCard) purchCard.style.display = 'none';
+    }
+
+    recalcDealAnalytics();
 }
 
 function onSellRateChange() {
@@ -1219,13 +1356,14 @@ function onSellRateChange() {
 
         if (saleAmountInput) {
             saleAmountInput.value = calcSale.toFixed(2);
-            calcRemaining();
-            recalcDealAnalytics();
-            recalcSaleBrokerage();
         }
     } else {
         if (saleCard) saleCard.style.display = 'none';
     }
+
+    calcRemaining();
+    recalcSaleBrokerage();
+    recalcDealAnalytics();
 }
 
 function onSaleAmountInput() {
@@ -1233,6 +1371,8 @@ function onSaleAmountInput() {
     const unitSelect = document.getElementById('area_unit');
     const sRateInput = document.getElementById('sell_rate');
     const saleAmountInput = document.getElementById('sale_amount');
+
+    if (saleAmountInput) saleAmountInput.dataset.autoFilled = '0';
 
     const area = parseFloat(areaInput ? areaInput.value : 0) || 0;
     const unit = unitSelect ? unitSelect.value : 'Sq.Ft';
@@ -1588,23 +1728,59 @@ function syncProjectsForSelectedMaster(preferredProjectId = null) {
     }
 }
 
+function handleSaleSellerChange(select) {
+    const sellerNameInput = document.getElementById('sale_seller_name');
+    if (select && select.value) {
+        const opt = select.options[select.selectedIndex];
+        const sName = opt ? opt.getAttribute('data-name') : '';
+        if (sellerNameInput && sName) {
+            sellerNameInput.value = sName;
+        }
+    }
+}
+
+function handleSaleSellerNameInput(input) {
+    // Custom seller name input handler
+}
+
 function handleSaleBrokerChange(select) {
     const box = document.getElementById('sale_broker_commission_box');
     const rateInput = document.getElementById('sale_broker_comm_rate');
     const typeSelect = document.getElementById('sale_broker_comm_type');
+    const brokerNameInput = document.getElementById('sale_broker_name');
 
     if (select && select.value) {
         if (box) box.style.display = 'block';
         const opt = select.options[select.selectedIndex];
+        const bName = opt ? opt.getAttribute('data-name') : '';
         const comm = opt ? opt.getAttribute('data-commission') : null;
+
+        if (brokerNameInput && bName) {
+            brokerNameInput.value = bName;
+        }
+
         if (comm && parseFloat(comm) > 0 && rateInput && (!rateInput.value || parseFloat(rateInput.value) === 0)) {
             rateInput.value = comm;
             if (typeSelect) typeSelect.value = 'percentage';
         }
     } else {
-        if (box) box.style.display = 'none';
+        if (brokerNameInput && !brokerNameInput.value.trim()) {
+            if (box) box.style.display = 'none';
+        }
     }
     recalcSaleBrokerage();
+}
+
+function handleSaleBrokerNameInput(input) {
+    const box = document.getElementById('sale_broker_commission_box');
+    const brokerSelect = document.getElementById('broker_id');
+    if (input && input.value.trim().length > 0) {
+        if (box) box.style.display = 'block';
+    } else {
+        if (!brokerSelect || !brokerSelect.value) {
+            if (box) box.style.display = 'none';
+        }
+    }
 }
 
 function recalcSaleBrokerage() {
@@ -1634,9 +1810,11 @@ function recalcSaleBrokerage() {
 }
 
 function recalcSaleBrokerageDue() {
-    const amountInput = document.getElementById('sale_broker_comm_amount');
-    const paidInput   = document.getElementById('sale_broker_comm_paid');
-    const dueInput    = document.getElementById('sale_broker_comm_due');
+    const amountInput  = document.getElementById('sale_broker_comm_amount');
+    const paidInput    = document.getElementById('sale_broker_comm_paid');
+    const dueInput     = document.getElementById('sale_broker_comm_due');
+    const statusSelect = document.getElementById('sale_broker_comm_status');
+    const dateInput    = document.getElementById('sale_broker_payment_date');
 
     if (!amountInput || !paidInput || !dueInput) return;
 
@@ -1645,6 +1823,29 @@ function recalcSaleBrokerageDue() {
     const due    = Math.max(0, amount - paid);
 
     dueInput.value = due.toFixed(2);
+
+    if (statusSelect) {
+        if (amount > 0) {
+            if (paid >= amount) {
+                statusSelect.value = 'paid';
+            } else if (paid > 0) {
+                statusSelect.value = 'partial';
+            } else {
+                statusSelect.value = 'unpaid';
+            }
+        } else {
+            statusSelect.value = 'unpaid';
+        }
+    }
+
+    if (paid > 0 && dateInput && !dateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+
+    if (typeof recalcDealAnalytics === 'function') {
+        recalcDealAnalytics();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1700,6 +1901,34 @@ document.addEventListener('DOMContentLoaded', function() {
     onSaleScopeChange();
     syncAllCardsFromSelect();
     updatePlotsCalculation();
+
+    const areaInputEl = document.getElementById('total_area');
+    const pRateInputEl = document.getElementById('purchase_rate');
+    const sRateInputEl = document.getElementById('sell_rate');
+    const pCostInputEl = document.getElementById('purchase_cost');
+    const sAmountInputEl = document.getElementById('sale_amount');
+
+    const initArea = parseFloat(areaInputEl ? areaInputEl.value : 0) || 0;
+    const initPCost = parseFloat(pCostInputEl ? pCostInputEl.value : 0) || 0;
+    const initSAmt = parseFloat(sAmountInputEl ? sAmountInputEl.value : 0) || 0;
+    const initPRate = parseFloat(pRateInputEl ? pRateInputEl.value : 0) || 0;
+    const initSRate = parseFloat(sRateInputEl ? sRateInputEl.value : 0) || 0;
+
+    if (initArea > 0) {
+        if (initPCost > 0 && (!initPRate || initPRate === 0) && pRateInputEl) {
+            pRateInputEl.value = (initPCost / initArea).toFixed(2);
+        } else if (initPRate > 0 && (!initPCost || initPCost === 0) && pCostInputEl) {
+            pCostInputEl.value = (initArea * initPRate).toFixed(2);
+        }
+
+        if (initSAmt > 0 && (!initSRate || initSRate === 0) && sRateInputEl) {
+            sRateInputEl.value = (initSAmt / initArea).toFixed(2);
+        } else if (initSRate > 0 && (!initSAmt || initSAmt === 0) && sAmountInputEl) {
+            sAmountInputEl.value = (initArea * initSRate).toFixed(2);
+        }
+    }
+
+    onAreaOrRateChange();
     recalcSaleBrokerageDue();
     recalcDealAnalytics();
 

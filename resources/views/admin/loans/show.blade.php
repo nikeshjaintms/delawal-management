@@ -586,16 +586,31 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
                         <td style="color:#CBD5E1;max-width:220px;white-space:normal;">{{ $payment->remarks ?? '—' }}</td>
                         <td style="color:#94A3B8;font-size:12px;">{{ $payment->creator->name ?? 'Admin' }}</td>
                         <td style="text-align:center;">
-                            <form action="{{ route('loans.payments.destroy', [$loan->id, $payment->id]) }}" method="POST" id="del-payment-{{ $payment->id }}" style="display:inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" class="btn-delete" title="Delete Payment Record"
+                            <div style="display:inline-flex;align-items:center;gap:6px;">
+                                <button type="button" 
+                                    class="btn-edit-loan-pay" 
+                                    style="background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.38); color: #FBBF24; border-radius: 8px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 12px;" 
+                                    title="Edit Payment Record"
                                     data-id="{{ $payment->id }}"
-                                    data-amount="{{ number_format($payment->amount, 2) }}"
-                                    onclick="confirmDeletePayment(this.dataset.id, this.dataset.amount)">
-                                    <i class="fa fa-trash"></i>
+                                    data-amount="{{ $payment->amount }}"
+                                    data-date="{{ $payment->payment_date ? \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') : '' }}"
+                                    data-mode-id="{{ $payment->payment_mode_id }}"
+                                    data-ref="{{ $payment->reference_no ?? '' }}"
+                                    data-remarks="{{ $payment->remarks ?? '' }}"
+                                    onclick="openEditLoanPaymentModal(this)">
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
-                            </form>
+                                <form action="{{ route('loans.payments.destroy', [$loan->id, $payment->id]) }}" method="POST" id="del-payment-{{ $payment->id }}" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button" class="btn-delete" title="Delete Payment Record"
+                                        data-id="{{ $payment->id }}"
+                                        data-amount="{{ number_format($payment->amount, 2) }}"
+                                        onclick="confirmDeletePayment(this.dataset.id, this.dataset.amount)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @endforeach
@@ -692,6 +707,59 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
     </div>
 </div>
 
+{{-- Edit Loan Direct Payment Modal --}}
+<div class="modal-overlay" id="editLoanPaymentModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-pen-to-square" style="color:#FBBF24;"></i> Edit Payment Record</h3>
+            <button type="button" class="modal-close" onclick="closeEditLoanPaymentModal()">&times;</button>
+        </div>
+        <form method="POST" id="editLoanPaymentForm" action="">
+            @csrf
+            @method('PUT')
+
+            <div class="form-group-modal">
+                <label class="form-label-modal">Amount (₹) <span>*</span></label>
+                <input type="number" step="0.01" min="0.01" name="paid_amount" id="edit_loan_paid_amount" class="form-control-modal" required placeholder="0.00">
+            </div>
+
+            <div class="form-group-modal">
+                <label class="form-label-modal">Payment Date <span>*</span></label>
+                <input type="date" name="payment_date" id="edit_loan_payment_date" class="form-control-modal" required>
+            </div>
+
+            <div class="form-group-modal">
+                <label class="form-label-modal">Payment Mode</label>
+                <select name="payment_mode_id" id="edit_loan_payment_mode_id" class="form-control-modal">
+                    <option value="">— Select Payment Mode —</option>
+                    @if(isset($paymentModes))
+                        @foreach($paymentModes as $pm)
+                            <option value="{{ $pm->id }}">{{ $pm->name }}</option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+
+            <div class="form-group-modal">
+                <label class="form-label-modal">Reference / UTR / Cheque No.</label>
+                <input type="text" name="reference_no" id="edit_loan_reference_no" class="form-control-modal" placeholder="Optional reference number">
+            </div>
+
+            <div class="form-group-modal">
+                <label class="form-label-modal">Remarks</label>
+                <textarea name="remarks" id="edit_loan_remarks" class="form-control-modal" rows="2" placeholder="Payment notes..."></textarea>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-top:22px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
+                <button type="submit" class="btn-green" style="flex:1;justify-content:center;background:linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;border:1px solid #FBBF24 !important;">
+                    <i class="fa-solid fa-check"></i> Update Payment
+                </button>
+                <button type="button" class="btn-outline" onclick="closeEditLoanPaymentModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function openDirectPayModal() {
@@ -700,8 +768,43 @@ function openDirectPayModal() {
 function closeDirectPayModal() {
     document.getElementById('directPayModal').classList.remove('active');
 }
-document.getElementById('directPayModal').addEventListener('click', function(e) {
+
+function openEditLoanPaymentModal(btn) {
+    const id = btn.dataset.id;
+    const amount = btn.dataset.amount;
+    const date = btn.dataset.date;
+    const modeId = btn.dataset.modeId;
+    const ref = btn.dataset.ref;
+    const remarks = btn.dataset.remarks;
+
+    const form = document.getElementById('editLoanPaymentForm');
+    form.action = "{{ url('loans/' . $loan->id . '/payments') }}/" + id;
+
+    document.getElementById('edit_loan_paid_amount').value = amount;
+    document.getElementById('edit_loan_payment_date').value = date;
+    if (modeId && document.getElementById('edit_loan_payment_mode_id')) {
+        document.getElementById('edit_loan_payment_mode_id').value = modeId;
+    }
+    document.getElementById('edit_loan_reference_no').value = ref;
+    document.getElementById('edit_loan_remarks').value = remarks;
+
+    document.getElementById('editLoanPaymentModal').classList.add('active');
+}
+function closeEditLoanPaymentModal() {
+    document.getElementById('editLoanPaymentModal').classList.remove('active');
+}
+
+document.getElementById('directPayModal')?.addEventListener('click', function(e) {
     if (e.target === this) closeDirectPayModal();
+});
+document.getElementById('editLoanPaymentModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeEditLoanPaymentModal();
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDirectPayModal();
+        closeEditLoanPaymentModal();
+    }
 });
 
 function confirmDeletePayment(id, amount) {

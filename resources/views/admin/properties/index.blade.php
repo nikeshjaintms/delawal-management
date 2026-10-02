@@ -317,10 +317,16 @@
                 @endforeach
             </select>
 
+            <select name="status" class="search-input" onchange="this.form.submit()" style="max-width: 170px;">
+                <option value="" {{ request('status') === '' || !request()->has('status') ? 'selected' : '' }}>Available / Active (Unsold)</option>
+                <option value="sold" {{ request('status') === 'sold' ? 'selected' : '' }}>Sold</option>
+                <option value="all" {{ request('status') === 'all' ? 'selected' : '' }}>All Statuses</option>
+            </select>
+
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="Search by name, code, location, city..." class="search-input @error('search') is-invalid @enderror">
             <button type="submit" class="btn-search">Search</button>
-            @if(request('search') || request('firm_id') || request('project_id'))
+            @if(request()->hasAny(['search', 'firm_id', 'project_id', 'status']))
                 <a href="{{ route('properties.index') }}" class="btn-reset">Reset</a>
             @endif
         </form>

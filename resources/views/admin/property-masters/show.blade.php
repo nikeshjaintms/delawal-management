@@ -835,6 +835,16 @@
                         <span style="color: #34D399;">Paid: ₹{{ number_format($propertyMaster->broker_commission_paid ?? 0, 2) }}</span> | 
                         <span style="color: #FBBF24;">Due: ₹{{ number_format($propertyMaster->broker_commission_due ?? 0, 2) }}</span>
                     </div>
+                    @if($propertyMaster->broker_commission_payment_mode || $propertyMaster->broker_commission_payment_date)
+                        <div style="font-size: 11px; color: #94A3B8; margin-top: 3px; font-weight: 500;">
+                            @if($propertyMaster->broker_commission_payment_mode)
+                                <span>Mode: {{ $propertyMaster->broker_commission_payment_mode }}</span>
+                            @endif
+                            @if($propertyMaster->broker_commission_payment_date)
+                                <span>{{ $propertyMaster->broker_commission_payment_mode ? ' • ' : '' }}Date: {{ \Carbon\Carbon::parse($propertyMaster->broker_commission_payment_date)->format('d M Y') }}</span>
+                            @endif
+                        </div>
+                    @endif
                 </span>
             </div>
             @endif
@@ -1068,7 +1078,13 @@
                             <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #94A3B8; font-size: 13px;">
                                 {{ $pmt->remarks ?: '—' }}
                             </td>
-                            <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: right;">
+                            <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: right; white-space: nowrap;">
+                                <button type="button" 
+                                        onclick='openEditPaymentModal(@json($pmt))' 
+                                        style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60A5FA; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s; margin-right: 6px;" 
+                                        title="Edit Payment Record">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
                                 <form action="{{ route('property-masters.payments.destroy', [$propertyMaster->id, $pmt->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this payment record of ₹{{ number_format($pmt->amount, 2) }}?');" style="display: inline;">
                                     @csrf
                                     @method('DELETE')
@@ -1132,7 +1148,6 @@
             <button type="button" class="filter-tab-btn" onclick="filterPlots('in-project', this)">In Project ({{ $assignedPlots }})</button>
             <button type="button" class="filter-tab-btn" onclick="filterPlots('booked', this)">Booked ({{ $bookedPlots }})</button>
             <button type="button" class="filter-tab-btn" onclick="filterPlots('rented', this)">Rented ({{ $rentedPlots }})</button>
-            <button type="button" class="filter-tab-btn" onclick="filterPlots('sold', this)">Sold ({{ $soldPlots }})</button>
         </div>
 
         <div class="search-input-wrap">
@@ -1709,6 +1724,91 @@
     </div>
 </div>
 
+<!-- ================================================================
+     MODAL 5: EDIT PAYMENT INSTALLMENT
+================================================================ -->
+<div class="modal-backdrop-custom" id="editPaymentModal">
+    <div class="modal-box-custom">
+        <div class="modal-header-custom">
+            <h3><i class="fa-solid fa-pen-to-square" style="color: #60A5FA;"></i> Edit Payment Record</h3>
+            <button type="button" class="modal-close-btn" onclick="closeModal('editPaymentModal')">&times;</button>
+        </div>
+        <form id="editPaymentForm" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="modal-body-custom">
+                <!-- Info Summary -->
+                <div style="background: rgba(30, 41, 59, 0.60); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <div style="font-size: 11px; text-transform: uppercase; color: #94A3B8; font-weight: 700;">Property</div>
+                        <div style="font-size: 14px; font-weight: 800; color: #FFFFFF;">{{ $propertyMaster->property_name }}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 11px; text-transform: uppercase; color: #60A5FA; font-weight: 700;">Action</div>
+                        <div style="font-size: 13px; font-weight: 700; color: #93C5FD;">Update Entry / Fix Errors</div>
+                    </div>
+                </div>
+
+                <div class="m-form-row">
+                    <div class="m-form-group">
+                        <label class="m-form-label">Payment Date <span style="color: #F87171;">*</span></label>
+                        <input type="date" name="payment_date" id="edit_pm_payment_date" class="m-form-control" required>
+                    </div>
+                    <div class="m-form-group">
+                        <label class="m-form-label">Payment Amount (₹) <span style="color: #F87171;">*</span></label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 12px; top: 9px; color: #34D399; font-weight: 800;">₹</span>
+                            <input type="number" step="0.01" min="0.01" name="amount" id="edit_pm_amount"
+                                   class="m-form-control" style="padding-left: 28px; font-weight: 800; color: #34D399;" required placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="m-form-group" style="margin-bottom: 16px;">
+                    <label class="m-form-label">Payment Mode <span style="color: #F87171;">*</span></label>
+                    <select name="payment_mode" id="edit_pm_payment_mode" class="m-form-control" onchange="toggleEditPmPaymentModeFields(this.value)" required>
+                        <option value="Cash">💵 Cash</option>
+                        <option value="Cheque">📝 Cheque / Check</option>
+                        <option value="Bank Transfer / RTGS / NEFT">🏦 Bank Transfer / RTGS / NEFT</option>
+                        <option value="UPI">📱 UPI (GPay / PhonePe / Paytm)</option>
+                        <option value="Demand Draft">📜 Demand Draft (DD)</option>
+                        <option value="Other">✨ Other</option>
+                        @if(isset($paymentModes))
+                            @foreach($paymentModes as $pm)
+                                @if(!in_array($pm->name, ['Cash', 'Cheque', 'Bank Transfer / RTGS / NEFT', 'UPI', 'Demand Draft', 'Other']))
+                                    <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                @endif
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+
+                <div class="m-form-row">
+                    <div class="m-form-group">
+                        <label class="m-form-label" id="edit_pm_ref_label">Cheque / Ref / UTR No.</label>
+                        <input type="text" name="reference_no" id="edit_pm_reference_no" class="m-form-control" placeholder="e.g. CHQ-481920">
+                    </div>
+                    <div class="m-form-group">
+                        <label class="m-form-label">Bank Name / Branch</label>
+                        <input type="text" name="bank_name" id="edit_pm_bank_name" class="m-form-control" placeholder="e.g. HDFC Bank, Surat">
+                    </div>
+                </div>
+
+                <div class="m-form-group">
+                    <label class="m-form-label">Remarks / Note <span style="font-size: 11px; opacity: 0.7;">(optional)</span></label>
+                    <textarea name="remarks" id="edit_pm_remarks" rows="2" class="m-form-control" placeholder="e.g. Correction of installment note"></textarea>
+                </div>
+            </div>
+            <div style="padding: 16px 24px; border-top: 1px solid rgba(255, 255, 255, 0.10); display: flex; justify-content: flex-end; gap: 10px; background: rgba(30, 41, 59, 0.50);">
+                <button type="button" class="btn-secondary-custom" onclick="closeModal('editPaymentModal')">Cancel</button>
+                <button type="submit" class="btn-primary-custom" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important; border-color: #60A5FA !important; color: #FFFFFF; font-weight: 700; padding: 8px 18px; border-radius: 8px; cursor: pointer;">
+                    <i class="fa-solid fa-check"></i> Update Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openModal(id) {
     const modal = document.getElementById(id);
@@ -1743,6 +1843,42 @@ function togglePmPaymentModeFields(mode) {
         refLabel.innerText = 'Reference / Receipt No.';
         refNo.placeholder = 'Optional Reference';
     }
+}
+
+function toggleEditPmPaymentModeFields(mode) {
+    const refLabel = document.getElementById('edit_pm_ref_label');
+    const refNo = document.getElementById('edit_pm_reference_no');
+    if (!refLabel || !refNo) return;
+
+    if (mode === 'Cheque') {
+        refLabel.innerText = 'Cheque Number *';
+        refNo.placeholder = 'e.g. 6 Digit Cheque #';
+    } else if (mode.includes('UPI')) {
+        refLabel.innerText = 'UPI Transaction / Ref ID';
+        refNo.placeholder = 'e.g. UPI Ref # 3291823901';
+    } else if (mode.includes('Bank') || mode.includes('RTGS') || mode.includes('NEFT')) {
+        refLabel.innerText = 'UTR / Transfer Ref No.';
+        refNo.placeholder = 'e.g. UTR / Ref No.';
+    } else {
+        refLabel.innerText = 'Reference / Receipt No.';
+        refNo.placeholder = 'Optional Reference';
+    }
+}
+
+function openEditPaymentModal(payment) {
+    if (!payment) return;
+    const form = document.getElementById('editPaymentForm');
+    form.action = "{{ url('property-masters/' . $propertyMaster->id . '/payments') }}/" + payment.id;
+    
+    document.getElementById('edit_pm_payment_date').value = payment.payment_date ? payment.payment_date.substring(0, 10) : '';
+    document.getElementById('edit_pm_amount').value = payment.amount || '';
+    document.getElementById('edit_pm_payment_mode').value = payment.payment_mode || 'Cash';
+    document.getElementById('edit_pm_reference_no').value = payment.reference_no || '';
+    document.getElementById('edit_pm_bank_name').value = payment.bank_name || '';
+    document.getElementById('edit_pm_remarks').value = payment.remarks || '';
+    
+    toggleEditPmPaymentModeFields(payment.payment_mode || 'Cash');
+    openModal('editPaymentModal');
 }
 
 window.addEventListener('click', function(e) {

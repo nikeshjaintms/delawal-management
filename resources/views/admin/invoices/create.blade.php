@@ -445,9 +445,14 @@
                         @endif
                     </select>
                 </div>
-                <button type="button" class="btn-auto-action btn-auto-blue" onclick="trigger1ClickAutoGenerate('sale')">
-                    <i class="fa-solid fa-bolt"></i> 1-Click Auto-Create Invoice
-                </button>
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <button type="button" class="btn-auto-action btn-auto-blue" style="margin-top: 0; font-size: 12px; padding: 9px 10px;" onclick="trigger1ClickAutoGenerate('sale', 'with_gst')">
+                        <i class="fa-solid fa-receipt"></i> With GST (18%)
+                    </button>
+                    <button type="button" class="btn-auto-action" style="background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%) !important; color: #FFFFFF !important; border: 1px solid #2DD4BF !important; margin-top: 0; font-size: 12px; padding: 9px 10px;" onclick="trigger1ClickAutoGenerate('sale', 'without_gst')">
+                        <i class="fa-solid fa-file-lines"></i> Without GST (0%)
+                    </button>
+                </div>
             </div>
 
             {{-- Booking Selector --}}
@@ -467,9 +472,14 @@
                         @endif
                     </select>
                 </div>
-                <button type="button" class="btn-auto-action btn-auto-green" onclick="trigger1ClickAutoGenerate('booking')">
-                    <i class="fa-solid fa-bolt"></i> 1-Click Auto-Create Invoice
-                </button>
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <button type="button" class="btn-auto-action btn-auto-green" style="margin-top: 0; font-size: 12px; padding: 9px 10px;" onclick="trigger1ClickAutoGenerate('booking', 'with_gst')">
+                        <i class="fa-solid fa-receipt"></i> With GST (18%)
+                    </button>
+                    <button type="button" class="btn-auto-action" style="background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%) !important; color: #FFFFFF !important; border: 1px solid #2DD4BF !important; margin-top: 0; font-size: 12px; padding: 9px 10px;" onclick="trigger1ClickAutoGenerate('booking', 'without_gst')">
+                        <i class="fa-solid fa-file-lines"></i> Without GST (0%)
+                    </button>
+                </div>
             </div>
 
             {{-- Rental Selector --}}
@@ -489,9 +499,14 @@
                         @endif
                     </select>
                 </div>
-                <button type="button" class="btn-auto-action btn-auto-amber" onclick="trigger1ClickAutoGenerate('rental')">
-                    <i class="fa-solid fa-bolt"></i> 1-Click Auto-Create Invoice
-                </button>
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <button type="button" class="btn-auto-action btn-auto-amber" style="margin-top: 0; font-size: 12px; padding: 9px 10px;" onclick="trigger1ClickAutoGenerate('rental', 'with_gst')">
+                        <i class="fa-solid fa-receipt"></i> With GST (18%)
+                    </button>
+                    <button type="button" class="btn-auto-action" style="background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%) !important; color: #FFFFFF !important; border: 1px solid #2DD4BF !important; margin-top: 0; font-size: 12px; padding: 9px 10px;" onclick="trigger1ClickAutoGenerate('rental', 'without_gst')">
+                        <i class="fa-solid fa-file-lines"></i> Without GST (0%)
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1085,7 +1100,7 @@ function autoFillFromRecord(type, id) {
         });
 }
 
-function trigger1ClickAutoGenerate(type) {
+function trigger1ClickAutoGenerate(type, gstMode) {
     let selectEl = null;
     if (type === 'sale') selectEl = document.getElementById('quickPropertySaleSelect');
     else if (type === 'booking') selectEl = document.getElementById('quickBookingSelect');
@@ -1097,7 +1112,8 @@ function trigger1ClickAutoGenerate(type) {
     }
 
     const sourceId = selectEl.value;
-    window.location.href = `{{ route('invoices.auto-generate') }}?source_type=${type}&source_id=${sourceId}`;
+    const mode = gstMode || 'with_gst';
+    window.location.href = `{{ route('invoices.auto-generate') }}?source_type=${type}&source_id=${sourceId}&gst_mode=${mode}`;
 }
 
 function loadRecipientData(type, id) {

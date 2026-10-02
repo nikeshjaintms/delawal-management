@@ -42,7 +42,7 @@ class FirmRequest extends FormRequest
         $rules = [
             'firm_name' => 'required|string|max:255',
             'owner_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:firms,email,' . ($id ?: 'NULL') . ',id',
+            'email' => 'required|email|max:255',
             'mobile' => 'required|digits:10|regex:/^[0-9]{10}$/',
             'alternate_mobile' => 'nullable|digits:10|regex:/^[0-9]{10}$/',
             'address' => 'nullable|string|max:1000',

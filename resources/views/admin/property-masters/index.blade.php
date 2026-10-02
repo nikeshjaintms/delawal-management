@@ -142,13 +142,18 @@
 
 <div class="table-card">
     <div class="table-toolbar">
-        <form method="GET" action="{{ route('property-masters.index') }}" class="search-form" style="max-width: 780px;">
+        <form method="GET" action="{{ route('property-masters.index') }}" class="search-form" style="max-width: 860px;">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search Property Name, Code, City..." class="search-input">
-            <select name="property_type" class="search-input" style="max-width: 180px;" onchange="this.form.submit()">
+            <select name="property_type" class="search-input" style="max-width: 170px;" onchange="this.form.submit()">
                 <option value="">All Property Types</option>
                 @foreach($propertyTypes as $k => $lbl)
                     <option value="{{ $k }}" {{ request('property_type') === $k ? 'selected' : '' }}>{{ $k }}</option>
                 @endforeach
+            </select>
+            <select name="status" class="search-input" style="max-width: 160px;" onchange="this.form.submit()">
+                <option value="" {{ request('status') === '' || !request()->has('status') ? 'selected' : '' }}>Active / Unsold</option>
+                <option value="sold" {{ request('status') === 'sold' ? 'selected' : '' }}>Sold</option>
+                <option value="all" {{ request('status') === 'all' ? 'selected' : '' }}>All Statuses</option>
             </select>
             <button type="submit" class="btn-search">Filter</button>
             @if(request()->hasAny(['search', 'status', 'firm_id', 'property_type']))

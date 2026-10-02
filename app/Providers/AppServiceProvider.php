@@ -120,16 +120,19 @@ class AppServiceProvider extends ServiceProvider
 
         foreach ($models as $modelClass) {
             if (class_exists($modelClass)) {
-                // Apply global data isolation scope for firm_id and financial_year
-                $modelClass::addGlobalScope('data_isolation', function (\Illuminate\Database\Eloquent\Builder $builder) use ($modelClass) {
-                    // Filter by Firm ID
-                    if (session('login_type') === 'firm' && session('firm_id')) {
-                        $instance = new $modelClass();
-                        if (in_array('firm_id', $instance->getFillable()) || \Illuminate\Support\Facades\Schema::hasColumn($instance->getTable(), 'firm_id')) {
-                            $builder->where($instance->getTable() . '.firm_id', session('firm_id'));
+                $instance = new $modelClass();
+                $table = $instance->getTable();
+                $hasFirmId = in_array('firm_id', $instance->getFillable());
+
+                // Apply global data isolation scope for firm_id
+                if ($hasFirmId) {
+                    $modelClass::addGlobalScope('data_isolation', function (\Illuminate\Database\Eloquent\Builder $builder) use ($table) {
+                        // Filter by Firm ID
+                        if (session('login_type') === 'firm' && session('firm_id')) {
+                            $builder->where($table . '.firm_id', session('firm_id'));
                         }
-                    }
-                });
+                    });
+                }
 
                 // Audit logging observers
                 $modelClass::created(function ($model) {

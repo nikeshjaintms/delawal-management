@@ -417,10 +417,24 @@
         <div class="meta-item"><i class="fa-regular fa-calendar-check"></i><span>Updated: {{ $rental->updated_at->format('d M Y, h:i A') }}</span></div>
     </div>
 
+    @php
+        $linkedInvoice = \App\Models\Invoice::where('rental_id', $rental->id)->first();
+    @endphp
     <div class="form-actions" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-        <a href="{{ route('invoices.auto-generate', ['source_type' => 'rental', 'source_id' => $rental->id]) }}" class="btn-gold" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important; border: 1px solid #3B82F6 !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.40);">
-            <i class="fa-solid fa-file-invoice-dollar"></i> Generate GST Invoice
-        </a>
+        @if($linkedInvoice)
+            <a href="{{ route('invoices.show', $linkedInvoice->id) }}" class="btn-gold" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important; border: 1px solid #34D399 !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.40);" title="View Generated Invoice">
+                <i class="fa-solid fa-file-invoice"></i> View Invoice ({{ $linkedInvoice->invoice_no }})
+            </a>
+        @else
+            {{-- Option 1: GST Invoice --}}
+            <a href="{{ route('invoices.auto-generate', ['source_type' => 'rental', 'source_id' => $rental->id, 'gst_mode' => 'with_gst']) }}" class="btn-gold" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important; border: 1px solid #3B82F6 !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.40);" title="Generate Tax Invoice with 18% GST">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Generate GST Invoice
+            </a>
+            {{-- Option 2: Non-GST Invoice --}}
+            <a href="{{ route('invoices.auto-generate', ['source_type' => 'rental', 'source_id' => $rental->id, 'gst_mode' => 'without_gst']) }}" class="btn-gold" style="background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%) !important; border: 1px solid #2DD4BF !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(13, 148, 136, 0.40);" title="Generate Regular Invoice without GST (0% Tax)">
+                <i class="fa-solid fa-file-lines"></i> Generate Non-GST Invoice
+            </a>
+        @endif
         <a href="{{ route('rentals.detail-pdf', $rental->id) }}" target="_blank" class="btn-gold" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important; border: 1px solid #FB923C !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(249, 115, 22, 0.40);">
             <i class="fa-solid fa-file-pdf"></i> Print / PDF Agreement
         </a>

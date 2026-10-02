@@ -129,6 +129,13 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
     display: inline-flex; align-items: center; justify-content: center; font-size: 13px;
     cursor: pointer; transition: all .2s ease;
 }
+.btn-edit-sm {
+    background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important; padding: 4px 8px;
+    border-radius: 6px; font-size: 11.5px; text-decoration: none !important;
+    cursor: pointer; transition: all .2s ease; display: inline-flex; align-items: center; justify-content: center;
+}
+.btn-edit-sm:hover { background: #F59E0B !important; color: #000000 !important; }
 .btn-delete:hover { background: rgba(239, 68, 68, 0.35) !important; color: #FFFFFF !important; }
 .alert-success { background: rgba(16, 185, 129, 0.15) !important; border: 1px solid rgba(16, 185, 129, 0.30) !important; color: #34D399 !important; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
 </style>
@@ -279,15 +286,20 @@ select.form-control-modal option { background: #101622; color: #FFFFFF; }
                             <div style="font-size:11px;color:#94A3B8;">{{ $pmt->notes }}</div>
                         </td>
                         <td style="text-align:center;">
-                            <form action="{{ route('agriculture.labour-payments.destroy', $pmt->id) }}" method="POST" id="del-pmt-{{ $pmt->id }}" style="display:inline;">
-                                @csrf @method('DELETE')
-                                <button type="button" class="btn-delete" title="Delete Payment"
-                                    data-id="{{ $pmt->id }}"
-                                    data-amount="{{ number_format($pmt->amount, 2) }}"
-                                    onclick="confirmDeletePmt(this.dataset.id, this.dataset.amount)">
-                                    <i class="fa fa-trash"></i>
-                                </button>
-                            </form>
+                            <div style="display:inline-flex;align-items:center;gap:6px;">
+                                <a href="{{ route('agriculture.labour-payments.edit', $pmt->id) }}" class="btn-edit-sm" title="Edit Payment">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                <form action="{{ route('agriculture.labour-payments.destroy', $pmt->id) }}" method="POST" id="del-pmt-{{ $pmt->id }}" style="display:inline;">
+                                    @csrf @method('DELETE')
+                                    <button type="button" class="btn-delete" title="Delete Payment"
+                                        data-id="{{ $pmt->id }}"
+                                        data-amount="{{ number_format($pmt->amount, 2) }}"
+                                        onclick="confirmDeletePmt(this.dataset.id, this.dataset.amount)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @endforeach

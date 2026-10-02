@@ -165,11 +165,13 @@ class ProjectController extends Controller
             'propertyMasters',
             'propertyMaster',
             'firm',
-            'properties.propertyType',
-            'properties.propertyMaster',
-            'properties.bookings.customer',
-            'properties.bookingsList.customer',
-            'properties.sales.customer',
+            'properties' => fn($q) => $q->where('status', '!=', 'sold')->with([
+                'propertyType',
+                'propertyMaster',
+                'bookings.customer',
+                'bookingsList.customer',
+                'sales.customer'
+            ]),
             'contractors',
             'vendors',
             'expenses' => function ($q) {
@@ -434,7 +436,7 @@ class ProjectController extends Controller
 
         $query = PropertyMaster::with([
             'plots' => function ($q) use ($project) {
-                $q->where(function ($sub) use ($project) {
+                $q->where('status', '!=', 'sold')->where(function ($sub) use ($project) {
                     $sub->whereNull('project_id')
                         ->orWhere('project_id', $project->id);
                 });
@@ -544,7 +546,7 @@ class ProjectController extends Controller
         }
 
         $propertyMasters = $query->with(['plots' => function ($q) use ($projectId) {
-            $q->where(function ($sub) use ($projectId) {
+            $q->where('status', '!=', 'sold')->where(function ($sub) use ($projectId) {
                 $sub->whereNull('project_id');
                 if ($projectId) {
                     $sub->orWhere('project_id', $projectId);

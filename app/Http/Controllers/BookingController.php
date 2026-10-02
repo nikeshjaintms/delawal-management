@@ -23,8 +23,12 @@ class BookingController extends Controller
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
         $projQuery = Project::with(['propertyMasters', 'properties'])->orderBy('project_name');
-        $propQuery = Property::with(['project.propertyMaster', 'propertyMaster'])->orderBy('property_name');
-        $pmQueryM  = \App\Models\PropertyMaster::with(['plots', 'projects'])->orderBy('property_name');
+        $propQuery = Property::with(['project.propertyMaster', 'propertyMaster'])
+            ->where('status', '!=', 'sold')
+            ->whereDoesntHave('sales', fn($q) => $q->where('sale_status', '!=', 'cancelled'))
+            ->whereDoesntHave('salesList', fn($q) => $q->where('sale_status', '!=', 'cancelled'))
+            ->orderBy('property_name');
+        $pmQueryM  = \App\Models\PropertyMaster::with(['plots', 'projects'])->where('status', '!=', 'sold')->orderBy('property_name');
         $custQuery = Customer::where('status', 'active')->orderBy('name');
         $brokQuery = Broker::where('status', 'active')->orderBy('name');
         $pmQuery   = PaymentMode::where('status', 'active')->orderBy('name');

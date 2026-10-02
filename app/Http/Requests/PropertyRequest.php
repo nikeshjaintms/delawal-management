@@ -59,6 +59,7 @@ class PropertyRequest extends FormRequest
             'size' => 'nullable|string|max:50',
             'size_unit' => 'nullable|string|max:30',
             'price' => 'nullable|numeric|min:0',
+            'purchase_rate' => 'nullable|numeric|min:0',
             'unit_no' => 'nullable|string|max:50',
             'floor_no' => 'nullable|string|max:50',
             'facing' => 'nullable|string|max:50',

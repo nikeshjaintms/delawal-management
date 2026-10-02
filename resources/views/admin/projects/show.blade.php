@@ -1054,7 +1054,6 @@ select.m-form-control option { background: #101622; color: #FFFFFF; }
             <button type="button" class="filter-tab-btn active" onclick="filterProjectPlots('all', this)">All ({{ $totalPlots }})</button>
             <button type="button" class="filter-tab-btn" onclick="filterProjectPlots('available', this)">Available Free ({{ $availPlots }})</button>
             <button type="button" class="filter-tab-btn" onclick="filterProjectPlots('booked', this)">Booked ({{ $bookedPlots }})</button>
-            <button type="button" class="filter-tab-btn" onclick="filterProjectPlots('sold', this)">Sold ({{ $soldPlots }})</button>
             <button type="button" class="filter-tab-btn" onclick="filterProjectPlots('rented', this)">Rented ({{ $project->properties->where('status', 'rented')->count() }})</button>
         </div>
 

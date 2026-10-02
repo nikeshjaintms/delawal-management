@@ -329,13 +329,32 @@
                             <span style="font-size: 12px; color: #94A3B8;">{{ $payment->creator->name ?? 'System' }}</span>
                         </td>
                         <td style="text-align: right;">
-                            <form method="POST" action="{{ route('contractors.payments.destroy', [$contractor->id, $payment->id]) }}" onsubmit="return confirm('Are you sure you want to delete this payment of ₹{{ number_format($payment->amount, 2) }}?')" style="display:inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #F87171; border-radius: 6px; padding: 4px 8px; font-size: 11.5px; cursor: pointer;" title="Delete Payment">
-                                    <i class="fa-solid fa-trash"></i>
+                            <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                <button type="button" 
+                                    class="btn-edit-contractor-pay" 
+                                    data-id="{{ $payment->id }}"
+                                    data-amount="{{ $payment->amount }}"
+                                    data-date="{{ $payment->payment_date ? \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') : '' }}"
+                                    data-mode="{{ $payment->payment_mode ?? 'Bank Transfer' }}"
+                                    data-type="{{ $payment->payment_type ?? 'Part Payment' }}"
+                                    data-ref="{{ $payment->reference_no ?? '' }}"
+                                    data-bank="{{ $payment->bank_name ?? '' }}"
+                                    data-bill="{{ $payment->bill_no ?? '' }}"
+                                    data-project="{{ $payment->project_id ?? '' }}"
+                                    data-remarks="{{ $payment->remarks ?? '' }}"
+                                    onclick="openEditContractorPaymentModal(this)"
+                                    style="background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.38); color: #FBBF24; border-radius: 6px; padding: 4px 8px; font-size: 11.5px; cursor: pointer;" 
+                                    title="Edit Payment">
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
-                            </form>
+                                <form method="POST" action="{{ route('contractors.payments.destroy', [$contractor->id, $payment->id]) }}" onsubmit="return confirm('Are you sure you want to delete this payment of ₹{{ number_format($payment->amount, 2) }}?')" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #F87171; border-radius: 6px; padding: 4px 8px; font-size: 11.5px; cursor: pointer;" title="Delete Payment">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @if($payment->remarks)
@@ -561,6 +580,103 @@
     </div>
 </div>
 
+{{-- Edit Contractor Payment Modal --}}
+<div class="modal-overlay" id="editContractorPaymentModal">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h3><i class="fa-solid fa-pen-to-square" style="color: #FBBF24;"></i> Edit Contractor Payment Installment</h3>
+            <button type="button" class="modal-close" onclick="closeEditContractorPaymentModal()">&times;</button>
+        </div>
+
+        <form method="POST" id="editContractorPaymentForm" action="" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+
+            <div class="form-grid-modal">
+                <div class="form-group">
+                    <label class="form-label" for="edit_pay_amount">Payment Amount (₹) <span style="color:#EF4444;">*</span></label>
+                    <input type="number" step="0.01" min="0.01" name="amount" id="edit_pay_amount" class="form-control" required placeholder="0.00">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="edit_pay_date">Payment Date <span style="color:#EF4444;">*</span></label>
+                    <input type="date" name="payment_date" id="edit_pay_date" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="edit_pay_mode">Payment Mode <span style="color:#EF4444;">*</span></label>
+                    <select name="payment_mode" id="edit_pay_mode" class="form-control" required>
+                        @if(isset($paymentModes) && $paymentModes->isNotEmpty())
+                            @foreach($paymentModes as $pm)
+                                <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                            @endforeach
+                        @else
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer / NEFT / RTGS</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="UPI">UPI / GooglePay / PhonePe</option>
+                            <option value="Online">Online</option>
+                        @endif
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="edit_pay_type">Payment Type</label>
+                    <select name="payment_type" id="edit_pay_type" class="form-control">
+                        <option value="Part Payment">Part Payment / Installment</option>
+                        <option value="Running Bill">Running Bill (RA Bill)</option>
+                        <option value="Advance">Advance Payment</option>
+                        <option value="Stage Payment">Stage / Milestone Payment</option>
+                        <option value="Final Settlement">Final Settlement</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="edit_pay_ref">Reference / Cheque / UTR No</label>
+                    <input type="text" name="reference_no" id="edit_pay_ref" class="form-control" placeholder="e.g. CHQ-100234 or UTR-99882">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="edit_pay_bank">Bank Name (Optional)</label>
+                    <input type="text" name="bank_name" id="edit_pay_bank" class="form-control" placeholder="e.g. HDFC Bank">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="edit_pay_bill">Bill / Voucher No</label>
+                    <input type="text" name="bill_no" id="edit_pay_bill" class="form-control" placeholder="e.g. VOUCHER-001">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="edit_pay_project">Related Project (Optional)</label>
+                    <select name="project_id" id="edit_pay_project" class="form-control">
+                        <option value="">— Select Project —</option>
+                        @foreach($assignedProjs as $proj)
+                            <option value="{{ $proj->id }}">{{ $proj->project_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label class="form-label" for="edit_pay_doc">Replace Attachment (PDF / Image)</label>
+                    <input type="file" name="document_file" id="edit_pay_doc" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label class="form-label" for="edit_pay_remarks">Remarks / Notes</label>
+                    <textarea name="remarks" id="edit_pay_remarks" class="form-control" rows="2" placeholder="Notes about this installment..."></textarea>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.10); padding-top: 16px;">
+                <button type="button" class="btn-sc" onclick="closeEditContractorPaymentModal()">Cancel</button>
+                <button type="submit" class="btn-green" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important; border: 1px solid #FBBF24 !important;">
+                    <i class="fa-solid fa-check"></i> Update Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openPaymentModal() {
     const modal = document.getElementById('paymentModal');
@@ -576,10 +692,54 @@ function closePaymentModal() {
         modal.classList.remove('show');
     }
 }
+
+function openEditContractorPaymentModal(btn) {
+    const id = btn.dataset.id;
+    const amount = btn.dataset.amount;
+    const date = btn.dataset.date;
+    const mode = btn.dataset.mode;
+    const type = btn.dataset.type;
+    const ref = btn.dataset.ref;
+    const bank = btn.dataset.bank;
+    const bill = btn.dataset.bill;
+    const project = btn.dataset.project;
+    const remarks = btn.dataset.remarks;
+
+    const form = document.getElementById('editContractorPaymentForm');
+    form.action = "{{ url('contractors/' . $contractor->id . '/payments') }}/" + id;
+
+    document.getElementById('edit_pay_amount').value = amount;
+    document.getElementById('edit_pay_date').value = date;
+    document.getElementById('edit_pay_mode').value = mode;
+    if (document.getElementById('edit_pay_type')) document.getElementById('edit_pay_type').value = type;
+    document.getElementById('edit_pay_ref').value = ref;
+    document.getElementById('edit_pay_bank').value = bank;
+    document.getElementById('edit_pay_bill').value = bill;
+    if (document.getElementById('edit_pay_project')) document.getElementById('edit_pay_project').value = project;
+    document.getElementById('edit_pay_remarks').value = remarks;
+
+    const modal = document.getElementById('editContractorPaymentModal');
+    if (modal) modal.classList.add('show');
+}
+function closeEditContractorPaymentModal() {
+    const modal = document.getElementById('editContractorPaymentModal');
+    if (modal) modal.classList.remove('show');
+}
+
 window.addEventListener('click', function(e) {
     const modal = document.getElementById('paymentModal');
     if (e.target === modal) {
         closePaymentModal();
+    }
+    const editModal = document.getElementById('editContractorPaymentModal');
+    if (e.target === editModal) {
+        closeEditContractorPaymentModal();
+    }
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closePaymentModal();
+        closeEditContractorPaymentModal();
     }
 });
 </script>

@@ -251,7 +251,7 @@
                 <div class="form-group">
                     <label class="form-label" for="size">Size / Area</label>
                     <input type="text" name="size" id="size" value="{{ old('size') }}"
-                           class="form-control @error('size') is-invalid @enderror" autocomplete="off" placeholder="e.g. 1255">
+                           class="form-control @error('size') is-invalid @enderror" autocomplete="off" placeholder="e.g. 1200" oninput="calculatePlotPriceFromRate()">
                     @error('size') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
@@ -267,9 +267,15 @@
 
             <div class="form-row-3">
                 <div class="form-group">
-                    <label class="form-label" for="price">Price (₹)</label>
+                    <label class="form-label" for="purchase_rate">Purchase Rate (₹)</label>
+                    <input type="number" step="0.01" name="purchase_rate" id="purchase_rate" value="{{ old('purchase_rate') }}"
+                           class="form-control @error('purchase_rate') is-invalid @enderror" placeholder="e.g. 1500.00" oninput="calculatePlotPriceFromRate()">
+                    @error('purchase_rate') <div class="text-error">{{ $message }}</div> @enderror
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="price">Valuation / Price (₹)</label>
                     <input type="number" step="0.01" name="price" id="price" value="{{ old('price') }}"
-                           class="form-control @error('price') is-invalid @enderror" placeholder="e.g. 3000000">
+                           class="form-control @error('price') is-invalid @enderror" placeholder="e.g. 3000000" oninput="onPlotPriceInput()">
                     @error('price') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
@@ -281,6 +287,9 @@
                     </select>
                     @error('status') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
+            </div>
+
+            <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label" for="facing">Facing</label>
                     <select name="facing" id="facing" class="form-control @error('facing') is-invalid @enderror">
@@ -437,6 +446,30 @@
             if (nameInput.value.includes(' - Plot') || !nameInput.value) {
                 nameInput.value = `${projName} Plot ${unitVal}`;
             }
+        }
+    }
+
+    function calculatePlotPriceFromRate() {
+        const sizeInput = document.getElementById('size');
+        const rateInput = document.getElementById('purchase_rate');
+        const priceInput = document.getElementById('price');
+        if (!sizeInput || !rateInput || !priceInput) return;
+        const size = parseFloat(sizeInput.value) || 0;
+        const rate = parseFloat(rateInput.value) || 0;
+        if (size > 0 && rate > 0) {
+            priceInput.value = (size * rate).toFixed(2);
+        }
+    }
+
+    function onPlotPriceInput() {
+        const sizeInput = document.getElementById('size');
+        const rateInput = document.getElementById('purchase_rate');
+        const priceInput = document.getElementById('price');
+        if (!sizeInput || !rateInput || !priceInput) return;
+        const size = parseFloat(sizeInput.value) || 0;
+        const price = parseFloat(priceInput.value) || 0;
+        if (size > 0 && price > 0 && (!rateInput.value || parseFloat(rateInput.value) === 0)) {
+            rateInput.value = (price / size).toFixed(2);
         }
     }
 

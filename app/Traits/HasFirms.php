@@ -14,7 +14,7 @@ trait HasFirms
     protected static function bootHasFirms(): void
     {
         static::creating(function ($model) {
-            if (\Illuminate\Support\Facades\Schema::hasColumn($model->getTable(), 'firm_id')) {
+            if (in_array('firm_id', $model->getFillable())) {
                 if (empty($model->firm_id)) {
                     if (session()->has('firm_id') && session('firm_id')) {
                         $model->firm_id = session('firm_id');

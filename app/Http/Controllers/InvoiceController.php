@@ -641,6 +641,52 @@ class InvoiceController extends Controller
     }
 
     /**
+     * Update a payment recorded on an invoice.
+     */
+    public function updatePayment(Request $request, Invoice $invoice, InvoicePayment $payment)
+    {
+        [$isAdmin, $firmId] = $this->getAuthContext();
+
+        if (!$isAdmin && $invoice->firm_id != $firmId) {
+            abort(403);
+        }
+
+        if ($payment->invoice_id !== $invoice->id) {
+            abort(404);
+        }
+
+        $request->validate([
+            'payment_date'          => 'required|date',
+            'amount'                => 'required|numeric|min:0.01',
+            'payment_mode_id'       => 'nullable|exists:payment_modes,id',
+            'payment_mode'          => 'nullable|string|max:50',
+            'transaction_reference' => 'nullable|string|max:100',
+            'notes'                 => 'nullable|string',
+        ]);
+
+        $modeName = $request->payment_mode;
+        if ($request->payment_mode_id && empty($modeName)) {
+            $mode = PaymentMode::find($request->payment_mode_id);
+            $modeName = $mode ? $mode->name : 'Cash';
+        }
+
+        $payment->update([
+            'payment_date'          => $request->payment_date,
+            'amount'                => $request->amount,
+            'payment_mode_id'       => $request->payment_mode_id,
+            'payment_mode'          => $modeName ?: 'Cash',
+            'transaction_reference' => $request->transaction_reference,
+            'notes'                 => $request->notes,
+        ]);
+
+        $invoice->recalculateBalances();
+
+        return redirect()
+            ->route('invoices.show', $invoice->id)
+            ->with('success', 'Payment updated and invoice balances refreshed successfully!');
+    }
+
+    /**
      * Delete a payment recorded on an invoice.
      */
     public function destroyPayment(Invoice $invoice, InvoicePayment $payment)
@@ -734,16 +780,18 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Automatically Generate & Issue a Tax Invoice from a Property Sale, Booking, or Rental Agreement.
+     * Automatically Generate & Issue an Invoice (with GST or without GST) from a Property Sale, Booking, or Rental Agreement.
      */
     public function autoGenerate(Request $request)
     {
         [$isAdmin, $firmId, $user] = $this->getAuthContext();
         $sourceType = $request->input('source_type');  // 'sale', 'booking', 'rental'
         $sourceId = $request->input('source_id');
+        $gstMode = $request->input('gst_mode', 'with_gst'); // 'with_gst' or 'without_gst'
+        $isGst = ($gstMode !== 'without_gst' && $request->input('with_gst') !== '0');
 
         if (!$sourceType || !$sourceId) {
-            return back()->with('error', 'Invalid source for automatic invoice generation.');
+            return back()->with('error', 'Invalid source for invoice generation.');
         }
 
         try {
@@ -754,30 +802,47 @@ class InvoiceController extends Controller
 
                 // Check if invoice already exists
                 $existing = Invoice::where('property_sale_id', $sale->id)->first();
-                if ($existing) {
+                if ($existing && !$request->has('force_new')) {
                     DB::rollBack();
                     return redirect()
                         ->route('invoices.show', $existing->id)
-                        ->with('info', "Tax Invoice #{$existing->invoice_no} already exists for this Property Sale.");
+                        ->with('info', "Invoice #{$existing->invoice_no} already exists for this Property Sale.");
                 }
 
-                $activeSetting = InvoiceSetting::activeSetting();
-                $invoiceNo = $activeSetting ? $activeSetting->generateNumber('sales') : 'INV-' . date('Y') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $invoiceNo = Invoice::generateNextInvoiceNumber('sales');
 
                 $propNames = $sale->property_names ?: ($sale->property->property_name ?? 'Property Unit');
                 $projName = $sale->property?->project?->project_name ?? 'Delawala Master Project';
                 $subtotal = (float) $sale->sale_amount;
 
-                $taxType = 'gst_intra';
-                $taxPercent = 18.0;
-                $totalTax = ($subtotal * $taxPercent) / 100;
-                $cgst = $totalTax / 2;
-                $sgst = $totalTax / 2;
-                $grandTotal = $subtotal + $totalTax;
+                if ($isGst) {
+                    $taxType = 'gst_intra';
+                    $taxPercent = 18.0;
+                    $totalTax = ($subtotal * $taxPercent) / 100;
+                    $cgst = $totalTax / 2;
+                    $sgst = $totalTax / 2;
+                    $grandTotal = $subtotal + $totalTax;
+                } else {
+                    $taxType = 'none';
+                    $taxPercent = 0.0;
+                    $totalTax = 0.0;
+                    $cgst = 0.0;
+                    $sgst = 0.0;
+                    $grandTotal = $subtotal;
+                }
+
                 $paidAmt = min((float) $sale->booking_amount, $grandTotal);
                 $balAmt = max(0, $grandTotal - $paidAmt);
 
                 $activeFirm = $sale->firm ?: ($firmId ? Firm::find($firmId) : Firm::first());
+                $firmGst = $activeFirm?->gst_number ?: '24CUBPD0770R1ZI';
+                $firmTitle = $activeFirm?->firm_name ?: 'Delawala Infra Co.';
+
+                $terms = $isGst
+                    ? "1. Official Tax Invoice issued by {$firmTitle} (GSTIN: {$firmGst}).\n2. Subject to Dahegam / Bharuch Jurisdiction."
+                    : "1. Official Commercial Invoice / Bill issued by {$firmTitle}.\n2. Subject to Dahegam / Bharuch Jurisdiction.";
+
+                $notesPrefix = $isGst ? 'Auto-generated GST Tax Invoice' : 'Auto-generated Non-GST Invoice';
 
                 $invoice = Invoice::create([
                     'firm_id' => $activeFirm ? $activeFirm->id : 3,
@@ -814,15 +879,15 @@ class InvoiceController extends Controller
                     'bank_account_no' => $activeFirm->bank_account_no ?? '',
                     'bank_ifsc' => $activeFirm->bank_ifsc ?? '',
                     'bank_branch' => $activeFirm->bank_branch ?? 'Dahegam Branch',
-                    'terms_conditions' => "1. Official Tax Invoice issued by Delawala Infra Co. (GSTIN: 24CUBPD0770R1ZI).\n2. Subject to Dahegam / Bharuch Jurisdiction.",
-                    'notes' => 'Auto-generated from Property Sale Agreement: ' . ($sale->agreement_no ?: ('SALE-' . $sale->id)),
+                    'terms_conditions' => $terms,
+                    'notes' => "{$notesPrefix} from Property Sale Agreement: " . ($sale->agreement_no ?: ('SALE-' . $sale->id)),
                 ]);
 
                 // Create Item
                 $invoice->items()->create([
                     'item_type' => 'property_sale',
                     'item_description' => "Property Sale Consideration for {$propNames} ({$projName})",
-                    'hsn_sac_code' => '9954',
+                    'hsn_sac_code' => $isGst ? '9954' : '',
                     'quantity' => 1,
                     'unit' => 'Unit',
                     'unit_price' => $subtotal,
@@ -845,31 +910,60 @@ class InvoiceController extends Controller
                 }
 
                 DB::commit();
+                $typeLabel = $isGst ? 'GST Tax Invoice' : 'Non-GST Invoice';
                 return redirect()
                     ->route('invoices.show', $invoice->id)
-                    ->with('success', "Tax Invoice #{$invoice->invoice_no} generated automatically with official GST details!");
+                    ->with('success', "{$typeLabel} #{$invoice->invoice_no} generated successfully!");
             }
 
             if ($sourceType === 'booking') {
                 $booking = Booking::with(['customer', 'property.project', 'firm'])->findOrFail($sourceId);
 
-                $activeSetting = InvoiceSetting::activeSetting();
-                $invoiceNo = $activeSetting ? $activeSetting->generateNumber('sales') : 'INV-' . date('Y') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $existing = Invoice::where('customer_id', $booking->customer_id)
+                    ->where('project_id', $booking->property?->project_id)
+                    ->where('notes', 'like', '%BK-' . $booking->id . '%')
+                    ->first();
+                if ($existing && !$request->has('force_new')) {
+                    DB::rollBack();
+                    return redirect()
+                        ->route('invoices.show', $existing->id)
+                        ->with('info', "Invoice #{$existing->invoice_no} already exists for this Booking.");
+                }
+
+                $invoiceNo = Invoice::generateNextInvoiceNumber('sales');
 
                 $propName = $booking->property->property_name ?? 'Property Unit';
                 $projName = $booking->property?->project?->project_name ?? 'Delawala Project';
                 $subtotal = (float) $booking->final_amount;
 
-                $taxType = 'gst_intra';
-                $taxPercent = 18.0;
-                $totalTax = ($subtotal * $taxPercent) / 100;
-                $cgst = $totalTax / 2;
-                $sgst = $totalTax / 2;
-                $grandTotal = $subtotal + $totalTax;
+                if ($isGst) {
+                    $taxType = 'gst_intra';
+                    $taxPercent = 18.0;
+                    $totalTax = ($subtotal * $taxPercent) / 100;
+                    $cgst = $totalTax / 2;
+                    $sgst = $totalTax / 2;
+                    $grandTotal = $subtotal + $totalTax;
+                } else {
+                    $taxType = 'none';
+                    $taxPercent = 0.0;
+                    $totalTax = 0.0;
+                    $cgst = 0.0;
+                    $sgst = 0.0;
+                    $grandTotal = $subtotal;
+                }
+
                 $paidAmt = min((float) $booking->booking_amount, $grandTotal);
                 $balAmt = max(0, $grandTotal - $paidAmt);
 
                 $activeFirm = $booking->firm ?: ($firmId ? Firm::find($firmId) : Firm::first());
+                $firmGst = $activeFirm?->gst_number ?: '24CUBPD0770R1ZI';
+                $firmTitle = $activeFirm?->firm_name ?: 'Delawala Infra Co.';
+
+                $terms = $isGst
+                    ? "1. Official Tax Invoice issued by {$firmTitle} (GSTIN: {$firmGst}).\n2. Subject to Dahegam / Bharuch Jurisdiction."
+                    : "1. Official Commercial Invoice / Bill issued by {$firmTitle}.\n2. Subject to Dahegam / Bharuch Jurisdiction.";
+
+                $notesPrefix = $isGst ? 'Auto-generated GST Tax Invoice' : 'Auto-generated Non-GST Invoice';
 
                 $invoice = Invoice::create([
                     'firm_id' => $activeFirm ? $activeFirm->id : 3,
@@ -902,14 +996,14 @@ class InvoiceController extends Controller
                     'bank_account_no' => $activeFirm->bank_account_no ?? '',
                     'bank_ifsc' => $activeFirm->bank_ifsc ?? '',
                     'bank_branch' => $activeFirm->bank_branch ?? 'Dahegam Branch',
-                    'terms_conditions' => "1. Official Tax Invoice issued by Delawala Infra Co. (GSTIN: 24CUBPD0770R1ZI).\n2. Subject to Dahegam / Bharuch Jurisdiction.",
-                    'notes' => 'Auto-generated from Booking Code: ' . ($booking->booking_code ?: ('BK-' . $booking->id)),
+                    'terms_conditions' => $terms,
+                    'notes' => "{$notesPrefix} from Booking Code: " . ($booking->booking_code ?: ('BK-' . $booking->id)),
                 ]);
 
                 $invoice->items()->create([
                     'item_type' => 'booking',
                     'item_description' => "Property Booking & Reservation for {$propName} ({$projName})",
-                    'hsn_sac_code' => '9954',
+                    'hsn_sac_code' => $isGst ? '9954' : '',
                     'quantity' => 1,
                     'unit' => 'Unit',
                     'unit_price' => $subtotal,
@@ -931,28 +1025,45 @@ class InvoiceController extends Controller
                 }
 
                 DB::commit();
+                $typeLabel = $isGst ? 'GST Tax Invoice' : 'Non-GST Invoice';
                 return redirect()
                     ->route('invoices.show', $invoice->id)
-                    ->with('success', "Tax Invoice #{$invoice->invoice_no} generated automatically from Booking!");
+                    ->with('success', "{$typeLabel} #{$invoice->invoice_no} generated automatically from Booking!");
             }
 
             if ($sourceType === 'rental') {
                 $rental = Rental::with(['tenant', 'property.project', 'firm'])->findOrFail($sourceId);
 
-                $activeSetting = InvoiceSetting::activeSetting();
-                $invoiceNo = $activeSetting ? $activeSetting->generateNumber('rental') : 'INV-' . date('Y') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $invoiceNo = Invoice::generateNextInvoiceNumber('rental');
 
                 $propName = $rental->property->property_name ?? 'Rental Unit';
                 $subtotal = (float) $rental->monthly_rent;
 
-                $taxType = 'gst_intra';
-                $taxPercent = 18.0;
-                $totalTax = ($subtotal * $taxPercent) / 100;
-                $cgst = $totalTax / 2;
-                $sgst = $totalTax / 2;
-                $grandTotal = $subtotal + $totalTax;
+                if ($isGst) {
+                    $taxType = 'gst_intra';
+                    $taxPercent = 18.0;
+                    $totalTax = ($subtotal * $taxPercent) / 100;
+                    $cgst = $totalTax / 2;
+                    $sgst = $totalTax / 2;
+                    $grandTotal = $subtotal + $totalTax;
+                } else {
+                    $taxType = 'none';
+                    $taxPercent = 0.0;
+                    $totalTax = 0.0;
+                    $cgst = 0.0;
+                    $sgst = 0.0;
+                    $grandTotal = $subtotal;
+                }
 
                 $activeFirm = $rental->firm ?: ($firmId ? Firm::find($firmId) : Firm::first());
+                $firmGst = $activeFirm?->gst_number ?: '24CUBPD0770R1ZI';
+                $firmTitle = $activeFirm?->firm_name ?: 'Delawala Infra Co.';
+
+                $terms = $isGst
+                    ? "1. Official Rent Tax Invoice issued by {$firmTitle} (GSTIN: {$firmGst}).\n2. Subject to Dahegam / Bharuch Jurisdiction."
+                    : "1. Official Rent Invoice / Bill issued by {$firmTitle}.\n2. Subject to Dahegam / Bharuch Jurisdiction.";
+
+                $notesPrefix = $isGst ? 'Auto-generated GST Rent Invoice' : 'Auto-generated Non-GST Rent Invoice';
 
                 $invoice = Invoice::create([
                     'firm_id' => $activeFirm ? $activeFirm->id : 3,
@@ -986,14 +1097,14 @@ class InvoiceController extends Controller
                     'bank_account_no' => $activeFirm->bank_account_no ?? '',
                     'bank_ifsc' => $activeFirm->bank_ifsc ?? '',
                     'bank_branch' => $activeFirm->bank_branch ?? 'Dahegam Branch',
-                    'terms_conditions' => "1. Official Rent Invoice issued by Delawala Infra Co. (GSTIN: 24CUBPD0770R1ZI).\n2. Subject to Dahegam / Bharuch Jurisdiction.",
-                    'notes' => 'Auto-generated from Rental Agreement: ' . ($rental->agreement_no ?: ('RA-' . $rental->id)),
+                    'terms_conditions' => $terms,
+                    'notes' => "{$notesPrefix} from Rental Agreement: " . ($rental->agreement_no ?: ('RA-' . $rental->id)),
                 ]);
 
                 $invoice->items()->create([
                     'item_type' => 'rental',
                     'item_description' => "Monthly Rent for {$propName} (Agreement: " . ($rental->agreement_no ?: ('RA-' . $rental->id)) . ')',
-                    'hsn_sac_code' => '9972',
+                    'hsn_sac_code' => $isGst ? '9972' : '',
                     'quantity' => 1,
                     'unit' => 'Month',
                     'unit_price' => $subtotal,
@@ -1004,13 +1115,15 @@ class InvoiceController extends Controller
                 ]);
 
                 DB::commit();
+                $typeLabel = $isGst ? 'GST Rent Invoice' : 'Non-GST Rent Invoice';
                 return redirect()
                     ->route('invoices.show', $invoice->id)
-                    ->with('success', "Rental Tax Invoice #{$invoice->invoice_no} generated automatically!");
+                    ->with('success', "{$typeLabel} #{$invoice->invoice_no} generated automatically!");
             }
 
             DB::rollBack();
             return back()->with('error', 'Unsupported source type for invoice generation.');
+        } catch (\Exception $e) {
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error auto-generating invoice: ' . $e->getMessage());

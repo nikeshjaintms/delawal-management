@@ -76,7 +76,11 @@ class RentalController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
-        $propQuery = Property::with(['project.propertyMaster', 'propertyMaster'])->orderBy('property_name');
+        $propQuery = Property::with(['project.propertyMaster', 'propertyMaster'])
+            ->where('status', '!=', 'sold')
+            ->whereDoesntHave('sales', fn($q) => $q->where('sale_status', '!=', 'cancelled'))
+            ->whereDoesntHave('salesList', fn($q) => $q->where('sale_status', '!=', 'cancelled'))
+            ->orderBy('property_name');
         if (!$isAdmin && $firmId) {
             $propQuery->where('firm_id', $firmId);
         }

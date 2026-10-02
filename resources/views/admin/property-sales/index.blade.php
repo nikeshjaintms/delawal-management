@@ -338,7 +338,7 @@ select.search-input option { background: #101622 !important; color: #FFFFFF !imp
                             @endif
                         </td>
                         <td>{{ $sale->customer->name ?? '-' }}</td>
-                        <td>{{ $sale->broker->name ?? '-' }}</td>
+                        <td>{{ $sale->broker->name ?? ($sale->broker_name ?: '-') }}</td>
                         <td>{{ $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date)->format('d M Y') : '-' }}</td>
                         <td>
                             @if($sale->sale_amount !== null)

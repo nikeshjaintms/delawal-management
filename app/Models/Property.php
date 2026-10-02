@@ -117,6 +117,25 @@ class Property extends Model
         return $this->hasMany(PropertySale::class);
     }
 
+    public function salesList()
+    {
+        return $this->belongsToMany(PropertySale::class, 'property_sale_property')->withTimestamps();
+    }
+
+    public function getActiveSaleAttribute()
+    {
+        if ($this->relationLoaded('sales') && $this->sales->isNotEmpty()) {
+            $s = $this->sales->where('sale_status', '!=', 'cancelled')->first();
+            if ($s) return $s;
+        }
+        if ($this->relationLoaded('salesList') && $this->salesList->isNotEmpty()) {
+            $s = $this->salesList->where('sale_status', '!=', 'cancelled')->first();
+            if ($s) return $s;
+        }
+        return $this->salesList()->where('property_sales.sale_status', '!=', 'cancelled')->first()
+            ?: $this->sales()->where('property_sales.sale_status', '!=', 'cancelled')->first();
+    }
+
     public function rentals()
     {
         return $this->hasMany(Rental::class);
@@ -144,8 +163,13 @@ class Property extends Model
     /**
      * Synchronize all property statuses based on active bookings, sales, and rentals.
      */
-    public static function syncAllStatuses(): void
+    public static function syncAllStatuses(bool $force = false): void
     {
+        if (!$force && \Illuminate\Support\Facades\Cache::has('properties_statuses_synced')) {
+            return;
+        }
+        \Illuminate\Support\Facades\Cache::put('properties_statuses_synced', true, 180); // 3-minute cooldown
+
         // 1. Mark properties with active bookings as 'booked'
         \Illuminate\Support\Facades\DB::table('properties')
             ->where(function ($q) {
@@ -166,11 +190,18 @@ class Property extends Model
 
         // 2. Mark properties with active property sales as 'sold'
         \Illuminate\Support\Facades\DB::table('properties')
-            ->whereIn('id', function ($query) {
-                $query->select('property_id')
-                    ->from('property_sales')
-                    ->where('sale_status', '!=', 'cancelled')
-                    ->whereNotNull('property_id');
+            ->where(function ($q) {
+                $q->whereIn('id', function ($query) {
+                    $query->select('property_id')
+                        ->from('property_sales')
+                        ->where('sale_status', '!=', 'cancelled')
+                        ->whereNotNull('property_id');
+                })->orWhereIn('id', function ($query) {
+                    $query->select('property_sale_property.property_id')
+                        ->from('property_sale_property')
+                        ->join('property_sales', 'property_sale_property.property_sale_id', '=', 'property_sales.id')
+                        ->where('property_sales.sale_status', '!=', 'cancelled');
+                });
             })
             ->whereIn('status', ['available', 'booked'])
             ->update(['status' => 'sold']);
@@ -213,6 +244,12 @@ class Property extends Model
                     ->from('property_sales')
                     ->where('sale_status', '!=', 'cancelled')
                     ->whereNotNull('property_id');
+            })
+            ->whereNotIn('id', function ($query) {
+                $query->select('property_sale_property.property_id')
+                    ->from('property_sale_property')
+                    ->join('property_sales', 'property_sale_property.property_sale_id', '=', 'property_sales.id')
+                    ->where('property_sales.sale_status', '!=', 'cancelled');
             })
             ->whereNotIn('id', function ($query) {
                 $query->select('property_id')

@@ -157,10 +157,24 @@
         <h2>Property Sale Details</h2>
         <p>Full record of this firm-wise property sale agreement and installment payment breakdown.</p>
     </div>
+    @php
+        $linkedInvoice = \App\Models\Invoice::where('property_sale_id', $propertySale->id)->first();
+    @endphp
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <a href="{{ route('invoices.auto-generate', ['source_type' => 'sale', 'source_id' => $propertySale->id]) }}" class="btn-gold" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important; border: 1px solid #3B82F6 !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.40);">
-            <i class="fa-solid fa-file-invoice-dollar"></i> Generate GST Invoice
-        </a>
+        @if($linkedInvoice)
+            <a href="{{ route('invoices.show', $linkedInvoice->id) }}" class="btn-gold" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important; border: 1px solid #34D399 !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.40);" title="View Generated Invoice">
+                <i class="fa-solid fa-file-invoice"></i> View Invoice ({{ $linkedInvoice->invoice_no }})
+            </a>
+        @else
+            {{-- Option 1: GST Invoice --}}
+            <a href="{{ route('invoices.auto-generate', ['source_type' => 'sale', 'source_id' => $propertySale->id, 'gst_mode' => 'with_gst']) }}" class="btn-gold" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important; border: 1px solid #3B82F6 !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.40);" title="Generate Tax Invoice with 18% GST">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Generate GST Invoice
+            </a>
+            {{-- Option 2: Non-GST Invoice --}}
+            <a href="{{ route('invoices.auto-generate', ['source_type' => 'sale', 'source_id' => $propertySale->id, 'gst_mode' => 'without_gst']) }}" class="btn-gold" style="background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%) !important; border: 1px solid #2DD4BF !important; color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(13, 148, 136, 0.40);" title="Generate Regular Invoice without GST (0% Tax)">
+                <i class="fa-solid fa-file-lines"></i> Generate Non-GST Invoice
+            </a>
+        @endif
         @if(($propertySale->remaining_amount ?? 0) > 0)
             <button type="button" class="btn-pay-record" onclick="openRecordPaymentModal()">
                 <i class="fa-solid fa-circle-plus"></i> + Record Installment Payment
@@ -241,13 +255,26 @@
             @endif
         </div>
         <div class="detail-item">
+            <div class="detail-label"><i class="fa-solid fa-user-tie"></i> Seller / Land Owner</div>
+            @if($propertySale->seller || $propertySale->seller_name)
+                <div class="detail-value" style="color: #93C5FD;">{{ $propertySale->seller->name ?? $propertySale->seller_name }}</div>
+                @if($propertySale->seller && ($propertySale->seller->mobile ?: $propertySale->seller->phone))
+                    <div style="font-size:12px; color:#CBD5E1; margin-top:4px;"><i class="fa-solid fa-phone" style="font-size:11px;"></i> {{ $propertySale->seller->mobile ?: $propertySale->seller->phone }}</div>
+                @endif
+            @else
+                <div class="detail-value empty">Not specified</div>
+            @endif
+        </div>
+        <div class="detail-item">
             <div class="detail-label"><i class="fa-solid fa-user-tie"></i> Broker &amp; Commission</div>
-            @if($propertySale->broker)
-                <div class="detail-value" style="color: #C4B5FD;">{{ $propertySale->broker->name }}</div>
-                <div style="font-size:12px; color:#CBD5E1; margin-top:4px;">{{ $propertySale->broker->mobile }}</div>
-                @if($propertySale->broker_commission_amount > 0)
+            @if($propertySale->broker || $propertySale->broker_name)
+                <div class="detail-value" style="color: #C4B5FD;">{{ $propertySale->broker->name ?? $propertySale->broker_name }}</div>
+                @if($propertySale->broker && $propertySale->broker->mobile)
+                    <div style="font-size:12px; color:#CBD5E1; margin-top:4px;">{{ $propertySale->broker->mobile }}</div>
+                @endif
+                @if(($propertySale->broker_commission_amount ?? 0) > 0 || ($propertySale->broker_commission_paid ?? 0) > 0)
                     <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.15); font-size: 12px;">
-                        <span style="color: #A78BFA; font-weight: 700;">Comm: ₹{{ number_format($propertySale->broker_commission_amount, 2) }}</span>
+                        <span style="color: #A78BFA; font-weight: 700;">Comm: ₹{{ number_format($propertySale->broker_commission_amount ?? 0, 2) }}</span>
                         @if($propertySale->broker_commission_type === 'percentage' && $propertySale->broker_commission_rate > 0)
                             <small>({{ $propertySale->broker_commission_rate }}%)</small>
                         @endif
@@ -255,6 +282,21 @@
                             <span style="color: #34D399;">Paid: ₹{{ number_format($propertySale->broker_commission_paid ?? 0, 2) }}</span> | 
                             <span style="color: #FBBF24;">Due: ₹{{ number_format($propertySale->broker_commission_due ?? 0, 2) }}</span>
                         </div>
+                        @if($propertySale->broker_commission_payment_mode || $propertySale->broker_commission_payment_date)
+                            <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">
+                                @if($propertySale->broker_commission_payment_mode)
+                                    <span>Mode: {{ $propertySale->broker_commission_payment_mode }}</span>
+                                @endif
+                                @if($propertySale->broker_commission_payment_date)
+                                    <span>{{ $propertySale->broker_commission_payment_mode ? ' • ' : '' }}Date: {{ \Carbon\Carbon::parse($propertySale->broker_commission_payment_date)->format('d M Y') }}</span>
+                                @endif
+                            </div>
+                        @endif
+                        @if($propertySale->broker_notes)
+                            <div style="font-size: 11px; color: #CBD5E1; margin-top: 3px; font-style: italic;">
+                                Note: {{ $propertySale->broker_notes }}
+                            </div>
+                        @endif
                     </div>
                 @endif
             @else
@@ -653,13 +695,28 @@
                         <td style="color: #94A3B8; font-size: 12px;">{{ $pay->remarks ?: '—' }}</td>
                         <td style="color: #64748B; font-size: 11.5px;">{{ $pay->created_at ? $pay->created_at->format('d M Y, h:i A') : '—' }}</td>
                         <td style="text-align: right;">
-                            <form action="{{ route('property-sales.payments.destroy', [$propertySale->id, $pay->id]) }}" method="POST" style="display:inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" onclick="return confirm('Are you sure you want to delete this payment installment? Balance will be updated automatically.')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; border-radius: 6px; padding: 4px 10px; font-size: 11.5px; cursor: pointer;">
-                                    <i class="fa fa-trash"></i> Delete
+                            <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                <button type="button" 
+                                    class="btn-edit-installment" 
+                                    data-id="{{ $pay->id }}"
+                                    data-amount="{{ $pay->payment_amount }}"
+                                    data-date="{{ $pay->payment_date ? \Carbon\Carbon::parse($pay->payment_date)->format('Y-m-d') : '' }}"
+                                    data-mode="{{ $pay->payment_mode ?? 'Cash' }}"
+                                    data-ref="{{ $pay->transaction_ref ?? '' }}"
+                                    data-remarks="{{ $pay->remarks ?? '' }}"
+                                    onclick="openEditPaymentModal(this)"
+                                    style="background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.38); color: #FBBF24; border-radius: 6px; padding: 4px 10px; font-size: 11.5px; cursor: pointer;"
+                                    title="Edit Payment Installment">
+                                    <i class="fa fa-edit"></i> Edit
                                 </button>
-                            </form>
+                                <form action="{{ route('property-sales.payments.destroy', [$propertySale->id, $pay->id]) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this payment installment? Balance will be updated automatically.')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; border-radius: 6px; padding: 4px 10px; font-size: 11.5px; cursor: pointer;">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 @empty
@@ -800,6 +857,75 @@
     </div>
 </div>
 
+{{-- Edit Installment Payment Modal --}}
+<div class="modal-overlay" id="editPaymentModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-pen-to-square" style="color: #FBBF24;"></i> Edit Payment Installment</h3>
+            <button type="button" class="modal-close-btn" onclick="closeEditPaymentModal()">&times;</button>
+        </div>
+        <form method="POST" id="editPaymentForm" action="">
+            @csrf
+            @method('PUT')
+            
+            <div style="background: rgba(245, 158, 11, 0.10); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 14px; margin-bottom: 18px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span style="color: #94A3B8;">Customer:</span>
+                    <strong style="color: #FFFFFF;">{{ $propertySale->customer->name ?? '—' }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                    <span style="color: #94A3B8;">Total Sale Value:</span>
+                    <strong style="color: #60A5FA;">₹ {{ number_format($propertySale->sale_amount ?? 0, 2) }}</strong>
+                </div>
+            </div>
+
+            <div class="m-form-row">
+                <div class="m-form-group">
+                    <label class="m-form-label">Payment Amount (₹) <span style="color:#EF4444;">*</span></label>
+                    <input type="number" step="0.01" min="0.01" name="payment_amount" id="edit_payment_amount" class="m-form-control" required placeholder="0.00">
+                </div>
+                <div class="m-form-group">
+                    <label class="m-form-label">Payment Date <span style="color:#EF4444;">*</span></label>
+                    <input type="date" name="payment_date" id="edit_payment_date" class="m-form-control" required>
+                </div>
+            </div>
+
+            <div class="m-form-row">
+                <div class="m-form-group">
+                    <label class="m-form-label">Payment Mode <span style="color:#EF4444;">*</span></label>
+                    <select name="payment_mode" id="edit_payment_mode" class="m-form-control" required>
+                        <option value="Cash">Cash</option>
+                        <option value="Bank Transfer">Bank Transfer / NEFT / RTGS</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="UPI">UPI / GPay / PhonePe</option>
+                        @foreach($paymentModes as $pm)
+                            @if(!in_array($pm->name, ['Cash', 'Bank Transfer', 'Cheque', 'UPI']))
+                                <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+                <div class="m-form-group">
+                    <label class="m-form-label">Ref No. / Cheque No.</label>
+                    <input type="text" name="transaction_ref" id="edit_transaction_ref" class="m-form-control" placeholder="e.g. TXN987654 / CHQ-1002">
+                </div>
+            </div>
+
+            <div class="m-form-group">
+                <label class="m-form-label">Remarks / Notes</label>
+                <input type="text" name="remarks" id="edit_remarks" class="m-form-control" placeholder="Optional installment notes">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button type="button" class="btn-outline" onclick="closeEditPaymentModal()">Cancel</button>
+                <button type="submit" class="btn-pay-record" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important; border: 1px solid #FBBF24 !important;">
+                    <i class="fa-solid fa-check"></i> Update Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openRecordPaymentModal() {
     document.getElementById('recordPaymentModal').classList.add('active');
@@ -807,11 +933,41 @@ function openRecordPaymentModal() {
 function closeRecordPaymentModal() {
     document.getElementById('recordPaymentModal').classList.remove('active');
 }
+
+function openEditPaymentModal(btn) {
+    const id = btn.dataset.id;
+    const amount = btn.dataset.amount;
+    const date = btn.dataset.date;
+    const mode = btn.dataset.mode;
+    const ref = btn.dataset.ref;
+    const remarks = btn.dataset.remarks;
+
+    const form = document.getElementById('editPaymentForm');
+    form.action = "{{ url('property-sales/' . $propertySale->id . '/payments') }}/" + id;
+
+    document.getElementById('edit_payment_amount').value = amount;
+    document.getElementById('edit_payment_date').value = date;
+    document.getElementById('edit_payment_mode').value = mode;
+    document.getElementById('edit_transaction_ref').value = ref;
+    document.getElementById('edit_remarks').value = remarks;
+
+    document.getElementById('editPaymentModal').classList.add('active');
+}
+function closeEditPaymentModal() {
+    document.getElementById('editPaymentModal').classList.remove('active');
+}
+
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeRecordPaymentModal();
+    if (e.key === 'Escape') {
+        closeRecordPaymentModal();
+        closeEditPaymentModal();
+    }
 });
-document.getElementById('recordPaymentModal').addEventListener('click', function(e) {
+document.getElementById('recordPaymentModal')?.addEventListener('click', function(e) {
     if (e.target === this) closeRecordPaymentModal();
+});
+document.getElementById('editPaymentModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeEditPaymentModal();
 });
 </script>
 @endsection

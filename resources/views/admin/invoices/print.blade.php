@@ -1,21 +1,26 @@
+@php
+    $isGstInvoice = ((float)($invoice->tax_amount ?? 0) > 0 || (float)($invoice->tax_percent ?? 0) > 0);
+    $invHeading = $isGstInvoice ? 'TAX INVOICE' : 'INVOICE / BILL OF SUPPLY';
+    $invSubtitle = $isGstInvoice ? 'Official GST Tax Invoice (Under Rule 46 of CGST Rules)' : 'Official Commercial Bill / Invoice';
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tax Invoice - {{ $invoice->invoice_no ?? 'INV' }} - Delawala Management</title>
+    <title>{{ $invHeading }} - {{ $invoice->invoice_no ?? 'INV' }} - Delawala Management</title>
     @include('admin.components.pdf-styles', ['orientation' => 'portrait'])
 </head>
 <body>
 @include('admin.components.pdf-action-bar', [
-    'title' => 'Tax Invoice #' . ($invoice->invoice_no ?? 'INV'),
+    'title' => $invHeading . ' #' . ($invoice->invoice_no ?? 'INV'),
     'orientation' => 'portrait',
     'backUrl' => isset($invoice->id) ? route('invoices.show', $invoice->id) : route('invoices.index')
 ])
 
 @include('admin.components.pdf-header', [
-    'title' => 'TAX INVOICE',
-    'subtitle' => 'Official GST Tax Invoice (Under Rule 46 of CGST Rules)',
+    'title' => $invHeading,
+    'subtitle' => $invSubtitle,
     'firm' => $invoice->firm ?? null,
     'docRef' => $invoice->invoice_no ?? 'INV'
 ])

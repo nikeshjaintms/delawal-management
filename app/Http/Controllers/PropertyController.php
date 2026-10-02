@@ -60,6 +60,14 @@ class PropertyController extends Controller
             });
         }
 
+        if ($request->filled('status')) {
+            if ($request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+        } else {
+            $query->where('status', '!=', 'sold');
+        }
+
         $properties = $query->latest()->paginate(15)->withQueryString();
 
         return view('admin.properties.index', compact('properties', 'projects'));
@@ -229,6 +237,7 @@ class PropertyController extends Controller
             'size' => $request->filled('size') ? $request->size : null,
             'size_unit' => $request->size_unit,
             'price' => $request->price ?: null,
+            'purchase_rate' => $request->filled('purchase_rate') ? floatval($request->purchase_rate) : null,
             'unit_no' => $request->unit_no,
             'floor_no' => $request->floor_no,
             'facing' => $request->facing,
@@ -338,6 +347,7 @@ class PropertyController extends Controller
             'size' => $request->filled('size') ? $request->size : null,
             'size_unit' => $request->size_unit,
             'price' => $request->price ?: null,
+            'purchase_rate' => $request->filled('purchase_rate') ? floatval($request->purchase_rate) : ($request->has('purchase_rate') ? null : $property->purchase_rate),
             'unit_no' => $request->unit_no,
             'floor_no' => $request->floor_no,
             'facing' => $request->facing,
