@@ -147,19 +147,23 @@
 </div>
 
 <div class="card-box">
-    <form method="POST" action="{{ route('users.store') }}">
+    <form method="POST" action="{{ route('users.store') }}" autocomplete="off" id="createUserForm">
         @csrf
+
+        {{-- Hidden dummy inputs to absorb browser autofill / password manager traps --}}
+        <input type="text" style="display:none" aria-hidden="true" autocomplete="username">
+        <input type="password" style="display:none" aria-hidden="true" autocomplete="current-password">
 
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="name">Full Name <span>*</span></label>
-                <input type="text" name="name" id="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Enter full name" required>
+                <input type="text" name="name" id="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Enter full name" autocomplete="off" required>
                 @error('name') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="email">Email Address <span>*</span></label>
-                <input type="email" name="email" id="email" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror" placeholder="Enter email address" required>
+                <input type="email" name="email" id="email" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror" placeholder="Enter email address" autocomplete="new-password" required>
                 @error('email') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>
@@ -167,7 +171,7 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="mobile_number">Mobile Number <span>*</span></label>
-                <input type="text" name="mobile_number" id="mobile_number" value="{{ old('mobile_number') }}" class="form-control @error('mobile_number') is-invalid @enderror" placeholder="Enter 10-digit mobile number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" required>
+                <input type="text" name="mobile_number" id="mobile_number" value="{{ old('mobile_number') }}" class="form-control @error('mobile_number') is-invalid @enderror" placeholder="Enter 10-digit mobile number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" autocomplete="off" required>
                 @error('mobile_number') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
@@ -209,7 +213,7 @@
             <div class="form-group">
                 <label class="form-label" for="password">Password <span>*</span></label>
                 <div style="position: relative;">
-                    <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" placeholder="Enter password" required style="padding-right: 44px;">
+                    <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" placeholder="Enter password" autocomplete="new-password" required style="padding-right: 44px;">
                     <button type="button" class="btn-toggle-pwd" data-target="password" onclick="togglePasswordVisibility('password', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94A3B8; font-size: 15px; padding: 6px; z-index: 10;">
                         <i class="fa-solid fa-eye" style="pointer-events: none;"></i>
                     </button>
@@ -220,7 +224,7 @@
             <div class="form-group">
                 <label class="form-label" for="confirm_password">Confirm Password <span>*</span></label>
                 <div style="position: relative;">
-                    <input type="password" name="confirm_password" id="confirm_password" class="form-control @error('confirm_password') is-invalid @enderror" placeholder="Confirm password" required style="padding-right: 44px;">
+                    <input type="password" name="confirm_password" id="confirm_password" class="form-control @error('confirm_password') is-invalid @enderror" placeholder="Confirm password" autocomplete="new-password" required style="padding-right: 44px;">
                     <button type="button" class="btn-toggle-pwd" data-target="confirm_password" onclick="togglePasswordVisibility('confirm_password', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94A3B8; font-size: 15px; padding: 6px; z-index: 10;">
                         <i class="fa-solid fa-eye" style="pointer-events: none;"></i>
                     </button>

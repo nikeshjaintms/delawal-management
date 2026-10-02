@@ -467,19 +467,23 @@
         <div class="modal-title">Add New User</div>
         <div class="modal-subtitle">Create a new administrator or staff member account.</div>
 
-        <form method="POST" action="{{ route('users.store') }}">
+        <form method="POST" action="{{ route('users.store') }}" autocomplete="off" id="addUserForm" data-has-errors="{{ $errors->any() && old('_modal') === 'add_user' ? '1' : '0' }}">
             @csrf
             <input type="hidden" name="_modal" value="add_user" class="@error('_modal') is-invalid @enderror">
+
+            {{-- Hidden dummy inputs to absorb browser autofill / password manager traps --}}
+            <input type="text" style="display:none" aria-hidden="true" autocomplete="username">
+            <input type="password" style="display:none" aria-hidden="true" autocomplete="current-password">
 
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="m_name">Full Name <span>*</span></label>
-                    <input type="text" name="name" id="m_name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Enter full name" required>
+                    <input type="text" name="name" id="m_name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Enter full name" autocomplete="off" required>
                     @error('name') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="m_email">Email Address <span>*</span></label>
-                    <input type="email" name="email" id="m_email" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror" placeholder="Enter email address" required>
+                    <input type="email" name="email" id="m_email" value="{{ old('email') }}" data-has-old="{{ old('email') ? '1' : '0' }}" class="form-control @error('email') is-invalid @enderror" placeholder="Enter email address" autocomplete="new-password" required>
                     @error('email') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
@@ -487,7 +491,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="m_mobile">Mobile Number <span>*</span></label>
-                    <input type="text" name="mobile_number" id="m_mobile" value="{{ old('mobile_number') }}" class="form-control @error('mobile_number') is-invalid @enderror" placeholder="Enter 10-digit mobile number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" required>
+                    <input type="text" name="mobile_number" id="m_mobile" value="{{ old('mobile_number') }}" class="form-control @error('mobile_number') is-invalid @enderror" placeholder="Enter 10-digit mobile number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" autocomplete="off" required>
                     @error('mobile_number') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
@@ -526,12 +530,12 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="m_password">Password <span>*</span></label>
-                    <input type="password" name="password" id="m_password" class="form-control @error('password') is-invalid @enderror" placeholder="Enter password" required>
+                    <input type="password" name="password" id="m_password" class="form-control @error('password') is-invalid @enderror" placeholder="Enter password" autocomplete="new-password" required>
                     @error('password') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="m_confirm_password">Confirm Password <span>*</span></label>
-                    <input type="password" name="confirm_password" id="m_confirm_password" class="form-control @error('confirm_password') is-invalid @enderror" placeholder="Confirm password" required>
+                    <input type="password" name="confirm_password" id="m_confirm_password" class="form-control @error('confirm_password') is-invalid @enderror" placeholder="Confirm password" autocomplete="new-password" required>
                     @error('confirm_password') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
@@ -548,17 +552,44 @@
 
 <script>
     const addUserModal  = document.getElementById('addUserModal');
+    const addUserForm   = document.getElementById('addUserForm');
     const openBtn       = document.getElementById('openAddUserModal');
     const closeBtn      = document.getElementById('closeAddUserModal');
     const cancelBtn     = document.getElementById('cancelAddUserModal');
 
-    openBtn.addEventListener('click', () => addUserModal.classList.add('active'));
-    closeBtn.addEventListener('click', () => addUserModal.classList.remove('active'));
-    cancelBtn.addEventListener('click', () => addUserModal.classList.remove('active'));
+    function clearModalAutofill() {
+        if (addUserForm && addUserForm.dataset.hasErrors !== '1') {
+            const email = document.getElementById('m_email');
+            const pwd = document.getElementById('m_password');
+            const cpwd = document.getElementById('m_confirm_password');
+            if (email && email.dataset.hasOld !== '1') email.value = '';
+            if (pwd) pwd.value = '';
+            if (cpwd) cpwd.value = '';
+        }
+    }
+
+    if (openBtn) {
+        openBtn.addEventListener('click', () => {
+            addUserModal.classList.add('active');
+            clearModalAutofill();
+            setTimeout(clearModalAutofill, 50);
+            setTimeout(clearModalAutofill, 200);
+        });
+    }
+    if (closeBtn) closeBtn.addEventListener('click', () => addUserModal.classList.remove('active'));
+    if (cancelBtn) cancelBtn.addEventListener('click', () => addUserModal.classList.remove('active'));
 
     // Close on backdrop click
-    addUserModal.addEventListener('click', function(e) {
-        if (e.target === this) this.classList.remove('active');
+    if (addUserModal) {
+        addUserModal.addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+    }
+
+    // Initial clear on page load to prevent browser pre-filling hidden modal
+    window.addEventListener('DOMContentLoaded', () => {
+        clearModalAutofill();
+        setTimeout(clearModalAutofill, 100);
     });
 </script>
 @endsection
