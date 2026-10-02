@@ -286,76 +286,6 @@ class AuthController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────
-    // Public Change Password from Login Screen
-    // ─────────────────────────────────────────────────────────────
-    public function publicChangePassword(Request $request)
-    {
-        $request->validate([
-            'account_type'          => 'required|in:admin,firm',
-            'email'                 => 'required|email',
-            'current_password'      => 'required',
-            'password'              => 'required|min:6|confirmed',
-            'password_confirmation' => 'required',
-        ], [
-            'email.required'                 => 'Email address is required.',
-            'current_password.required'      => 'Current password is required.',
-            'password.required'              => 'New password is required.',
-            'password.min'                   => 'New password must be at least 6 characters.',
-            'password.confirmed'             => 'New password and confirmation do not match.',
-            'password_confirmation.required' => 'Please confirm your new password.',
-        ]);
-
-        $email = strtolower(trim((string)$request->input('email')));
-        $accountType = $request->input('account_type', 'admin');
-
-        if ($accountType === 'firm') {
-            $firm = Firm::where('email', $email)->first();
-            if (!$firm) {
-                return back()
-                    ->withInput($request->only('email', 'account_type'))
-                    ->with('error_change_pwd', 'Firm account not found with this email.')
-                    ->with('open_change_modal', true);
-            }
-
-            if (!Hash::check((string)$request->input('current_password'), $firm->password)) {
-                return back()
-                    ->withInput($request->only('email', 'account_type'))
-                    ->with('error_change_pwd', 'Current password does not match our records.')
-                    ->with('open_change_modal', true);
-            }
-
-            $firm->password = Hash::make((string)$request->input('password'));
-            $firm->save();
-
-            AuditLog::log('Auth', 'Public Password Change', 'Firm password changed via login page: ' . $firm->firm_name . ' (' . $email . ')');
-
-            return redirect()->route('login')->with('success', 'Password changed successfully! Please sign in with your new password.');
-        } else {
-            $user = User::where('email', $email)->first();
-            if (!$user) {
-                return back()
-                    ->withInput($request->only('email', 'account_type'))
-                    ->with('error_change_pwd', 'Admin/User account not found with this email.')
-                    ->with('open_change_modal', true);
-            }
-
-            if (!Hash::check((string)$request->input('current_password'), $user->password)) {
-                return back()
-                    ->withInput($request->only('email', 'account_type'))
-                    ->with('error_change_pwd', 'Current password does not match our records.')
-                    ->with('open_change_modal', true);
-            }
-
-            $user->password = Hash::make((string)$request->input('password'));
-            $user->save();
-
-            AuditLog::log('Auth', 'Public Password Change', 'Admin user password changed via login page: ' . $user->name . ' (' . $email . ')');
-
-            return redirect()->route('login')->with('success', 'Password changed successfully! Please sign in with your new password.');
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────
     // Process Change Password Submission
     // ─────────────────────────────────────────────────────────────
     public function updatePassword(Request $request)
@@ -385,6 +315,10 @@ class AuthController extends Controller
                 return back()->withErrors(['current_password' => 'The provided current password does not match our records.'])->withInput();
             }
 
+            if (Hash::check($request->password, $firm->password) || $request->current_password === $request->password) {
+                return back()->withErrors(['password' => 'New password cannot be the same as your current password. Please choose a different password.'])->withInput();
+            }
+
             $firm->password = Hash::make($request->password);
             $firm->save();
 
@@ -401,6 +335,10 @@ class AuthController extends Controller
 
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'The provided current password does not match our records.'])->withInput();
+        }
+
+        if (Hash::check($request->password, $user->password) || $request->current_password === $request->password) {
+            return back()->withErrors(['password' => 'New password cannot be the same as your current password. Please choose a different password.'])->withInput();
         }
 
         $user->password = Hash::make($request->password);

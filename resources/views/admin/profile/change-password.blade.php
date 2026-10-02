@@ -274,53 +274,6 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-
-    /* --- Security Tips List --- */
-    .security-tips-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    .security-tips-list li {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        font-size: 12.5px;
-        color: #CBD5E1;
-        line-height: 1.5;
-        margin-bottom: 12px;
-    }
-    .security-tips-list li:last-child {
-        margin-bottom: 0;
-    }
-    .security-tips-list li i {
-        color: #38BDF8;
-        margin-top: 3px;
-        font-size: 12px;
-        flex-shrink: 0;
-    }
-
-    .audit-notice-box {
-        margin-top: 20px;
-        padding: 14px 16px;
-        border-radius: 14px;
-        background: rgba(59, 130, 246, 0.08);
-        border: 1px solid rgba(59, 130, 246, 0.20);
-        display: flex;
-        gap: 12px;
-        align-items: center;
-    }
-    .audit-notice-box i {
-        color: #60A5FA;
-        font-size: 18px;
-        flex-shrink: 0;
-    }
-    .audit-notice-box p {
-        font-size: 12px;
-        color: #93C5FD;
-        margin: 0;
-        line-height: 1.4;
-    }
 </style>
 
 <div class="security-container">
@@ -379,7 +332,7 @@
                     </label>
                     <div class="input-wrapper-sec">
                         <i class="fa-solid fa-lock input-icon-left"></i>
-                        <input type="password" name="current_password" id="current_password" class="input-control-sec @error('current_password') is-invalid @enderror" placeholder="Enter your current password" required autocomplete="current-password">
+                        <input type="password" name="current_password" id="current_password" class="input-control-sec @error('current_password') is-invalid @enderror" placeholder="Enter your current password" required autocomplete="current-password" oninput="validatePasswordDiff()">
                         <button type="button" class="toggle-pwd-btn" onclick="togglePasswordVisibility('current_password', this)">
                             <i class="fa-regular fa-eye"></i>
                         </button>
@@ -404,6 +357,7 @@
                             <i class="fa-regular fa-eye"></i>
                         </button>
                     </div>
+                    <div id="samePasswordFeedback" style="font-size: 11.5px; font-weight: 700; color: #F87171; margin-top: 5px; display: none;"></div>
                     <div class="pwd-strength-container" id="strengthContainer" style="display: none;">
                         <div class="pwd-strength-bar">
                             <div class="pwd-strength-fill" id="strengthFill"></div>
@@ -448,7 +402,7 @@
         <!-- Sidebar / Security Info Column -->
         <div>
             <!-- Account Badge Card -->
-            <div class="sec-card" style="padding: 24px; margin-bottom: 20px;">
+            <div class="sec-card" style="padding: 24px;">
                 <div class="user-profile-badge-card">
                     <div class="user-big-avatar">
                         {{ strtoupper(substr($currentUser->name ?? 'A', 0, 1)) }}
@@ -471,42 +425,6 @@
                     <span style="font-size: 12.5px; font-weight: 700; color: #E2E8F0;">{{ now()->format('d M Y') }}</span>
                 </div>
             </div>
-
-            <!-- Password Guidelines Card -->
-            <div class="sec-card" style="padding: 24px;">
-                <div class="sec-card-header" style="margin-bottom: 16px; padding-bottom: 12px;">
-                    <div class="sec-card-icon" style="background: rgba(14, 165, 233, 0.20); border-color: rgba(14, 165, 233, 0.40); color: #38BDF8;">
-                        <i class="fa-solid fa-lightbulb"></i>
-                    </div>
-                    <div>
-                        <h3 style="font-size: 14px;">Password Best Practices</h3>
-                    </div>
-                </div>
-
-                <ul class="security-tips-list">
-                    <li>
-                        <i class="fa-solid fa-check-circle"></i>
-                        <span>Use at least <strong>6 to 12 characters</strong> for maximum strength.</span>
-                    </li>
-                    <li>
-                        <i class="fa-solid fa-check-circle"></i>
-                        <span>Combine <strong>letters, numbers (0-9)</strong>, and special symbols (@, #, $).</span>
-                    </li>
-                    <li>
-                        <i class="fa-solid fa-check-circle"></i>
-                        <span>Avoid common dictionary words or predictable patterns.</span>
-                    </li>
-                    <li>
-                        <i class="fa-solid fa-check-circle"></i>
-                        <span>Do not share your administrator password with anyone.</span>
-                    </li>
-                </ul>
-
-                <div class="audit-notice-box">
-                    <i class="fa-solid fa-user-shield"></i>
-                    <p>All password update events are automatically tracked in the system audit logs for security purposes.</p>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -526,10 +444,27 @@ function togglePasswordVisibility(fieldId, btn) {
     }
 }
 
+function validatePasswordDiff() {
+    const current = document.getElementById('current_password').value;
+    const next = document.getElementById('password').value;
+    const sameFeedback = document.getElementById('samePasswordFeedback');
+
+    if (current && next && current === next) {
+        sameFeedback.style.display = 'block';
+        sameFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> New password cannot be the same as your current password!';
+        return false;
+    } else {
+        sameFeedback.style.display = 'none';
+        return true;
+    }
+}
+
 function checkPasswordStrength(password) {
     const container = document.getElementById('strengthContainer');
     const fill = document.getElementById('strengthFill');
     const text = document.getElementById('strengthText');
+
+    validatePasswordDiff();
 
     if (!password || password.length === 0) {
         container.style.display = 'none';
@@ -583,5 +518,25 @@ function checkPasswordMatch() {
         feedback.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Passwords do not match yet.';
     }
 }
+
+document.getElementById('changePasswordForm')?.addEventListener('submit', function(e) {
+    const current = document.getElementById('current_password').value;
+    const next = document.getElementById('password').value;
+    const confirm = document.getElementById('password_confirmation').value;
+
+    if (current && next && current === next) {
+        e.preventDefault();
+        validatePasswordDiff();
+        document.getElementById('password').focus();
+        return false;
+    }
+
+    if (next !== confirm) {
+        e.preventDefault();
+        checkPasswordMatch();
+        document.getElementById('password_confirmation').focus();
+        return false;
+    }
+});
 </script>
 @endsection
