@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenancy Ledger Statement - {{ $rental->tenant_name ?? ($rental->tenant->name ?? 'Tenant') }} - Delawala Management</title>
+    <title>Tenancy Ledger Statement - {{ $rental->tenant_name ?? ($rental->tenant?->name ?? 'Tenant') }} - Delawala Management</title>
     @include('admin.components.pdf-styles', ['orientation' => 'landscape'])
 </head>
 <body>
 @include('admin.components.pdf-action-bar', [
-    'title' => 'Tenancy Statement: ' . ($rental->tenant_name ?? ($rental->tenant->name ?? 'Tenant')),
+    'title' => 'Tenancy Statement: ' . ($rental->tenant_name ?? ($rental->tenant?->name ?? 'Tenant')),
     'orientation' => 'landscape',
     'backUrl' => isset($rental->id) ? route('rental-payments.index', $rental->id) : route('rentals.index')
 ])
