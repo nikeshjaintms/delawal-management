@@ -430,12 +430,12 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                 <div id="rental-snapshot-box" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; background: rgba(0,0,0,0.30); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.06);">
                     <div>
                         <div style="font-size: 11px; text-transform: uppercase; color: #94A3B8; font-weight: 700; letter-spacing: 0.5px;">Active Tenant</div>
-                        <div id="snap-tenant-name" style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-top: 2px;">{{ $linkedTenant->name ?? ($linkedRental->tenant_name ?? '—') }}</div>
-                        <div id="snap-tenant-phone" style="font-size: 12px; color: #60A5FA;">{{ $linkedTenant->phone ?? ($linkedRental->tenant_mobile ? '📞 '.$linkedRental->tenant_mobile : '—') }}</div>
+                        <div id="snap-tenant-name" style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-top: 2px;">{{ $linkedTenant?->name ?? ($linkedRental?->tenant_name ?? '—') }}</div>
+                        <div id="snap-tenant-phone" style="font-size: 12px; color: #60A5FA;">{{ $linkedTenant?->phone ?? ($linkedRental?->tenant_mobile ? '📞 '.$linkedRental->tenant_mobile : '—') }}</div>
                     </div>
                     <div>
                         <div style="font-size: 11px; text-transform: uppercase; color: #94A3B8; font-weight: 700; letter-spacing: 0.5px;">Agreement No</div>
-                        <div id="snap-agreement-no" style="font-size: 14px; font-weight: 800; color: #38BDF8; margin-top: 2px;">{{ $linkedRental->agreement_no ?? ($linkedRental ? 'AGR-'.$linkedRental->id : '—') }}</div>
+                        <div id="snap-agreement-no" style="font-size: 14px; font-weight: 800; color: #38BDF8; margin-top: 2px;">{{ $linkedRental?->agreement_no ?? ($linkedRental ? 'AGR-'.$linkedRental->id : '—') }}</div>
                         <div id="snap-rental-status" style="font-size: 11.5px; color: #10B981; font-weight: 700;">{{ $linkedRental ? strtoupper($linkedRental->rental_status) : '—' }}</div>
                     </div>
                     <div>

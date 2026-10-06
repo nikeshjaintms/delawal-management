@@ -39,11 +39,11 @@
         <div class="col-heading"><i class="fa-solid fa-user"></i> Tenant Particulars</div>
         <div class="info-row">
             <span class="info-label">Tenant Name:</span>
-            <span class="info-val">{{ $rental->tenant_name ?? ($rental->tenant->name ?? '—') }}</span>
+            <span class="info-val">{{ $rental->tenant_name ?? ($rental->tenant?->name ?? '—') }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Mobile Number:</span>
-            <span class="info-val">{{ $rental->tenant_mobile ?? ($rental->tenant->mobile ?? '—') }}</span>
+            <span class="info-val">{{ $rental->tenant_mobile ?? ($rental->tenant?->mobile ?? '—') }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">ID / Aadhar:</span>
