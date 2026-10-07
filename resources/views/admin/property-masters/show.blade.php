@@ -1051,10 +1051,20 @@
                                 $badgeStyle = 'background: rgba(168, 85, 247, 0.15); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.35);';
                                 $icon = 'fa-solid fa-mobile-screen-button';
                             }
+
+                            $num = $idx + 1;
+                            $suffix = 'th';
+                            if ($num % 100 < 11 || $num % 100 > 13) {
+                                switch ($num % 10) {
+                                    case 1: $suffix = 'st'; break;
+                                    case 2: $suffix = 'nd'; break;
+                                    case 3: $suffix = 'rd'; break;
+                                }
+                            }
                         @endphp
                         <tr style="background: rgba(16, 22, 34, 0.50); transition: background .2s;">
                             <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); font-weight: 800; color: #94A3B8;">
-                                {{ $idx === 0 ? '1st (Advance)' : ($idx + 1) . 'th Installment' }}
+                                {{ $idx === 0 ? '1st (Advance)' : $num . $suffix . ' Installment' }}
                             </td>
                             <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #FFFFFF; font-weight: 700;">
                                 {{ $pmt->payment_date ? date('d/m/Y', strtotime($pmt->payment_date)) : '—' }}
@@ -1080,7 +1090,15 @@
                             </td>
                             <td style="padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: right; white-space: nowrap;">
                                 <button type="button" 
-                                        onclick='openEditPaymentModal(@json($pmt))' 
+                                        class="btn-edit-pm-payment"
+                                        data-id="{{ $pmt->id }}"
+                                        data-date="{{ $pmt->payment_date ? date('Y-m-d', strtotime($pmt->payment_date)) : '' }}"
+                                        data-amount="{{ $pmt->amount }}"
+                                        data-mode="{{ $pmt->payment_mode ?? 'Cash' }}"
+                                        data-ref="{{ $pmt->reference_no ?? '' }}"
+                                        data-bank="{{ $pmt->bank_name ?? '' }}"
+                                        data-remarks="{{ $pmt->remarks ?? '' }}"
+                                        onclick="openEditPaymentModal(this)" 
                                         style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60A5FA; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s; margin-right: 6px;" 
                                         title="Edit Payment Record">
                                     <i class="fa-solid fa-pen-to-square"></i> Edit
@@ -1865,19 +1883,75 @@ function toggleEditPmPaymentModeFields(mode) {
     }
 }
 
-function openEditPaymentModal(payment) {
-    if (!payment) return;
+function openEditPaymentModal(btnOrPayment) {
+    if (!btnOrPayment) return;
+    
+    let id, amount, date, mode, ref, bank, remarks;
+    
+    if (btnOrPayment instanceof HTMLElement || (btnOrPayment.nodeType && btnOrPayment.getAttribute)) {
+        id = btnOrPayment.getAttribute('data-id');
+        amount = btnOrPayment.getAttribute('data-amount') || '';
+        date = btnOrPayment.getAttribute('data-date') || '';
+        mode = btnOrPayment.getAttribute('data-mode') || 'Cash';
+        ref = btnOrPayment.getAttribute('data-ref') || '';
+        bank = btnOrPayment.getAttribute('data-bank') || '';
+        remarks = btnOrPayment.getAttribute('data-remarks') || '';
+    } else {
+        id = btnOrPayment.id;
+        amount = btnOrPayment.amount || '';
+        date = btnOrPayment.payment_date ? btnOrPayment.payment_date.substring(0, 10) : '';
+        mode = btnOrPayment.payment_mode || 'Cash';
+        ref = btnOrPayment.reference_no || '';
+        bank = btnOrPayment.bank_name || '';
+        remarks = btnOrPayment.remarks || '';
+    }
+
     const form = document.getElementById('editPaymentForm');
-    form.action = "{{ url('property-masters/' . $propertyMaster->id . '/payments') }}/" + payment.id;
+    if (form) {
+        form.action = "{{ url('property-masters/' . $propertyMaster->id . '/payments') }}/" + id;
+    }
     
-    document.getElementById('edit_pm_payment_date').value = payment.payment_date ? payment.payment_date.substring(0, 10) : '';
-    document.getElementById('edit_pm_amount').value = payment.amount || '';
-    document.getElementById('edit_pm_payment_mode').value = payment.payment_mode || 'Cash';
-    document.getElementById('edit_pm_reference_no').value = payment.reference_no || '';
-    document.getElementById('edit_pm_bank_name').value = payment.bank_name || '';
-    document.getElementById('edit_pm_remarks').value = payment.remarks || '';
+    const dateEl = document.getElementById('edit_pm_payment_date');
+    if (dateEl) dateEl.value = date;
+
+    const amountEl = document.getElementById('edit_pm_amount');
+    if (amountEl) amountEl.value = amount;
+
+    const modeEl = document.getElementById('edit_pm_payment_mode');
+    if (modeEl) {
+        modeEl.value = mode;
+        let matched = false;
+        for (let opt of modeEl.options) {
+            if (opt.value === mode) {
+                matched = true;
+                break;
+            }
+        }
+        if (!matched) {
+            for (let opt of modeEl.options) {
+                if (opt.value.toLowerCase() === mode.toLowerCase()) {
+                    modeEl.value = opt.value;
+                    matched = true;
+                    break;
+                }
+            }
+        }
+        if (!matched && mode) {
+            const opt = new Option(mode, mode, true, true);
+            modeEl.add(opt);
+        }
+    }
+
+    const refEl = document.getElementById('edit_pm_reference_no');
+    if (refEl) refEl.value = ref;
+
+    const bankEl = document.getElementById('edit_pm_bank_name');
+    if (bankEl) bankEl.value = bank;
+
+    const remarksEl = document.getElementById('edit_pm_remarks');
+    if (remarksEl) remarksEl.value = remarks;
     
-    toggleEditPmPaymentModeFields(payment.payment_mode || 'Cash');
+    toggleEditPmPaymentModeFields(mode || 'Cash');
     openModal('editPaymentModal');
 }
 
