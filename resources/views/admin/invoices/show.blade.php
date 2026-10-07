@@ -236,25 +236,75 @@
     color: #FFFFFF !important;
 }
 
-/* Modal */
+/* Modal System */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px);
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    z-index: 99999;
+    padding: 20px;
 }
 .modal-content-box {
-    background: #141B29;
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: #0F172A !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
     border-radius: 20px;
     padding: 28px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.60);
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.80);
+    box-sizing: border-box;
+}
+.modal-content-box .form-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+}
+.modal-content-box .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #F8FAFC !important;
+    margin-bottom: 6px;
+    letter-spacing: 0.2px;
+}
+.modal-content-box .form-label .req {
+    color: #EF4444;
+    font-weight: 800;
+    margin-left: 2px;
+}
+.modal-content-box .f-control {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background: rgba(30, 41, 59, 0.90) !important;
+    border: 1px solid rgba(255, 255, 255, 0.20) !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+    color: #FFFFFF !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
+    font-family: inherit !important;
+}
+.modal-content-box .f-control:focus {
+    border-color: #3B82F6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35) !important;
+    background: #1E293B !important;
+}
+.modal-content-box select.f-control option {
+    background: #0F172A;
+    color: #FFFFFF;
+}
+.modal-content-box textarea.f-control {
+    resize: vertical;
+    min-height: 70px;
 }
 </style>
 

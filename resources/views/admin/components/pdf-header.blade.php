@@ -2,6 +2,7 @@
     $docTitle       = $title ?? ($pdfTitle ?? 'Official Report');
     $docSubtitle    = $subtitle ?? null;
     $docDate        = $date ?? now()->format('d M Y, h:i A');
+    $isBw           = $isBw ?? false;
     $activeFirm     = $firm ?? ($reportFirm ?? (session('login_type') === 'firm' && session('firm_id') ? \App\Models\Firm::find(session('firm_id')) : \App\Models\Firm::first()));
     
     $firmDisplayName = $activeFirm->firm_name ?? 'DELAWALA PROPERTIES';
@@ -14,7 +15,7 @@
     $firmPhone       = $activeFirm->mobile ?? null;
 @endphp
 
-<div class="delawala-pdf-header">
+<div class="delawala-pdf-header {{ $isBw ? 'pdf-header-bw' : '' }}">
     <div class="dph-left">
         <div class="dph-logo-wrap">
             <img src="{{ asset('images/logo.png') }}" alt="{{ $firmDisplayName }}" class="dph-logo" onerror="this.style.display='none';">
@@ -52,11 +53,34 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        padding-bottom: 14px;
-        margin-bottom: 18px;
-        border-bottom: 2.5px solid #D97706;
-        gap: 16px;
+        padding-bottom: 12px;
+        margin-bottom: 14px;
+        border-bottom: 2px solid #D97706;
+        gap: 14px;
         font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    .delawala-pdf-header.pdf-header-bw {
+        border-bottom: 2px solid #000000 !important;
+    }
+    .pdf-header-bw .dph-trade-sub {
+        color: #333333 !important;
+    }
+    .pdf-header-bw .dph-address-line i {
+        color: #000000 !important;
+    }
+    .pdf-header-bw .dph-gst-badge {
+        background: #FFFFFF !important;
+        border: 1.5px solid #000000 !important;
+        color: #000000 !important;
+        font-weight: 800 !important;
+    }
+    .pdf-header-bw .dph-info-badge {
+        background: #F8FAFC !important;
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
+    }
+    .pdf-header-bw .dph-doc-sub {
+        color: #333333 !important;
     }
     .dph-left {
         display: flex;

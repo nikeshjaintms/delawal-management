@@ -32,7 +32,7 @@
     /* ── A4 Page Specifications ── */
     @page {
         size: A4 {{ $orientation }};
-        margin: 8mm 10mm;
+        margin: 8mm 8mm 8mm 8mm;
     }
     @media print {
         html, body {
@@ -40,6 +40,8 @@
             margin: 0 !important;
             background: #FFFFFF !important;
             color: #000000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
         .delawala-pdf-toolbar, .no-print-bar, .no-print {
             display: none !important;
@@ -47,9 +49,17 @@
         .page-break {
             page-break-before: always;
         }
-        tr, .stat-box, .grid-col, .finance-card, .info-box {
+        tr, .stat-box, .grid-col, .grid-2, .finance-card, .info-box, .auth-block, .bw-box, table {
             page-break-inside: avoid !important;
+            break-inside: avoid !important;
         }
+    }
+
+    .delawala-printable-area {
+        width: 100%;
+        max-width: 100%;
+        background: #FFFFFF;
+        margin: 0 auto;
     }
 
     /* ── KPI / Stat Summary Row ── */

@@ -13,9 +13,11 @@
     'backUrl' => route('reports.gst-sales')
 ])
 
+<div id="delawala-printable-area" class="delawala-printable-area">
 @include('admin.components.pdf-header', [
     'title' => 'GST Sales Report (GSTR-1)',
-    'subtitle' => 'Outward Supplies & Tax Liability Register'
+    'subtitle' => 'Outward Supplies & Tax Liability Register',
+    'isBw' => true
 ])
 
 <div class="stat-row">
@@ -104,5 +106,6 @@
 </table>
 
 @include('admin.components.pdf-footer')
+</div>
 </body>
 </html>

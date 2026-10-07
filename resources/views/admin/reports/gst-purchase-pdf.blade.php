@@ -13,9 +13,11 @@
     'backUrl' => route('reports.gst-purchase')
 ])
 
+<div id="delawala-printable-area" class="delawala-printable-area">
 @include('admin.components.pdf-header', [
     'title' => 'GST Purchase Report (GSTR-2/3B)',
-    'subtitle' => 'Input Tax Credit (ITC) & Vendor Purchases'
+    'subtitle' => 'Input Tax Credit (ITC) & Vendor Purchases',
+    'isBw' => true
 ])
 
 @if(request()->hasAny(['from_date','to_date','filter_vendor','filter_category','filter_status']))
@@ -129,5 +131,6 @@
 </table>
 
 @include('admin.components.pdf-footer')
+</div>
 </body>
 </html>

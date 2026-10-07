@@ -174,7 +174,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                     <select name="payment_mode" id="payment_mode" class="form-control @error('payment_mode') is-invalid @enderror" required>
                         <option value="">-- Select Mode --</option>
                         @php
-                            $firmId = Auth::user()?->firm_id ?? session('firm_id');
+                            $firmId = Auth::user()?->firm_id ?? session('firm   _id');
                             $pModes = \App\Models\PaymentMode::where('status', 'active')
                                 ->when($firmId, function($q) use ($firmId) {
                                     $q->where(function($sub) use ($firmId) {

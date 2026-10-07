@@ -143,12 +143,10 @@
             e.stopPropagation();
         }
         
-        // 1. If this was opened in a new tab/window, closing tab is instant (0ms latency)
         if (window.opener || window.history.length <= 1) {
             window.close();
         }
 
-        // 2. If it's in the same tab or window.close was blocked by browser
         setTimeout(function() {
             if (fallbackUrl && fallbackUrl !== '') {
                 window.location.href = fallbackUrl;
@@ -166,33 +164,49 @@
             btn.disabled = true;
         }
 
-        const toolbar = document.querySelector('.delawala-pdf-toolbar');
-        const element = document.body;
-        
-        const opt = {
-            margin:       [8, 8, 8, 8],
-            filename:     (filename || 'Delawala-Document') + '.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, logging: false },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: orientation || 'portrait' }
-        };
+        window.scrollTo(0, 0);
 
+        const toolbar = document.querySelector('.delawala-pdf-toolbar');
         if (toolbar) toolbar.style.display = 'none';
 
-        html2pdf().set(opt).from(element).save().then(() => {
-            if (toolbar) toolbar.style.display = 'flex';
-            if (btn) {
-                btn.innerHTML = oldHtml;
-                btn.disabled = false;
-            }
-        }).catch(err => {
-            console.error('PDF export error:', err);
-            if (toolbar) toolbar.style.display = 'flex';
-            if (btn) {
-                btn.innerHTML = oldHtml;
-                btn.disabled = false;
-            }
-            window.print();
-        });
+        const element = document.getElementById('delawala-printable-area') 
+            || document.querySelector('.delawala-printable-area') 
+            || document.body;
+        
+        const isLandscape = (orientation === 'landscape');
+
+        const opt = {
+            margin:       isLandscape ? [6, 8, 6, 8] : [6, 6, 6, 6],
+            filename:     (filename || 'Delawala-Document') + '.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true, 
+                logging: false,
+                scrollY: 0,
+                scrollX: 0
+            },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: orientation || 'portrait' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        // Allow DOM to settle before snapshot
+        setTimeout(function() {
+            html2pdf().set(opt).from(element).save().then(() => {
+                if (toolbar) toolbar.style.display = 'flex';
+                if (btn) {
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                }
+            }).catch(err => {
+                console.error('PDF export error:', err);
+                if (toolbar) toolbar.style.display = 'flex';
+                if (btn) {
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                }
+                window.print();
+            });
+        }, 120);
     };
 </script>
