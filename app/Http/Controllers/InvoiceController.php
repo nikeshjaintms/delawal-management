@@ -169,7 +169,7 @@ class InvoiceController extends Controller
 
         // Suggest Invoice Number
         $activeSetting = InvoiceSetting::activeSetting();
-        $suggestedNo = $activeSetting ? $activeSetting->generateNumber($selectedType === 'sale' ? 'sales' : ($selectedType === 'rental' ? 'rental' : 'payment')) : 'INV-' . date('Y') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        $suggestedNo = $activeSetting ? $activeSetting->generateNumber($selectedType === 'sale' ? 'sales' : ($selectedType === 'rental' ? 'rental' : 'payment')) : 'INV-' . date('Y') . '-' . ((Invoice::max('id') ?? 0) + 1);
 
         // Preload firm bank details if applicable
         $defaultFirm = $selectedProject ? $selectedProject->firm : ($firmId ? Firm::find($firmId) : $firms->first());

@@ -10,14 +10,18 @@
     .delawala-pdf-toolbar {
         position: sticky;
         top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        box-sizing: border-box;
         z-index: 99999;
         display: flex;
         justify-content: space-between;
         align-items: center;
         background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
         color: #FFFFFF;
-        padding: 12px 20px;
-        margin: -24px -24px 22px -24px;
+        padding: 10px 24px;
+        margin: 0 0 20px 0;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
         border-bottom: 2.5px solid #D97706;
     }
@@ -26,10 +30,23 @@
         align-items: center;
         gap: 12px;
     }
-    .pdf-bar-brand img {
-        height: 32px;
+    .pdf-bar-logo-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #FFFFFF;
+        padding: 3px 8px;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        height: 34px;
+        box-sizing: border-box;
+    }
+    .pdf-bar-logo-wrap img {
+        height: 28px;
+        max-height: 28px;
         width: auto;
         object-fit: contain;
+        display: block;
     }
     .pdf-bar-title {
         font-size: 13.5px;
@@ -114,7 +131,13 @@
 
 <div class="delawala-pdf-toolbar no-print">
     <div class="pdf-bar-brand">
-        <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties">
+        <div class="pdf-bar-logo-wrap">
+            @if(file_exists(public_path('images/pdf-logo.png')))
+                <img src="{{ asset('images/pdf-logo.png') }}?v={{ filemtime(public_path('images/pdf-logo.png')) }}" alt="Delawala Properties">
+            @else
+                <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties">
+            @endif
+        </div>
         <div>
             <div class="pdf-bar-title">{{ $pageTitle }}</div>
         </div>

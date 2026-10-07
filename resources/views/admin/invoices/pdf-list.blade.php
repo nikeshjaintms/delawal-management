@@ -13,7 +13,6 @@
     'backUrl' => route('invoices.index')
 ])
 
-<div id="delawala-printable-area" class="delawala-printable-area">
 @include('admin.components.pdf-header', [
     'title' => 'Tax Invoices Register Report',
     'subtitle' => 'Billing Register & GST Breakdown',
@@ -84,6 +83,5 @@
 </table>
 
 @include('admin.components.pdf-footer')
-</div>
 </body>
 </html>

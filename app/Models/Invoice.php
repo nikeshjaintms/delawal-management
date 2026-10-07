@@ -223,12 +223,12 @@ class Invoice extends Model
         }
 
         $nextNum = $maxNum + 1;
-        $candidate = sprintf('%s-%s-%04d', $prefix, $year, $nextNum);
+        $candidate = sprintf('%s-%s-%d', $prefix, $year, $nextNum);
 
         // Safety loop to ensure uniqueness
         while (self::where('invoice_no', $candidate)->exists()) {
             $nextNum++;
-            $candidate = sprintf('%s-%s-%04d', $prefix, $year, $nextNum);
+            $candidate = sprintf('%s-%s-%d', $prefix, $year, $nextNum);
         }
 
         // Update active setting counter

@@ -8,67 +8,32 @@
             $number = (float)$number;
             if ($number <= 0) return 'INR Zero Only';
 
-            $ones = [
+            $words = [
                 0 => '', 1 => 'One', 2 => 'Two', 3 => 'Three', 4 => 'Four',
                 5 => 'Five', 6 => 'Six', 7 => 'Seven', 8 => 'Eight', 9 => 'Nine',
                 10 => 'Ten', 11 => 'Eleven', 12 => 'Twelve', 13 => 'Thirteen',
                 14 => 'Fourteen', 15 => 'Fifteen', 16 => 'Sixteen', 17 => 'Seventeen',
-                18 => 'Eighteen', 19 => 'Nineteen'
-            ];
-            $tens = [
-                2 => 'Twenty', 3 => 'Thirty', 4 => 'Forty', 5 => 'Fifty',
-                6 => 'Sixty', 7 => 'Seventy', 8 => 'Eighty', 9 => 'Ninety'
+                18 => 'Eighteen', 19 => 'Nineteen', 20 => 'Twenty', 30 => 'Thirty',
+                40 => 'Forty', 50 => 'Fifty', 60 => 'Sixty', 70 => 'Seventy',
+                80 => 'Eighty', 90 => 'Ninety'
             ];
 
-            $getBelowHundred = function($num) use ($ones, $tens) {
-                if ($num < 20) return $ones[$num] ?? '';
-                $t = (int)($num / 10);
-                $o = $num % 10;
-                return trim(($tens[$t] ?? '') . ' ' . ($ones[$o] ?? ''));
-            };
-
-            $getBelowThousand = function($num) use ($ones, $getBelowHundred) {
-                $h = (int)($num / 100);
-                $r = $num % 100;
-                $res = '';
-                if ($h > 0) {
-                    $res .= ($ones[$h] ?? '') . ' Hundred';
-                    if ($r > 0) $res .= ' and ';
-                }
-                if ($r > 0) {
-                    $res .= $getBelowHundred($r);
-                }
-                return trim($res);
+            $numToWords = function($n) use (&$numToWords, $words) {
+                $n = (int)$n;
+                if ($n == 0) return '';
+                if ($n < 20) return $words[$n];
+                if ($n < 100) return trim($words[((int)($n / 10)) * 10] . ' ' . $words[$n % 10]);
+                if ($n < 1000) return trim($words[(int)($n / 100)] . ' Hundred ' . $numToWords($n % 100));
+                if ($n < 100000) return trim($numToWords((int)($n / 1000)) . ' Thousand ' . $numToWords($n % 1000));
+                if ($n < 10000000) return trim($numToWords((int)($n / 100000)) . ' Lakh ' . $numToWords($n % 100000));
+                return trim($numToWords((int)($n / 10000000)) . ' Crore ' . $numToWords($n % 10000000));
             };
 
             $intVal = (int)floor($number);
             $fraction = (int)round(($number - $intVal) * 100);
 
-            $crore = (int)floor($intVal / 10000000);
-            $rem = $intVal % 10000000;
-
-            $lakh = (int)floor($rem / 100000);
-            $rem = $rem % 100000;
-
-            $thousand = (int)floor($rem / 1000);
-            $rem = $rem % 1000;
-
-            $parts = [];
-            if ($crore > 0) {
-                $parts[] = $getBelowThousand($crore) . ' Crore';
-            }
-            if ($lakh > 0) {
-                $parts[] = $getBelowHundred($lakh) . ' Lakh';
-            }
-            if ($thousand > 0) {
-                $parts[] = $getBelowHundred($thousand) . ' Thousand';
-            }
-            if ($rem > 0) {
-                $parts[] = $getBelowThousand($rem);
-            }
-
-            $rupees = implode(' ', array_filter($parts));
-            $paise = ($fraction > 0) ? ' and ' . $getBelowHundred($fraction) . ' Paise' : '';
+            $rupees = $numToWords($intVal);
+            $paise = ($fraction > 0) ? ' and ' . $numToWords($fraction) . ' Paise' : '';
 
             return 'INR ' . trim($rupees ?: 'Zero') . $paise . ' Only';
         }
@@ -77,12 +42,16 @@
     $activeFirm = $invoice->firm ?? (\App\Models\Firm::first());
     $firmDisplayName = $activeFirm->firm_name ?? 'DELAWALA PROPERTIES';
     $firmGstNo = $activeFirm->gst_no ?? '24CUBPD0770R1ZI';
-    $firmAddress = $activeFirm->address ?? 'Ground Floor, F F SH No. 116, Aman Plazza, Dahegam Road';
+    $firmAddress = $activeFirm->address ?? 'Ground Floor, FF Sri No. 116, Mhan Plaza, Dattlegam Road, Dahegam, Dahegam, Bharuch';
     $firmCity = $activeFirm->city ?? 'Dahegam, Bharuch';
     $firmState = $activeFirm->state ?? 'Gujarat';
     $firmPin = $activeFirm->pincode ?? '392012';
-    $firmOwner = $activeFirm->owner_name ?? 'Delawala Zafar';
-    $firmPhone = $activeFirm->mobile ?? '7016517040';
+    $firmOwner = $activeFirm->owner_name ?? 'DELAWALA ZAFAR';
+    $firmPhone = $activeFirm->mobile ?? '9999999999';
+    $firmBank = $activeFirm->bank_name ?? 'Bank of Baroda';
+    $firmAcc = $activeFirm->bank_account_no ?? '—';
+    $firmIfsc = $activeFirm->bank_ifsc ?? '—';
+    $firmBranch = $activeFirm->bank_branch ?? 'Dahegam Branch';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -92,30 +61,33 @@
     <title>{{ $invHeading }} - {{ $invoice->invoice_no ?? 'INV' }} - Delawala Management</title>
     @include('admin.components.pdf-styles', ['orientation' => 'portrait'])
     <style>
-        /* ── Formal Clean White GST Invoice Theme ── */
+        /* ── Exact Match Formal Clean GST Invoice Design Optimized for A4 ── */
         html, body {
-            background: #F1F5F9;
-            color: #000000;
-            font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
-            font-size: 10.5px;
-            line-height: 1.4;
+            background: #FFFFFF !important;
+            color: #0F172A;
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            font-size: 8.5px;
+            line-height: 1.35;
             margin: 0;
             padding: 0;
+            width: 100%;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
         body {
-            padding: 0 0 30px 0;
+            padding: 0 0 20px 0;
+            background: #FFFFFF !important;
         }
 
         .invoice-print-sheet {
             width: 100%;
-            max-width: 820px;
+            max-width: 760px;
             margin: 0 auto;
-            background: #FFFFFF;
-            color: #000000;
-            padding: 24px;
+            background: #FFFFFF !important;
+            color: #0F172A;
+            padding: 10px 14px;
             box-sizing: border-box;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
         /* ── Header ── */
@@ -123,151 +95,168 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 2px solid #000000;
-            padding-bottom: 10px;
-            margin-bottom: 12px;
-            gap: 14px;
+            border-bottom: 1.5px solid #0F172A;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            gap: 12px;
+            width: 100%;
+            box-sizing: border-box;
         }
         .inv-brand-col {
-            flex: 1.2;
+            flex: 1.25;
             min-width: 0;
             display: flex;
             align-items: center;
             gap: 12px;
         }
         .inv-logo-img {
-            height: 52px;
+            height: 72px;
+            max-height: 75px;
             width: auto;
             object-fit: contain;
-            filter: grayscale(100%);
             flex-shrink: 0;
+            display: block;
         }
         .inv-firm-name {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             line-height: 1.15;
-            color: #000000;
+            color: #0F172A;
         }
         .inv-firm-sub {
-            font-size: 9.5px;
+            font-size: 8px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #222222;
-            margin-top: 2px;
+            letter-spacing: 0.5px;
+            color: #334155;
+            margin-top: 1px;
             margin-bottom: 2px;
         }
         .inv-firm-addr {
-            font-size: 9px;
-            color: #222222;
+            font-size: 7.5px;
+            color: #475569;
             line-height: 1.3;
         }
         .inv-firm-meta {
             display: flex;
-            gap: 6px;
-            margin-top: 5px;
+            gap: 5px;
+            margin-top: 3px;
             flex-wrap: wrap;
         }
         .inv-meta-pill {
-            display: inline-block;
-            border: 1px solid #000000;
-            padding: 2px 7px;
-            font-size: 8.5px;
-            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #CBD5E1;
+            padding: 1.5px 6px;
+            font-size: 7.5px;
+            font-weight: 600;
             background: #FFFFFF;
-            color: #000000;
+            color: #1E293B;
             white-space: nowrap;
-            border-radius: 2px;
+            border-radius: 3px;
+        }
+        .inv-meta-pill strong {
+            font-weight: 700;
+            margin-right: 3px;
+            color: #0F172A;
         }
 
         .inv-title-col {
-            flex: 0.8;
+            flex: 0.85;
             min-width: 0;
             text-align: right;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 2px;
+            gap: 1px;
         }
         .inv-main-title {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            border: 2px solid #000000;
-            padding: 4px 12px;
-            background: #FFFFFF;
-            color: #000000;
-            display: inline-block;
-            margin-bottom: 3px;
-            border-radius: 2px;
+            letter-spacing: 0.4px;
+            color: #0F172A;
+            line-height: 1.1;
+            margin-bottom: 1px;
         }
         .inv-rule-sub {
-            font-size: 8.5px;
+            font-size: 7.5px;
             font-weight: 600;
-            color: #333333;
+            color: #64748B;
             margin-bottom: 3px;
         }
         .inv-doc-info {
-            font-size: 9.5px;
-            color: #111111;
-            line-height: 1.3;
+            font-size: 8px;
+            color: #1E293B;
+            line-height: 1.35;
+            display: flex;
+            justify-content: flex-end;
+            gap: 4px;
+            width: 100%;
         }
-        .inv-doc-info strong {
+        .inv-doc-info .inv-doc-label {
+            color: #475569;
+            font-weight: 600;
+        }
+        .inv-doc-info strong, .inv-doc-info .inv-doc-val {
             font-weight: 700;
-            color: #000000;
+            color: #0F172A;
         }
 
         /* ── 2-Column Details Box ── */
         .inv-grid-2 {
             display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 8px;
+            margin-bottom: 8px;
+            width: 100%;
+            box-sizing: border-box;
         }
         .inv-col-box {
             flex: 1;
             min-width: 0;
-            border: 1.5px solid #000000;
+            border: 1px solid #CBD5E1;
             background: #FFFFFF;
             box-sizing: border-box;
-            border-radius: 2px;
+            border-radius: 4px;
+            overflow: hidden;
         }
         .inv-box-head {
-            background: #FFFFFF;
-            color: #000000;
-            font-size: 9.5px;
+            background: #F8FAFC;
+            color: #0F172A;
+            font-size: 8px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
-            padding: 5px 8px;
-            border-bottom: 1.5px solid #000000;
+            letter-spacing: 0.5px;
+            padding: 4px 7px;
+            border-bottom: 1px solid #CBD5E1;
             display: flex;
             align-items: center;
             gap: 5px;
         }
         .inv-box-body {
-            padding: 7px 9px;
+            padding: 4px 7px;
         }
         .inv-row {
             display: flex;
             justify-content: space-between;
-            padding: 3px 0;
-            font-size: 9.5px;
-            border-bottom: 1px dotted #D1D5DB;
+            padding: 2.5px 0;
+            font-size: 8px;
+            border-bottom: 1px dotted #E2E8F0;
             gap: 6px;
+            align-items: baseline;
         }
         .inv-row:last-child {
             border-bottom: none;
         }
         .inv-lbl {
-            color: #333333;
+            color: #475569;
             font-weight: 600;
             flex-shrink: 0;
         }
         .inv-val {
-            color: #000000;
+            color: #0F172A;
             font-weight: 700;
             text-align: right;
             word-break: break-word;
@@ -275,12 +264,12 @@
 
         /* ── Particulars Table ── */
         .inv-table-sec-title {
-            font-size: 9.5px;
+            font-size: 8.5px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: #000000;
-            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+            color: #0F172A;
+            margin-bottom: 4px;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -288,22 +277,21 @@
         table.inv-items-tbl {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9.5px;
-            margin-bottom: 10px;
-            border: 1.5px solid #000000;
+            font-size: 8px;
+            margin-bottom: 6px;
+            border: 1px solid #CBD5E1;
             table-layout: fixed;
             background: #FFFFFF;
         }
         table.inv-items-tbl thead th {
-            background: #FFFFFF;
-            color: #000000;
-            padding: 6px 7px;
-            font-size: 9px;
+            background: #F8FAFC;
+            color: #0F172A;
+            padding: 4.5px 6px;
+            font-size: 7.5px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: 1px solid #000000;
-            border-bottom: 2px solid #000000;
+            letter-spacing: 0.4px;
+            border: 1px solid #CBD5E1;
             text-align: left;
             overflow: hidden;
         }
@@ -312,90 +300,91 @@
         
         table.inv-items-tbl tbody td {
             background: #FFFFFF;
-            padding: 6px 7px;
-            border: 1px solid #000000;
-            color: #000000;
+            padding: 4.5px 6px;
+            border: 1px solid #CBD5E1;
+            color: #0F172A;
             vertical-align: top;
             word-break: break-word;
         }
-        table.inv-items-tbl tbody tr:nth-child(even) {
-            background: #FFFFFF;
-        }
         table.inv-items-tbl tfoot td {
             background: #FFFFFF;
-            padding: 5px 7px;
-            border: 1px solid #000000;
-            color: #000000;
-            font-size: 9.5px;
+            padding: 3.5px 6px;
+            border: 1px solid #CBD5E1;
+            color: #0F172A;
+            font-size: 8px;
             word-break: break-word;
         }
         .tfoot-grand-total {
-            background: #FFFFFF !important;
-            color: #000000 !important;
+            background: #F8FAFC !important;
             font-weight: 900 !important;
-            font-size: 10.5px !important;
         }
         .tfoot-grand-total td {
-            color: #000000 !important;
-            border-top: 2px solid #000000 !important;
-            border-bottom: 2px solid #000000 !important;
-            font-size: 10.5px !important;
+            background: #F8FAFC !important;
+            color: #0F172A !important;
+            font-size: 8.5px !important;
             font-weight: 900 !important;
-            padding: 6px 7px !important;
+            padding: 4px 6px !important;
         }
 
-        /* ── Words & Remittance Grid ── */
+        /* ── Words Bar ── */
         .inv-words-bar {
-            border: 1.5px solid #000000;
-            padding: 6px 9px;
-            margin-bottom: 12px;
+            border: 1px solid #CBD5E1;
+            padding: 4px 7px;
+            margin-bottom: 8px;
             background: #FFFFFF;
-            font-size: 9.5px;
-            color: #000000;
+            font-size: 8px;
+            color: #475569;
             word-break: break-word;
-            border-radius: 2px;
+            border-radius: 4px;
         }
         .inv-words-bar strong {
             font-weight: 800;
-            color: #000000;
+            color: #0F172A;
         }
 
+        /* ── Bank & Terms ── */
         .inv-bank-terms-grid {
             display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 8px;
+            margin-bottom: 8px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         /* ── Auth Signatures ── */
         .inv-auth-grid {
             display: flex;
             justify-content: space-between;
-            margin-top: 16px;
-            margin-bottom: 8px;
+            margin-top: 14px;
+            margin-bottom: 6px;
             page-break-inside: avoid;
+            width: 100%;
+            box-sizing: border-box;
         }
         .inv-auth-box {
-            width: 200px;
+            width: 180px;
             text-align: center;
         }
         .inv-auth-line {
-            border-top: 1.5px solid #000000;
-            margin-top: 32px;
-            padding-top: 4px;
-            font-size: 9px;
+            border-top: 1.5px solid #0F172A;
+            margin-top: 24px;
+            padding-top: 3px;
+            font-size: 8px;
             font-weight: 700;
-            color: #000000;
+            color: #0F172A;
         }
 
         /* ── Footer ── */
         .inv-footer {
-            border-top: 1px solid #000000;
+            border-top: 1px solid #CBD5E1;
             padding-top: 4px;
-            margin-top: 8px;
+            margin-top: 6px;
             display: flex;
             justify-content: space-between;
-            font-size: 8px;
-            color: #444444;
+            font-size: 7.5px;
+            color: #64748B;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         @media print {
@@ -403,43 +392,20 @@
                 background: #FFFFFF !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                width: 100% !important;
             }
             .invoice-print-sheet {
                 box-shadow: none !important;
                 padding: 0 !important;
                 margin: 0 !important;
                 max-width: 100% !important;
+                width: 100% !important;
             }
             .delawala-pdf-toolbar, .no-print {
                 display: none !important;
             }
-            .inv-main-title {
-                background: #FFFFFF !important;
-                color: #000000 !important;
-                border: 2px solid #000000 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            .inv-box-head {
-                background: #FFFFFF !important;
-                color: #000000 !important;
-                border-bottom: 1.5px solid #000000 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            table.inv-items-tbl thead th {
-                background: #FFFFFF !important;
-                color: #000000 !important;
-                border: 1px solid #000000 !important;
-                border-bottom: 2px solid #000000 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            .tfoot-grand-total td {
-                background: #FFFFFF !important;
-                color: #000000 !important;
-                border-top: 2px solid #000000 !important;
-                border-bottom: 2px solid #000000 !important;
+            .inv-box-head, table.inv-items-tbl thead th, .tfoot-grand-total td {
+                background: #F8FAFC !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -458,7 +424,11 @@
     <!-- Header Section -->
     <div class="inv-header-box">
         <div class="inv-brand-col">
-            <img src="{{ asset('images/logo.png') }}" alt="{{ $firmDisplayName }}" class="inv-logo-img" onerror="this.style.display='none';">
+            @if(file_exists(public_path('images/pdf-logo.png')))
+                <img src="{{ asset('images/pdf-logo.png') }}?v={{ filemtime(public_path('images/pdf-logo.png')) }}" alt="{{ $firmDisplayName }}" class="inv-logo-img" onerror="this.style.display='none';">
+            @else
+                <img src="{{ asset('images/logo.png') }}" alt="{{ $firmDisplayName }}" class="inv-logo-img" onerror="this.style.display='none';">
+            @endif
             <div>
                 <div class="inv-firm-name">{{ $firmDisplayName }}</div>
                 <div class="inv-firm-sub">Delawala Infra Co. &bull; Real Estate &amp; Infrastructure</div>
@@ -468,6 +438,8 @@
                 <div class="inv-firm-meta">
                     <span class="inv-meta-pill"><strong>GSTIN:</strong> {{ $firmGstNo }}</span>
                     <span class="inv-meta-pill"><strong>State:</strong> {{ $firmState }} (24)</span>
+                </div>
+                <div class="inv-firm-meta" style="margin-top: 3px;">
                     <span class="inv-meta-pill"><strong>Proprietor:</strong> {{ $firmOwner }}</span>
                     @if($firmPhone)
                         <span class="inv-meta-pill"><strong>Tel:</strong> {{ $firmPhone }}</span>
@@ -478,20 +450,35 @@
         <div class="inv-title-col">
             <div class="inv-main-title">{{ $invHeading }}</div>
             <div class="inv-rule-sub">{{ $invSubtitle }}</div>
-            <div class="inv-doc-info"><strong>Invoice No:</strong> {{ $invoice->invoice_no ?? '—' }}</div>
-            <div class="inv-doc-info"><strong>Invoice Date:</strong> {{ isset($invoice->invoice_date) ? $invoice->invoice_date->format('d M Y') : now()->format('d M Y') }}</div>
+            <div class="inv-doc-info">
+                <span class="inv-doc-label">Invoice No:</span>
+                <span class="inv-doc-val">{{ $invoice->invoice_no ?? '—' }}</span>
+            </div>
+            <div class="inv-doc-info">
+                <span class="inv-doc-label">Invoice Date:</span>
+                <span class="inv-doc-val">{{ isset($invoice->invoice_date) ? $invoice->invoice_date->format('d M Y') : now()->format('d M Y') }}</span>
+            </div>
             @if(!empty($invoice->due_date))
-                <div class="inv-doc-info"><strong>Due Date:</strong> {{ $invoice->due_date->format('d M Y') }}</div>
+            <div class="inv-doc-info">
+                <span class="inv-doc-label">Due Date:</span>
+                <span class="inv-doc-val">{{ $invoice->due_date->format('d M Y') }}</span>
+            </div>
             @endif
-            <div class="inv-doc-info"><strong>Place of Supply:</strong> Gujarat (24)</div>
-            <div class="inv-doc-info"><strong>Reverse Charge:</strong> No</div>
+            <div class="inv-doc-info">
+                <span class="inv-doc-label">Place of Supply:</span>
+                <span class="inv-doc-val">{{ $invoice->recipient_state ?? 'Gujarat' }} (24)</span>
+            </div>
+            <div class="inv-doc-info">
+                <span class="inv-doc-label">Reverse Charge:</span>
+                <span class="inv-doc-val">{{ ($invoice->is_reverse_charge ?? false) ? 'Yes' : 'No' }}</span>
+            </div>
         </div>
     </div>
 
     <!-- Receiver & Supply Info Grid -->
     <div class="inv-grid-2">
         <div class="inv-col-box">
-            <div class="inv-box-head"><i class="fa-solid fa-user"></i> Details of Receiver / Billed To</div>
+            <div class="inv-box-head"><i class="fa-solid fa-user"></i> DETAILS OF RECEIVER / BILLED TO</div>
             <div class="inv-box-body">
                 <div class="inv-row">
                     <span class="inv-lbl">Party Name:</span>
@@ -517,7 +504,7 @@
         </div>
 
         <div class="inv-col-box">
-            <div class="inv-box-head"><i class="fa-solid fa-building"></i> Supply &amp; Project Details</div>
+            <div class="inv-box-head"><i class="fa-solid fa-file-invoice"></i> SUPPLY &amp; PROJECT DETAILS</div>
             <div class="inv-box-body">
                 <div class="inv-row">
                     <span class="inv-lbl">Project / Site:</span>
@@ -544,16 +531,16 @@
     </div>
 
     <!-- Goods & Services Table -->
-    <div class="inv-table-sec-title"><i class="fa-solid fa-list-check"></i> Particulars of Goods &amp; Services Supplied</div>
+    <div class="inv-table-sec-title"><i class="fa-solid fa-list-ul"></i> PARTICULARS OF GOODS &amp; SERVICES SUPPLIED</div>
     <table class="inv-items-tbl">
         <thead>
             <tr>
                 <th style="width:24px;" class="c">#</th>
-                <th style="width:auto;">Item Description / Particulars</th>
-                <th class="c" style="width:65px;">HSN/SAC</th>
-                <th class="r" style="width:70px;">Qty</th>
-                <th class="r" style="width:110px;">Rate (₹)</th>
-                <th class="r" style="width:125px;">Taxable (₹)</th>
+                <th style="width:auto;">ITEM DESCRIPTION / PARTICULARS</th>
+                <th class="c" style="width:58px;">HSN/SAC</th>
+                <th class="r" style="width:62px;">QTY</th>
+                <th class="r" style="width:95px;">RATE (₹)</th>
+                <th class="r" style="width:105px;">TAXABLE (₹)</th>
             </tr>
         </thead>
         <tbody>
@@ -564,7 +551,7 @@
                         <td>
                             <strong>{{ $item->item_description }}</strong>
                             @if(!empty($item->notes))
-                                <div style="font-size:8.5px; color:#444444;">{{ $item->notes }}</div>
+                                <div style="font-size:7.5px; color:#64748B;">{{ $item->notes }}</div>
                             @endif
                         </td>
                         <td class="c">{{ $item->hsn_sac_code ?: '9954' }}</td>
@@ -577,8 +564,8 @@
                 <tr>
                     <td class="c">1</td>
                     <td>
-                        <strong>Real Estate Construction &amp; Infrastructure Services</strong>
-                        <div style="font-size:8.5px; color:#444444;">Plotted Land Development &amp; Property Consideration</div>
+                        <strong>Property Sale Consideration for {{ $invoice->recipient_name ?? 'Client' }} (Entire Property)</strong>
+                        <div style="font-size:7.5px; color:#64748B;">({{ $invoice->project->project_name ?? 'Delawala Master Project' }})</div>
                     </td>
                     <td class="c">9954</td>
                     <td class="r">1.00 Unit</td>
@@ -622,8 +609,8 @@
             </tr>
             @endif
             <tr class="tfoot-grand-total">
-                <td colspan="5" class="r" style="font-size:10px; font-weight:800;">TOTAL INVOICE VALUE (IN FIGURES)</td>
-                <td class="r" style="font-size:11px; font-weight:900;">₹{{ number_format($invoice->total_amount ?? 0, 2) }}</td>
+                <td colspan="5" class="r" style="font-size:8px; font-weight:800;">TOTAL INVOICE VALUE (IN FIGURES)</td>
+                <td class="r" style="font-size:9px; font-weight:900;">₹{{ number_format($invoice->total_amount ?? 0, 2) }}</td>
             </tr>
             @if(!empty($invoice->paid_amount) && $invoice->paid_amount > 0)
             <tr>
@@ -648,26 +635,24 @@
     <!-- Bank Details & Terms Box -->
     <div class="inv-bank-terms-grid">
         <div class="inv-col-box" style="flex:1;">
-            <div class="inv-box-head"><i class="fa-solid fa-building-columns"></i> Bank Remittance Details</div>
+            <div class="inv-box-head"><i class="fa-solid fa-building-columns"></i> BANK REMITTANCE DETAILS</div>
             <div class="inv-box-body">
                 <div class="inv-row"><span class="inv-lbl">Account Name:</span><span class="inv-val">DELAWALA INFRA CO.</span></div>
-                <div class="inv-row"><span class="inv-lbl">Bank Name:</span><span class="inv-val">{{ $invoice->bank_name ?: ($invoice->firm->bank_name ?? 'Bank of Baroda') }}</span></div>
-                <div class="inv-row"><span class="inv-lbl">Account Number:</span><span class="inv-val">{{ $invoice->bank_account_no ?: ($invoice->firm->bank_account_no ?? '—') }}</span></div>
-                <div class="inv-row"><span class="inv-lbl">IFSC Code:</span><span class="inv-val">{{ $invoice->bank_ifsc ?: ($invoice->firm->bank_ifsc ?? '—') }}</span></div>
-                <div class="inv-row"><span class="inv-lbl">Branch:</span><span class="inv-val">{{ $invoice->bank_branch ?: 'Dahegam Branch' }}</span></div>
+                <div class="inv-row"><span class="inv-lbl">Bank Name:</span><span class="inv-val">{{ $invoice->bank_name ?: $firmBank }}</span></div>
+                <div class="inv-row"><span class="inv-lbl">Account Number:</span><span class="inv-val">{{ $invoice->bank_account_no ?: $firmAcc }}</span></div>
+                <div class="inv-row"><span class="inv-lbl">IFSC Code:</span><span class="inv-val">{{ $invoice->bank_ifsc ?: $firmIfsc }}</span></div>
+                <div class="inv-row"><span class="inv-lbl">Branch:</span><span class="inv-val">{{ $invoice->bank_branch ?: $firmBranch }}</span></div>
             </div>
         </div>
 
         <div class="inv-col-box" style="flex:1;">
             <div class="inv-box-head"><i class="fa-solid fa-file-contract"></i> TERMS &amp; CONDITIONS</div>
-            <div class="inv-box-body" style="font-size:9.5px; color:#111111; line-height:1.45;">
+            <div class="inv-box-body" style="font-size:7.5px; color:#334155; line-height:1.4;">
                 @if(!empty($invoice->terms_conditions))
                     <div style="white-space: pre-line;">{{ $invoice->terms_conditions }}</div>
                 @else
-                    <div style="margin-bottom:3px;"><strong>1. Payment Terms:</strong> Payment due on or before specified due date via Cheque / RTGS / NEFT to company account.</div>
-                    <div style="margin-bottom:3px;"><strong>2. Interest on Delay:</strong> Overdue payments shall attract interest @ 18% p.a. from due date until realization.</div>
-                    <div style="margin-bottom:3px;"><strong>3. Tax Declaration:</strong> We declare that this invoice shows the actual price and all particulars are true and correct.</div>
-                    <div><strong>4. Jurisdiction:</strong> All disputes are subject to <strong>Dahegam / Bharuch Jurisdiction</strong> only.</div>
+                    <div style="margin-bottom:2px;">1. Official Tax Invoice issued by {{ $firmDisplayName }} (GSTIN: {{ $firmGstNo }}).</div>
+                    <div>2. Subject to Dahegam / Bharuch Jurisdiction.</div>
                 @endif
             </div>
         </div>
@@ -679,7 +664,7 @@
             <div class="inv-auth-line">Customer / Receiver Signature</div>
         </div>
         <div class="inv-auth-box">
-            <div class="inv-auth-line">For <strong>DELAWALA INFRA CO.</strong><br><span style="font-size:8px; font-weight:600;">(Authorized Signatory)</span></div>
+            <div class="inv-auth-line">For <strong>DELAWALA INFRA CO.</strong><br><span style="font-size:7px; font-weight:600;">(Authorized Signatory)</span></div>
         </div>
     </div>
 

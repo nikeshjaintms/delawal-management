@@ -13,7 +13,6 @@
     'backUrl' => route('reports.gst-purchase')
 ])
 
-<div id="delawala-printable-area" class="delawala-printable-area">
 @include('admin.components.pdf-header', [
     'title' => 'GST Purchase Report (GSTR-2/3B)',
     'subtitle' => 'Input Tax Credit (ITC) & Vendor Purchases',
@@ -131,6 +130,5 @@
 </table>
 
 @include('admin.components.pdf-footer')
-</div>
 </body>
 </html>

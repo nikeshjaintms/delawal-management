@@ -5,7 +5,6 @@
 
 <div class="delawala-pdf-footer">
     <div class="dpf-left">
-        <i class="fa-solid fa-shield-halved" style="color: #D97706; margin-right: 4px;"></i>
         <span>{{ $footerNote }}</span>
     </div>
     <div class="dpf-center">
@@ -15,41 +14,45 @@
         <span>Generated: {{ $footerDate }}</span>
     </div>
 </div>
+</div><!-- end #delawala-printable-area -->
 
 <style>
     .delawala-pdf-footer {
-        margin-top: 24px;
-        padding-top: 10px;
-        border-top: 1px solid #E2E8F0;
+        margin-top: 20px;
+        padding-top: 6px;
+        border-top: 1px solid #CBD5E1;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        color: #94A3B8;
-        font-size: 9px;
-        font-family: 'Segoe UI', Arial, sans-serif;
+        color: #64748B;
+        font-size: 8px;
+        font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
         line-height: 1.4;
+        page-break-inside: avoid;
     }
     .delawala-pdf-footer .dpf-left {
         display: flex;
         align-items: center;
         font-weight: 600;
-        color: #64748B;
+        color: #475569;
     }
     .delawala-pdf-footer .dpf-center {
         text-align: center;
-        color: #94A3B8;
-        font-size: 8.5px;
+        color: #64748B;
+        font-size: 8px;
     }
     .delawala-pdf-footer .dpf-right {
         text-align: right;
-        color: #64748B;
-        font-weight: 500;
+        color: #475569;
+        font-weight: 600;
     }
 
     @media print {
         .delawala-pdf-footer {
-            border-top: 1px solid #000 !important;
-            color: #555 !important;
+            border-top: 1px solid #000000 !important;
+            color: #333333 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
     }
 </style>
