@@ -9,7 +9,8 @@ class Booking extends Model
     use \App\Traits\HasFirms;
 
     protected $fillable = [
-        'firm_id', 'property_id', 'customer_id', 'broker_id', 'booking_type',
+        'firm_id', 'property_id', 'customer_id', 'seller_id', 'seller_name',
+        'broker_id', 'broker_name', 'booking_type',
         'booking_date', 'total_amount', 'discount_type', 'discount_value',
         'discount_amount', 'final_amount', 'booking_amount', 'remaining_amount',
         'payment_mode_id', 'payment_mode', 'transaction_ref', 'agreement_date',
@@ -20,8 +21,19 @@ class Booking extends Model
     public function property()    { return $this->belongsTo(Property::class); }
     public function properties()  { return $this->belongsToMany(Property::class, 'booking_property')->withTimestamps(); }
     public function customer()    { return $this->belongsTo(Customer::class); }
+    public function seller()      { return $this->belongsTo(Seller::class); }
     public function broker()      { return $this->belongsTo(Broker::class); }
     public function paymentMode() { return $this->belongsTo(PaymentMode::class, 'payment_mode_id'); }
+
+    public function getEffectiveSellerNameAttribute(): string
+    {
+        return $this->seller_name ?: ($this->seller ? $this->seller->name : '—');
+    }
+
+    public function getEffectiveBrokerNameAttribute(): string
+    {
+        return $this->broker_name ?: ($this->broker ? $this->broker->name : '—');
+    }
 
     public function getAllPropertiesAttribute()
     {

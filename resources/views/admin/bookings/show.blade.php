@@ -176,19 +176,44 @@
             </div>
         </div>
         <div class="detail-item">
-            <div class="detail-label">Customer</div>
+            <div class="detail-label"><i class="fa-solid fa-user"></i> Customer</div>
             <div class="detail-value">{{ $booking->customer->name ?? '-' }}</div>
+            @if($booking->customer && ($booking->customer->mobile ?: $booking->customer->phone))
+                <div style="font-size:12px; color:#CBD5E1; margin-top:4px;"><i class="fa-solid fa-phone" style="font-size:11px;"></i> {{ $booking->customer->mobile ?: $booking->customer->phone }}</div>
+            @endif
         </div>
         <div class="detail-item">
-            <div class="detail-label">Broker</div>
-            <div class="detail-value">{{ $booking->broker->name ?? '-' }}</div>
+            <div class="detail-label"><i class="fa-solid fa-user-tie"></i> Seller / Land Owner</div>
+            <div class="detail-value">
+                @if($booking->seller || $booking->seller_name)
+                    <span style="color:#93C5FD; font-weight:700;">{{ $booking->seller->name ?? $booking->seller_name }}</span>
+                    @if($booking->seller && ($booking->seller->mobile ?: $booking->seller->phone))
+                        <div style="font-size:12px; color:#CBD5E1; margin-top:4px;"><i class="fa-solid fa-phone" style="font-size:11px;"></i> {{ $booking->seller->mobile ?: $booking->seller->phone }}</div>
+                    @endif
+                @else
+                    <span style="color: #64748B; font-weight: 500; font-style: italic;">Not specified</span>
+                @endif
+            </div>
         </div>
         <div class="detail-item">
-            <div class="detail-label">Booking Date</div>
+            <div class="detail-label"><i class="fa-solid fa-handshake"></i> Broker / Agent</div>
+            <div class="detail-value">
+                @if($booking->broker || $booking->broker_name)
+                    <span style="color:#C4B5FD; font-weight:700;">{{ $booking->broker->name ?? $booking->broker_name }}</span>
+                    @if($booking->broker && ($booking->broker->mobile ?: $booking->broker->phone))
+                        <div style="font-size:12px; color:#CBD5E1; margin-top:4px;"><i class="fa-solid fa-phone" style="font-size:11px;"></i> {{ $booking->broker->mobile ?: $booking->broker->phone }}</div>
+                    @endif
+                @else
+                    <span style="color: #64748B; font-weight: 500; font-style: italic;">No broker assigned (Direct)</span>
+                @endif
+            </div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label"><i class="fa-regular fa-calendar"></i> Booking Date</div>
             <div class="detail-value">{{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') : '-' }}</div>
         </div>
         <div class="detail-item">
-            <div class="detail-label">Agreement Date</div>
+            <div class="detail-label"><i class="fa-regular fa-calendar-check"></i> Agreement Date</div>
             <div class="detail-value">{{ $booking->agreement_date ? \Carbon\Carbon::parse($booking->agreement_date)->format('d M Y') : '-' }}</div>
         </div>
         <div class="detail-item">

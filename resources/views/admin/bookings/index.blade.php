@@ -276,6 +276,20 @@
                                     <span>{{ $booking->customer->phone ?: $booking->customer->mobile }}</span>
                                 </div>
                             @endif
+                            @if($booking->effective_seller_name || $booking->effective_broker_name)
+                                <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px;">
+                                    @if($booking->effective_seller_name)
+                                        <span style="font-size: 10.5px; font-weight: 700; color: #93C5FD; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); padding: 1px 6px; border-radius: 4px;" title="Seller: {{ $booking->effective_seller_name }}">
+                                            <i class="fa-solid fa-user-tie" style="font-size: 9px; margin-right: 2px;"></i>{{ \Illuminate\Support\Str::limit($booking->effective_seller_name, 15) }}
+                                        </span>
+                                    @endif
+                                    @if($booking->effective_broker_name)
+                                        <span style="font-size: 10.5px; font-weight: 700; color: #C4B5FD; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); padding: 1px 6px; border-radius: 4px;" title="Broker: {{ $booking->effective_broker_name }}">
+                                            <i class="fa-solid fa-handshake" style="font-size: 9px; margin-right: 2px;"></i>{{ \Illuminate\Support\Str::limit($booking->effective_broker_name, 15) }}
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
                         </td>
 
                         {{-- Net Amount --}}

@@ -22,14 +22,15 @@ class BookingController extends Controller
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        $projQuery = Project::with(['propertyMasters', 'properties'])->orderBy('project_name');
-        $propQuery = Property::with(['project.propertyMaster', 'propertyMaster'])
+        $projQuery = Project::with(['propertyMasters.seller', 'propertyMasters.broker', 'properties'])->orderBy('project_name');
+        $propQuery = Property::with(['project.propertyMaster.seller', 'project.propertyMaster.broker', 'propertyMaster.seller', 'propertyMaster.broker'])
             ->where('status', '!=', 'sold')
             ->whereDoesntHave('sales', fn($q) => $q->where('sale_status', '!=', 'cancelled'))
             ->whereDoesntHave('salesList', fn($q) => $q->where('sale_status', '!=', 'cancelled'))
             ->orderBy('property_name');
-        $pmQueryM  = \App\Models\PropertyMaster::with(['plots', 'projects'])->where('status', '!=', 'sold')->orderBy('property_name');
+        $pmQueryM  = \App\Models\PropertyMaster::with(['plots', 'projects', 'seller', 'broker'])->where('status', '!=', 'sold')->orderBy('property_name');
         $custQuery = Customer::where('status', 'active')->orderBy('name');
+        $sellersQuery = \App\Models\Seller::where('status', 'active')->orderBy('name');
         $brokQuery = Broker::where('status', 'active')->orderBy('name');
         $pmQuery   = PaymentMode::where('status', 'active')->orderBy('name');
 
@@ -38,6 +39,7 @@ class BookingController extends Controller
             $propQuery->where('firm_id', $firmId);
             $pmQueryM->where('firm_id', $firmId);
             $custQuery->where('firm_id', $firmId);
+            $sellersQuery->where('firm_id', $firmId);
             $brokQuery->where('firm_id', $firmId);
             $pmQuery->whereHas('firms', function($q) use ($firmId) {
                 $q->where('firms.id', $firmId);
@@ -66,6 +68,7 @@ class BookingController extends Controller
             'propertyMasters'           => $allPropertyMasters,
             'standalonePropertyMasters' => $standalonePropertyMasters,
             'customers'                 => $custQuery->get(),
+            'sellers'                   => $sellersQuery->get(),
             'brokers'                   => $brokQuery->get(),
             'paymentModes'              => $paymentModes,
         ];
@@ -133,6 +136,7 @@ class BookingController extends Controller
             'properties.project',
             'properties.propertyMaster',
             'customer',
+            'seller',
             'broker',
             'paymentMode'
         ]);
@@ -155,9 +159,13 @@ class BookingController extends Controller
                   ->orWhere('payment_status', 'like', "%{$s}%")
                   ->orWhere('payment_mode', 'like', "%{$s}%")
                   ->orWhere('transaction_ref', 'like', "%{$s}%")
+                  ->orWhere('seller_name', 'like', "%{$s}%")
+                  ->orWhere('broker_name', 'like', "%{$s}%")
                   ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
                   ->orWhereHas('properties', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
                   ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%{$s}%"))
+                  ->orWhereHas('seller', fn($sel) => $sel->where('name', 'like', "%{$s}%"))
+                  ->orWhereHas('broker', fn($b) => $b->where('name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
         }
@@ -203,7 +211,10 @@ class BookingController extends Controller
             'firm_id'          => $firmId,
             'property_id'      => $primaryPropId,
             'customer_id'      => $request->customer_id,
+            'seller_id'        => $request->seller_id ?: null,
+            'seller_name'      => $request->seller_name ?: null,
             'broker_id'        => $request->broker_id ?: null,
+            'broker_name'      => $request->broker_name ?: null,
             'booking_type'     => $request->booking_type ?: 'booking',
             'booking_date'     => $request->booking_date,
             'total_amount'     => $request->total_amount,
@@ -254,7 +265,7 @@ class BookingController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
         if (!$isAdmin && $booking->firm_id != $firmId) abort(403);
-        $booking->load(['firm', 'property.propertyType', 'property.project', 'property.propertyMaster', 'properties.propertyType', 'properties.project', 'properties.propertyMaster', 'customer', 'broker', 'paymentMode']);
+        $booking->load(['firm', 'property.propertyType', 'property.project', 'property.propertyMaster', 'properties.propertyType', 'properties.project', 'properties.propertyMaster', 'customer', 'seller', 'broker', 'paymentMode']);
         return view('admin.bookings.show', compact('booking'));
     }
 
@@ -264,7 +275,7 @@ class BookingController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
         if (!$isAdmin && $booking->firm_id != $firmId) abort(403);
-        $booking->load(['properties']);
+        $booking->load(['properties', 'seller', 'broker']);
         $commission = \App\Models\BrokerCommission::where('booking_id', $booking->id)->first();
         return view('admin.bookings.edit', array_merge([
             'booking' => $booking,
@@ -302,7 +313,10 @@ class BookingController extends Controller
             'firm_id'          => $firmId,
             'property_id'      => $primaryPropId,
             'customer_id'      => $request->customer_id,
+            'seller_id'        => $request->seller_id ?: null,
+            'seller_name'      => $request->seller_name ?: null,
             'broker_id'        => $request->broker_id ?: null,
+            'broker_name'      => $request->broker_name ?: null,
             'booking_type'     => $request->booking_type ?: 'booking',
             'booking_date'     => $request->booking_date,
             'total_amount'     => $request->total_amount,
@@ -382,7 +396,7 @@ class BookingController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $query = Booking::with(['firm', 'property.project', 'property.propertyMaster', 'properties.project', 'properties.propertyMaster', 'customer', 'broker', 'paymentMode']);
+        $query = Booking::with(['firm', 'property.project', 'property.propertyMaster', 'properties.project', 'properties.propertyMaster', 'customer', 'seller', 'broker', 'paymentMode']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -401,9 +415,13 @@ class BookingController extends Controller
                   ->orWhere('payment_status', 'like', "%{$s}%")
                   ->orWhere('payment_mode', 'like', "%{$s}%")
                   ->orWhere('transaction_ref', 'like', "%{$s}%")
+                  ->orWhere('seller_name', 'like', "%{$s}%")
+                  ->orWhere('broker_name', 'like', "%{$s}%")
                   ->orWhereHas('property', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
                   ->orWhereHas('properties', fn($p) => $p->where('property_name', 'like', "%{$s}%"))
                   ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%{$s}%"))
+                  ->orWhereHas('seller', fn($sel) => $sel->where('name', 'like', "%{$s}%"))
+                  ->orWhereHas('broker', fn($b) => $b->where('name', 'like', "%{$s}%"))
                   ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"));
             });
         }
@@ -439,6 +457,7 @@ class BookingController extends Controller
             'properties.project',
             'properties.propertyMaster',
             'customer',
+            'seller',
             'broker',
             'paymentMode'
         ]);

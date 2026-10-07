@@ -40,6 +40,8 @@
             <th style="width:28px;" class="c">#</th>
             <th>Booking Code</th>
             <th>Customer Name</th>
+            <th>Seller</th>
+            <th>Broker</th>
             <th>Property / Unit</th>
             <th>Booking Date</th>
             <th class="r">Final Amount</th>
@@ -54,6 +56,8 @@
             <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
             <td><strong>{{ $b->booking_code ?: ('BK-' . $b->id) }}</strong></td>
             <td>{{ $b->customer->name ?? '—' }}</td>
+            <td style="color:#2563EB;">{{ $b->effective_seller_name ?: '—' }}</td>
+            <td style="color:#7C3AED;">{{ $b->effective_broker_name ?: 'Direct' }}</td>
             <td>{{ $b->property->property_name ?? '—' }}</td>
             <td>{{ $b->booking_date ? \Carbon\Carbon::parse($b->booking_date)->format('d M Y') : '—' }}</td>
             <td class="r">₹{{ number_format($b->final_amount, 2) }}</td>
@@ -62,7 +66,7 @@
             <td class="c"><span class="badge badge-success">{{ ucfirst($b->status) }}</span></td>
         </tr>
         @empty
-        <tr><td colspan="9" class="c" style="padding:20px;color:#64748B;">No booking records found.</td></tr>
+        <tr><td colspan="11" class="c" style="padding:20px;color:#64748B;">No booking records found.</td></tr>
         @endforelse
     </tbody>
 </table>

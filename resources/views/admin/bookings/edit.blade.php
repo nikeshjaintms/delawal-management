@@ -194,7 +194,8 @@ textarea.form-control { resize: vertical; min-height: 85px; }
         <div class="form-group" style="margin-bottom: 22px;">
             <label class="form-label" for="entity_selector">Project / Property Master <span>*</span></label>
             <select id="entity_selector" class="form-control @error('property_master_id') is-invalid @enderror @error('project_id') is-invalid @enderror" required onchange="onEntitySelectionChange()">
-                <option value="">-- Select Project or Standalone Property --</option                @if($projects->isNotEmpty())
+                <option value="">-- Select Project or Standalone Property --</option>
+                @if($projects->isNotEmpty())
                     <optgroup label="🏢 PROJECTS / SCHEMES">
                         @foreach($projects as $proj)
                             @php
@@ -206,6 +207,11 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                 }
                                 $projMastersPrice = $proj->propertyMasters->sum('purchase_price') ?: $projPlotsPrice;
                                 $isSel = ($selectedEntityType === 'project' && $selectedEntityId == $proj->id);
+                                $firstPm = $proj->propertyMasters->first();
+                                $projSellerId = $firstPm?->seller_id ?? '';
+                                $projSellerName = $firstPm?->seller_name ?: ($firstPm?->seller?->name ?? '');
+                                $projBrokerId = $firstPm?->broker_id ?? '';
+                                $projBrokerName = $firstPm?->broker_name ?: ($firstPm?->broker?->name ?? '');
                             @endphp
                             <option value="project:{{ $proj->id }}"
                                     data-type="project"
@@ -216,6 +222,10 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                     data-plots-count="{{ $projPlotCount }}"
                                     data-properties-count="{{ count($projMasterIds) }}"
                                     data-master-ids='@json($projMasterIds)'
+                                    data-seller-id="{{ $projSellerId }}"
+                                    data-seller-name="{{ $projSellerName }}"
+                                    data-broker-id="{{ $projBrokerId }}"
+                                    data-broker-name="{{ $projBrokerName }}"
                                     {{ $isSel ? 'selected' : '' }}>
                                 🏢 Project: {{ $proj->project_name }} @if($proj->project_code)[{{ $proj->project_code }}]@endif — ({{ $projPlotCount }} Project Plots)
                             </option>
@@ -231,6 +241,10 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                 $pmArea = $pm->total_area ? ($pm->total_area . ' ' . ($pm->area_unit ?? 'Sq.Ft')) : '';
                                 $pmPlotsCount = $pm->plots->filter(fn($p) => empty($p->project_id))->count();
                                 $isSel = ($selectedEntityType === 'property' && $selectedEntityId == $pm->id);
+                                $pmSellerId = $pm->seller_id ?? '';
+                                $pmSellerName = $pm->seller_name ?: ($pm->seller?->name ?? '');
+                                $pmBrokerId = $pm->broker_id ?? '';
+                                $pmBrokerName = $pm->broker_name ?: ($pm->broker?->name ?? '');
                             @endphp
                             <option value="property:{{ $pm->id }}"
                                     data-type="property"
@@ -240,6 +254,11 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                     data-price="{{ $pmPrice }}"
                                     data-area="{{ $pmArea }}"
                                     data-plots-count="{{ $pmPlotsCount }}"
+                                    data-master-ids='[{{ $pm->id }}]'
+                                    data-seller-id="{{ $pmSellerId }}"
+                                    data-seller-name="{{ $pmSellerName }}"
+                                    data-broker-id="{{ $pmBrokerId }}"
+                                    data-broker-name="{{ $pmBrokerName }}"
                                     {{ $isSel ? 'selected' : '' }}>
                                 🏡 Property: {{ $pm->property_name }} @if($pm->property_code)[{{ $pm->property_code }}]@endif @if($pmArea)— Area: {{ $pmArea }}@endif ({{ $pmPlotsCount }} Plots)
                             </option>
@@ -322,12 +341,21 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 @foreach($properties as $p)
                     @php
                         $isOptSelected = is_array(old('property_ids')) ? in_array($p->id, old('property_ids')) : in_array($p->id, $bookingPropIds);
+                        $pMaster = $p->propertyMaster ?: ($p->project?->propertyMasters?->first() ?: $p->project?->propertyMaster);
+                        $pSellerId = $pMaster?->seller_id ?? '';
+                        $pSellerName = $pMaster?->seller_name ?: ($pMaster?->seller?->name ?? '');
+                        $pBrokerId = $pMaster?->broker_id ?? '';
+                        $pBrokerName = $pMaster?->broker_name ?: ($pMaster?->broker?->name ?? '');
                     @endphp
                     <option value="{{ $p->id }}"
                             data-master-id="{{ $p->property_master_id ?? '' }}"
                             data-project-id="{{ $p->project_id ?? '' }}"
                             data-unit-no="{{ $p->unit_no ?? '' }}"
                             data-price="{{ $p->price ?? '' }}"
+                            data-seller-id="{{ $pSellerId }}"
+                            data-seller-name="{{ $pSellerName }}"
+                            data-broker-id="{{ $pBrokerId }}"
+                            data-broker-name="{{ $pBrokerName }}"
                             {{ $isOptSelected ? 'selected' : '' }}>
                         {{ $p->property_name }}
                     </option>
@@ -342,6 +370,11 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                             $isSelected = is_array(old('property_ids')) ? in_array($p->id, old('property_ids')) : in_array($p->id, $bookingPropIds);
                             $statusColor = $p->status === 'available' ? '#34D399' : ($p->status === 'booked' ? '#FBBF24' : '#F87171');
                             $statusBg = $p->status === 'available' ? 'rgba(16, 185, 129, 0.15)' : ($p->status === 'booked' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)');
+                            $pMaster = $p->propertyMaster ?: ($p->project?->propertyMasters?->first() ?: $p->project?->propertyMaster);
+                            $pSellerId = $pMaster?->seller_id ?? '';
+                            $pSellerName = $pMaster?->seller_name ?: ($pMaster?->seller?->name ?? '');
+                            $pBrokerId = $pMaster?->broker_id ?? '';
+                            $pBrokerName = $pMaster?->broker_name ?: ($pMaster?->broker?->name ?? '');
                         @endphp
                         <div class="plot-card-item {{ $isSelected ? 'is-selected' : '' }}"
                              id="plot_card_{{ $p->id }}"
@@ -353,6 +386,10 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                              data-code="{{ strtolower($p->property_code ?? '') }}"
                              data-price="{{ $p->price ?? 0 }}"
                              data-status="{{ $p->status }}"
+                             data-seller-id="{{ $pSellerId }}"
+                             data-seller-name="{{ $pSellerName }}"
+                             data-broker-id="{{ $pBrokerId }}"
+                             data-broker-name="{{ $pBrokerName }}"
                              onclick="togglePlotCardSelection({{ $p->id }})"
                              style="cursor: pointer; user-select: none; padding: 10px 14px; border-radius: 12px; background: {{ $isSelected ? 'rgba(37, 99, 235, 0.22)' : 'rgba(20, 27, 41, 0.65)' }}; border: 1.5px solid {{ $isSelected ? '#3B82F6' : 'rgba(255, 255, 255, 0.10)' }}; transition: all .2s ease; display: flex; align-items: center; gap: 12px; box-shadow: {{ $isSelected ? '0 0 14px rgba(59, 130, 246, 0.35)' : 'none' }};">
                             <div class="plot-checkbox-circle" style="width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid {{ $isSelected ? '#3B82F6' : 'rgba(255, 255, 255, 0.25)' }}; background: {{ $isSelected ? '#2563EB' : 'transparent' }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #FFFFFF; font-size: 11px; transition: all .2s ease;">
@@ -400,9 +437,11 @@ textarea.form-control { resize: vertical; min-height: 85px; }
         </div>
 
         <div class="form-row">
-            <div class="form-group">
-                <label class="form-label">Customer <span>*</span></label>
-                <select name="customer_id" class="form-control @error('customer_id') is-invalid @enderror" required>
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label" for="customer_id">
+                    <i class="fa-solid fa-user" style="color: #38BDF8;"></i> Customer <span>*</span>
+                </label>
+                <select name="customer_id" id="customer_id" class="form-control @error('customer_id') is-invalid @enderror" required>
                     <option value="">Select Customer</option>
                     @foreach($customers as $c)
                         <option value="{{ $c->id }}" {{ old('customer_id', $booking->customer_id) == $c->id ? 'selected' : '' }}>
@@ -412,28 +451,92 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 </select>
                 @error('customer_id')<div class="text-error">{{ $message }}</div>@enderror
             </div>
-            <div class="form-group">
-                <label class="form-label">Booking Date <span>*</span></label>
-                <input type="date" name="booking_date" value="{{ old('booking_date', is_string($booking->booking_date) ? $booking->booking_date : ($booking->booking_date ? $booking->booking_date->format('Y-m-d') : date('Y-m-d'))) }}" class="form-control @error('booking_date') is-invalid @enderror" required>
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label" for="booking_date">
+                    <i class="fa-regular fa-calendar-days" style="color: #34D399;"></i> Booking Date <span>*</span>
+                </label>
+                <input type="date" name="booking_date" id="booking_date" value="{{ old('booking_date', is_string($booking->booking_date) ? $booking->booking_date : ($booking->booking_date ? $booking->booking_date->format('Y-m-d') : date('Y-m-d'))) }}" class="form-control @error('booking_date') is-invalid @enderror" required>
                 @error('booking_date')<div class="text-error">{{ $message }}</div>@enderror
             </div>
         </div>
 
         <div class="form-row">
-            <div class="form-group">
-                <label class="form-label">Broker</label>
-                <select name="broker_id" id="broker_id" class="form-control @error('broker_id') is-invalid @enderror">
-                    <option value="">No Broker</option>
-                    @foreach($brokers as $b)
-                        <option value="{{ $b->id }}" {{ old('broker_id', $booking->broker_id) == $b->id ? 'selected' : '' }} data-commission="{{ $b->commission_percentage }}">
-                            {{ $b->name }} ({{ $b->commission_percentage ? $b->commission_percentage.'%' : '0%' }})
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label" for="seller_id">
+                    <i class="fa-solid fa-user-tie" style="color: #60A5FA;"></i> Registered Seller (Optional)
+                </label>
+                <select name="seller_id" id="seller_id" class="form-control @error('seller_id') is-invalid @enderror" onchange="handleBookingSellerChange(this)">
+                    <option value="">-- Select Registered Seller --</option>
+                    @if(isset($sellers))
+                        @foreach($sellers as $seller)
+                            <option value="{{ $seller->id }}" 
+                                    data-name="{{ $seller->name }}"
+                                    {{ old('seller_id', $booking->seller_id) == $seller->id ? 'selected' : '' }}>
+                                {{ $seller->name }} {{ ($seller->mobile ?: $seller->phone) ? '— ' . ($seller->mobile ?: $seller->phone) : '' }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+                <div class="form-hint" style="color: #94A3B8;">Select an existing seller from system or leave empty.</div>
+                @error('seller_id') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label" for="booking_seller_name">
+                    <i class="fa-solid fa-user-tag" style="color: #93C5FD;"></i> Custom / Unregistered Seller Name
+                </label>
+                <input type="text" name="seller_name" id="booking_seller_name" 
+                       value="{{ old('seller_name', $booking->seller_name ?? ($booking->seller->name ?? '')) }}" 
+                       class="form-control @error('seller_name') is-invalid @enderror" 
+                       placeholder="e.g. Mukeshbhai Patel / Land Owner"
+                       oninput="handleBookingSellerNameInput(this)">
+                <div class="form-hint" style="color: #BFDBFE;">Auto-populates from selected property or type any new name.</div>
+                @error('seller_name') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label" for="broker_id">
+                    <i class="fa-solid fa-user-tie" style="color: #A78BFA;"></i> Registered Broker (Optional)
+                </label>
+                <select name="broker_id" id="broker_id" class="form-control @error('broker_id') is-invalid @enderror" onchange="handleBookingBrokerChange(this)">
+                    <option value="">-- Select Registered Broker --</option>
+                    @foreach($brokers as $broker)
+                        <option value="{{ $broker->id }}" 
+                                data-name="{{ $broker->name }}"
+                                data-commission="{{ $broker->commission_percentage ?? 0 }}"
+                                {{ old('broker_id', $booking->broker_id) == $broker->id ? 'selected' : '' }}>
+                            {{ $broker->name }} — {{ $broker->mobile }} {{ $broker->commission_percentage ? '(' . $broker->commission_percentage . '%)' : '' }}
                         </option>
                     @endforeach
                 </select>
+                <div class="form-hint" style="color: #94A3B8;">Select an existing broker from system or leave empty.</div>
+                @error('broker_id') <div class="text-error">{{ $message }}</div> @enderror
             </div>
-            <div class="form-group">
-                <label class="form-label">Agreement Date</label>
-                <input type="date" name="agreement_date" value="{{ old('agreement_date', is_string($booking->agreement_date) ? $booking->agreement_date : ($booking->agreement_date ? $booking->agreement_date->format('Y-m-d') : '')) }}" class="form-control @error('agreement_date') is-invalid @enderror">
+
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label" for="booking_broker_name">
+                    <i class="fa-solid fa-user-tag" style="color: #A78BFA;"></i> Custom / Unregistered Broker Name
+                </label>
+                <input type="text" name="broker_name" id="booking_broker_name" 
+                       value="{{ old('broker_name', $booking->broker_name ?? ($booking->broker->name ?? '')) }}" 
+                       class="form-control @error('broker_name') is-invalid @enderror" 
+                       placeholder="e.g. Ramesh Patel / Direct Agent"
+                       oninput="handleBookingBrokerNameInput(this)">
+                <div class="form-hint" style="color: #DDD6FE;">Auto-populates from selected broker or type any new name.</div>
+                @error('broker_name') <div class="text-error">{{ $message }}</div> @enderror
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label" for="agreement_date">
+                    <i class="fa-regular fa-calendar-check" style="color: #34D399;"></i> Agreement Date
+                </label>
+                <input type="date" name="agreement_date" id="agreement_date" value="{{ old('agreement_date', is_string($booking->agreement_date) ? $booking->agreement_date : ($booking->agreement_date ? $booking->agreement_date->format('Y-m-d') : '')) }}" class="form-control @error('agreement_date') is-invalid @enderror">
+                <div class="form-hint" style="color: #94A3B8;">Date of agreement / formal contract.</div>
+                @error('agreement_date') <div class="text-error">{{ $message }}</div> @enderror
             </div>
         </div>
 
@@ -649,6 +752,62 @@ textarea.form-control { resize: vertical; min-height: 85px; }
         discountValueInput.addEventListener('input', calculateAmounts);
         bookingAmountInput.addEventListener('input', calculateAmounts);
 
+        // Seller and Broker handling
+        window.handleBookingSellerChange = function(select) {
+            const sellerNameInput = document.getElementById('booking_seller_name');
+            if (select && select.value) {
+                const opt = select.options[select.selectedIndex];
+                const sName = opt ? opt.getAttribute('data-name') : '';
+                if (sellerNameInput && sName) {
+                    sellerNameInput.value = sName;
+                }
+            }
+        };
+
+        window.handleBookingSellerNameInput = function(input) {
+            // custom seller name handler
+        };
+
+        window.handleBookingBrokerChange = function(select) {
+            const brokerNameInput = document.getElementById('booking_broker_name');
+            const commBox = document.getElementById('commission_section');
+            const commVal = document.getElementById('commission_value');
+            const commType = document.getElementById('commission_type');
+
+            if (select && select.value) {
+                const opt = select.options[select.selectedIndex];
+                const bName = opt ? opt.getAttribute('data-name') : '';
+                const comm = opt ? opt.getAttribute('data-commission') : null;
+
+                if (brokerNameInput && bName) {
+                    brokerNameInput.value = bName;
+                }
+                if (commBox) commBox.style.display = 'block';
+                if (comm && parseFloat(comm) > 0 && commVal && (!commVal.value || parseFloat(commVal.value) === 0)) {
+                    commVal.value = parseFloat(comm).toFixed(2);
+                    if (commType) commType.value = 'percentage';
+                }
+            } else {
+                if (brokerNameInput && !brokerNameInput.value.trim()) {
+                    if (commBox) commBox.style.display = 'none';
+                    if (commVal) commVal.value = '';
+                }
+            }
+            calculateCommission();
+        };
+
+        window.handleBookingBrokerNameInput = function(input) {
+            const commBox = document.getElementById('commission_section');
+            const brokerSelect = document.getElementById('broker_id');
+            if (input && input.value.trim().length > 0) {
+                if (commBox) commBox.style.display = 'block';
+            } else {
+                if (!brokerSelect || !brokerSelect.value) {
+                    if (commBox) commBox.style.display = 'none';
+                }
+            }
+        };
+
         // Broker commission logic
         const brokerSelect = document.getElementById('broker_id');
         const commissionSection = document.getElementById('commission_section');
@@ -665,9 +824,12 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                     commissionValue.value = parseFloat(defaultComm).toFixed(2);
                 }
             } else if (commissionSection) {
-                commissionSection.style.display = 'none';
-                commissionValue.value = '';
-                commissionAmount.value = '';
+                const brokerNameInput = document.getElementById('booking_broker_name');
+                if (!brokerNameInput || !brokerNameInput.value.trim()) {
+                    commissionSection.style.display = 'none';
+                    commissionValue.value = '';
+                    commissionAmount.value = '';
+                }
             }
             calculateCommission();
         }
@@ -759,6 +921,35 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                     pill.style.display = 'block';
                     pill.innerHTML = `<span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 5px 12px; border-radius: 8px; color:#6EE7B7; font-weight:600; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-tree" style="color:#34D399;"></i> Standalone Property: <strong>${name}</strong> [${code}] ${area ? '&bull; Area: ' + area : ''} &bull; ${plotsCount} Plots</span>`;
                 }
+            }
+
+            // Auto-populate Seller & Broker if available and not manually modified
+            const sellerSelect = document.getElementById('seller_id');
+            const sellerNameInput = document.getElementById('booking_seller_name');
+            const brokerSelect = document.getElementById('broker_id');
+            const brokerNameInput = document.getElementById('booking_broker_name');
+
+            const optSellerId = opt.dataset.sellerId || '';
+            const optSellerName = opt.dataset.sellerName || '';
+            const optBrokerId = opt.dataset.brokerId || '';
+            const optBrokerName = opt.dataset.brokerName || '';
+
+            if (optSellerId && sellerSelect && (!sellerSelect.value || sellerSelect.dataset.autoFilled === '1')) {
+                sellerSelect.value = optSellerId;
+                sellerSelect.dataset.autoFilled = '1';
+                window.handleBookingSellerChange(sellerSelect);
+            } else if (optSellerName && sellerNameInput && (!sellerNameInput.value || sellerNameInput.dataset.autoFilled === '1')) {
+                sellerNameInput.value = optSellerName;
+                sellerNameInput.dataset.autoFilled = '1';
+            }
+
+            if (optBrokerId && brokerSelect && (!brokerSelect.value || brokerSelect.dataset.autoFilled === '1')) {
+                brokerSelect.value = optBrokerId;
+                brokerSelect.dataset.autoFilled = '1';
+                window.handleBookingBrokerChange(brokerSelect);
+            } else if (optBrokerName && brokerNameInput && (!brokerNameInput.value || brokerNameInput.dataset.autoFilled === '1')) {
+                brokerNameInput.value = optBrokerName;
+                brokerNameInput.dataset.autoFilled = '1';
             }
 
             window.updateScopeView();

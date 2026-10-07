@@ -36,22 +36,22 @@
 
 <div class="grid-2">
     <div class="grid-col">
-        <div class="col-heading"><i class="fa-solid fa-user"></i> Customer Details</div>
+        <div class="col-heading"><i class="fa-solid fa-user"></i> Customer & Parties</div>
         <div class="info-row">
-            <span class="info-label">Customer Name:</span>
-            <span class="info-val">{{ $booking->customer->name ?? '—' }}</span>
+            <span class="info-label">Customer:</span>
+            <span class="info-val"><strong>{{ $booking->customer->name ?? '—' }}</strong></span>
         </div>
         <div class="info-row">
             <span class="info-label">Mobile Number:</span>
-            <span class="info-val">{{ $booking->customer->mobile ?? '—' }}</span>
+            <span class="info-val">{{ $booking->customer->mobile ?: ($booking->customer->phone ?? '—') }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Email:</span>
-            <span class="info-val">{{ $booking->customer->email ?? '—' }}</span>
+            <span class="info-label">Seller / Owner:</span>
+            <span class="info-val">{{ $booking->effective_seller_name ?: '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">City:</span>
-            <span class="info-val">{{ $booking->customer->city ?? 'Dahegam' }}</span>
+            <span class="info-label">Broker / Agent:</span>
+            <span class="info-val">{{ $booking->effective_broker_name ?: 'Direct' }}</span>
         </div>
     </div>
 
@@ -59,7 +59,7 @@
         <div class="col-heading"><i class="fa-solid fa-building"></i> Property & Booking Info</div>
         <div class="info-row">
             <span class="info-label">Property:</span>
-            <span class="info-val">{{ $booking->property->property_name ?? '—' }}</span>
+            <span class="info-val"><strong>{{ $booking->property->property_name ?? '—' }}</strong></span>
         </div>
         <div class="info-row">
             <span class="info-label">Project:</span>
@@ -69,6 +69,12 @@
             <span class="info-label">Booking Date:</span>
             <span class="info-val">{{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') : '—' }}</span>
         </div>
+        @if($booking->agreement_date)
+        <div class="info-row">
+            <span class="info-label">Agreement Date:</span>
+            <span class="info-val">{{ \Carbon\Carbon::parse($booking->agreement_date)->format('d M Y') }}</span>
+        </div>
+        @endif
         <div class="info-row">
             <span class="info-label">Status:</span>
             <span class="info-val"><span class="badge badge-success">{{ ucfirst($booking->status) }}</span></span>
