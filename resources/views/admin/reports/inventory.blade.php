@@ -129,6 +129,14 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
 }
 .btn-action:hover { background: #2563EB !important; color: #FFFFFF !important; transform: translateY(-1px); }
 
+/* Print header hidden on screen */
+.print-header { display: none; border-bottom: 2.5px solid #3B82F6; padding-bottom: 12px; margin-bottom: 20px; flex-direction: row; justify-content: space-between; align-items: flex-start; }
+.print-header .ph-left .ph-company { font-size: 20px; font-weight: 800; color: #0F172A; }
+.print-header .ph-left .ph-sub { font-size: 10px; color: #3B82F6; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+.print-header .ph-right { text-align: right; }
+.print-header .ph-right .ph-title { font-size: 15px; font-weight: 700; color: #0F172A; margin-bottom: 3px; }
+.print-header .ph-right .ph-meta { font-size: 11px; color: #64748B; }
+
 /* Print */
 @media print{
     .sidebar, .topbar, .rpt-action-btns, .card-box.filter-card, .btn-action, .btn-filter, .btn-reset, .empty-state a { display: none !important; }

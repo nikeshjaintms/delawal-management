@@ -29,15 +29,15 @@ class InvoiceSetting extends Model
      * Generate the next invoice number for a given prefix type.
      * Example: INV-2026-0002
      */
-    public function generateNumber(string $type): string
+    public function generateNumber(string $type, ?int $firmId = null): string
     {
-        return Invoice::generateNextInvoiceNumber($type);
+        return Invoice::generateNextInvoiceNumber($type, $firmId);
     }
 
     /** Increment current_number and return the generated invoice number */
-    public function nextNumber(string $type): string
+    public function nextNumber(string $type, ?int $firmId = null): string
     {
-        return Invoice::generateNextInvoiceNumber($type);
+        return Invoice::generateNextInvoiceNumber($type, $firmId);
     }
 
     public static function activeSetting(): ?self

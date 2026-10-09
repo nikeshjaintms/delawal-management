@@ -301,6 +301,117 @@
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
     color: #FFFFFF !important;
 }
+
+/* ── Mobile Responsive Rules (<= 768px) ── */
+@media (max-width: 768px) {
+    .crud-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        margin-bottom: 16px !important;
+    }
+    .crud-title h2 {
+        font-size: 19px !important;
+        line-height: 1.25 !important;
+        margin-bottom: 3px !important;
+    }
+    .crud-title p {
+        font-size: 12px !important;
+        line-height: 1.4 !important;
+    }
+    .crud-header-actions {
+        display: flex !important;
+        gap: 8px !important;
+        width: 100% !important;
+        flex-wrap: nowrap !important;
+    }
+    .btn-gold, a.btn-gold, button.btn-gold,
+    .btn-pdf, a.btn-pdf,
+    .btn-primary-custom, a.btn-primary-custom {
+        flex: 1 1 50% !important;
+        min-height: 38px !important;
+        padding: 8px 10px !important;
+        font-size: 11.5px !important;
+        white-space: nowrap !important;
+        border-radius: 10px !important;
+        gap: 5px !important;
+    }
+    .kpi-grid-4 {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        margin-bottom: 16px !important;
+    }
+    .kpi-card {
+        padding: 12px 10px !important;
+        gap: 10px !important;
+        border-radius: 12px !important;
+        min-width: 0 !important;
+    }
+    .kpi-icon-box {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        font-size: 16px !important;
+        border-radius: 9px !important;
+    }
+    .kpi-meta {
+        min-width: 0 !important;
+        flex: 1 !important;
+        overflow: hidden !important;
+    }
+    .kpi-meta .kpi-title {
+        font-size: 9.5px !important;
+        letter-spacing: 0.3px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        margin-bottom: 2px !important;
+    }
+    .kpi-meta .kpi-val {
+        font-size: clamp(12px, 3.2vw, 15px) !important;
+        line-height: 1.25 !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        letter-spacing: -0.3px !important;
+    }
+    .breadcrumb-nav {
+        padding: 6px 12px !important;
+        font-size: 11.5px !important;
+        margin-bottom: 12px !important;
+        border-radius: 9px !important;
+    }
+    .filter-card {
+        padding: 12px 12px !important;
+        margin-bottom: 16px !important;
+        border-radius: 14px !important;
+    }
+    .custom-input, .custom-select {
+        padding: 7px 10px !important;
+        font-size: 12.5px !important;
+        height: 36px !important;
+    }
+    .inv-table th, .inv-table td {
+        padding: 10px 10px !important;
+        font-size: 12px !important;
+    }
+}
+
+/* ── Small Mobile Rules (<= 480px) ── */
+@media (max-width: 480px) {
+    .crud-title h2 {
+        font-size: 17.5px !important;
+    }
+    .btn-gold, a.btn-gold, button.btn-gold,
+    .btn-pdf, a.btn-pdf {
+        font-size: 11px !important;
+        padding: 7px 6px !important;
+        min-height: 36px !important;
+        gap: 4px !important;
+    }
+    .kpi-meta .kpi-val {
+        font-size: clamp(11px, 3vw, 13.5px) !important;
+    }
+}
 </style>
 
 {{-- Breadcrumbs & Header --}}
@@ -315,7 +426,7 @@
         <h2>Invoices &amp; Billing Management</h2>
         <p>Generate, manage and track customer, rental, contractor, purchase and project invoices</p>
     </div>
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <div class="crud-header-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
         <a href="{{ route('invoices.pdf', request()->query()) }}" target="_blank" class="btn-pdf">
             <i class="fa-solid fa-file-pdf"></i> Export PDF List
         </a>
@@ -368,10 +479,22 @@
 {{-- Filter Card --}}
 <div class="filter-card">
     <form method="GET" action="{{ route('invoices.index') }}">
-        <div class="filter-form-grid">
+        <div class="filter-form-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) auto;">
             <div>
                 <input type="text" name="search" value="{{ request('search') }}" class="custom-input" placeholder="Search by Invoice #, Recipient, Phone, Project...">
             </div>
+            @if(isset($firms) && $firms->count() > 1)
+            <div>
+                <select name="firm_id" class="custom-select">
+                    <option value="">All Firms</option>
+                    @foreach($firms as $f)
+                        <option value="{{ $f->id }}" {{ request('firm_id') == $f->id ? 'selected' : '' }}>
+                            {{ $f->firm_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
             <div>
                 <select name="project_id" class="custom-select">
                     <option value="">All Projects</option>
@@ -404,7 +527,7 @@
                 <button type="submit" class="btn-primary-custom" style="padding: 8px 16px; min-height: 38px;">
                     <i class="fa-solid fa-magnifying-glass"></i> Filter
                 </button>
-                @if(request()->anyFilled(['search', 'project_id', 'invoice_type', 'payment_status', 'date_from', 'date_to']))
+                @if(request()->anyFilled(['search', 'firm_id', 'project_id', 'invoice_type', 'payment_status', 'date_from', 'date_to']))
                     <a href="{{ route('invoices.index') }}" class="btn-secondary-custom" style="padding: 8px 12px; min-height: 38px;" title="Reset Filter">
                         <i class="fa-solid fa-rotate-left"></i>
                     </a>
@@ -422,6 +545,7 @@
                 <tr>
                     <th>Invoice No</th>
                     <th>Date</th>
+                    <th>Firm</th>
                     <th>Recipient / Customer</th>
                     <th>Project</th>
                     <th>Type</th>
@@ -442,6 +566,15 @@
                         </td>
                         <td style="color: #CBD5E1; font-weight: 600; white-space: nowrap;">
                             {{ $inv->invoice_date->format('d M, Y') }}
+                        </td>
+                        <td>
+                            @if($inv->firm)
+                                <span style="font-weight: 700; color: #F59E0B; font-size: 12.5px; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fa-solid fa-building" style="font-size: 11px;"></i> {{ $inv->firm->firm_name }}
+                                </span>
+                            @else
+                                <span style="color: #64748B;">—</span>
+                            @endif
                         </td>
                         <td>
                             <div style="font-weight: 700; color: #FFFFFF;">{{ $inv->recipient_name }}</div>

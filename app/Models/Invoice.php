@@ -184,15 +184,48 @@ class Invoice extends Model
     }
 
     /**
-     * Generate the next guaranteed unique invoice number.
+     * Generate the next guaranteed unique invoice number (firm-wise or system-wide).
      * Prevents duplicate key errors by inspecting the highest DB sequence and incrementing safely.
      */
-    public static function generateNextInvoiceNumber(string $type = 'sales'): string
+    public static function generateNextInvoiceNumber(string $type = 'sales', ?int $firmId = null): string
     {
-        $activeSetting = \App\Models\InvoiceSetting::activeSetting();
+        if (!$firmId) {
+            $isFirm = session('login_type') === 'firm' && session('firm_id');
+            $user = \Illuminate\Support\Facades\Auth::user();
+            $firmId = $isFirm ? session('firm_id') : ($user && $user->firm_id ? $user->firm_id : null);
+        }
+
+        // Try to get active setting specifically linked to this firm
+        $activeSetting = null;
+        if ($firmId) {
+            $activeSetting = \App\Models\InvoiceSetting::where('status', 'active')
+                ->whereHas('firms', function ($q) use ($firmId) {
+                    $q->where('firms.id', $firmId);
+                })
+                ->with('financialYear')
+                ->first();
+        }
+
+        // Fallback to global active setting if no firm-specific setting found
+        if (!$activeSetting) {
+            $activeSetting = \App\Models\InvoiceSetting::activeSetting();
+        }
+
+        $prefixField = match ($type) {
+            'sale', 'sales' => 'sales_prefix',
+            'purchase', 'material_purchase' => 'purchase_prefix',
+            'booking' => 'booking_prefix',
+            'rental' => 'rental_prefix',
+            'payment' => 'payment_prefix',
+            'receipt' => 'receipt_prefix',
+            'expense', 'contractor' => 'expense_prefix',
+            'income' => 'income_prefix',
+            'loan' => 'loan_prefix',
+            default => $type . '_prefix',
+        };
+
         $prefix = 'INV';
         if ($activeSetting) {
-            $prefixField = $type . '_prefix';
             $prefix = $activeSetting->$prefixField ?? ($activeSetting->sales_prefix ?? 'INV');
         }
 
@@ -202,9 +235,11 @@ class Invoice extends Model
 
         // Search for existing invoice numbers starting with prefix-year-
         $searchPrefix = "{$prefix}-{$year}-";
-        $existingInvoices = self::where('invoice_no', 'like', "{$searchPrefix}%")
-            ->pluck('invoice_no')
-            ->toArray();
+        $existingQuery = self::where('invoice_no', 'like', "{$searchPrefix}%");
+        if ($firmId) {
+            $existingQuery->where('firm_id', $firmId);
+        }
+        $existingInvoices = $existingQuery->pluck('invoice_no')->toArray();
 
         $maxNum = 0;
         foreach ($existingInvoices as $invNo) {

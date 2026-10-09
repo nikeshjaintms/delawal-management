@@ -71,6 +71,226 @@
     .dqa-orange:hover  { background: #EA580C !important; border-color: #FB923C !important; color: #FFFFFF !important; box-shadow: 0 6px 20px rgba(234, 88, 12, 0.5) !important; }
     .dqa-cyan:hover    { background: #0891B2 !important; border-color: #06B6D4 !important; color: #FFFFFF !important; box-shadow: 0 6px 20px rgba(8, 145, 178, 0.5) !important; }
 
+    /* --- Reports Dropdown in Filter Bar --- */
+    .dash-reports-dropdown {
+        position: relative;
+        display: inline-flex;
+    }
+    .filter-reports-btn {
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+        background: linear-gradient(135deg, #4338CA 0%, #6366F1 50%, #7C3AED 100%) !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(199, 210, 254, 0.40) !important;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.40) !important;
+    }
+    .filter-reports-btn:hover {
+        background: linear-gradient(135deg, #3730A3 0%, #4F46E5 50%, #6D28D9 100%) !important;
+        border-color: rgba(255, 255, 255, 0.50) !important;
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.60) !important;
+        transform: translateY(-1px);
+    }
+    .dropdown-caret {
+        font-size: 10px !important;
+        margin-left: 2px;
+        transition: transform 0.25s ease !important;
+    }
+    .reports-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        left: auto;
+        width: 760px;
+        max-width: 92vw;
+        background: rgba(13, 19, 33, 0.98) !important;
+        backdrop-filter: blur(28px) saturate(190%) !important;
+        -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.16) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+        padding: 18px 20px 20px !important;
+        z-index: 1200;
+        display: none;
+        opacity: 0;
+        transform: translateY(-8px);
+        transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+    .reports-dropdown-menu.show {
+        display: block !important;
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+    }
+    .reports-dropdown-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+        flex-wrap: wrap;
+    }
+    .rd-title {
+        font-size: 13.5px;
+        font-weight: 800;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+    .rd-all-link {
+        font-size: 12px;
+        font-weight: 700;
+        color: #60A5FA;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.30);
+        transition: all 0.2s ease;
+    }
+    .rd-all-link:hover {
+        background: #3B82F6;
+        color: #FFFFFF;
+        transform: translateX(2px);
+    }
+    .rd-search-box {
+        margin-bottom: 14px;
+        position: relative;
+    }
+    .rd-search-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 10px;
+        padding: 8px 12px 8px 34px;
+        font-size: 12.5px;
+        color: #FFFFFF;
+        outline: none;
+        transition: border-color 0.2s ease;
+    }
+    .rd-search-input:focus {
+        border-color: #6366F1;
+        background: rgba(255, 255, 255, 0.09);
+    }
+    .rd-search-icon {
+        position: absolute;
+        left: 11px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 12px;
+        color: #94A3B8;
+    }
+    .reports-dropdown-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        max-height: 420px;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+    .rd-category {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .rd-cat-title {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #94A3B8;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .rd-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        text-decoration: none;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        transition: all 0.2s ease;
+    }
+    .rd-item:hover {
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(255, 255, 255, 0.20);
+        transform: translateX(3px);
+    }
+    .rd-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+    .rd-icon.ic-blue   { background: rgba(59, 130, 246, 0.20); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.35); }
+    .rd-icon.ic-sky    { background: rgba(14, 165, 233, 0.20); color: #38BDF8; border: 1px solid rgba(14, 165, 233, 0.35); }
+    .rd-icon.ic-green  { background: rgba(16, 185, 129, 0.20); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35); }
+    .rd-icon.ic-purple { background: rgba(139, 92, 246, 0.20); color: #C084FC; border: 1px solid rgba(139, 92, 246, 0.35); }
+    .rd-icon.ic-teal   { background: rgba(20, 184, 166, 0.20); color: #2DD4BF; border: 1px solid rgba(20, 184, 166, 0.35); }
+    .rd-icon.ic-amber  { background: rgba(245, 158, 11, 0.20); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.35); }
+    .rd-icon.ic-rose   { background: rgba(244, 63, 94, 0.20); color: #FB7185; border: 1px solid rgba(244, 63, 94, 0.35); }
+    .rd-icon.ic-gold   { background: rgba(212, 175, 55, 0.20); color: #F7D774; border: 1px solid rgba(212, 175, 55, 0.35); }
+    .rd-icon.ic-cyan   { background: rgba(6, 182, 212, 0.20); color: #22D3EE; border: 1px solid rgba(6, 182, 212, 0.35); }
+
+    .rd-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+    .rd-name {
+        font-size: 12px;
+        font-weight: 700;
+        color: #FFFFFF;
+        line-height: 1.2;
+    }
+    .rd-desc {
+        font-size: 10px;
+        color: #94A3B8;
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    @media (max-width: 768px) {
+        .reports-dropdown-menu {
+            left: auto !important;
+            right: 0 !important;
+            width: min(100vw - 24px, 360px) !important;
+            max-height: 75vh !important;
+            overflow-y: auto !important;
+            padding: 14px !important;
+        }
+        .reports-dropdown-grid {
+            grid-template-columns: 1fr !important;
+            max-height: none !important;
+            gap: 12px !important;
+        }
+    }
+
     /* --- FILTER SECTION --- */
     .dash-filter-card {
         background: rgba(15, 23, 42, 0.65) !important;
@@ -146,15 +366,61 @@
         color: #FFFFFF !important;
         box-shadow: 0 4px 14px rgba(13, 148, 136, 0.4);
     }
-
-    .filter-inputs-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr auto;
-        gap: 14px;
-        align-items: flex-end;
+    .filter-tab-btn.active-sale {
+        background: linear-gradient(135deg, #059669, #047857) !important;
+        border-color: #34D399 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
     }
-    @media(max-width: 900px) {
-        .filter-inputs-grid { grid-template-columns: 1fr; }
+    .filter-tab-btn.active-purchase {
+        background: linear-gradient(135deg, #D97706, #B45309) !important;
+        border-color: #FBBF24 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+    }
+    .filter-tab-btn.active-expense {
+        background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
+        border-color: #F87171 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+    }
+
+    /* Filter Mode Panels & Grid */
+    .filter-mode-panel {
+        display: none;
+        animation: fadeInPanel 0.22s ease forwards;
+    }
+    .filter-mode-panel.active-panel {
+        display: block;
+    }
+    @keyframes fadeInPanel {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .panel-content-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+    .panel-input-flex {
+        flex: 1;
+        min-width: 280px;
+    }
+    .panel-btn-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    .filter-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 800;
+        color: #94A3B8;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 6px;
     }
     .filter-input-group label {
         display: block;
@@ -460,6 +726,63 @@
     .task-item.success .task-icon-wrap { background: rgba(16,185,129,0.22); color: #34D399; }
     .task-content h5 { font-size: 13px; font-weight: 700; color: #FFFFFF; margin-bottom: 2px; }
     .task-content p  { font-size: 11.5px; color: #94A3B8; line-height: 1.4; }
+
+    @media (max-width: 768px) {
+        .dash-welcome {
+            padding: 16px 14px !important;
+            margin-bottom: 16px !important;
+            border-radius: 16px !important;
+        }
+        .dash-welcome-title {
+            font-size: 18px !important;
+        }
+        .dash-welcome-sub {
+            font-size: 12px !important;
+        }
+        .dash-quick-actions {
+            gap: 6px !important;
+        }
+        .dqa-btn {
+            padding: 6px 10px !important;
+            font-size: 11.5px !important;
+            height: 34px !important;
+        }
+        .dash-filter-card {
+            padding: 14px 12px !important;
+            border-radius: 16px !important;
+            margin-bottom: 16px !important;
+        }
+        .filter-title {
+            font-size: 12px !important;
+        }
+        .filter-tabs-wrap {
+            gap: 6px !important;
+            width: 100% !important;
+        }
+        .filter-tab-btn {
+            padding: 6px 10px !important;
+            font-size: 11px !important;
+            flex: 1 1 calc(50% - 6px);
+            justify-content: center;
+        }
+        .panel-content-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 10px !important;
+        }
+        .panel-input-flex {
+            min-width: 100% !important;
+        }
+        .panel-btn-group {
+            width: 100% !important;
+            display: flex !important;
+            gap: 8px !important;
+        }
+        .panel-btn-group .dqa-btn, .panel-btn-group .btn-filter-reset {
+            flex: 1 !important;
+            justify-content: center !important;
+        }
+    }
     </style>
 
     <!-- Welcome Header & Quick Actions -->
@@ -506,72 +829,203 @@
     </div>
 
     <!-- ════════════════════════════════════════════════════════════════
-         DASHBOARD PROPERTY & PROJECT FILTER BAR
+         DASHBOARD LIVE FILTER & ASSET INTELLIGENCE BAR
     ════════════════════════════════════════════════════════════════ -->
     <div class="dash-filter-card">
         <form method="GET" action="{{ route('dashboard') }}" id="dashboardFilterForm">
             <input type="hidden" name="filter_type" id="filterTypeInput" value="{{ $filterType ?? 'all' }}">
 
+            <!-- Top Filter Tabs Row -->
             <div class="filter-header-row">
                 <div class="filter-title">
                     <i class="fa-solid fa-sliders" style="color:#38BDF8;"></i>
                     Dashboard Live Filter &amp; Asset Intelligence
                 </div>
                 <div class="filter-tabs-wrap">
-                    <button type="button" class="filter-tab-btn {{ $filterType === 'all' ? 'active-all' : '' }}" onclick="selectFilterMode('all')">
+                    <button type="button" id="tab-btn-all" class="filter-tab-btn {{ $filterType === 'all' ? 'active-all' : '' }}" onclick="switchFilterTab('all')">
                         <i class="fa-solid fa-layer-group"></i> All Overview
                     </button>
-                    <button type="button" class="filter-tab-btn {{ $filterType === 'property' ? 'active-prop' : '' }}" onclick="selectFilterMode('property')">
+                    <button type="button" id="tab-btn-property" class="filter-tab-btn {{ $filterType === 'property' ? 'active-prop' : '' }}" onclick="switchFilterTab('property')">
                         <i class="fa-solid fa-building"></i> Filter by Property / Land
                     </button>
-                    <button type="button" class="filter-tab-btn {{ $filterType === 'project' ? 'active-proj' : '' }}" onclick="selectFilterMode('project')">
+                    <button type="button" id="tab-btn-project" class="filter-tab-btn {{ $filterType === 'project' ? 'active-proj' : '' }}" onclick="switchFilterTab('project')">
                         <i class="fa-solid fa-city"></i> Filter by Project
                     </button>
+                    <button type="button" id="tab-btn-sale" class="filter-tab-btn {{ in_array($filterType, ['sale']) ? 'active-sale' : '' }}" onclick="switchFilterTab('sale')">
+                        <i class="fa-solid fa-handshake"></i> Filter by Sale
+                    </button>
+                    <button type="button" id="tab-btn-purchase" class="filter-tab-btn {{ in_array($filterType, ['purchase']) ? 'active-purchase' : '' }}" onclick="switchFilterTab('purchase')">
+                        <i class="fa-solid fa-cart-shopping"></i> Filter by Purchase
+                    </button>
+                    <button type="button" id="tab-btn-expense" class="filter-tab-btn {{ in_array($filterType, ['expense']) ? 'active-expense' : '' }}" onclick="switchFilterTab('expense')">
+                        <i class="fa-solid fa-receipt"></i> Filter by Expense
+                    </button>
+
+                    <!-- Reports & Analytics Centre Direct Link -->
+                    <a href="{{ route('reports.index') }}" class="filter-reports-btn" title="Open Reports Centre">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Reports &amp; Statements</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px; margin-left: 3px; opacity: 0.85;"></i>
+                    </a>
                 </div>
             </div>
 
-            <div class="filter-inputs-grid">
-                <!-- Select Property Master -->
-                <div class="filter-input-group">
-                    <label><i class="fa-solid fa-building text-purple-400"></i> Select Property / Land</label>
-                    <select name="property_master_id" id="propertyMasterSelect" class="dash-select-input" onchange="onPropertySelect(this.value)">
-                        <option value="">-- All Properties / Select to Filter --</option>
-                        @foreach($propertyMastersList as $pm)
-                            <option value="{{ $pm->id }}" {{ (isset($selectedPropertyMaster) && $selectedPropertyMaster->id == $pm->id) ? 'selected' : '' }}>
-                                {{ $pm->property_name }} {{ $pm->property_code ? "({$pm->property_code})" : '' }} • {{ $pm->plots_count }} Plots
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Select Project -->
-                <div class="filter-input-group">
-                    <label><i class="fa-solid fa-city text-teal-400"></i> Select Project</label>
-                    <select name="project_id" id="projectSelect" class="dash-select-input" onchange="onProjectSelect(this.value)">
-                        <option value="">-- All Projects / Select to Filter --</option>
-                        @foreach($projectsList as $prj)
-                            <option value="{{ $prj->id }}" {{ (isset($selectedProject) && $selectedProject->id == $prj->id) ? 'selected' : '' }}>
-                                {{ $prj->project_name }} {{ $prj->project_code ? "({$prj->project_code})" : '' }} • {{ $prj->properties_count }} Units
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Reset Button -->
-                <div>
-                    @if($filterType !== 'all' || !empty($selectedPropertyMaster) || !empty($selectedProject))
-                        <a href="{{ route('dashboard') }}" class="btn-filter-reset" title="Reset all filters">
-                            <i class="fa-solid fa-rotate-left"></i> Clear Filter
+            <!-- Mode 1: All Overview Panel -->
+            <div id="panel-all" class="filter-mode-panel {{ $filterType === 'all' ? 'active-panel' : '' }}">
+                <div class="panel-content-row" style="justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 12px; color: #CBD5E1; font-size: 13px;">
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(37,99,235,0.2); border: 1px solid rgba(37,99,235,0.4); display: flex; align-items: center; justify-content: center; color: #60A5FA; font-size: 16px; flex-shrink: 0;">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div>
+                            <strong style="color: #FFFFFF; font-size: 13.5px;">All Overview Mode Active</strong>
+                            <div style="color: #94A3B8; font-size: 12px;">Displaying aggregate metrics across all properties, projects, sales, purchases, and expenses.</div>
+                        </div>
+                    </div>
+                    <div class="panel-btn-group">
+                        <a href="{{ route('dashboard') }}" class="dqa-btn dqa-blue" style="height: 38px;">
+                            <i class="fa-solid fa-rotate"></i> Refresh Overview
                         </a>
-                    @else
-                        <button type="submit" class="dqa-btn dqa-blue" style="height: 40px;">
-                            <i class="fa-solid fa-magnifying-glass"></i> Apply Filter
-                        </button>
-                    @endif
+                    </div>
                 </div>
             </div>
 
-            <!-- Active Filter Summary Pill -->
+            <!-- Mode 2: Property / Land Filter Panel -->
+            <div id="panel-property" class="filter-mode-panel {{ $filterType === 'property' ? 'active-panel' : '' }}">
+                <div class="panel-content-row">
+                    <div class="panel-input-flex">
+                        <label class="filter-label"><i class="fa-solid fa-building text-purple-400"></i> Select Property / Land</label>
+                        <select name="property_master_id" id="propertyMasterSelect" class="dash-select-input" onchange="submitModeFilter('property')">
+                            <option value="">-- Choose Property / Land to Filter Plots &amp; Financials --</option>
+                            @foreach($propertyMastersList as $pm)
+                                <option value="{{ $pm->id }}" {{ (isset($selectedPropertyMaster) && $selectedPropertyMaster->id == $pm->id && $filterType === 'property') ? 'selected' : '' }}>
+                                    {{ $pm->property_name }} {{ $pm->property_code ? "({$pm->property_code})" : '' }} • {{ $pm->plots_count }} Plots
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="panel-btn-group">
+                        <button type="button" class="dqa-btn dqa-purple" style="height: 40px;" onclick="submitModeFilter('property')">
+                            <i class="fa-solid fa-magnifying-glass"></i> Apply Property Filter
+                        </button>
+                        @if($filterType === 'property' && !empty($selectedPropertyMaster))
+                            <a href="{{ route('dashboard') }}" class="btn-filter-reset" title="Clear Filter">
+                                <i class="fa-solid fa-xmark"></i> Clear
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode 3: Project Filter Panel -->
+            <div id="panel-project" class="filter-mode-panel {{ $filterType === 'project' ? 'active-panel' : '' }}">
+                <div class="panel-content-row">
+                    <div class="panel-input-flex">
+                        <label class="filter-label"><i class="fa-solid fa-city text-teal-400"></i> Select Project</label>
+                        <select name="project_id" id="projectSelect" class="dash-select-input" onchange="submitModeFilter('project')">
+                            <option value="">-- Choose Project to Filter Units &amp; Financials --</option>
+                            @foreach($projectsList as $prj)
+                                <option value="{{ $prj->id }}" {{ (isset($selectedProject) && $selectedProject->id == $prj->id && $filterType === 'project') ? 'selected' : '' }}>
+                                    {{ $prj->project_name }} {{ $prj->project_code ? "({$prj->project_code})" : '' }} • {{ $prj->properties_count }} Units
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="panel-btn-group">
+                        <button type="button" class="dqa-btn dqa-teal" style="height: 40px;" onclick="submitModeFilter('project')">
+                            <i class="fa-solid fa-magnifying-glass"></i> Apply Project Filter
+                        </button>
+                        @if($filterType === 'project' && !empty($selectedProject))
+                            <a href="{{ route('dashboard') }}" class="btn-filter-reset" title="Clear Filter">
+                                <i class="fa-solid fa-xmark"></i> Clear
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode 4: Sale Filter Panel -->
+            <div id="panel-sale" class="filter-mode-panel {{ in_array($filterType, ['sale']) ? 'active-panel' : '' }}">
+                <div class="panel-content-row">
+                    <div class="panel-input-flex">
+                        <label class="filter-label"><i class="fa-solid fa-handshake text-emerald-400"></i> Filter Sales by Property / Land (Optional)</label>
+                        <select name="sale_property_master_id" id="salePropertySelect" class="dash-select-input" onchange="submitModeFilter('sale')">
+                            <option value="">-- All Property Sales (Full Portfolio) --</option>
+                            @foreach($propertyMastersList as $pm)
+                                <option value="{{ $pm->id }}" {{ (isset($selectedPropertyMaster) && $selectedPropertyMaster->id == $pm->id && $filterType === 'sale') ? 'selected' : '' }}>
+                                    {{ $pm->property_name }} {{ $pm->property_code ? "({$pm->property_code})" : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="panel-btn-group">
+                        <button type="button" class="dqa-btn dqa-green" style="height: 40px;" onclick="submitModeFilter('sale')">
+                            <i class="fa-solid fa-chart-line"></i> View Sales Analysis
+                        </button>
+                        @if($filterType === 'sale')
+                            <a href="{{ route('dashboard') }}" class="btn-filter-reset" title="Clear Filter">
+                                <i class="fa-solid fa-xmark"></i> Clear
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode 5: Purchase Filter Panel -->
+            <div id="panel-purchase" class="filter-mode-panel {{ in_array($filterType, ['purchase']) ? 'active-panel' : '' }}">
+                <div class="panel-content-row">
+                    <div class="panel-input-flex">
+                        <label class="filter-label"><i class="fa-solid fa-cart-shopping text-amber-400"></i> Filter Purchases by Project (Materials &amp; Supplies)</label>
+                        <select name="purchase_project_id" id="purchaseProjectSelect" class="dash-select-input" onchange="submitModeFilter('purchase')">
+                            <option value="">-- All Purchases (Land Acquisitions + All Materials) --</option>
+                            @foreach($projectsList as $prj)
+                                <option value="{{ $prj->id }}" {{ (isset($selectedProject) && $selectedProject->id == $prj->id && $filterType === 'purchase') ? 'selected' : '' }}>
+                                    {{ $prj->project_name }} {{ $prj->project_code ? "({$prj->project_code})" : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="panel-btn-group">
+                        <button type="button" class="dqa-btn dqa-amber" style="height: 40px;" onclick="submitModeFilter('purchase')">
+                            <i class="fa-solid fa-boxes-stacked"></i> View Purchase Analysis
+                        </button>
+                        @if($filterType === 'purchase')
+                            <a href="{{ route('dashboard') }}" class="btn-filter-reset" title="Clear Filter">
+                                <i class="fa-solid fa-xmark"></i> Clear
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode 6: Expense Filter Panel -->
+            <div id="panel-expense" class="filter-mode-panel {{ in_array($filterType, ['expense']) ? 'active-panel' : '' }}">
+                <div class="panel-content-row">
+                    <div class="panel-input-flex">
+                        <label class="filter-label"><i class="fa-solid fa-receipt text-rose-400"></i> Scope Expenses by Property / Land</label>
+                        <select name="expense_property_master_id" id="expensePropertySelect" class="dash-select-input" onchange="submitModeFilter('expense')">
+                            <option value="">-- All Expenses &amp; Outflows (Property + General + Rental) --</option>
+                            @foreach($propertyMastersList as $pm)
+                                <option value="{{ $pm->id }}" {{ (isset($selectedPropertyMaster) && $selectedPropertyMaster->id == $pm->id && $filterType === 'expense') ? 'selected' : '' }}>
+                                    {{ $pm->property_name }} {{ $pm->property_code ? "({$pm->property_code})" : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="panel-btn-group">
+                        <button type="button" class="dqa-btn dqa-red" style="height: 40px;" onclick="submitModeFilter('expense')">
+                            <i class="fa-solid fa-file-invoice-dollar"></i> View Expense Analysis
+                        </button>
+                        @if($filterType === 'expense')
+                            <a href="{{ route('dashboard') }}" class="btn-filter-reset" title="Clear Filter">
+                                <i class="fa-solid fa-xmark"></i> Clear
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Filter Summary Pills -->
             @if($filterType === 'property' && $selectedPropertyMaster)
                 <div class="filter-active-pill-box">
                     <div class="filter-pill-title">
@@ -583,7 +1037,7 @@
                     </div>
                     <div class="filter-pill-badges">
                         <span class="f-badge fb-purple"><i class="fa-solid fa-layer-group"></i> Total {{ $totalProperties }} Plots</span>
-                        <span class="f-badge fb-amber"><i class="fa-solid fa-coins"></i> Lidhi Price: ₹{{ number_format($selectedPropertyMaster->purchase_price ?? 0, 2) }}</span>
+                        <span class="f-badge fb-amber"><i class="fa-solid fa-coins"></i> Purchase Price: ₹{{ number_format($selectedPropertyMaster->purchase_price ?? 0, 2) }}</span>
                         @if($selectedPropertyMaster->city)
                             <span class="f-badge fb-blue"><i class="fa-solid fa-location-dot"></i> {{ $selectedPropertyMaster->city }}</span>
                         @endif
@@ -611,55 +1065,157 @@
                         </a>
                     </div>
                 </div>
+            @elseif($filterType === 'sale')
+                <div class="filter-active-pill-box" style="border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08);">
+                    <div class="filter-pill-title">
+                        <i class="fa-solid fa-handshake" style="color:#34D399;"></i>
+                        Active Filter: <span style="color:#34D399; font-weight:800;">Sales &amp; Revenue Intelligence</span>
+                    </div>
+                    <div class="filter-pill-badges">
+                        <span class="f-badge fb-teal"><i class="fa-solid fa-circle-dollar-to-slot"></i> Sold Value: ₹{{ number_format($totalSalesRevenue, 2) }}</span>
+                        <span class="f-badge fb-purple"><i class="fa-solid fa-cubes"></i> {{ $totalSoldUnitsCount }} Units Sold</span>
+                        <span class="f-badge fb-amber"><i class="fa-solid fa-arrow-trend-up"></i> Realized Profit: ₹{{ number_format($totalSalesProfit, 2) }}</span>
+                        <span class="f-badge fb-blue"><i class="fa-solid fa-percent"></i> Margin: {{ $salesProfitMargin }}%</span>
+                        <a href="{{ route('property-sales.index') }}" class="btn-view-all">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> All Sales Records
+                        </a>
+                    </div>
+                </div>
+            @elseif($filterType === 'purchase')
+                <div class="filter-active-pill-box" style="border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08);">
+                    <div class="filter-pill-title">
+                        <i class="fa-solid fa-cart-shopping" style="color:#FBBF24;"></i>
+                        Active Filter: <span style="color:#FBBF24; font-weight:800;">Land &amp; Material Purchases</span>
+                    </div>
+                    <div class="filter-pill-badges">
+                        <span class="f-badge fb-amber"><i class="fa-solid fa-money-bill-wave"></i> Total Purchases: ₹{{ number_format($totalPurchases ?? 0, 2) }}</span>
+                        <span class="f-badge fb-purple"><i class="fa-solid fa-building"></i> Land: ₹{{ number_format($totalLandPurchases ?? 0, 2) }} ({{ $totalLandPurchaseCount ?? 0 }} Lands)</span>
+                        <span class="f-badge fb-teal"><i class="fa-solid fa-boxes-stacked"></i> Materials: ₹{{ number_format($totalMaterialPurchases ?? 0, 2) }}</span>
+                        <a href="{{ route('property-masters.index') }}" class="btn-view-all">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Land Purchases
+                        </a>
+                        <a href="{{ route('stock-inwards.index') }}" class="btn-view-all">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Material Inwards
+                        </a>
+                    </div>
+                </div>
+            @elseif($filterType === 'expense')
+                <div class="filter-active-pill-box" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08);">
+                    <div class="filter-pill-title">
+                        <i class="fa-solid fa-receipt" style="color:#F87171;"></i>
+                        Active Filter: <span style="color:#F87171; font-weight:800;">Expense &amp; Cost Analysis</span>
+                    </div>
+                    <div class="filter-pill-badges">
+                        <span class="f-badge fb-red" style="background:rgba(239,68,68,0.2);color:#FCA5A5;border:1px solid rgba(239,68,68,0.4);"><i class="fa-solid fa-receipt"></i> Total Expenses: ₹{{ number_format($totalExpenses ?? 0, 2) }}</span>
+                        <span class="f-badge fb-purple"><i class="fa-solid fa-building"></i> Property: ₹{{ number_format($propertyExpenses ?? 0, 2) }}</span>
+                        <span class="f-badge fb-blue"><i class="fa-solid fa-folder"></i> General: ₹{{ number_format($generalExpenses ?? 0, 2) }}</span>
+                        <span class="f-badge fb-amber"><i class="fa-solid fa-key"></i> Rental: ₹{{ number_format($rentalExpenses ?? 0, 2) }}</span>
+                        <a href="{{ route('expenses.index') }}" class="btn-view-all">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> All Expense Records
+                        </a>
+                    </div>
+                </div>
             @endif
         </form>
     </div>
 
     <script>
-    function selectFilterMode(mode) {
+    function switchFilterTab(mode) {
         document.getElementById('filterTypeInput').value = mode;
+
+        var tabMap = {
+            'all': 'tab-btn-all',
+            'property': 'tab-btn-property',
+            'project': 'tab-btn-project',
+            'sale': 'tab-btn-sale',
+            'purchase': 'tab-btn-purchase',
+            'expense': 'tab-btn-expense'
+        };
+        var activeClasses = {
+            'all': 'active-all',
+            'property': 'active-prop',
+            'project': 'active-proj',
+            'sale': 'active-sale',
+            'purchase': 'active-purchase',
+            'expense': 'active-expense'
+        };
+
+        Object.keys(tabMap).forEach(function(key) {
+            var btn = document.getElementById(tabMap[key]);
+            if (btn) {
+                btn.classList.remove('active-all', 'active-prop', 'active-proj', 'active-sale', 'active-purchase', 'active-expense');
+                if (key === mode) {
+                    btn.classList.add(activeClasses[key]);
+                }
+            }
+        });
+
+        var panels = ['panel-all', 'panel-property', 'panel-project', 'panel-sale', 'panel-purchase', 'panel-expense'];
+        panels.forEach(function(pId) {
+            var p = document.getElementById(pId);
+            if (p) {
+                if (pId === 'panel-' + mode) {
+                    p.classList.add('active-panel');
+                } else {
+                    p.classList.remove('active-panel');
+                }
+            }
+        });
+
         if (mode === 'all') {
-            document.getElementById('propertyMasterSelect').value = '';
-            document.getElementById('projectSelect').value = '';
+            if (document.getElementById('propertyMasterSelect')) document.getElementById('propertyMasterSelect').value = '';
+            if (document.getElementById('projectSelect')) document.getElementById('projectSelect').value = '';
+            if (document.getElementById('salePropertySelect')) document.getElementById('salePropertySelect').value = '';
+            if (document.getElementById('purchaseProjectSelect')) document.getElementById('purchaseProjectSelect').value = '';
+            if (document.getElementById('expensePropertySelect')) document.getElementById('expensePropertySelect').value = '';
             document.getElementById('dashboardFilterForm').submit();
         } else if (mode === 'property') {
-            document.getElementById('projectSelect').value = '';
-            var pSelect = document.getElementById('propertyMasterSelect');
-            if (pSelect.value) {
-                document.getElementById('dashboardFilterForm').submit();
-            } else {
-                pSelect.focus();
-            }
+            var sel = document.getElementById('propertyMasterSelect');
+            if (sel) sel.focus();
         } else if (mode === 'project') {
-            document.getElementById('propertyMasterSelect').value = '';
-            var prjSelect = document.getElementById('projectSelect');
-            if (prjSelect.value) {
-                document.getElementById('dashboardFilterForm').submit();
-            } else {
-                prjSelect.focus();
-            }
+            var selPrj = document.getElementById('projectSelect');
+            if (selPrj) selPrj.focus();
+        } else if (mode === 'sale') {
+            var selSale = document.getElementById('salePropertySelect');
+            if (selSale) selSale.focus();
+        } else if (mode === 'purchase') {
+            var selPur = document.getElementById('purchaseProjectSelect');
+            if (selPur) selPur.focus();
+        } else if (mode === 'expense') {
+            var selExp = document.getElementById('expensePropertySelect');
+            if (selExp) selExp.focus();
         }
     }
 
-    function onPropertySelect(val) {
-        if (val) {
-            document.getElementById('filterTypeInput').value = 'property';
-            document.getElementById('projectSelect').value = '';
-            document.getElementById('dashboardFilterForm').submit();
-        } else {
-            selectFilterMode('all');
+    function submitModeFilter(mode) {
+        document.getElementById('filterTypeInput').value = mode;
+        if (mode === 'property') {
+            if (document.getElementById('projectSelect')) document.getElementById('projectSelect').value = '';
+            if (document.getElementById('salePropertySelect')) document.getElementById('salePropertySelect').value = '';
+            if (document.getElementById('purchaseProjectSelect')) document.getElementById('purchaseProjectSelect').value = '';
+            if (document.getElementById('expensePropertySelect')) document.getElementById('expensePropertySelect').value = '';
+        } else if (mode === 'project') {
+            if (document.getElementById('propertyMasterSelect')) document.getElementById('propertyMasterSelect').value = '';
+            if (document.getElementById('salePropertySelect')) document.getElementById('salePropertySelect').value = '';
+            if (document.getElementById('purchaseProjectSelect')) document.getElementById('purchaseProjectSelect').value = '';
+            if (document.getElementById('expensePropertySelect')) document.getElementById('expensePropertySelect').value = '';
+        } else if (mode === 'sale') {
+            if (document.getElementById('projectSelect')) document.getElementById('projectSelect').value = '';
+            if (document.getElementById('purchaseProjectSelect')) document.getElementById('purchaseProjectSelect').value = '';
+            if (document.getElementById('expensePropertySelect')) document.getElementById('expensePropertySelect').value = '';
+        } else if (mode === 'purchase') {
+            if (document.getElementById('propertyMasterSelect')) document.getElementById('propertyMasterSelect').value = '';
+            if (document.getElementById('salePropertySelect')) document.getElementById('salePropertySelect').value = '';
+            if (document.getElementById('expensePropertySelect')) document.getElementById('expensePropertySelect').value = '';
+        } else if (mode === 'expense') {
+            if (document.getElementById('projectSelect')) document.getElementById('projectSelect').value = '';
+            if (document.getElementById('purchaseProjectSelect')) document.getElementById('purchaseProjectSelect').value = '';
+            if (document.getElementById('salePropertySelect')) document.getElementById('salePropertySelect').value = '';
         }
+        document.getElementById('dashboardFilterForm').submit();
     }
 
-    function onProjectSelect(val) {
-        if (val) {
-            document.getElementById('filterTypeInput').value = 'project';
-            document.getElementById('propertyMasterSelect').value = '';
-            document.getElementById('dashboardFilterForm').submit();
-        } else {
-            selectFilterMode('all');
-        }
-    }
+
     </script>
 
     <!-- ════════════════════════════════════════════════════════════════
@@ -1020,6 +1576,265 @@
         });
     }
     </script>
+    @endif
+
+    <!-- ════════════════════════════════════════════════════════════════
+         SALE FILTER EXPLORER TABLE (When Sale mode is selected)
+    ════════════════════════════════════════════════════════════════ -->
+    @if(($filterType === 'sale' || ($flowType ?? '') === 'sale') && isset($recentSalesList) && $recentSalesList->count() > 0)
+    <div class="plots-table-card" style="border-color: rgba(16, 185, 129, 0.35);">
+        <div class="section-header">
+            <div class="section-title">
+                <div class="section-title-icon ik-green"><i class="fa-solid fa-handshake"></i></div>
+                Sales &amp; Realized Revenue Transactions Explorer
+            </div>
+            <a href="{{ route('property-sales.create') }}" class="dqa-btn dqa-green" style="height:32px; padding: 4px 14px !important; font-size:12px !important;">
+                <i class="fa-solid fa-plus"></i> New Property Sale
+            </a>
+        </div>
+
+        <div class="table-container">
+            <table class="erp-table">
+                <thead>
+                    <tr>
+                        <th>Sale Date</th>
+                        <th>Customer / Buyer</th>
+                        <th>Property / Plot Unit</th>
+                        <th>Broker</th>
+                        <th>Sale Price</th>
+                        <th>Initial Paid</th>
+                        <th>Remaining Due</th>
+                        <th>Gross Profit</th>
+                        <th>Net Profit</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($recentSalesList as $sale)
+                        @php
+                            $sPlot = $sale->property ?? ($sale->properties->first() ?? null);
+                        @endphp
+                        <tr>
+                            <td>
+                                <span style="font-weight: 700; color: #FFFFFF;">
+                                    {{ $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date)->format('d M Y') : '-' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span style="font-weight: 800; color: #60A5FA;">
+                                    {{ $sale->customer->name ?? $sale->customer_name ?? 'Walk-in Customer' }}
+                                </span>
+                                @if(!empty($sale->customer->phone))
+                                    <div style="font-size:11px; color:#94A3B8;"><i class="fa-solid fa-phone"></i> {{ $sale->customer->phone }}</div>
+                                @endif
+                            </td>
+                            <td>
+                                <strong style="color:#C4B5FD;">
+                                    @if($sale->properties && $sale->properties->count() > 1)
+                                        {{ $sale->properties->count() }} Plots / Units
+                                    @elseif($sPlot)
+                                        {{ $sPlot->unit_no ? "Unit {$sPlot->unit_no}" : ($sPlot->property_name ?: "Plot #{$sPlot->id}") }}
+                                    @else
+                                        Plot #{{ $sale->property_id }}
+                                    @endif
+                                </strong>
+                            </td>
+                            <td>
+                                <span style="color: #CBD5E1; font-size: 12px;">{{ $sale->broker->name ?? $sale->broker_name ?? 'Direct' }}</span>
+                            </td>
+                            <td>
+                                <strong style="color: #34D399;">₹{{ number_format($sale->sale_amount, 2) }}</strong>
+                            </td>
+                            <td>
+                                <span style="color: #60A5FA;">₹{{ number_format($sale->booking_amount ?? 0, 2) }}</span>
+                            </td>
+                            <td>
+                                <span style="color: #FB923C;">₹{{ number_format($sale->remaining_amount ?? 0, 2) }}</span>
+                            </td>
+                            <td>
+                                <span style="color: #FBBF24;">₹{{ number_format($sale->gross_profit ?? 0, 2) }}</span>
+                            </td>
+                            <td>
+                                <strong style="color: {{ ($sale->net_profit ?? 0) >= 0 ? '#10B981' : '#EF4444' }};">
+                                    ₹{{ number_format($sale->net_profit ?? 0, 2) }}
+                                </strong>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <a href="{{ route('property-sales.show', $sale->id) }}" class="dqa-btn dqa-sky" style="padding: 4px 10px !important; font-size: 11px !important;">
+                                    <i class="fa-solid fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PURCHASE FILTER EXPLORER TABLE (When Purchase mode is selected)
+    ════════════════════════════════════════════════════════════════ -->
+    @if(($filterType === 'purchase' || ($flowType ?? '') === 'purchase') && isset($recentPurchasesList) && $recentPurchasesList->count() > 0)
+    <div class="plots-table-card" style="border-color: rgba(245, 158, 11, 0.35);">
+        <div class="section-header">
+            <div class="section-title">
+                <div class="section-title-icon ik-amber"><i class="fa-solid fa-cart-shopping"></i></div>
+                Purchases &amp; Material Stock Inward Explorer
+            </div>
+            <a href="{{ route('stock-inwards.create') }}" class="dqa-btn dqa-amber" style="height:32px; padding: 4px 14px !important; font-size:12px !important;">
+                <i class="fa-solid fa-plus"></i> New Material Purchase
+            </a>
+        </div>
+
+        <div class="table-container">
+            <table class="erp-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Inward / Bill No</th>
+                        <th>Material Item</th>
+                        <th>Supplier / Vendor</th>
+                        <th>Project / Property</th>
+                        <th>Qty</th>
+                        <th>Unit Rate</th>
+                        <th>GST Amt</th>
+                        <th>Total Cost</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($recentPurchasesList as $inward)
+                        <tr>
+                            <td>
+                                <span style="font-weight: 700; color: #FFFFFF;">
+                                    {{ $inward->inward_date ? \Carbon\Carbon::parse($inward->inward_date)->format('d M Y') : '-' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span style="font-weight: 800; color: #FBBF24;">
+                                    {{ $inward->inward_number ?: ($inward->bill_no ?: '-') }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong style="color: #60A5FA;">
+                                    {{ $inward->material->name ?? $inward->material_name ?? 'Material Item' }}
+                                </strong>
+                            </td>
+                            <td>
+                                <span style="color: #CBD5E1; font-size: 12px;">{{ $inward->supplier_name ?: '-' }}</span>
+                            </td>
+                            <td>
+                                <span style="color: #A78BFA; font-size: 12px;">
+                                    {{ $inward->project->project_name ?? ($inward->property->property_name ?? 'General') }}
+                                </span>
+                            </td>
+                            <td>
+                                <span style="font-weight: 700; color: #FFFFFF;">{{ $inward->quantity }} {{ $inward->material->unit ?? '' }}</span>
+                            </td>
+                            <td>
+                                <span style="color: #94A3B8;">₹{{ number_format($inward->rate, 2) }}</span>
+                            </td>
+                            <td>
+                                <span style="color: #FCA5A5;">₹{{ number_format($inward->gst_amount ?? 0, 2) }}</span>
+                            </td>
+                            <td>
+                                <strong style="color: #FBBF24;">₹{{ number_format($inward->total_amount, 2) }}</strong>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <a href="{{ route('stock-inwards.show', $inward->id) }}" class="dqa-btn dqa-sky" style="padding: 4px 10px !important; font-size: 11px !important;">
+                                    <i class="fa-solid fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+
+    <!-- ════════════════════════════════════════════════════════════════
+         EXPENSE FILTER EXPLORER TABLE (When Expense mode is selected)
+    ════════════════════════════════════════════════════════════════ -->
+    @if(($filterType === 'expense' || ($flowType ?? '') === 'expense') && isset($recentExpensesList) && $recentExpensesList->count() > 0)
+    <div class="plots-table-card" style="border-color: rgba(239, 68, 68, 0.35);">
+        <div class="section-header">
+            <div class="section-title">
+                <div class="section-title-icon ik-red"><i class="fa-solid fa-receipt"></i></div>
+                Expenses &amp; Outflows Breakdown Explorer
+            </div>
+            <a href="{{ route('expenses.create') }}" class="dqa-btn dqa-red" style="height:32px; padding: 4px 14px !important; font-size:12px !important;">
+                <i class="fa-solid fa-plus"></i> Add New Expense
+            </a>
+        </div>
+
+        <div class="table-container">
+            <table class="erp-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Category / Title</th>
+                        <th>Expense Type</th>
+                        <th>Project / Property</th>
+                        <th>Paid To / Vendor</th>
+                        <th>Payment Mode</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($recentExpensesList as $exp)
+                        <tr>
+                            <td>
+                                <span style="font-weight: 700; color: #FFFFFF;">
+                                    {{ $exp->expense_date ? \Carbon\Carbon::parse($exp->expense_date)->format('d M Y') : '-' }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong style="color: #F87171;">{{ $exp->expense_title ?: ($exp->expense_category ?: 'Expense') }}</strong>
+                                @if($exp->description)
+                                    <div style="font-size:11px; color:#94A3B8;">{{ Str::limit($exp->description, 35) }}</div>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="ds-badge info">{{ $exp->expense_type ?: 'General' }}</span>
+                            </td>
+                            <td>
+                                <span style="color: #A78BFA; font-size: 12px;">
+                                    {{ $exp->project->project_name ?? ($exp->property->property_name ?? 'General') }}
+                                </span>
+                            </td>
+                            <td>
+                                <span style="color: #CBD5E1; font-size: 12px;">{{ $exp->paid_to ?: ($exp->vendor->name ?? '-') }}</span>
+                            </td>
+                            <td>
+                                <span style="color: #94A3B8; font-size: 12px;">{{ $exp->payment_mode ?: 'Cash' }}</span>
+                            </td>
+                            <td>
+                                <strong style="color: #EF4444; font-size: 14px;">₹{{ number_format($exp->amount, 2) }}</strong>
+                            </td>
+                            <td>
+                                @if(($exp->approval_status ?? 'Approved') === 'Approved')
+                                    <span class="ds-badge success">Approved</span>
+                                @elseif(($exp->approval_status ?? '') === 'Rejected')
+                                    <span class="ds-badge danger">Rejected</span>
+                                @else
+                                    <span class="ds-badge warning">Pending</span>
+                                @endif
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <a href="{{ route('expenses.show', $exp->id) }}" class="dqa-btn dqa-sky" style="padding: 4px 10px !important; font-size: 11px !important;">
+                                    <i class="fa-solid fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
     @endif
 
     <!-- ════════════════════════════════════════════════════════════════

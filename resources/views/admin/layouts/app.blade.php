@@ -479,6 +479,211 @@
     }
 
     /* ================================================================
+       RESPONSIVE DESIGN (Desktop Rail, Tablet & Mobile Breakpoints)
+    ================================================================ */
+    /* Desktop Sidebar Collapsed State */
+    body.sidebar-collapsed .sidebar {
+        width: 76px !important;
+    }
+    body.sidebar-collapsed .main-content {
+        margin-left: 76px !important;
+    }
+    body.sidebar-collapsed .logo-title,
+    body.sidebar-collapsed .logo-subtitle,
+    body.sidebar-collapsed .menu-link span,
+    body.sidebar-collapsed .menu-group-label,
+    body.sidebar-collapsed .submenu-arrow,
+    body.sidebar-collapsed .sidebar-footer-card {
+        display: none !important;
+    }
+    body.sidebar-collapsed .menu-link {
+        justify-content: center !important;
+        padding: 12px !important;
+    }
+    body.sidebar-collapsed .menu-link i {
+        margin: 0 !important;
+        font-size: 18px !important;
+    }
+
+    /* Tablet Breakpoint (<= 1024px) */
+    @media (max-width: 1024px) {
+        .sidebar {
+            left: -280px !important;
+            width: 280px !important;
+            z-index: 1000 !important;
+            transition: left 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease !important;
+        }
+        .sidebar.active {
+            left: 0 !important;
+            box-shadow: 8px 0 36px rgba(0, 0, 0, 0.75) !important;
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 999;
+        }
+        .sidebar-overlay.active {
+            display: block !important;
+        }
+        .main-content {
+            margin-left: 0 !important;
+            width: 100% !important;
+        }
+        .topbar {
+            padding: 0 16px !important;
+        }
+        .topbar-left {
+            gap: 14px !important;
+            min-width: 0;
+            flex: 1;
+        }
+        .topbar-right {
+            gap: 12px !important;
+            flex-shrink: 0;
+        }
+        .content-body {
+            padding: 20px 18px 50px !important;
+        }
+    }
+
+    /* Mobile Breakpoint (<= 768px) */
+    @media (max-width: 768px) {
+        .topbar {
+            height: 56px !important;
+            min-height: 56px !important;
+            padding: 0 12px !important;
+        }
+        .topbar-left {
+            gap: 10px !important;
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .sidebar-toggle-btn {
+            width: 36px !important;
+            height: 36px !important;
+            font-size: 14px !important;
+            flex-shrink: 0;
+            padding: 0 !important;
+        }
+        .page-header-title {
+            font-size: 13.5px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            margin: 0 !important;
+            line-height: 1.2 !important;
+            max-width: 130px;
+        }
+        .topbar-right {
+            gap: 6px !important;
+            align-items: center !important;
+            flex-shrink: 0;
+        }
+        .topbar-quick-invoice {
+            padding: 6px 10px !important;
+            font-size: 11.5px !important;
+            height: 34px !important;
+            border-radius: 8px !important;
+            gap: 5px !important;
+        }
+        .topbar-quick-invoice span {
+            font-size: 11.5px !important;
+            font-weight: 700 !important;
+        }
+        .topbar-quick-expense {
+            padding: 6px 9px !important;
+            font-size: 11.5px !important;
+            height: 34px !important;
+            border-radius: 8px !important;
+            gap: 0 !important;
+        }
+        .topbar-quick-expense span {
+            display: none !important;
+        }
+        .user-panel {
+            gap: 0 !important;
+            margin: 0 !important;
+        }
+        .user-info {
+            display: none !important;
+        }
+        .user-avatar {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 12px !important;
+        }
+        .logout-btn {
+            padding: 6px 9px !important;
+            font-size: 11.5px !important;
+            height: 34px !important;
+            border-radius: 8px !important;
+            gap: 0 !important;
+        }
+        .logout-btn span {
+            display: none !important;
+        }
+        .content-body {
+            padding: 16px 10px 40px !important;
+        }
+    }
+
+    /* Small Mobile Breakpoint (<= 480px) */
+    @media (max-width: 480px) {
+        .topbar {
+            height: 52px !important;
+            min-height: 52px !important;
+            padding: 0 8px !important;
+        }
+        .topbar-left {
+            gap: 8px !important;
+            max-width: 42%;
+        }
+        .page-header-title {
+            font-size: 12px !important;
+            max-width: 85px !important;
+        }
+        .topbar-right {
+            gap: 4px !important;
+        }
+        .topbar-quick-invoice {
+            padding: 5px 8px !important;
+            font-size: 11px !important;
+            height: 32px !important;
+            gap: 4px !important;
+        }
+        .topbar-quick-invoice span {
+            font-size: 10.5px !important;
+        }
+        .topbar-quick-expense {
+            padding: 5px 8px !important;
+            height: 32px !important;
+        }
+        .user-avatar {
+            width: 30px !important;
+            height: 30px !important;
+            font-size: 11px !important;
+        }
+        .logout-btn {
+            padding: 5px 8px !important;
+            height: 32px !important;
+        }
+        .content-body {
+            padding: 12px 8px 36px !important;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .page-header-title {
+            display: none !important;
+        }
+    }
+
+    /* ================================================================
        CONTENT BODY
     ================================================================ */
     .content-body { padding: 28px 40px 60px !important; flex: 1; }

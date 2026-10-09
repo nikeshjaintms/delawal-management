@@ -167,12 +167,12 @@ class InvoiceController extends Controller
         $selectedProject = $selectedProjectId ? Project::find($selectedProjectId) : null;
         $selectedType = $request->input('type', 'custom');
 
-        // Suggest Invoice Number
-        $activeSetting = InvoiceSetting::activeSetting();
-        $suggestedNo = $activeSetting ? $activeSetting->generateNumber($selectedType === 'sale' ? 'sales' : ($selectedType === 'rental' ? 'rental' : 'payment')) : 'INV-' . date('Y') . '-' . ((Invoice::max('id') ?? 0) + 1);
-
         // Preload firm bank details if applicable
-        $defaultFirm = $selectedProject ? $selectedProject->firm : ($firmId ? Firm::find($firmId) : $firms->first());
+        $selectedFirmId = $request->input('firm_id') ?: ($selectedProject ? $selectedProject->firm_id : ($firmId ?: ($firms->first()?->id)));
+        $defaultFirm = $selectedFirmId ? Firm::find($selectedFirmId) : $firms->first();
+
+        // Suggest Firm-wise Invoice Number
+        $suggestedNo = Invoice::generateNextInvoiceNumber($selectedType === 'sale' ? 'sales' : ($selectedType === 'rental' ? 'rental' : 'payment'), $defaultFirm?->id);
 
         return view('admin.invoices.create', compact(
             'firms',
@@ -809,7 +809,9 @@ class InvoiceController extends Controller
                         ->with('info', "Invoice #{$existing->invoice_no} already exists for this Property Sale.");
                 }
 
-                $invoiceNo = Invoice::generateNextInvoiceNumber('sales');
+                $activeFirm = $sale->firm ?: ($sale->property?->project?->firm ?: ($firmId ? Firm::find($firmId) : Firm::first()));
+                $firmActualId = $activeFirm ? $activeFirm->id : ($firmId ?: 1);
+                $invoiceNo = Invoice::generateNextInvoiceNumber('sales', $firmActualId);
 
                 $propNames = $sale->property_names ?: ($sale->property->property_name ?? 'Property Unit');
                 $projName = $sale->property?->project?->project_name ?? 'Delawala Master Project';
@@ -834,8 +836,7 @@ class InvoiceController extends Controller
                 $paidAmt = min((float) $sale->booking_amount, $grandTotal);
                 $balAmt = max(0, $grandTotal - $paidAmt);
 
-                $activeFirm = $sale->firm ?: ($firmId ? Firm::find($firmId) : Firm::first());
-                $firmGst = $activeFirm?->gst_number ?: '24CUBPD0770R1ZI';
+                $firmGst = $activeFirm?->gst_number ?: ($activeFirm?->gst_no ?: '24CUBPD0770R1ZI');
                 $firmTitle = $activeFirm?->firm_name ?: 'Delawala Infra Co.';
 
                 $terms = $isGst
@@ -845,7 +846,7 @@ class InvoiceController extends Controller
                 $notesPrefix = $isGst ? 'Auto-generated GST Tax Invoice' : 'Auto-generated Non-GST Invoice';
 
                 $invoice = Invoice::create([
-                    'firm_id' => $activeFirm ? $activeFirm->id : 3,
+                    'firm_id' => $firmActualId,
                     'invoice_no' => $invoiceNo,
                     'invoice_type' => 'sale',
                     'invoice_date' => $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date) : now(),
@@ -930,7 +931,9 @@ class InvoiceController extends Controller
                         ->with('info', "Invoice #{$existing->invoice_no} already exists for this Booking.");
                 }
 
-                $invoiceNo = Invoice::generateNextInvoiceNumber('sales');
+                $activeFirm = $booking->firm ?: ($booking->property?->project?->firm ?: ($firmId ? Firm::find($firmId) : Firm::first()));
+                $firmActualId = $activeFirm ? $activeFirm->id : ($firmId ?: 1);
+                $invoiceNo = Invoice::generateNextInvoiceNumber('sales', $firmActualId);
 
                 $propName = $booking->property->property_name ?? 'Property Unit';
                 $projName = $booking->property?->project?->project_name ?? 'Delawala Project';
@@ -955,8 +958,7 @@ class InvoiceController extends Controller
                 $paidAmt = min((float) $booking->booking_amount, $grandTotal);
                 $balAmt = max(0, $grandTotal - $paidAmt);
 
-                $activeFirm = $booking->firm ?: ($firmId ? Firm::find($firmId) : Firm::first());
-                $firmGst = $activeFirm?->gst_number ?: '24CUBPD0770R1ZI';
+                $firmGst = $activeFirm?->gst_number ?: ($activeFirm?->gst_no ?: '24CUBPD0770R1ZI');
                 $firmTitle = $activeFirm?->firm_name ?: 'Delawala Infra Co.';
 
                 $terms = $isGst
@@ -966,7 +968,7 @@ class InvoiceController extends Controller
                 $notesPrefix = $isGst ? 'Auto-generated GST Tax Invoice' : 'Auto-generated Non-GST Invoice';
 
                 $invoice = Invoice::create([
-                    'firm_id' => $activeFirm ? $activeFirm->id : 3,
+                    'firm_id' => $firmActualId,
                     'invoice_no' => $invoiceNo,
                     'invoice_type' => 'sale',
                     'invoice_date' => $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date) : now(),
@@ -1034,7 +1036,9 @@ class InvoiceController extends Controller
             if ($sourceType === 'rental') {
                 $rental = Rental::with(['tenant', 'property.project', 'firm'])->findOrFail($sourceId);
 
-                $invoiceNo = Invoice::generateNextInvoiceNumber('rental');
+                $activeFirm = $rental->firm ?: ($rental->property?->project?->firm ?: ($firmId ? Firm::find($firmId) : Firm::first()));
+                $firmActualId = $activeFirm ? $activeFirm->id : ($firmId ?: 1);
+                $invoiceNo = Invoice::generateNextInvoiceNumber('rental', $firmActualId);
 
                 $propName = $rental->property->property_name ?? 'Rental Unit';
                 $subtotal = (float) $rental->monthly_rent;
@@ -1055,8 +1059,7 @@ class InvoiceController extends Controller
                     $grandTotal = $subtotal;
                 }
 
-                $activeFirm = $rental->firm ?: ($firmId ? Firm::find($firmId) : Firm::first());
-                $firmGst = $activeFirm?->gst_number ?: '24CUBPD0770R1ZI';
+                $firmGst = $activeFirm?->gst_number ?: ($activeFirm?->gst_no ?: '24CUBPD0770R1ZI');
                 $firmTitle = $activeFirm?->firm_name ?: 'Delawala Infra Co.';
 
                 $terms = $isGst
@@ -1066,7 +1069,7 @@ class InvoiceController extends Controller
                 $notesPrefix = $isGst ? 'Auto-generated GST Rent Invoice' : 'Auto-generated Non-GST Rent Invoice';
 
                 $invoice = Invoice::create([
-                    'firm_id' => $activeFirm ? $activeFirm->id : 3,
+                    'firm_id' => $firmActualId,
                     'invoice_no' => $invoiceNo,
                     'invoice_type' => 'rental',
                     'invoice_date' => now(),
@@ -1124,14 +1127,145 @@ class InvoiceController extends Controller
             DB::rollBack();
             return back()->with('error', 'Unsupported source type for invoice generation.');
         } catch (\Exception $e) {
-        } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error auto-generating invoice: ' . $e->getMessage());
         }
     }
 
     /**
-     * AJAX Endpoint to fetch details for Customer / Tenant / Contractor / Vendor / Project / Sale
+     * Direct 1-Click Firm Invoice Generator
+     */
+    public function directFirmGenerate(Request $request)
+    {
+        [$isAdmin, $firmId, $user] = $this->getAuthContext();
+
+        $request->validate([
+            'firm_id' => 'required|exists:firms,id',
+            'recipient_name' => 'nullable|string|max:255',
+            'amount' => 'nullable|numeric|min:0',
+            'invoice_type' => 'nullable|in:sale,rental,contractor,material_purchase,custom',
+            'tax_mode' => 'nullable|in:with_gst,without_gst',
+        ]);
+
+        $targetFirmId = (int)$request->firm_id;
+        $firm = Firm::findOrFail($targetFirmId);
+        $type = $request->input('invoice_type', 'sale');
+        $invoiceNo = Invoice::generateNextInvoiceNumber($type, $firm->id);
+
+        $recipientName = trim($request->input('recipient_name') ?: '') ?: 'Valued Customer';
+        $subtotal = (float)($request->input('amount') ?: 0);
+        $isGst = $request->input('tax_mode', 'with_gst') === 'with_gst';
+
+        if ($isGst) {
+            $taxType = 'gst_intra';
+            $taxPercent = (float)($request->input('tax_percent', 18.0) ?: 18.0);
+            $taxAmount = ($subtotal * $taxPercent) / 100;
+            $cgst = $taxAmount / 2;
+            $sgst = $taxAmount / 2;
+            $igst = 0;
+            $grandTotal = $subtotal + $taxAmount;
+        } else {
+            $taxType = 'none';
+            $taxPercent = 0.0;
+            $taxAmount = 0.0;
+            $cgst = 0.0;
+            $sgst = 0.0;
+            $igst = 0;
+            $grandTotal = $subtotal;
+        }
+
+        $paidAmount = min((float)$request->input('paid_amount', 0), $grandTotal);
+        $balanceAmount = max(0, $grandTotal - $paidAmount);
+
+        $firmGst = $firm->gst_number ?: ($firm->gst_no ?: '');
+        $firmTitle = $firm->firm_name ?: 'Company';
+
+        $terms = $isGst
+            ? "1. Official Tax Invoice issued by {$firmTitle}" . ($firmGst ? " (GSTIN: {$firmGst})" : "") . ".\n2. Subject to Dahegam / Bharuch Jurisdiction."
+            : "1. Official Commercial Invoice / Bill issued by {$firmTitle}.\n2. Subject to Dahegam / Bharuch Jurisdiction.";
+
+        $invoice = Invoice::create([
+            'firm_id' => $firm->id,
+            'invoice_no' => $invoiceNo,
+            'invoice_type' => $type,
+            'invoice_date' => $request->invoice_date ? \Carbon\Carbon::parse($request->invoice_date) : now(),
+            'due_date' => now()->addDays(15),
+            'recipient_name' => $recipientName,
+            'recipient_phone' => $request->recipient_phone,
+            'recipient_email' => $request->recipient_email,
+            'recipient_address' => $request->recipient_address ?: ($firm->city ?? 'Gujarat'),
+            'recipient_gstin' => $request->recipient_gstin,
+            'project_id' => $request->project_id,
+            'subtotal' => $subtotal,
+            'discount_type' => 'fixed',
+            'discount_value' => 0,
+            'discount_amount' => 0,
+            'tax_type' => $taxType,
+            'tax_percent' => $taxPercent,
+            'cgst_amount' => $cgst,
+            'sgst_amount' => $sgst,
+            'igst_amount' => $igst,
+            'tax_amount' => $taxAmount,
+            'round_off' => 0,
+            'total_amount' => $grandTotal,
+            'paid_amount' => $paidAmount,
+            'balance_amount' => $balanceAmount,
+            'payment_status' => ($paidAmount >= $grandTotal && $grandTotal > 0) ? 'paid' : (($paidAmount > 0) ? 'partially_paid' : 'unpaid'),
+            'status' => 'active',
+            'created_by' => $user ? $user->id : null,
+            'bank_name' => $firm->bank_name ?? 'Bank of Baroda',
+            'bank_account_no' => $firm->bank_account_no ?? '',
+            'bank_ifsc' => $firm->bank_ifsc ?? '',
+            'bank_branch' => $firm->bank_branch ?? '',
+            'terms_conditions' => $terms,
+            'notes' => $request->notes ?: ("Direct 1-Click Invoice generated for " . $firmTitle),
+        ]);
+
+        $desc = $request->item_description ?: (match($type) {
+            'sale' => 'Property Development & Plot Sale Consideration',
+            'rental' => 'Monthly Property Lease & Rent',
+            'contractor' => 'Contractor & Labour Charges',
+            'material_purchase' => 'Material Supply & Construction Goods',
+            default => 'General Commercial Goods & Services Consideration'
+        });
+
+        $hsnCode = match($type) {
+            'sale', 'contractor' => '9954',
+            'rental' => '9972',
+            default => '9983',
+        };
+
+        $invoice->items()->create([
+            'item_type' => $type,
+            'item_description' => $desc,
+            'hsn_sac_code' => $isGst ? $hsnCode : '',
+            'quantity' => 1,
+            'unit' => 'Unit',
+            'unit_price' => $subtotal,
+            'discount_amount' => 0,
+            'tax_percent' => $taxPercent,
+            'tax_amount' => $taxAmount,
+            'total_price' => $grandTotal,
+        ]);
+
+        if ($paidAmount > 0) {
+            $invoice->payments()->create([
+                'payment_date' => now(),
+                'amount' => $paidAmount,
+                'payment_mode' => 'Bank / Cash',
+                'transaction_reference' => 'Direct Firm Advance Receipt',
+                'notes' => 'Auto-recorded payment at invoice generation',
+                'created_by' => $user ? $user->id : null,
+            ]);
+        }
+
+        return redirect()
+            ->route('invoices.show', $invoice->id)
+            ->with('success', "Firm Invoice #{$invoice->invoice_no} generated successfully for {$firmTitle}!");
+    }
+
+    /**
+     * AJAX Endpoint to fetch details for Customer / Tenant / Contractor / Vendor / Project / Sale / Firm
      */
     public function ajaxData(Request $request)
     {
@@ -1143,6 +1277,100 @@ class InvoiceController extends Controller
         }
 
         switch ($type) {
+            case 'firm':
+                $firm = Firm::with(['projects' => function ($q) {
+                    $q->where('status', 'active')->orderBy('project_name');
+                }])->find($id);
+
+                if (!$firm) {
+                    return response()->json(['error' => 'Firm not found'], 404);
+                }
+
+                $invoiceType = $request->input('invoice_type', 'sale');
+                $nextInvoiceNo = Invoice::generateNextInvoiceNumber($invoiceType, $firm->id);
+
+                // Fetch pending / recent property sales, bookings, rentals of this firm
+                $propertySales = PropertySale::with(['customer', 'property.project'])
+                    ->where(function($q) use ($firm) {
+                        $q->where('firm_id', $firm->id)
+                          ->orWhereHas('property.project', fn($pq) => $pq->where('firm_id', $firm->id));
+                    })
+                    ->latest()
+                    ->take(30)
+                    ->get()
+                    ->map(fn($ps) => [
+                        'id' => $ps->id,
+                        'label' => ($ps->agreement_no ?: ('SALE #' . $ps->id)) . ' - ' . ($ps->customer->name ?? 'Customer') . ' (₹' . number_format($ps->sale_amount ?? 0) . ')',
+                        'sale_amount' => (float)$ps->sale_amount,
+                        'customer_name' => $ps->customer->name ?? '',
+                    ]);
+
+                $bookings = Booking::with(['customer', 'property.project'])
+                    ->where(function($q) use ($firm) {
+                        $q->where('firm_id', $firm->id)
+                          ->orWhereHas('property.project', fn($pq) => $pq->where('firm_id', $firm->id));
+                    })
+                    ->latest()
+                    ->take(30)
+                    ->get()
+                    ->map(fn($bk) => [
+                        'id' => $bk->id,
+                        'label' => ($bk->booking_code ?: ('BK #' . $bk->id)) . ' - ' . ($bk->customer->name ?? 'Customer') . ' (₹' . number_format($bk->final_amount ?? 0) . ')',
+                        'final_amount' => (float)$bk->final_amount,
+                        'customer_name' => $bk->customer->name ?? '',
+                    ]);
+
+                $rentals = Rental::with(['tenant', 'property.project'])
+                    ->where(function($q) use ($firm) {
+                        $q->where('firm_id', $firm->id)
+                          ->orWhereHas('property.project', fn($pq) => $pq->where('firm_id', $firm->id));
+                    })
+                    ->latest()
+                    ->take(30)
+                    ->get()
+                    ->map(fn($rt) => [
+                        'id' => $rt->id,
+                        'label' => ($rt->agreement_no ?: ('RA #' . $rt->id)) . ' - ' . ($rt->tenant_name ?? ($rt->tenant->name ?? 'Tenant')) . ' (₹' . number_format($rt->rent_amount ?? 0) . '/mo)',
+                        'rent_amount' => (float)$rt->rent_amount,
+                        'tenant_name' => $rt->tenant_name ?? ($rt->tenant->name ?? ''),
+                    ]);
+
+                $customers = Customer::where('status', 'active')
+                    ->where('firm_id', $firm->id)
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'mobile', 'email', 'address', 'gst_no']);
+
+                return response()->json([
+                    'id' => $firm->id,
+                    'firm_name' => $firm->firm_name,
+                    'gst_number' => $firm->gst_number ?? ($firm->gst_no ?? ''),
+                    'pan_number' => $firm->pan_number ?? '',
+                    'bank_name' => $firm->bank_name ?? '',
+                    'bank_account_no' => $firm->bank_account_no ?? '',
+                    'bank_ifsc' => $firm->bank_ifsc ?? '',
+                    'bank_branch' => $firm->bank_branch ?? '',
+                    'address' => $firm->address ?? '',
+                    'city' => $firm->city ?? '',
+                    'next_invoice_no' => $nextInvoiceNo,
+                    'projects' => $firm->projects->map(fn($p) => [
+                        'id' => $p->id,
+                        'project_name' => $p->project_name,
+                        'project_code' => $p->project_code,
+                    ]),
+                    'property_sales' => $propertySales,
+                    'bookings' => $bookings,
+                    'rentals' => $rentals,
+                    'customers' => $customers,
+                ]);
+
+            case 'next_number':
+                $firmId = $request->input('firm_id') ?: $id;
+                $invoiceType = $request->input('invoice_type', 'sale');
+                $nextInvoiceNo = Invoice::generateNextInvoiceNumber($invoiceType, (int)$firmId);
+                return response()->json([
+                    'next_invoice_no' => $nextInvoiceNo,
+                ]);
+
             case 'customer':
                 $entity = Customer::find($id);
                 return response()->json([
@@ -1185,6 +1413,9 @@ class InvoiceController extends Controller
 
             case 'project':
                 $project = Project::with('firm')->find($id);
+                $firmId = $project?->firm_id;
+                $invoiceType = $request->input('invoice_type', 'sale');
+                $nextInvoiceNo = $firmId ? Invoice::generateNextInvoiceNumber($invoiceType, $firmId) : null;
                 return response()->json([
                     'firm_id' => $project->firm_id ?? '',
                     'firm_name' => $project->firm->firm_name ?? '',
@@ -1192,12 +1423,16 @@ class InvoiceController extends Controller
                     'bank_account_no' => $project->firm->bank_account_no ?? '',
                     'bank_ifsc' => $project->firm->bank_ifsc ?? '',
                     'bank_branch' => $project->firm->bank_branch ?? '',
+                    'next_invoice_no' => $nextInvoiceNo,
                 ]);
 
             case 'property_sale':
-                $sale = PropertySale::with(['customer', 'property.project', 'firm'])->find($id);
+                $sale = PropertySale::with(['customer', 'property.project.firm', 'firm'])->find($id);
                 if (!$sale)
                     return response()->json(['error' => 'Sale not found'], 404);
+                $firm = $sale->firm ?: ($sale->property?->project?->firm);
+                $firmId = $firm?->id ?? ($sale->firm_id ?? '');
+                $nextInvoiceNo = $firmId ? Invoice::generateNextInvoiceNumber('sales', $firmId) : null;
                 return response()->json([
                     'recipient_name' => $sale->customer->name ?? '',
                     'recipient_phone' => $sale->customer->mobile ?? '',
@@ -1205,7 +1440,12 @@ class InvoiceController extends Controller
                     'recipient_address' => $sale->customer->address ?? ($sale->customer->city ?? ''),
                     'recipient_gstin' => $sale->customer->gst_no ?? '',
                     'project_id' => $sale->property?->project_id ?? '',
-                    'firm_id' => $sale->firm_id ?? '',
+                    'firm_id' => $firmId,
+                    'bank_name' => $firm->bank_name ?? '',
+                    'bank_account_no' => $firm->bank_account_no ?? '',
+                    'bank_ifsc' => $firm->bank_ifsc ?? '',
+                    'bank_branch' => $firm->bank_branch ?? '',
+                    'next_invoice_no' => $nextInvoiceNo,
                     'item_description' => 'Property Sale Consideration for ' . ($sale->property_names ?: ($sale->property->property_name ?? 'Unit')),
                     'hsn_sac_code' => '9954',
                     'unit_price' => (float) $sale->sale_amount,
@@ -1214,11 +1454,14 @@ class InvoiceController extends Controller
                 ]);
 
             case 'booking':
-                $booking = Booking::with(['customer', 'property.project', 'firm'])->find($id);
+                $booking = Booking::with(['customer', 'property.project.firm', 'firm'])->find($id);
                 if (!$booking)
                     return response()->json(['error' => 'Booking not found'], 404);
                 $propName = $booking->property->property_name ?? 'Property Unit';
                 $projName = $booking->property?->project?->project_name ?? 'Delawala Project';
+                $firm = $booking->firm ?: ($booking->property?->project?->firm);
+                $firmId = $firm?->id ?? ($booking->firm_id ?? '');
+                $nextInvoiceNo = $firmId ? Invoice::generateNextInvoiceNumber('sales', $firmId) : null;
                 return response()->json([
                     'recipient_name' => $booking->customer->name ?? '',
                     'recipient_phone' => $booking->customer->mobile ?? '',
@@ -1226,7 +1469,12 @@ class InvoiceController extends Controller
                     'recipient_address' => $booking->customer->address ?? ($booking->customer->city ?? ''),
                     'recipient_gstin' => $booking->customer->gst_no ?? '',
                     'project_id' => $booking->property?->project_id ?? '',
-                    'firm_id' => $booking->firm_id ?? '',
+                    'firm_id' => $firmId,
+                    'bank_name' => $firm->bank_name ?? '',
+                    'bank_account_no' => $firm->bank_account_no ?? '',
+                    'bank_ifsc' => $firm->bank_ifsc ?? '',
+                    'bank_branch' => $firm->bank_branch ?? '',
+                    'next_invoice_no' => $nextInvoiceNo,
                     'item_description' => "Property Booking & Reservation for {$propName} ({$projName})",
                     'hsn_sac_code' => '9954',
                     'unit_price' => (float) $booking->final_amount,
@@ -1234,10 +1482,13 @@ class InvoiceController extends Controller
                 ]);
 
             case 'rental':
-                $rental = Rental::with(['tenant', 'property.project', 'firm'])->find($id);
+                $rental = Rental::with(['tenant', 'property.project.firm', 'firm'])->find($id);
                 if (!$rental)
                     return response()->json(['error' => 'Rental not found'], 404);
                 $propName = $rental->property->property_name ?? 'Rental Unit';
+                $firm = $rental->firm ?: ($rental->property?->project?->firm);
+                $firmId = $firm?->id ?? ($rental->firm_id ?? '');
+                $nextInvoiceNo = $firmId ? Invoice::generateNextInvoiceNumber('rental', $firmId) : null;
                 return response()->json([
                     'recipient_name' => $rental->tenant_name ?? ($rental->tenant?->name ?? ''),
                     'recipient_phone' => $rental->tenant_mobile ?? ($rental->tenant?->mobile ?? ''),
@@ -1245,7 +1496,12 @@ class InvoiceController extends Controller
                     'recipient_address' => $rental->tenant?->address ?? '',
                     'recipient_gstin' => $rental->tenant?->gst_no ?? '',
                     'project_id' => $rental->property?->project_id ?? '',
-                    'firm_id' => $rental->firm_id ?? '',
+                    'firm_id' => $firmId,
+                    'bank_name' => $firm->bank_name ?? '',
+                    'bank_account_no' => $firm->bank_account_no ?? '',
+                    'bank_ifsc' => $firm->bank_ifsc ?? '',
+                    'bank_branch' => $firm->bank_branch ?? '',
+                    'next_invoice_no' => $nextInvoiceNo,
                     'item_description' => "Monthly Rent for {$propName} (Agreement: " . ($rental->agreement_no ?: ('RA-' . $rental->id)) . ')',
                     'hsn_sac_code' => '9972',
                     'unit_price' => (float) $rental->monthly_rent,

@@ -406,25 +406,113 @@
     </div>
 </div>
 
-<form action="{{ route('invoices.store') }}" method="POST" id="invoiceForm">
-    @csrf
-
-    <!-- SECTION 0: 1-CLICK INSTANT AUTO-FETCH & AUTO-FILL FROM EXISTING AGREEMENTS -->
-    <div class="form-section-card" style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.16) 0%, rgba(15, 23, 42, 0.85) 100%) !important; border: 1.5px solid rgba(96, 165, 250, 0.35) !important; padding: 22px 24px;">
-        <div class="section-head" style="color: #93C5FD; border-bottom-color: rgba(96, 165, 250, 0.20); margin-bottom: 14px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 10px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-bolt-lightning" style="color: #FBBF24; font-size: 20px;"></i>
-                    <span style="font-size: 16px; font-weight: 800; color: #FFFFFF;">Instant Auto-Fetch &amp; Auto-Generate from Agreements</span>
-                </div>
-                <span style="font-size: 11.5px; background: rgba(59, 130, 246, 0.25); color: #93C5FD; padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(96, 165, 250, 0.35); font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
-                    <i class="fa-solid fa-circle-check" style="color: #34D399;"></i> 100% Automated GST Auto-Fill
-                </span>
+<!-- DIRECT FIRM AUTO-INVOICE GENERATOR -->
+<div class="form-section-card" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.90) 0%, rgba(15, 23, 42, 0.95) 100%) !important; border: 1.5px solid rgba(96, 165, 250, 0.40) !important; padding: 22px 26px; box-shadow: 0 16px 40px rgba(0,0,0,0.40); margin-bottom: 28px;">
+    
+    {{-- Header with Firm Selector & Badge --}}
+    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 16px; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #FFFFFF; box-shadow: 0 6px 18px rgba(37,99,235,0.45);">
+                <i class="fa-solid fa-bolt-lightning"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 18px; font-weight: 800; color: #FFFFFF; margin: 0 0 3px 0; letter-spacing: -0.2px;">
+                    Direct Firm Auto-Invoice Generator
+                </h3>
+                <p style="font-size: 12.5px; color: #94A3B8; margin: 0;">
+                    Select a firm below to auto-generate complete GST/Commercial invoices in 1 click!
+                </p>
             </div>
         </div>
 
+        {{-- Direct Firm Switcher --}}
+        <div style="display: flex; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.70); padding: 8px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.14);">
+            <label style="font-size: 12px; font-weight: 800; color: #F59E0B; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">
+                <i class="fa-solid fa-building" style="margin-right: 4px;"></i> Active Firm:
+            </label>
+            <select id="masterFirmSelect" class="f-control" style="min-width: 220px; padding: 7px 12px; font-weight: 700; border-color: #3B82F6 !important;" onchange="onMasterFirmChange(this.value)">
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ (old('firm_id', $defaultFirm->id ?? '') == $f->id) ? 'selected' : '' }}>
+                        {{ $f->firm_name }}
+                    </option>
+                @endforeach
+            </select>
+            <span id="firmNextInvBadge" style="font-size: 11.5px; background: rgba(59, 130, 246, 0.20); color: #93C5FD; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(96, 165, 250, 0.35); font-weight: 700; white-space: nowrap;">
+                Next # <span id="firmNextInvNumber">{{ $suggestedNo }}</span>
+            </span>
+        </div>
+    </div>
+
+    {{-- Tabs for Fast Actions --}}
+    <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; flex-wrap: wrap;">
+        <button type="button" id="tabBtnDirect" class="type-pill active" onclick="switchFastTab('direct')">
+            <i class="fa-solid fa-wand-magic-sparkles" style="color: #60A5FA;"></i> 1-Click Quick Direct Invoice
+        </button>
+        <button type="button" id="tabBtnAgreements" class="type-pill" onclick="switchFastTab('agreements')">
+            <i class="fa-solid fa-file-contract" style="color: #34D399;"></i> Auto-Generate From Firm Agreements
+        </button>
+    </div>
+
+    {{-- TAB 1: 1-CLICK QUICK DIRECT FIRM INVOICE FORM --}}
+    <div id="fastTabDirect">
+        <form action="{{ route('invoices.direct-firm-generate') }}" method="POST" id="directFirmForm">
+            @csrf
+            <input type="hidden" name="firm_id" id="directFirmId" value="{{ $defaultFirm->id ?? ($firms->first()?->id ?? '') }}">
+
+            <div class="form-grid-4">
+                <div class="form-group">
+                    <label class="form-label">Recipient / Party Name <span class="hint">(Optional)</span></label>
+                    <input type="text" name="recipient_name" id="directRecipientName" class="f-control" placeholder="Client / Buyer Name (Optional)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone / Mobile <span class="hint">(Optional)</span></label>
+                    <input type="text" name="recipient_phone" id="directRecipientPhone" class="f-control" placeholder="10-digit Mobile">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Invoice Type</label>
+                    <select name="invoice_type" id="directInvoiceType" class="f-control" onchange="updateDirectTypePrefix(this.value)">
+                        <option value="sale" selected>Property / Plot Sale</option>
+                        <option value="rental">Rental / Lease</option>
+                        <option value="contractor">Contractor / Labour</option>
+                        <option value="material_purchase">Material / Purchase</option>
+                        <option value="custom">General Custom</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bill Amount (₹) <span class="hint">(Optional)</span></label>
+                    <input type="number" step="0.01" min="0" name="amount" id="directAmount" class="f-control" placeholder="Total Amount (₹)">
+                </div>
+            </div>
+
+            <div class="form-grid-4" style="margin-top: 6px;">
+                <div class="form-group">
+                    <label class="form-label">Tax Treatment</label>
+                    <select name="tax_mode" id="directTaxMode" class="f-control">
+                        <option value="with_gst" selected>GST 18% (CGST 9% + SGST 9%)</option>
+                        <option value="without_gst">Non-GST (0% Commercial Bill)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Advance Paid (₹)</label>
+                    <input type="number" step="0.01" min="0" name="paid_amount" id="directPaidAmount" class="f-control" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Party GSTIN (Optional)</label>
+                    <input type="text" name="recipient_gstin" class="f-control" placeholder="GSTIN if registered">
+                </div>
+                <div class="form-group" style="justify-content: flex-end;">
+                    <button type="submit" class="btn-auto-action btn-auto-blue" style="height: 42px; font-size: 13.5px; margin-top: 0; box-shadow: 0 6px 20px rgba(37,99,235,0.45);">
+                        <i class="fa-solid fa-bolt"></i> ⚡ Instant Generate &amp; Print
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {{-- TAB 2: AUTO-GENERATE FROM FIRM AGREEMENTS --}}
+    <div id="fastTabAgreements" style="display: none;">
         <p style="font-size: 13px; color: #CBD5E1; margin-top: 0; margin-bottom: 16px; line-height: 1.5;">
-            Select any active Property Sale, Booking, or Rental agreement below to auto-fetch customer info, property descriptions, HSN codes (9954/9972), 18% GST and advance token amounts in 1 click!
+            Select any Property Sale, Booking, or Rental agreement of the active firm below to auto-fetch customer info, HSN codes, 18% GST and issue the invoice in 1 click!
         </p>
 
         <div class="form-grid-3">
@@ -432,7 +520,7 @@
             <div class="auto-card card-sale">
                 <div>
                     <label class="form-label" style="color: #60A5FA; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                        <i class="fa-solid fa-house-chimney"></i> Auto-Fetch Property Sale
+                        <i class="fa-solid fa-house-chimney"></i> Property Sale of Firm
                     </label>
                     <select id="quickPropertySaleSelect" class="f-control" style="width: 100%;" onchange="autoFillFromRecord('property_sale', this.value)">
                         <option value="">-- Select Property Sale --</option>
@@ -459,7 +547,7 @@
             <div class="auto-card card-booking">
                 <div>
                     <label class="form-label" style="color: #34D399; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                        <i class="fa-solid fa-bookmark"></i> Auto-Fetch Booking
+                        <i class="fa-solid fa-bookmark"></i> Property Booking of Firm
                     </label>
                     <select id="quickBookingSelect" class="f-control" style="width: 100%;" onchange="autoFillFromRecord('booking', this.value)">
                         <option value="">-- Select Booking --</option>
@@ -486,7 +574,7 @@
             <div class="auto-card card-rental">
                 <div>
                     <label class="form-label" style="color: #FBBF24; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                        <i class="fa-solid fa-key"></i> Auto-Fetch Rental Agreement
+                        <i class="fa-solid fa-key"></i> Rental Agreement of Firm
                     </label>
                     <select id="quickRentalSelect" class="f-control" style="width: 100%;" onchange="autoFillFromRecord('rental', this.value)">
                         <option value="">-- Select Rental --</option>
@@ -510,6 +598,10 @@
             </div>
         </div>
     </div>
+</div>
+
+<form action="{{ route('invoices.store') }}" method="POST" id="invoiceForm">
+    @csrf
 
     <!-- SECTION 1: INVOICE TYPE & MAIN CONFIG -->
     <div class="form-section-card">
@@ -539,7 +631,7 @@
         <div class="form-grid-3">
             <div class="form-group">
                 <label class="form-label">Firm <span class="req">*</span></label>
-                <select name="firm_id" id="firmSelect" class="f-control" required>
+                <select name="firm_id" id="firmSelect" class="f-control" onchange="handleFirmChange(this.value)" required>
                     @foreach($firms as $f)
                         <option value="{{ $f->id }}" {{ (old('firm_id', $selectedProject->firm_id ?? ($defaultFirm->id ?? '')) == $f->id) ? 'selected' : '' }}>
                             {{ $f->firm_name }}
@@ -880,10 +972,164 @@
 <script>
 let rowIndex = 1;
 
+function switchFastTab(tab) {
+    const directTab = document.getElementById('fastTabDirect');
+    const agreeTab = document.getElementById('fastTabAgreements');
+    const directBtn = document.getElementById('tabBtnDirect');
+    const agreeBtn = document.getElementById('tabBtnAgreements');
+
+    if (tab === 'direct') {
+        if (directTab) directTab.style.display = 'block';
+        if (agreeTab) agreeTab.style.display = 'none';
+        if (directBtn) directBtn.classList.add('active');
+        if (agreeBtn) agreeBtn.classList.remove('active');
+    } else {
+        if (directTab) directTab.style.display = 'none';
+        if (agreeTab) agreeTab.style.display = 'block';
+        if (directBtn) directBtn.classList.remove('active');
+        if (agreeBtn) agreeBtn.classList.add('active');
+    }
+}
+
+function onMasterFirmChange(firmId) {
+    if (document.getElementById('directFirmId')) {
+        document.getElementById('directFirmId').value = firmId;
+    }
+    if (document.getElementById('firmSelect')) {
+        document.getElementById('firmSelect').value = firmId;
+    }
+    handleFirmChange(firmId);
+}
+
+function updateDirectTypePrefix(type) {
+    const firmId = document.getElementById('masterFirmSelect') ? document.getElementById('masterFirmSelect').value : '';
+    if (firmId) {
+        fetch(`{{ route('invoices.ajax-data') }}?type=next_number&firm_id=${firmId}&invoice_type=${type}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.next_invoice_no) {
+                    if (document.getElementById('firmNextInvNumber')) {
+                        document.getElementById('firmNextInvNumber').textContent = data.next_invoice_no;
+                    }
+                    if (document.getElementById('invoiceNoInput')) {
+                        document.getElementById('invoiceNoInput').value = data.next_invoice_no;
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+    }
+}
+
 function selectType(type) {
     document.querySelectorAll('.type-pill').forEach(el => el.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    }
     document.getElementById('invoiceTypeInput').value = type;
+
+    // Refresh invoice number for current firm and new type
+    const firmId = document.getElementById('firmSelect') ? document.getElementById('firmSelect').value : '';
+    if (firmId) {
+        fetch(`{{ route('invoices.ajax-data') }}?type=next_number&firm_id=${firmId}&invoice_type=${type}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.next_invoice_no) {
+                    document.getElementById('invoiceNoInput').value = data.next_invoice_no;
+                    if (document.getElementById('firmNextInvNumber')) {
+                        document.getElementById('firmNextInvNumber').textContent = data.next_invoice_no;
+                    }
+                }
+            })
+            .catch(err => console.error('Error fetching next invoice number:', err));
+    }
+}
+
+function handleFirmChange(firmId) {
+    if (!firmId) return;
+    const currentType = document.getElementById('invoiceTypeInput') ? document.getElementById('invoiceTypeInput').value : 'sale';
+
+    // Keep all firm dropdowns in sync
+    if (document.getElementById('masterFirmSelect')) document.getElementById('masterFirmSelect').value = firmId;
+    if (document.getElementById('firmSelect')) document.getElementById('firmSelect').value = firmId;
+    if (document.getElementById('directFirmId')) document.getElementById('directFirmId').value = firmId;
+
+    fetch(`{{ route('invoices.ajax-data') }}?type=firm&id=${firmId}&invoice_type=${currentType}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) return;
+
+            // 1. Update Invoice Number Badge & Input
+            if (data.next_invoice_no) {
+                document.getElementById('invoiceNoInput').value = data.next_invoice_no;
+                if (document.getElementById('firmNextInvNumber')) {
+                    document.getElementById('firmNextInvNumber').textContent = data.next_invoice_no;
+                }
+            }
+
+            // 2. Update Bank Details of the selected firm
+            if (document.getElementById('bankName')) document.getElementById('bankName').value = data.bank_name || '';
+            if (document.getElementById('bankAccountNo')) document.getElementById('bankAccountNo').value = data.bank_account_no || '';
+            if (document.getElementById('bankIfsc')) document.getElementById('bankIfsc').value = data.bank_ifsc || '';
+            if (document.getElementById('bankBranch')) document.getElementById('bankBranch').value = data.bank_branch || '';
+
+            // 3. Update Projects list for this firm
+            const projSelect = document.getElementById('projectSelect');
+            if (projSelect && data.projects) {
+                const currentProjVal = projSelect.value;
+                let html = '<option value="">-- No Specific Project (General) --</option>';
+                data.projects.forEach(p => {
+                    const selected = (p.id == currentProjVal) ? 'selected' : '';
+                    html += `<option value="${p.id}" ${selected}>${p.project_name} (${p.project_code || ''})</option>`;
+                });
+                projSelect.innerHTML = html;
+            }
+
+            // 4. Update Quick Agreement Dropdowns for this firm
+            if (data.property_sales) {
+                const psEl = document.getElementById('quickPropertySaleSelect');
+                if (psEl) {
+                    let html = '<option value="">-- Select Property Sale --</option>';
+                    data.property_sales.forEach(ps => {
+                        html += `<option value="${ps.id}">${ps.label}</option>`;
+                    });
+                    psEl.innerHTML = html;
+                }
+            }
+
+            if (data.bookings) {
+                const bkEl = document.getElementById('quickBookingSelect');
+                if (bkEl) {
+                    let html = '<option value="">-- Select Booking --</option>';
+                    data.bookings.forEach(bk => {
+                        html += `<option value="${bk.id}">${bk.label}</option>`;
+                    });
+                    bkEl.innerHTML = html;
+                }
+            }
+
+            if (data.rentals) {
+                const rtEl = document.getElementById('quickRentalSelect');
+                if (rtEl) {
+                    let html = '<option value="">-- Select Rental --</option>';
+                    data.rentals.forEach(rt => {
+                        html += `<option value="${rt.id}">${rt.label}</option>`;
+                    });
+                    rtEl.innerHTML = html;
+                }
+            }
+
+            if (data.customers) {
+                const custEl = document.getElementById('customerSelect');
+                if (custEl) {
+                    let html = '<option value="">-- Select Customer --</option>';
+                    data.customers.forEach(c => {
+                        html += `<option value="${c.id}">${c.name} (${c.mobile || ''})</option>`;
+                    });
+                    custEl.innerHTML = html;
+                }
+            }
+        })
+        .catch(err => console.error('Error updating firm data:', err));
 }
 
 function addItemRow() {
@@ -1055,6 +1301,17 @@ function autoFillFromRecord(type, id) {
                 const firmEl = document.getElementById('firmSelect');
                 if (firmEl) firmEl.value = data.firm_id;
             }
+
+            if (data.next_invoice_no) {
+                const invNoEl = document.getElementById('invoiceNoInput');
+                if (invNoEl) invNoEl.value = data.next_invoice_no;
+            }
+
+            // Update Bank Details if returned
+            if (data.bank_name && document.getElementById('bankName')) document.getElementById('bankName').value = data.bank_name;
+            if (data.bank_account_no && document.getElementById('bankAccountNo')) document.getElementById('bankAccountNo').value = data.bank_account_no;
+            if (data.bank_ifsc && document.getElementById('bankIfsc')) document.getElementById('bankIfsc').value = data.bank_ifsc;
+            if (data.bank_branch && document.getElementById('bankBranch')) document.getElementById('bankBranch').value = data.bank_branch;
 
             // 3. Set Recipient Fields
             if (data.recipient_name) document.getElementById('recipientName').value = data.recipient_name;

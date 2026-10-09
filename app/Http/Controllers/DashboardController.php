@@ -45,16 +45,19 @@ class DashboardController extends Controller
     // ─────────────────────────────────────────────────────────────
     private function adminDashboard(Request $request)
     {
-        $propertyMasterId = $request->filled('property_master_id') ? (int)$request->property_master_id : null;
-        $projectId        = $request->filled('project_id') ? (int)$request->project_id : null;
-        $filterType       = $request->get('filter_type');
+        $propertyMasterId = $request->filled('property_master_id') ? (int)$request->property_master_id : ($request->filled('sale_property_master_id') ? (int)$request->sale_property_master_id : ($request->filled('expense_property_master_id') ? (int)$request->expense_property_master_id : null));
+        $projectId        = $request->filled('project_id') ? (int)$request->project_id : ($request->filled('purchase_project_id') ? (int)$request->purchase_project_id : null);
+        $flowType         = $request->get('flow_type', 'all');
+        $filterType       = $request->get('filter_type', 'all');
 
-        if ($propertyMasterId && !$projectId) {
+        if (in_array($filterType, ['sale', 'purchase', 'expense'])) {
+            $flowType = $filterType;
+        } elseif (in_array($flowType, ['sale', 'purchase', 'expense']) && $filterType === 'all') {
+            $filterType = $flowType;
+        } elseif ($propertyMasterId && !$projectId && $filterType === 'all') {
             $filterType = 'property';
-        } elseif ($projectId && !$propertyMasterId) {
+        } elseif ($projectId && !$propertyMasterId && $filterType === 'all') {
             $filterType = 'project';
-        } elseif (!$propertyMasterId && !$projectId) {
-            $filterType = 'all';
         }
 
         // Dropdown lists
@@ -121,8 +124,18 @@ class DashboardController extends Controller
                 $totalSoldUnitsCount = $soldProperties;
             }
 
+            // Purchases for Property
+            $totalLandPurchases       = (float)($selectedPropertyMaster->purchase_price ?? 0);
+            $totalLandPurchaseCount   = 1;
+            $totalMaterialPurchases   = !empty($plotIds) ? (StockInward::whereIn('property_id', $plotIds)->sum('total_amount') ?: 0) : 0;
+            $totalPurchases           = $totalLandPurchases + $totalMaterialPurchases;
+
             // Expenses for this PropertyMaster
-            $totalExpenses = (float)$selectedPropertyMaster->total_expenses;
+            $totalExpenses    = (float)$selectedPropertyMaster->total_expenses;
+            $propertyExpenses = $totalExpenses;
+            $generalExpenses  = 0;
+            $rentalExpenses   = !empty($plotIds) ? (Expense::whereIn('property_id', $plotIds)->where('expense_type', 'Rental')->sum('amount') ?: 0) : 0;
+            $personalExpenses = 0;
 
             // Cashflow & Receipts for this Property
             $paymentReceived  = !empty($plotIds) ? (Payment::whereIn('property_id', $plotIds)->sum('payment_amount') ?: 0) : 0;
@@ -144,6 +157,9 @@ class DashboardController extends Controller
 
             $recentCustomers  = Customer::latest()->limit(5)->get();
             $recentPayments   = !empty($plotIds) ? Payment::with(['customer', 'property'])->whereIn('property_id', $plotIds)->latest()->limit(5)->get() : collect();
+            $recentSalesList  = $salesList->sortByDesc('created_at')->take(8);
+            $recentPurchasesList = !empty($plotIds) ? StockInward::with(['material', 'project', 'contractor'])->whereIn('property_id', $plotIds)->latest()->limit(8)->get() : collect();
+            $recentExpensesList  = !empty($plotIds) ? Expense::with(['property', 'project'])->whereIn('property_id', $plotIds)->latest('expense_date')->limit(8)->get() : collect();
 
         // ── Case 2: FILTER BY PROJECT ────────────────────────────
         } elseif ($filterType === 'project' && $selectedProject) {
@@ -180,8 +196,19 @@ class DashboardController extends Controller
             $salesProfitMargin      = $totalSalesRevenue > 0 ? round(($totalSalesProfit / $totalSalesRevenue) * 100, 1) : 0.0;
             $totalSoldUnitsCount    = (int)$salesList->sum(fn($s) => $s->properties->count() ?: 1);
 
+            // Purchases for Project
+            $totalLandPurchases     = (float)($selectedProject->land_cost ?? 0);
+            $totalLandPurchaseCount = $selectedProject->property_master_id ? 1 : 0;
+            $totalMaterialPurchases = StockInward::where('project_id', $selectedProject->id)->sum('total_amount') ?: 0;
+            $totalPurchases         = $totalLandPurchases + $totalMaterialPurchases;
+
             // Expenses for this Project
-            $totalExpenses = (float)$selectedProject->total_expenses;
+            $totalExpenses    = (float)$selectedProject->total_expenses;
+            $propertyExpenses = !empty($plotIds) ? (Expense::whereIn('property_id', $plotIds)->sum('amount') ?: 0) : 0;
+            $projectExpenses  = Expense::where('project_id', $selectedProject->id)->sum('amount') ?: 0;
+            $generalExpenses  = 0;
+            $rentalExpenses   = 0;
+            $personalExpenses = 0;
 
             // Cashflow & Receipts for this Project
             $paymentReceived  = !empty($plotIds) ? (Payment::whereIn('property_id', $plotIds)->sum('payment_amount') ?: 0) : 0;
@@ -201,13 +228,15 @@ class DashboardController extends Controller
             })->where('status', '!=', 'cancelled')->sum('remaining_amount') ?: 0) : 0;
             $totalPendingAmt  = $salePending + $bookingPending;
 
-            $recentCustomers  = Customer::latest()->limit(5)->get();
-            $recentPayments   = !empty($plotIds) ? Payment::with(['customer', 'property'])->whereIn('property_id', $plotIds)->latest()->limit(5)->get() : collect();
+            $recentCustomers     = Customer::latest()->limit(5)->get();
+            $recentPayments      = !empty($plotIds) ? Payment::with(['customer', 'property'])->whereIn('property_id', $plotIds)->latest()->limit(5)->get() : collect();
+            $recentSalesList     = $salesList->sortByDesc('created_at')->take(8);
+            $recentPurchasesList = StockInward::with(['material', 'project', 'contractor'])->where('project_id', $selectedProject->id)->latest()->limit(8)->get();
+            $recentExpensesList  = Expense::with(['property', 'project'])->where('project_id', $selectedProject->id)->latest('expense_date')->limit(8)->get();
 
-        // ── Case 3: ALL OVERVIEW (GLOBAL) ────────────────────────
+        // ── Case 3: ALL OVERVIEW & TRANSACTION FLOWS (GLOBAL) ────
         } else {
             $filteredPlots = null;
-            $filterType = 'all';
 
             $totalProperties     = Property::where(function($q) {
                 $q->whereNotNull('project_id')->orWhereNotNull('property_master_id');
@@ -234,7 +263,14 @@ class DashboardController extends Controller
             $rentalReceived      = RentalPayment::sum('paid_amount') ?: 0;
             $totalReceivedAmt    = $paymentReceived + $bookingReceived + $saleInitialPaid + $rentalReceived;
 
+            // Expenses breakdown
             $totalExpenses       = Expense::sum('amount') ?: 0;
+            $propertyExpenses    = Expense::where('expense_type', 'Property')->sum('amount') ?: 0;
+            $projectExpenses     = Expense::whereNotNull('project_id')->sum('amount') ?: 0;
+            $generalExpenses     = Expense::where('expense_type', 'General')->sum('amount') ?: 0;
+            $rentalExpenses      = Expense::where('expense_type', 'Rental')->sum('amount') ?: 0;
+            $personalExpenses    = Expense::where('expense_type', 'Personal')->sum('amount') ?: 0;
+
             $netProfit           = $totalReceivedAmt - $totalExpenses;
 
             $salePending         = PropertySale::sum('remaining_amount') ?: 0;
@@ -244,8 +280,14 @@ class DashboardController extends Controller
             $recentCustomers     = Customer::latest()->limit(5)->get();
             $recentPayments      = Payment::with(['customer', 'property'])->latest()->limit(5)->get();
 
+            // Purchases breakdown (Land acquisitions + Material purchases)
+            $totalLandPurchases     = PropertyMaster::sum('purchase_price') ?: 0;
+            $totalLandPurchaseCount = PropertyMaster::count();
+            $totalMaterialPurchases = StockInward::sum('total_amount') ?: 0;
+            $totalPurchases         = $totalLandPurchases + $totalMaterialPurchases;
+
             // Property Sales & Profit Analysis (Purchase Cost vs Selling Price)
-            $salesList              = PropertySale::with(['properties.propertyMaster', 'property.propertyMaster'])
+            $salesList              = PropertySale::with(['customer', 'broker', 'properties.propertyMaster', 'property.propertyMaster'])
                 ->where('sale_status', '!=', 'cancelled')
                 ->get();
             $totalSalesRevenue      = (float)$salesList->sum('sale_amount');
@@ -255,17 +297,33 @@ class DashboardController extends Controller
             $totalSalesProfit       = (float)$salesList->sum(fn($s) => $s->net_profit);
             $salesProfitMargin      = $totalSalesRevenue > 0 ? round(($totalSalesProfit / $totalSalesRevenue) * 100, 1) : 0.0;
             $totalSoldUnitsCount    = (int)$salesList->sum(fn($s) => $s->properties->count() ?: 1);
+
+            $recentSalesList        = PropertySale::with(['customer', 'broker', 'property', 'properties'])
+                ->where('sale_status', '!=', 'cancelled')
+                ->latest('sale_date')
+                ->limit(10)
+                ->get();
+            $recentPurchasesList    = StockInward::with(['material', 'project', 'contractor'])
+                ->latest('inward_date')
+                ->limit(10)
+                ->get();
+            $recentExpensesList     = Expense::with(['property', 'project', 'firm'])
+                ->latest('expense_date')
+                ->limit(10)
+                ->get();
         }
 
         return view('admin.dashboard', compact(
-            'propertyMastersList', 'projectsList', 'filterType', 'selectedPropertyMaster', 'selectedProject', 'filteredPlots',
+            'propertyMastersList', 'projectsList', 'filterType', 'flowType', 'selectedPropertyMaster', 'selectedProject', 'filteredPlots',
             'totalFirms', 'activeFirms', 'inactiveFirms', 'totalUsers', 'activeUsers',
             'totalCustomers', 'totalProperties', 'availableProperties', 'bookedProperties',
             'soldProperties', 'rentedProperties', 'totalBookings', 'portfolioVal', 'totalReceivedAmt',
             'totalExpenses', 'netProfit', 'totalPendingAmt', 'recentCustomers',
             'recentPayments', 'totalProjects', 'activeProjects',
             'totalSalesRevenue', 'totalSalesPurchaseCost', 'totalSalesGrossProfit',
-            'totalSalesCommission', 'totalSalesProfit', 'salesProfitMargin', 'totalSoldUnitsCount'
+            'totalSalesCommission', 'totalSalesProfit', 'salesProfitMargin', 'totalSoldUnitsCount',
+            'totalPurchases', 'totalLandPurchases', 'totalLandPurchaseCount', 'totalMaterialPurchases',
+            'propertyExpenses', 'generalExpenses', 'rentalExpenses', 'personalExpenses',
         ));
     }
 
@@ -275,16 +333,19 @@ class DashboardController extends Controller
     private function firmDashboard(Request $request)
     {
         $firmId           = session('firm_id');
-        $propertyMasterId = $request->filled('property_master_id') ? (int)$request->property_master_id : null;
-        $projectId        = $request->filled('project_id') ? (int)$request->project_id : null;
-        $filterType       = $request->get('filter_type');
+        $propertyMasterId = $request->filled('property_master_id') ? (int)$request->property_master_id : ($request->filled('sale_property_master_id') ? (int)$request->sale_property_master_id : ($request->filled('expense_property_master_id') ? (int)$request->expense_property_master_id : null));
+        $projectId        = $request->filled('project_id') ? (int)$request->project_id : ($request->filled('purchase_project_id') ? (int)$request->purchase_project_id : null);
+        $flowType         = $request->get('flow_type', 'all');
+        $filterType       = $request->get('filter_type', 'all');
 
-        if ($propertyMasterId && !$projectId) {
+        if (in_array($filterType, ['sale', 'purchase', 'expense'])) {
+            $flowType = $filterType;
+        } elseif (in_array($flowType, ['sale', 'purchase', 'expense']) && $filterType === 'all') {
+            $filterType = $flowType;
+        } elseif ($propertyMasterId && !$projectId && $filterType === 'all') {
             $filterType = 'property';
-        } elseif ($projectId && !$propertyMasterId) {
+        } elseif ($projectId && !$propertyMasterId && $filterType === 'all') {
             $filterType = 'project';
-        } elseif (!$propertyMasterId && !$projectId) {
-            $filterType = 'all';
         }
 
         // Dropdown lists scoped to firm
@@ -390,7 +451,18 @@ class DashboardController extends Controller
             $totalSoldUnitsCount    = (int)$salesList->sum(fn($s) => $s->properties->count() ?: 1);
             $totalSalesAmt          = $totalSalesRevenue;
 
-            $totalExpenses = (float)$selectedPropertyMaster->total_expenses;
+            // Purchases for Property
+            $totalLandPurchases       = (float)($selectedPropertyMaster->purchase_price ?? 0);
+            $totalLandPurchaseCount   = 1;
+            $totalMaterialPurchases   = !empty($plotIds) ? (StockInward::where('firm_id', $firmId)->whereIn('property_id', $plotIds)->sum('total_amount') ?: 0) : 0;
+            $totalPurchases           = $totalLandPurchases + $totalMaterialPurchases;
+
+            // Expenses for this PropertyMaster
+            $totalExpenses    = (float)$selectedPropertyMaster->total_expenses;
+            $propertyExpenses = $totalExpenses;
+            $generalExpenses  = 0;
+            $rentalExpenses   = !empty($plotIds) ? (Expense::where('firm_id', $firmId)->whereIn('property_id', $plotIds)->where('expense_type', 'Rental')->sum('amount') ?: 0) : 0;
+            $personalExpenses = 0;
 
             $firmPaymentReceived = !empty($plotIds) ? (Payment::where('firm_id', $firmId)->whereIn('property_id', $plotIds)->sum('payment_amount') ?: 0) : 0;
             $firmBookingReceived = !empty($plotIds) ? (Booking::where('firm_id', $firmId)->where(function($q) use ($plotIds) {
@@ -399,14 +471,18 @@ class DashboardController extends Controller
             $firmSaleInitialPaid = $salesList->sum('booking_amount') ?: 0;
             $firmRentalReceived  = !empty($plotIds) ? (RentalPayment::whereIn('property_id', $plotIds)->sum('paid_amount') ?: 0) : 0;
             $totalReceivedAmt    = $firmPaymentReceived + $firmBookingReceived + $firmSaleInitialPaid + $firmRentalReceived;
+            $netProfit           = $totalReceivedAmt - $totalExpenses;
 
             $totalPendingAmt     = ($salesList->sum('remaining_amount') ?: 0)
                                  + (!empty($plotIds) ? (Booking::where('firm_id', $firmId)->where(function($q) use ($plotIds) {
                                      $q->whereIn('property_id', $plotIds)->orWhereHas('properties', fn($sub) => $sub->whereIn('properties.id', $plotIds));
                                  })->where('status', '!=', 'cancelled')->sum('remaining_amount') ?: 0) : 0);
 
-            $recentCustomers = Customer::where('firm_id', $firmId)->latest()->limit(5)->get();
-            $recentPayments  = !empty($plotIds) ? Payment::with(['customer', 'property'])->where('firm_id', $firmId)->whereIn('property_id', $plotIds)->latest()->limit(5)->get() : collect();
+            $recentCustomers     = Customer::where('firm_id', $firmId)->latest()->limit(5)->get();
+            $recentPayments      = !empty($plotIds) ? Payment::with(['customer', 'property'])->where('firm_id', $firmId)->whereIn('property_id', $plotIds)->latest()->limit(5)->get() : collect();
+            $recentSalesList     = $salesList->sortByDesc('created_at')->take(8);
+            $recentPurchasesList = !empty($plotIds) ? StockInward::where('firm_id', $firmId)->with(['material', 'project', 'contractor'])->whereIn('property_id', $plotIds)->latest()->limit(8)->get() : collect();
+            $recentExpensesList  = !empty($plotIds) ? Expense::where('firm_id', $firmId)->with(['property', 'project'])->whereIn('property_id', $plotIds)->latest('expense_date')->limit(8)->get() : collect();
 
         // ── Case 2: FILTER BY PROJECT (Firm) ─────────────────────
         } elseif ($filterType === 'project' && $selectedProject) {
@@ -445,7 +521,19 @@ class DashboardController extends Controller
             $totalSoldUnitsCount    = (int)$salesList->sum(fn($s) => $s->properties->count() ?: 1);
             $totalSalesAmt          = $totalSalesRevenue;
 
-            $totalExpenses = (float)$selectedProject->total_expenses;
+            // Purchases for Project
+            $totalLandPurchases     = (float)($selectedProject->land_cost ?? 0);
+            $totalLandPurchaseCount = $selectedProject->property_master_id ? 1 : 0;
+            $totalMaterialPurchases = StockInward::where('firm_id', $firmId)->where('project_id', $selectedProject->id)->sum('total_amount') ?: 0;
+            $totalPurchases         = $totalLandPurchases + $totalMaterialPurchases;
+
+            // Expenses for this Project
+            $totalExpenses    = (float)$selectedProject->total_expenses;
+            $propertyExpenses = !empty($plotIds) ? (Expense::where('firm_id', $firmId)->whereIn('property_id', $plotIds)->sum('amount') ?: 0) : 0;
+            $projectExpenses  = Expense::where('firm_id', $firmId)->where('project_id', $selectedProject->id)->sum('amount') ?: 0;
+            $generalExpenses  = 0;
+            $rentalExpenses   = 0;
+            $personalExpenses = 0;
 
             $firmPaymentReceived = !empty($plotIds) ? (Payment::where('firm_id', $firmId)->whereIn('property_id', $plotIds)->sum('payment_amount') ?: 0) : 0;
             $firmBookingReceived = !empty($plotIds) ? (Booking::where('firm_id', $firmId)->where(function($q) use ($plotIds) {
@@ -454,19 +542,22 @@ class DashboardController extends Controller
             $firmSaleInitialPaid = $salesList->sum('booking_amount') ?: 0;
             $firmRentalReceived  = !empty($plotIds) ? (RentalPayment::whereIn('property_id', $plotIds)->sum('paid_amount') ?: 0) : 0;
             $totalReceivedAmt    = $firmPaymentReceived + $firmBookingReceived + $firmSaleInitialPaid + $firmRentalReceived;
+            $netProfit           = $totalReceivedAmt - $totalExpenses;
 
             $totalPendingAmt     = ($salesList->sum('remaining_amount') ?: 0)
                                  + (!empty($plotIds) ? (Booking::where('firm_id', $firmId)->where(function($q) use ($plotIds) {
                                      $q->whereIn('property_id', $plotIds)->orWhereHas('properties', fn($sub) => $sub->whereIn('properties.id', $plotIds));
                                  })->where('status', '!=', 'cancelled')->sum('remaining_amount') ?: 0) : 0);
 
-            $recentCustomers = Customer::where('firm_id', $firmId)->latest()->limit(5)->get();
-            $recentPayments  = !empty($plotIds) ? Payment::with(['customer', 'property'])->where('firm_id', $firmId)->whereIn('property_id', $plotIds)->latest()->limit(5)->get() : collect();
+            $recentCustomers     = Customer::where('firm_id', $firmId)->latest()->limit(5)->get();
+            $recentPayments      = !empty($plotIds) ? Payment::with(['customer', 'property'])->where('firm_id', $firmId)->whereIn('property_id', $plotIds)->latest()->limit(5)->get() : collect();
+            $recentSalesList     = $salesList->sortByDesc('created_at')->take(8);
+            $recentPurchasesList = StockInward::where('firm_id', $firmId)->with(['material', 'project', 'contractor'])->where('project_id', $selectedProject->id)->latest()->limit(8)->get();
+            $recentExpensesList  = Expense::where('firm_id', $firmId)->with(['property', 'project'])->where('project_id', $selectedProject->id)->latest('expense_date')->limit(8)->get();
 
-        // ── Case 3: ALL OVERVIEW (Firm) ──────────────────────────
+        // ── Case 3: ALL OVERVIEW & FLOWS (Firm) ──────────────────
         } else {
             $filteredPlots = null;
-            $filterType = 'all';
 
             $totalProperties     = Property::where('firm_id', $firmId)->where(function($q) {
                 $q->whereNotNull('project_id')->orWhereNotNull('property_master_id');
@@ -497,11 +588,24 @@ class DashboardController extends Controller
             $totalPendingAmt     = (PropertySale::where('firm_id', $firmId)->sum('remaining_amount') ?: 0)
                                  + (Booking::where('firm_id', $firmId)->sum('remaining_amount') ?: 0);
 
-            $totalExpenses = Expense::where('firm_id', $firmId)->sum('amount') ?: 0;
+            // Expenses breakdown
+            $totalExpenses       = Expense::where('firm_id', $firmId)->sum('amount') ?: 0;
+            $propertyExpenses    = Expense::where('firm_id', $firmId)->where('expense_type', 'Property')->sum('amount') ?: 0;
+            $projectExpenses     = Expense::where('firm_id', $firmId)->whereNotNull('project_id')->sum('amount') ?: 0;
+            $generalExpenses     = Expense::where('firm_id', $firmId)->where('expense_type', 'General')->sum('amount') ?: 0;
+            $rentalExpenses      = Expense::where('firm_id', $firmId)->where('expense_type', 'Rental')->sum('amount') ?: 0;
+            $personalExpenses    = Expense::where('firm_id', $firmId)->where('expense_type', 'Personal')->sum('amount') ?: 0;
+            $netProfit           = $totalReceivedAmt - $totalExpenses;
 
             $recentCustomers = Customer::where('firm_id', $firmId)->latest()->limit(5)->get();
             $recentPayments  = Payment::with(['customer', 'property'])
                 ->where('firm_id', $firmId)->latest()->limit(5)->get();
+
+            // Purchases breakdown
+            $totalLandPurchases     = PropertyMaster::where('firm_id', $firmId)->sum('purchase_price') ?: 0;
+            $totalLandPurchaseCount = PropertyMaster::where('firm_id', $firmId)->count();
+            $totalMaterialPurchases = StockInward::where('firm_id', $firmId)->sum('total_amount') ?: 0;
+            $totalPurchases         = $totalLandPurchases + $totalMaterialPurchases;
 
             $firmSalesList          = PropertySale::with(['properties.propertyMaster', 'property.propertyMaster'])
                 ->where('firm_id', $firmId)
@@ -514,22 +618,38 @@ class DashboardController extends Controller
             $totalSalesProfit       = (float)$firmSalesList->sum(fn($s) => $s->net_profit);
             $salesProfitMargin      = $totalSalesRevenue > 0 ? round(($totalSalesProfit / $totalSalesRevenue) * 100, 1) : 0.0;
             $totalSoldUnitsCount    = (int)$firmSalesList->sum(fn($s) => $s->properties->count() ?: 1);
+
+            $recentSalesList        = PropertySale::where('firm_id', $firmId)->with(['customer', 'broker', 'property', 'properties'])
+                ->where('sale_status', '!=', 'cancelled')
+                ->latest('sale_date')
+                ->limit(10)
+                ->get();
+            $recentPurchasesList    = StockInward::where('firm_id', $firmId)->with(['material', 'project', 'contractor'])
+                ->latest('inward_date')
+                ->limit(10)
+                ->get();
+            $recentExpensesList     = Expense::where('firm_id', $firmId)->with(['property', 'project'])
+                ->latest('expense_date')
+                ->limit(10)
+                ->get();
         }
 
         return view('admin.firm-dashboard', compact(
-            'propertyMastersList', 'projectsList', 'filterType', 'selectedPropertyMaster', 'selectedProject', 'filteredPlots',
+            'propertyMastersList', 'projectsList', 'filterType', 'flowType', 'selectedPropertyMaster', 'selectedProject', 'filteredPlots',
             'totalCustomers', 'newCustomersMonth',
             'totalProperties', 'availableProperties', 'soldProperties',
             'bookedProperties', 'rentedProperties', 'portfolioVal',
             'totalBookings', 'totalSalesAmt',
-            'totalReceivedAmt', 'totalPendingAmt',
+            'totalReceivedAmt', 'totalPendingAmt', 'netProfit',
             'activeRentals', 'monthlyRentIncome', 'totalRentalIncome', 'overdueRentCount',
-            'totalExpenses',
+            'totalExpenses', 'propertyExpenses', 'generalExpenses', 'rentalExpenses', 'personalExpenses',
+            'totalPurchases', 'totalLandPurchases', 'totalLandPurchaseCount', 'totalMaterialPurchases',
             'totalLoans', 'totalLoanAmount', 'pendingLoanAmt',
             'totalMaterials', 'lowStockCount', 'outStockCount',
             'recentCustomers', 'recentPayments', 'totalProjects', 'activeProjects',
             'totalSalesRevenue', 'totalSalesPurchaseCost', 'totalSalesGrossProfit',
-            'totalSalesCommission', 'totalSalesProfit', 'salesProfitMargin', 'totalSoldUnitsCount'
+            'totalSalesCommission', 'totalSalesProfit', 'salesProfitMargin', 'totalSoldUnitsCount',
+            'recentSalesList', 'recentPurchasesList', 'recentExpensesList'
         ));
     }
 }
