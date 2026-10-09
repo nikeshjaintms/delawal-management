@@ -744,10 +744,13 @@ class InvoiceController extends Controller
 
         $query = Invoice::with(['firm', 'project', 'customer']);
 
+        $selectedFirm = null;
         if (!$isAdmin) {
             $query->where('firm_id', $firmId);
+            $selectedFirm = \App\Models\Firm::find($firmId);
         } elseif ($request->filled('firm_id')) {
             $query->where('firm_id', $request->firm_id);
+            $selectedFirm = \App\Models\Firm::find($request->firm_id);
         }
 
         if ($request->filled('project_id')) {
@@ -776,7 +779,7 @@ class InvoiceController extends Controller
         $totalPaid = $invoices->sum('paid_amount');
         $totalBalance = $invoices->sum('balance_amount');
 
-        return view('admin.invoices.pdf-list', compact('invoices', 'totalInvoiced', 'totalPaid', 'totalBalance'));
+        return view('admin.invoices.pdf-list', compact('invoices', 'totalInvoiced', 'totalPaid', 'totalBalance', 'selectedFirm'));
     }
 
     /**

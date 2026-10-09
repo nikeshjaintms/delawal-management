@@ -16,6 +16,7 @@
 @include('admin.components.pdf-header', [
     'title' => 'Tax Invoices Register Report',
     'subtitle' => 'Billing Register & GST Breakdown',
+    'firm' => $selectedFirm ?? null,
     'isBw' => true
 ])
 

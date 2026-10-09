@@ -49,9 +49,9 @@
     $firmOwner = $activeFirm->owner_name ?? 'DELAWALA ZAFAR';
     $firmPhone = $activeFirm->mobile ?? '9999999999';
     $firmBank = $activeFirm->bank_name ?? 'Bank of Baroda';
-    $firmAcc = $activeFirm->bank_account_no ?? '—';
-    $firmIfsc = $activeFirm->bank_ifsc ?? '—';
-    $firmBranch = $activeFirm->bank_branch ?? 'Dahegam Branch';
+    $firmAcc = $activeFirm->account_number ?? ($activeFirm->bank_account_no ?? '—');
+    $firmIfsc = $activeFirm->ifsc_code ?? ($activeFirm->bank_ifsc ?? '—');
+    $firmBranch = $activeFirm->branch_name ?? ($activeFirm->bank_branch ?? 'Dahegam Branch');
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -424,14 +424,16 @@
     <!-- Header Section -->
     <div class="inv-header-box">
         <div class="inv-brand-col">
-            @if(file_exists(public_path('images/pdf-logo.png')))
+            @if(!empty($activeFirm->firm_logo) && file_exists(public_path('storage/' . $activeFirm->firm_logo)))
+                <img src="{{ asset('storage/' . $activeFirm->firm_logo) }}" alt="{{ $firmDisplayName }}" class="inv-logo-img" onerror="this.style.display='none';">
+            @elseif(file_exists(public_path('images/pdf-logo.png')))
                 <img src="{{ asset('images/pdf-logo.png') }}?v={{ filemtime(public_path('images/pdf-logo.png')) }}" alt="{{ $firmDisplayName }}" class="inv-logo-img" onerror="this.style.display='none';">
             @else
                 <img src="{{ asset('images/logo.png') }}" alt="{{ $firmDisplayName }}" class="inv-logo-img" onerror="this.style.display='none';">
             @endif
             <div>
                 <div class="inv-firm-name">{{ $firmDisplayName }}</div>
-                <div class="inv-firm-sub">Delawala Infra Co. &bull; Real Estate &amp; Infrastructure</div>
+                <div class="inv-firm-sub">Real Estate &bull; Construction &bull; Infrastructure Management</div>
                 <div class="inv-firm-addr">
                     {{ $firmAddress }}, {{ $firmCity }}, {{ $firmState }} - {{ $firmPin }}
                 </div>
@@ -637,7 +639,7 @@
         <div class="inv-col-box" style="flex:1;">
             <div class="inv-box-head"><i class="fa-solid fa-building-columns"></i> BANK REMITTANCE DETAILS</div>
             <div class="inv-box-body">
-                <div class="inv-row"><span class="inv-lbl">Account Name:</span><span class="inv-val">DELAWALA INFRA CO.</span></div>
+                <div class="inv-row"><span class="inv-lbl">Account Name:</span><span class="inv-val">{{ $firmDisplayName }}</span></div>
                 <div class="inv-row"><span class="inv-lbl">Bank Name:</span><span class="inv-val">{{ $invoice->bank_name ?: $firmBank }}</span></div>
                 <div class="inv-row"><span class="inv-lbl">Account Number:</span><span class="inv-val">{{ $invoice->bank_account_no ?: $firmAcc }}</span></div>
                 <div class="inv-row"><span class="inv-lbl">IFSC Code:</span><span class="inv-val">{{ $invoice->bank_ifsc ?: $firmIfsc }}</span></div>
@@ -664,13 +666,13 @@
             <div class="inv-auth-line">Customer / Receiver Signature</div>
         </div>
         <div class="inv-auth-box">
-            <div class="inv-auth-line">For <strong>DELAWALA INFRA CO.</strong><br><span style="font-size:7px; font-weight:600;">(Authorized Signatory)</span></div>
+            <div class="inv-auth-line">For <strong>{{ $firmDisplayName }}</strong><br><span style="font-size:7px; font-weight:600;">(Authorized Signatory)</span></div>
         </div>
     </div>
 
     <!-- Footer Note -->
     <div class="inv-footer">
-        <span>Official GST Tax Invoice &bull; Delawala Infra Co. &bull; GSTIN: {{ $firmGstNo }}</span>
+        <span>Official GST Tax Invoice &bull; {{ $firmDisplayName }} &bull; GSTIN: {{ $firmGstNo }}</span>
         <span>Generated: {{ now()->format('d M Y, h:i A') }}</span>
         <span>Computer Generated Document</span>
     </div>
