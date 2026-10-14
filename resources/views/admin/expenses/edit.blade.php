@@ -308,7 +308,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 
             <div class="form-row" id="project-property-row" style="{{ in_array($currType, ['General', 'Personal']) ? 'display:none;' : '' }}">
                 {{-- Project --}}
-                <div class="form-group" id="project-field-wrapper" style="{{ $currType === 'Rental' ? 'display:none;' : '' }}">
+                <div class="form-group" id="project-field-wrapper" style="{{ in_array($currType, ['Rental', 'Property']) ? 'display:none;' : '' }}">
                     <label class="form-label" for="project_id">Project <span class="opt">(Optional - Project-wise Expense / Filter)</span></label>
                     <select name="project_id" id="project_id" class="form-control @error('project_id') is-invalid @enderror">
                         <option value="">— All Projects / General —</option>
@@ -326,7 +326,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                 </div>
 
                 {{-- Property / Unit Multi-Select --}}
-                <div class="form-group" id="property-field-wrapper" style="{{ $currType === 'Rental' ? 'grid-column: 1 / -1;' : '' }}">
+                <div class="form-group" id="property-field-wrapper" style="{{ in_array($currType, ['Rental', 'Property']) ? 'grid-column: 1 / -1;' : '' }}">
                     <label class="form-label" for="property_ids" id="property-label">
                         <span id="property-label-text">{{ $currType === 'Rental' ? 'Rental Property / Unit' : 'Property / Unit' }}</span>
                         <span class="opt" id="property-label-opt">{{ $currType === 'Rental' ? '(Selecting a property auto-fetches Tenant & Agreement)' : '(Multi-Select Enabled)' }}</span>
@@ -1049,17 +1049,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (isRental) {
                     fetchRentalInfoForProperty(firstVal);
                 }
-
-                if (projectSelect && !projectSelect.value) {
-                    const matchedOpt = allPropOptions.find(o => o.value === firstVal);
-                    if (matchedOpt) {
-                        const pId = matchedOpt.getAttribute('data-project-id');
-                        if (pId) {
-                            projectSelect.value = pId;
-                            filterPropertiesByProject();
-                        }
-                    }
-                }
             }
         });
     }
@@ -1093,7 +1082,10 @@ function selectExpenseType(type) {
 
     if (type === 'Rental') {
         if (row) row.style.display = 'grid';
-        if (projWrapper) projWrapper.style.display = 'none';
+        if (projWrapper) {
+            projWrapper.style.display = 'none';
+            if (projectSelect) projectSelect.value = '';
+        }
         if (propWrapper) propWrapper.style.gridColumn = '1 / -1';
         if (rentalCard) rentalCard.style.display = 'block';
         if (rentalChips) rentalChips.style.display = 'block';
@@ -1110,8 +1102,11 @@ function selectExpenseType(type) {
         }
     } else if (type === 'Property') {
         if (row) row.style.display = 'grid';
-        if (projWrapper) projWrapper.style.display = 'block';
-        if (propWrapper) propWrapper.style.gridColumn = 'auto';
+        if (projWrapper) {
+            projWrapper.style.display = 'none';
+            if (projectSelect) projectSelect.value = '';
+        }
+        if (propWrapper) propWrapper.style.gridColumn = '1 / -1';
         if (rentalCard) rentalCard.style.display = 'none';
         if (rentalChips) rentalChips.style.display = 'none';
         if (titleEl) titleEl.textContent = '1. Property Expense Classification';

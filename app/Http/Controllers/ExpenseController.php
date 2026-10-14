@@ -552,12 +552,13 @@ class ExpenseController extends Controller
     {
         $expense->load(['firms', 'firm', 'project', 'properties', 'property.project', 'vendor', 'rental.tenant', 'tenant']);
         $this->authorise($expense);
-        $selectedType = $expense->expense_type ?: ($expense->rental_id ? 'Rental' : ($expense->project_id || $expense->property_id ? 'Property' : 'General'));
+        $selectedType = $expense->expense_type ?: ($expense->rental_id ? 'Rental' : ($expense->property_id || $expense->properties->isNotEmpty() ? 'Property' : ($expense->project_id ? 'Project' : 'General')));
+        $selectedProjectId = in_array($selectedType, ['Property', 'Rental']) ? null : $expense->project_id;
         return view('admin.expenses.edit', array_merge(
             [
                 'expense' => $expense,
                 'selectedType' => $selectedType,
-                'selectedProjectId' => $expense->project_id ?? $expense->property?->project_id ?? $expense->properties->first()?->project_id,
+                'selectedProjectId' => $selectedProjectId,
                 'selectedPropertyId' => $expense->property_id,
                 'selectedRentalId' => $expense->rental_id,
                 'selectedTenantId' => $expense->tenant_id,
@@ -779,9 +780,13 @@ class ExpenseController extends Controller
             } elseif ($activeType === 'Project') {
                 $query->where(function ($q) {
                     $q->where('expense_type', 'Project')
-                      ->orWhereNotNull('project_id')
+                      ->orWhere(function ($sub) {
+                          $sub->whereNotNull('project_id')
+                              ->whereNull('property_id')
+                              ->whereDoesntHave('properties');
+                      })
                       ->orWhereNotNull('purchase_order_id');
-                });
+                })->whereNull('property_id')->whereDoesntHave('properties');
             } elseif ($activeType === 'General') {
                 $query->where(function ($q) {
                     $q->whereIn('expense_type', ['General', 'Office'])
@@ -838,7 +843,9 @@ class ExpenseController extends Controller
         }
 
         if ($request->filled('filter_project')) {
-            $query->where('project_id', $request->filter_project);
+            $query->where('project_id', $request->filter_project)
+                  ->whereNull('property_id')
+                  ->whereDoesntHave('properties');
         }
 
         if ($request->filled('filter_property')) {
