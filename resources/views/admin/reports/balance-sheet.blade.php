@@ -218,6 +218,26 @@
 {{-- ── Filter ── --}}
 <div class="card-box">
     <form method="GET" action="{{ route('reports.balance-sheet') }}" class="filter-bar">
+        @if(isset($firms) && Auth::user()?->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id') == $f->id ? 'selected' : '' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
+        <div class="filter-group">
+            <span class="filter-label">Project</span>
+            <select name="filter_project" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                @foreach($projects as $p)
+                    <option value="{{ $p->id }}" {{ request('filter_project') == $p->id ? 'selected' : '' }}>{{ $p->project_name }}</option>
+                @endforeach
+            </select>
+        </div>
         <div class="filter-group">
             <span class="filter-label">As On Date</span>
             <input type="date" name="as_on_date" value="{{ request('as_on_date') }}" class="filter-ctrl @error('as_on_date') is-invalid @enderror">
@@ -225,7 +245,7 @@
         <button type="submit" class="btn-filter">
             <i class="fa-solid fa-magnifying-glass"></i> Apply Filter
         </button>
-        @if(request('as_on_date'))
+        @if(request('as_on_date') || request('firm_id') || request('filter_project'))
             <a href="{{ route('reports.balance-sheet') }}" class="btn-reset">
                 <i class="fa-solid fa-rotate-left"></i> Reset
             </a>

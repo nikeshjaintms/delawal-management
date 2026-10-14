@@ -28,6 +28,10 @@ class LoanReportController extends Controller
         if ($request->filled('filter_bank'))      $query->where('bank_name', 'like', '%' . $request->filter_bank . '%');
         if ($request->filled('from_date'))        $query->where('loan_start_date', '>=', $request->from_date);
         if ($request->filled('to_date'))          $query->where('loan_start_date', '<=', $request->to_date);
+        if ($request->filled('filter_project')) {
+            $projectId = $request->filter_project;
+            $query->whereHas('property', fn($p) => $p->where('project_id', $projectId));
+        }
 
         return $query->orderBy('loan_start_date', 'desc')->get();
     }
@@ -63,11 +67,30 @@ class LoanReportController extends Controller
         $summaries  = $this->buildSummaries($loans);
 
         $firms      = \App\Models\Firm::where('status', 'active')->orderBy('firm_name')->get();
-        $properties = Property::orderBy('property_name')->get();
-        $customers  = Customer::orderBy('name')->get();
+        $propQuery  = Property::orderBy('property_name');
+        $custQuery  = Customer::orderBy('name');
+        $projQuery  = \App\Models\Project::orderBy('project_name');
+
+        if (!Auth::user()->isAdmin()) {
+            $propQuery->where('firm_id', Auth::user()->firm_id);
+            $custQuery->where('firm_id', Auth::user()->firm_id);
+            $projQuery->where('firm_id', Auth::user()->firm_id);
+        } elseif ($request->filled('firm_id')) {
+            $propQuery->where('firm_id', $request->firm_id);
+            $custQuery->where('firm_id', $request->firm_id);
+            $projQuery->where('firm_id', $request->firm_id);
+        }
+
+        if ($request->filled('filter_project')) {
+            $propQuery->where('project_id', $request->filter_project);
+        }
+
+        $properties = $propQuery->get();
+        $customers  = $custQuery->get();
+        $projects   = $projQuery->get();
 
         return view('admin.loan-report.index', array_merge(
-            compact('loans', 'firms', 'properties', 'customers'),
+            compact('loans', 'firms', 'projects', 'properties', 'customers'),
             $summaries
         ));
     }

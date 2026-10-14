@@ -196,6 +196,26 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
 {{-- Filters --}}
 <div class="card-box">
     <form method="GET" action="{{ route('reports.debit-note') }}" class="filter-bar">
+        @if(auth()->user() && auth()->user()->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id') == $f->id ? 'selected' : '' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
+        <div class="filter-group">
+            <span class="filter-label">Project</span>
+            <select name="filter_project" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                @foreach($projects as $p)
+                    <option value="{{ $p->id }}" {{ request('filter_project') == $p->id ? 'selected' : '' }}>{{ $p->project_name }}</option>
+                @endforeach
+            </select>
+        </div>
         <div class="filter-group">
             <span class="filter-label">From Date</span>
             <input type="date" name="from_date" value="{{ request('from_date') }}" class="filter-ctrl @error('from_date') is-invalid @enderror">
@@ -218,7 +238,7 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
         <button type="submit" class="btn-filter">
             <i class="fa-solid fa-magnifying-glass"></i> Apply Filter
         </button>
-        @if(request()->hasAny(['from_date','to_date','filter_vendor']))
+        @if(request()->hasAny(['from_date','to_date','filter_vendor','firm_id','filter_project']))
             <a href="{{ route('reports.debit-note') }}" class="btn-reset">
                 <i class="fa-solid fa-rotate-left"></i> Reset
             </a>

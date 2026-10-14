@@ -145,7 +145,7 @@
     <div class="ph-right">
         <div class="ph-title">Loan Report</div>
         <div class="ph-meta">Generated: {{ now()->format('d M Y, h:i A') }}</div>
-        @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status','filter_bank']))
+        @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status','filter_bank','firm_id','filter_project']))
         <div class="ph-meta" style="margin-top:4px;">
             @if(request('from_date') || request('to_date'))
                 Period: {{ request('from_date') ? \Carbon\Carbon::parse(request('from_date'))->format('d M Y') : 'All time' }}
@@ -245,7 +245,18 @@
             </select>
         </div>
         <div class="filter-group">
-            <span class="filter-label">Property / Project</span>
+            <span class="filter-label">Project</span>
+            <select name="filter_project" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                @foreach($projects as $p)
+                    <option value="{{ $p->id }}" {{ request('filter_project') == $p->id ? 'selected' : '' }}>
+                        {{ $p->project_name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Property</span>
             <select name="filter_property" class="filter-ctrl @error('filter_property') is-invalid @enderror">
                 <option value="">All Properties</option>
                 @foreach($properties as $p)

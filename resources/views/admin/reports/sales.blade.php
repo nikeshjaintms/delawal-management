@@ -234,6 +234,35 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
 {{-- ── Filter Bar ── --}}
 <div class="card-box filter-card">
     <form method="GET" action="{{ route('reports.sales') }}" class="filter-bar">
+        @if(isset($firms) && Auth::user()?->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id')==$f->id?'selected':'' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
+        <div class="filter-group">
+            <span class="filter-label">Project</span>
+            <select name="filter_project" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                @foreach($projects as $p)
+                    <option value="{{ $p->id }}" {{ request('filter_project') == $p->id ? 'selected' : '' }}>{{ $p->project_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Property</span>
+            <select name="filter_property" class="filter-ctrl @error('filter_property') is-invalid @enderror">
+                <option value="">All Properties</option>
+                @foreach($properties as $p)
+                    <option value="{{ $p->id }}" {{ request('filter_property')==$p->id?'selected':'' }}>{{ $p->property_name }}</option>
+                @endforeach
+            </select>
+        </div>
         <div class="filter-group">
             <span class="filter-label">From Date</span>
             <input type="date" name="from_date" value="{{ request('from_date') }}" class="filter-ctrl @error('from_date') is-invalid @enderror">
@@ -252,15 +281,6 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
             </select>
         </div>
         <div class="filter-group">
-            <span class="filter-label">Property / Project</span>
-            <select name="filter_property" class="filter-ctrl @error('filter_property') is-invalid @enderror">
-                <option value="">All Properties</option>
-                @foreach($properties as $p)
-                    <option value="{{ $p->id }}" {{ request('filter_property')==$p->id?'selected':'' }}>{{ $p->property_name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="filter-group">
             <span class="filter-label">Payment Status</span>
             <select name="filter_status" class="filter-ctrl @error('filter_status') is-invalid @enderror">
                 <option value="">All Status</option>
@@ -269,21 +289,10 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
                 @endforeach
             </select>
         </div>
-        @if(isset($firms) && $firms->count() > 1 && Auth::user()?->isAdmin())
-        <div class="filter-group">
-            <span class="filter-label">Firm</span>
-            <select name="firm_id" class="filter-ctrl">
-                <option value="">All Firms</option>
-                @foreach($firms as $f)
-                    <option value="{{ $f->id }}" {{ request('firm_id')==$f->id?'selected':'' }}>{{ $f->firm_name }}</option>
-                @endforeach
-            </select>
-        </div>
-        @endif
         <button type="submit" class="btn-filter">
             <i class="fa-solid fa-magnifying-glass"></i> Search
         </button>
-        @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status','firm_id']))
+        @if(request()->hasAny(['from_date','to_date','filter_customer','filter_property','filter_status','firm_id','filter_project']))
             <a href="{{ route('reports.sales') }}" class="btn-reset">
                 <i class="fa-solid fa-rotate-left"></i> Reset
             </a>

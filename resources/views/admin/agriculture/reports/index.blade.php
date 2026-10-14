@@ -158,6 +158,16 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
         @endif
 
         <div class="filter-group">
+            <span class="filter-label">Project</span>
+            <select name="project_id" class="filter-control" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                @foreach($projects as $p)
+                    <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>{{ $p->project_name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="filter-group">
             <span class="filter-label">Farm / Land</span>
             <select name="farm_id" class="filter-control">
                 <option value="">All Farms</option>

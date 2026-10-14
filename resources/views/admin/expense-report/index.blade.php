@@ -208,6 +208,15 @@
         </div>
         @endif
         <div class="filter-group">
+            <span class="filter-label">Project</span>
+            <select name="filter_project" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                @foreach($projects as $p)
+                    <option value="{{ $p->id }}" {{ request('filter_project') == $p->id ? 'selected' : '' }}>{{ $p->project_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="filter-group">
             <span class="filter-label">From Date</span>
             <input type="date" name="from_date" value="{{ request('from_date') }}" class="filter-ctrl @error('from_date') is-invalid @enderror">
         </div>

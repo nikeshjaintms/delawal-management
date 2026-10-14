@@ -19,20 +19,27 @@ use Carbon\Carbon;
 
 class AgriReportController extends Controller
 {
-    private function getFirmsAndDropdowns()
+    private function getFirmsAndDropdowns(Request $request = null)
     {
         $user = Auth::user();
         $firmId = $user ? $user->firm_id : session('firm_id');
+        if ($user && $user->isAdmin() && $request && $request->filled('firm_id')) {
+            $firmId = $request->firm_id;
+        }
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
         $farmQuery = AgriFarm::where('status', 'Active')->orderBy('farm_name');
         $projQuery = Project::where('status', 'active')->orderBy('project_name');
         $labourQuery = AgriLabour::orderBy('name');
 
-        if ($firmId && (!$user || !$user->isAdmin())) {
+        if ($firmId) {
             $farmQuery->where('firm_id', $firmId);
             $projQuery->where('firm_id', $firmId);
             $labourQuery->where('firm_id', $firmId);
+        }
+
+        if ($request && $request->filled('project_id')) {
+            $farmQuery->where('project_id', $request->project_id);
         }
 
         return [
@@ -49,7 +56,7 @@ class AgriReportController extends Controller
     public function index(Request $request)
     {
         $reportType = $request->input('report_type', 'profit_loss');
-        $dropdowns = $this->getFirmsAndDropdowns();
+        $dropdowns = $this->getFirmsAndDropdowns($request);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -68,6 +75,7 @@ class AgriReportController extends Controller
             elseif ($request->filled('firm_id')) $query->forFirms([$request->firm_id]);
 
             if ($request->filled('farm_id')) $query->where('farm_id', $request->farm_id);
+            if ($request->filled('project_id')) $query->where('project_id', $request->project_id);
             if ($request->filled('income_type')) $query->where('income_type', $request->income_type);
             if ($fromDate) $query->whereDate('income_date', '>=', $fromDate);
             if ($toDate) $query->whereDate('income_date', '<=', $toDate);
@@ -85,6 +93,7 @@ class AgriReportController extends Controller
             elseif ($request->filled('firm_id')) $query->forFirms([$request->firm_id]);
 
             if ($request->filled('farm_id')) $query->where('farm_id', $request->farm_id);
+            if ($request->filled('project_id')) $query->where('project_id', $request->project_id);
             if ($request->filled('category')) $query->where('category', $request->category);
             if ($fromDate) $query->whereDate('expense_date', '>=', $fromDate);
             if ($toDate) $query->whereDate('expense_date', '<=', $toDate);
@@ -100,6 +109,7 @@ class AgriReportController extends Controller
             elseif ($request->filled('firm_id')) $query->forFirms([$request->firm_id]);
 
             if ($request->filled('farm_id')) $query->where('farm_id', $request->farm_id);
+            if ($request->filled('project_id')) $query->whereHas('farm', fn($f) => $f->where('project_id', $request->project_id));
             if ($request->filled('labour_type')) $query->where('labour_type', $request->labour_type);
 
             $labours = $query->orderBy('name')->get();
@@ -108,6 +118,7 @@ class AgriReportController extends Controller
             if (!$isAdmin) $paymentsQuery->forFirms([$firmId]);
             elseif ($request->filled('firm_id')) $paymentsQuery->forFirms([$request->firm_id]);
             if ($request->filled('farm_id')) $paymentsQuery->where('farm_id', $request->farm_id);
+            if ($request->filled('project_id')) $paymentsQuery->whereHas('farm', fn($f) => $f->where('project_id', $request->project_id));
             if ($fromDate) $paymentsQuery->whereDate('payment_date', '>=', $fromDate);
             if ($toDate) $paymentsQuery->whereDate('payment_date', '<=', $toDate);
             $payments = $paymentsQuery->orderBy('payment_date', 'desc')->get();
@@ -186,6 +197,17 @@ class AgriReportController extends Controller
             if ($request->filled('farm_id')) {
                 $incQuery->where('farm_id', $request->farm_id);
                 $expQuery->where('farm_id', $request->farm_id);
+            }
+
+            if ($request->filled('project_id')) {
+                $incQuery->where(function($q) use ($request) {
+                    $q->where('project_id', $request->project_id)
+                      ->orWhereHas('farm', fn($f) => $f->where('project_id', $request->project_id));
+                });
+                $expQuery->where(function($q) use ($request) {
+                    $q->where('project_id', $request->project_id)
+                      ->orWhereHas('farm', fn($f) => $f->where('project_id', $request->project_id));
+                });
             }
 
             if ($fromDate) {

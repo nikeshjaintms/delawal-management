@@ -244,6 +244,15 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
         </div>
         @endif
         <div class="filter-group">
+            <span class="filter-label">Project</span>
+            <select name="filter_project" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                @foreach($projects as $p)
+                    <option value="{{ $p->id }}" {{ request('filter_project') == $p->id ? 'selected' : '' }}>{{ $p->project_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="filter-group">
             <span class="filter-label">From Date</span>
             <input type="date" name="from_date" value="{{ request('from_date') }}" class="filter-ctrl @error('from_date') is-invalid @enderror">
         </div>
@@ -299,7 +308,7 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
         <button type="submit" class="btn-filter">
             <i class="fa-solid fa-magnifying-glass"></i> Search
         </button>
-        @if(request()->hasAny(['from_date','to_date','firm_id','filter_tenant','filter_property','filter_property_type','filter_status','filter_mode']))
+        @if(request()->hasAny(['from_date','to_date','firm_id','filter_project','filter_tenant','filter_property','filter_property_type','filter_status','filter_mode']))
             <a href="{{ route('reports.rentals') }}" class="btn-reset">
                 <i class="fa-solid fa-rotate-left"></i> Reset
             </a>

@@ -49,6 +49,12 @@ class ExpenseReportController extends Controller
         if ($request->filled('filter_status')) {
             $query->where('approval_status', $request->filter_status);
         }
+        if ($request->filled('filter_project')) {
+            $projectId = $request->filter_project;
+            $query->where('project_id', $projectId)
+                  ->whereNull('property_id')
+                  ->whereDoesntHave('properties');
+        }
 
         return $query->orderBy('expense_date', 'desc')->get();
     }
@@ -93,6 +99,14 @@ class ExpenseReportController extends Controller
         } elseif ($request->filled('firm_ids') || $request->filled('firm_id')) {
             $todayQuery->forFirms($request->input('firm_ids', (array)$request->firm_id));
         }
+        if ($request->filled('filter_project')) {
+            $projectId = $request->filter_project;
+            $todayQuery->where(function($q) use ($projectId) {
+                $q->where('project_id', $projectId)
+                  ->orWhereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $todayAmount = $todayQuery->sum('amount');
 
         $summaries = $this->buildSummaries($expenses);
@@ -101,23 +115,31 @@ class ExpenseReportController extends Controller
         $propQuery = Property::orderBy('property_name');
         $catQuery  = ExpenseCategory::where('status', 'active')->orderBy('name');
         $venQuery  = \App\Models\Vendor::orderBy('name');
+        $projQuery = \App\Models\Project::orderBy('project_name');
 
         if (!Auth::user()->isAdmin()) {
             $propQuery->where('firm_id', Auth::user()->firm_id);
-            $catQuery->where('firm_id', Auth::user()->firm_id);
+            $catQuery->whereHas('firms', fn($q) => $q->where('firms.id', Auth::user()->firm_id));
             $venQuery->where('firm_id', Auth::user()->firm_id);
+            $projQuery->where('firm_id', Auth::user()->firm_id);
         } elseif ($request->filled('firm_id')) {
             $propQuery->where('firm_id', $request->firm_id);
-            $catQuery->where('firm_id', $request->firm_id);
+            $catQuery->whereHas('firms', fn($q) => $q->where('firms.id', $request->firm_id));
             $venQuery->where('firm_id', $request->firm_id);
+            $projQuery->where('firm_id', $request->firm_id);
+        }
+
+        if ($request->filled('filter_project')) {
+            $propQuery->where('project_id', $request->filter_project);
         }
 
         $properties = $propQuery->get();
         $categories = $catQuery->get();
         $vendors    = $venQuery->get();
+        $projects   = $projQuery->get();
 
         return view('admin.expense-report.index', array_merge(
-            compact('expenses', 'firms', 'properties', 'categories', 'vendors', 'totalAmount', 'paidAmount', 'pendingAmount', 'todayAmount'),
+            compact('expenses', 'firms', 'projects', 'properties', 'categories', 'vendors', 'totalAmount', 'paidAmount', 'pendingAmount', 'todayAmount'),
             $summaries
         ));
     }

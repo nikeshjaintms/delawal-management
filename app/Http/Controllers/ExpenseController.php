@@ -167,7 +167,11 @@ class ExpenseController extends Controller
             } elseif ($activeType === 'Project') {
                 $query->where(function ($q) {
                     $q->where('expense_type', 'Project')
-                      ->orWhereNotNull('project_id')
+                      ->orWhere(function ($sub) {
+                          $sub->whereNotNull('project_id')
+                              ->whereNull('property_id')
+                              ->whereDoesntHave('properties');
+                      })
                       ->orWhereNotNull('purchase_order_id');
                 });
             } elseif ($activeType === 'General') {
@@ -226,7 +230,9 @@ class ExpenseController extends Controller
         }
 
         if ($request->filled('filter_project')) {
-            $query->where('project_id', $request->filter_project);
+            $query->where('project_id', $request->filter_project)
+                  ->whereNull('property_id')
+                  ->whereDoesntHave('properties');
         }
 
         if ($request->filled('filter_property')) {
@@ -438,9 +444,9 @@ class ExpenseController extends Controller
         }
 
         $projectId = $request->project_id ?: null;
-        if (!$projectId && $primaryPropertyId) {
-            $prop = Property::find($primaryPropertyId);
-            $projectId = $prop?->project_id ?: null;
+        // If property is selected or expense_type is Property, it is a property expense and should not affect project
+        if ($primaryPropertyId || $request->expense_type === 'Property') {
+            $projectId = null;
         }
 
         $vendorId = $request->input('vendor_id');
@@ -639,9 +645,9 @@ class ExpenseController extends Controller
         }
 
         $projectId = $request->project_id ?: null;
-        if (!$projectId && $primaryPropertyId) {
-            $prop = Property::find($primaryPropertyId);
-            $projectId = $prop?->project_id ?: null;
+        // If property is selected or expense_type is Property, it is a property expense and should not affect project
+        if ($primaryPropertyId || $request->expense_type === 'Property') {
+            $projectId = null;
         }
 
         $vendorId = $request->input('vendor_id');

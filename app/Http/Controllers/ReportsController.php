@@ -15,6 +15,7 @@ use App\Models\Material;
 use App\Models\MaterialCategory;
 use App\Models\Payment;
 use App\Models\PaymentMode;
+use App\Models\Project;
 use App\Models\Property;
 use App\Models\PropertySale;
 use App\Models\PropertyType;
@@ -59,6 +60,13 @@ class ReportsController extends Controller
         return $query;
     }
 
+    private function getAvailableProjects(Request $request)
+    {
+        $projQuery = Project::orderBy('project_name');
+        $this->applyFirmScope($projQuery, $request);
+        return $projQuery->get();
+    }
+
     // ---------------------------------------------------------------
     // Reports Hub — Landing Page
     // ---------------------------------------------------------------
@@ -79,6 +87,13 @@ class ReportsController extends Controller
         if ($request->filled('to_date'))         $query->whereDate('sale_date', '<=', $request->to_date);
         if ($request->filled('filter_customer')) $query->where('customer_id', $request->filter_customer);
         if ($request->filled('filter_status'))   $query->where('payment_status', $request->filter_status);
+        if ($request->filled('filter_project')) {
+            $projectId = $request->filter_project;
+            $query->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
 
         $sales = $query->orderBy('sale_date', 'desc')->get();
         $sales->transform(function ($s) {
@@ -109,9 +124,10 @@ class ReportsController extends Controller
         $this->applyFirmScope($custQuery, $request);
         $customers = $custQuery->get();
         $firms     = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $projects  = $this->getAvailableProjects($request);
 
         return view('admin.reports.gst-sales', compact(
-            'sales', 'customers', 'firms',
+            'sales', 'customers', 'firms', 'projects',
             'totalInvoices', 'totalTaxable',
             'totalCgst', 'totalSgst', 'totalIgst',
             'totalGst', 'grandTotal'
@@ -181,6 +197,12 @@ class ReportsController extends Controller
         if ($request->filled('filter_vendor'))   $query->where('vendor_id', $request->filter_vendor);
         if ($request->filled('filter_status'))   $query->where('approval_status', $request->filter_status);
         if ($request->filled('filter_category')) $query->where('expense_category_id', $request->filter_category);
+        if ($request->filled('filter_project')) {
+            $projectId = $request->filter_project;
+            $query->where('project_id', $projectId)
+                  ->whereNull('property_id')
+                  ->whereDoesntHave('properties');
+        }
 
         $expenses = $query->orderBy('expense_date', 'desc')->get();
         $expenses->transform(function ($e) {
@@ -213,13 +235,14 @@ class ReportsController extends Controller
         $vendors = $venQuery->get();
 
         $catQuery = ExpenseCategory::where('status', 'active')->orderBy('name');
-        $this->applyFirmScope($catQuery, $request, 'id', 'firms');
+        $this->applyFirmScope($catQuery, $request, 'firms.id', 'firms');
         $categories = $catQuery->get();
 
-        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $firms    = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $projects = $this->getAvailableProjects($request);
 
         return view('admin.reports.gst-purchase', compact(
-            'expenses', 'vendors', 'categories', 'firms',
+            'expenses', 'vendors', 'categories', 'firms', 'projects',
             'totalBills', 'totalTaxable',
             'totalCgst', 'totalSgst', 'totalIgst',
             'totalGst', 'grandTotal'
@@ -300,6 +323,13 @@ class ReportsController extends Controller
         if ($request->filled('to_date'))         $query->whereDate('credit_note_date', '<=', $request->to_date);
         if ($request->filled('filter_customer')) $query->where('customer_id', $request->filter_customer);
         if ($request->filled('filter_status'))   $query->where('status', $request->filter_status);
+        if ($request->filled('filter_project')) {
+            $projectId = $request->filter_project;
+            $query->whereHas('propertySale', function($ps) use ($projectId) {
+                $ps->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                   ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
 
         return $query->orderBy('credit_note_date', 'desc')->get();
     }
@@ -320,9 +350,10 @@ class ReportsController extends Controller
         $this->applyFirmScope($custQuery, $request);
         $customers = $custQuery->get();
         $firms     = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $projects  = $this->getAvailableProjects($request);
 
         return view('admin.reports.credit-note', compact(
-            'notes', 'customers', 'firms',
+            'notes', 'customers', 'firms', 'projects',
             'totalNotes', 'totalTaxable',
             'totalCgst', 'totalSgst', 'totalIgst',
             'totalGst', 'totalCredit'
@@ -396,6 +427,18 @@ class ReportsController extends Controller
         if ($request->filled('to_date'))        $query->whereDate('debit_note_date', '<=', $request->to_date);
         if ($request->filled('filter_vendor'))  $query->where('vendor_id', $request->filter_vendor);
         if ($request->filled('filter_status'))  $query->where('status', $request->filter_status);
+        if ($request->filled('filter_project')) {
+            $projectId = $request->filter_project;
+            $query->where(function($q) use ($projectId) {
+                $q->whereHas('vendor', fn($v) => $v->where('project_id', $projectId))
+                  ->orWhereExists(function($sub) use ($projectId) {
+                      $sub->selectRaw(1)->from('expenses')
+                          ->whereColumn('expenses.bill_no', 'debit_notes.related_bill_no')
+                          ->where('expenses.project_id', $projectId)
+                          ->whereNull('expenses.property_id');
+                  });
+            });
+        }
 
         return $query->orderBy('debit_note_date', 'desc')->get();
     }
@@ -414,11 +457,12 @@ class ReportsController extends Controller
 
         $venQuery = Vendor::orderBy('name');
         $this->applyFirmScope($venQuery, $request);
-        $vendors = $venQuery->get();
-        $firms   = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $vendors  = $venQuery->get();
+        $firms    = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $projects = $this->getAvailableProjects($request);
 
         return view('admin.reports.debit-note', compact(
-            'notes', 'vendors', 'firms',
+            'notes', 'vendors', 'firms', 'projects',
             'totalNotes', 'totalTaxable',
             'totalCgst', 'totalSgst', 'totalIgst',
             'totalGst', 'totalDebit'
@@ -487,11 +531,18 @@ class ReportsController extends Controller
     {
         $fromDate = $request->filled('from_date') ? $request->from_date : null;
         $toDate   = $request->filled('to_date')   ? $request->to_date   : null;
+        $projectId = $request->filled('filter_project') ? $request->filter_project : null;
 
         // ── 1. OPERATING REVENUE (TURNOVER) ──
         $salesQuery = PropertySale::with(['properties.propertyMaster', 'property.propertyMaster'])
             ->where('sale_status', '!=', 'cancelled');
         $this->applyFirmScope($salesQuery, $request);
+        if ($projectId) {
+            $salesQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $salesList = $salesQuery
             ->when($fromDate, fn($q) => $q->whereDate('sale_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('sale_date', '<=', $toDate))
@@ -501,6 +552,13 @@ class ReportsController extends Controller
 
         $rentPayQuery = RentalPayment::query();
         $this->applyFirmScope($rentPayQuery, $request, 'firm_id', 'rental');
+        if ($projectId) {
+            $rentPayQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('rental.property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('rental.properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $rentalRevenue = (float)$rentPayQuery
             ->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('payment_date', '<=', $toDate))
@@ -508,6 +566,9 @@ class ReportsController extends Controller
 
         $incQuery = \App\Models\Income::query();
         $this->applyFirmScope($incQuery, $request);
+        if ($projectId) {
+            $incQuery->whereHas('property', fn($p) => $p->where('project_id', $projectId));
+        }
         $otherIncome = (float)$incQuery
             ->when($fromDate, fn($q) => $q->whereDate('income_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('income_date', '<=', $toDate))
@@ -520,6 +581,9 @@ class ReportsController extends Controller
 
         $matInwardQuery = StockInward::query();
         $this->applyFirmScope($matInwardQuery, $request);
+        if ($projectId) {
+            $matInwardQuery->where('project_id', $projectId);
+        }
         $materialPurchaseCost = (float)$matInwardQuery
             ->when($fromDate, fn($q) => $q->whereDate('inward_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('inward_date', '<=', $toDate))
@@ -536,6 +600,11 @@ class ReportsController extends Controller
 
         $expQuery = Expense::query();
         $this->applyFirmScope($expQuery, $request);
+        if ($projectId) {
+            $expQuery->where('project_id', $projectId)
+                     ->whereNull('property_id')
+                     ->whereDoesntHave('properties');
+        }
         $operatingExpenses = (float)$expQuery
             ->when($fromDate, fn($q) => $q->whereDate('expense_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('expense_date', '<=', $toDate))
@@ -543,6 +612,9 @@ class ReportsController extends Controller
 
         $loanQuery = LoanEmiSchedule::whereIn('emi_status', ['Paid', 'Partial']);
         $this->applyFirmScope($loanQuery, $request, 'firm_id', 'loan');
+        if ($projectId) {
+            $loanQuery->whereHas('loan.property', fn($p) => $p->where('project_id', $projectId));
+        }
         $loanEmiPaid = (float)$loanQuery
             ->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('payment_date', '<=', $toDate))
@@ -575,8 +647,9 @@ class ReportsController extends Controller
     {
         $pl = $this->getProfitLossData($request);
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $projects = $this->getAvailableProjects($request);
 
-        return view('admin.reports.profit-loss', array_merge($pl, compact('firms')));
+        return view('admin.reports.profit-loss', array_merge($pl, compact('firms', 'projects')));
     }
 
     public function profitLossExportPdf(Request $request)
@@ -643,26 +716,50 @@ class ReportsController extends Controller
     // ---------------------------------------------------------------
     public function balanceSheet(Request $request)
     {
-        $asOnDate = $request->filled('as_on_date') ? $request->as_on_date : null;
+        $asOnDate  = $request->filled('as_on_date') ? $request->as_on_date : null;
+        $projectId = $request->filled('filter_project') ? $request->filter_project : null;
 
         // ── 1. ASSETS (CURRENT & NON-CURRENT) ──
         // Liquid Cash & Bank from all payments
         $payQuery = Payment::query();
         $this->applyFirmScope($payQuery, $request);
+        if ($projectId) {
+            $payQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('propertySale.property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('propertySale.properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $cashFromPayments = $payQuery->when($asOnDate, fn($q) => $q->whereDate('payment_date', '<=', $asOnDate))->sum('payment_amount');
 
         $bkQuery = Booking::query();
         $this->applyFirmScope($bkQuery, $request);
+        if ($projectId) {
+            $bkQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $cashFromBookings = $bkQuery->when($asOnDate, fn($q) => $q->whereDate('booking_date', '<=', $asOnDate))->sum('booking_amount');
 
         $cashReceived = max($cashFromPayments, $cashFromBookings);
 
         $rentPayQuery = RentalPayment::query();
         $this->applyFirmScope($rentPayQuery, $request, 'firm_id', 'rental');
+        if ($projectId) {
+            $rentPayQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('rental.property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('rental.properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $rentalCashReceived = $rentPayQuery->when($asOnDate, fn($q) => $q->whereDate('payment_date', '<=', $asOnDate))->sum('paid_amount');
 
         $incQuery = \App\Models\Income::query();
         $this->applyFirmScope($incQuery, $request);
+        if ($projectId) {
+            $incQuery->whereHas('property', fn($p) => $p->where('project_id', $projectId));
+        }
         $otherIncomeReceived = $incQuery->when($asOnDate, fn($q) => $q->whereDate('income_date', '<=', $asOnDate))->sum('amount');
 
         $totalCashAndBank = $cashReceived + $rentalCashReceived + $otherIncomeReceived;
@@ -670,11 +767,23 @@ class ReportsController extends Controller
         // Accounts Receivable (Debtors: Sales Remaining + Booking Remaining + Rent Overdue)
         $saleRecQuery = PropertySale::query();
         $this->applyFirmScope($saleRecQuery, $request);
+        if ($projectId) {
+            $saleRecQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $receivablesFromSales = $saleRecQuery->when($asOnDate, fn($q) => $q->whereDate('sale_date', '<=', $asOnDate))
             ->whereIn('payment_status', ['pending', 'partial'])->sum('remaining_amount');
 
         $bkRecQuery = Booking::query();
         $this->applyFirmScope($bkRecQuery, $request);
+        if ($projectId) {
+            $bkRecQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $receivablesFromBookings = $bkRecQuery->when($asOnDate, fn($q) => $q->whereDate('booking_date', '<=', $asOnDate))
             ->whereIn('payment_status', ['unpaid', 'partial'])->sum('remaining_amount');
 
@@ -683,16 +792,28 @@ class ReportsController extends Controller
         // Inventory Stock: Available properties valuation
         $propQuery = Property::whereIn('status', ['available', 'booked']);
         $this->applyFirmScope($propQuery, $request);
+        if ($projectId) {
+            $propQuery->where('project_id', $projectId);
+        }
         $propertyValue = $propQuery->sum('price');
 
         // Material inventory valuation
         $matQuery = StockInward::query();
         $this->applyFirmScope($matQuery, $request);
+        if ($projectId) {
+            $matQuery->where('project_id', $projectId);
+        }
         $materialStockValue = $matQuery->when($asOnDate, fn($q) => $q->whereDate('inward_date', '<=', $asOnDate))->sum('total_amount');
 
         // Security Deposits
         $rentQuery = Rental::where('rental_status', 'active');
         $this->applyFirmScope($rentQuery, $request);
+        if ($projectId) {
+            $rentQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $securityDeposits = $rentQuery->when($asOnDate, fn($q) => $q->whereDate('rent_start_date', '<=', $asOnDate))->sum('security_deposit');
 
         $totalAssets = $totalCashAndBank + $receivables + $propertyValue + $materialStockValue + $securityDeposits;
@@ -700,16 +821,30 @@ class ReportsController extends Controller
         // ── 2. LIABILITIES ──
         $loanQuery = Loan::query();
         $this->applyFirmScope($loanQuery, $request);
+        if ($projectId) {
+            $loanQuery->whereHas('property', fn($p) => $p->where('project_id', $projectId));
+        }
         $loanOutstanding = $loanQuery->when($asOnDate, fn($q) => $q->whereDate('loan_start_date', '<=', $asOnDate))->sum('pending_amount');
         $loanTotal = (clone $loanQuery)->sum('loan_amount');
         $loanPaid  = (clone $loanQuery)->sum('paid_amount');
 
         $expQuery = Expense::where('approval_status', 'Pending');
         $this->applyFirmScope($expQuery, $request);
+        if ($projectId) {
+            $expQuery->where('project_id', $projectId)
+                     ->whereNull('property_id')
+                     ->whereDoesntHave('properties');
+        }
         $unpaidExpenses = $expQuery->when($asOnDate, fn($q) => $q->whereDate('expense_date', '<=', $asOnDate))->sum('amount');
 
         $cnQuery = CreditNote::whereIn('status', ['Pending', 'Approved']);
         $this->applyFirmScope($cnQuery, $request);
+        if ($projectId) {
+            $cnQuery->whereHas('propertySale', function($ps) use ($projectId) {
+                $ps->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                   ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $creditNotePayable = $cnQuery->when($asOnDate, fn($q) => $q->whereDate('credit_note_date', '<=', $asOnDate))->sum('credit_amount');
 
         $totalLiabilities = $loanOutstanding + $unpaidExpenses + $creditNotePayable;
@@ -717,42 +852,76 @@ class ReportsController extends Controller
         // ── 3. EQUITY & NET CAPITAL ──
         $netWorth = $totalAssets - $totalLiabilities;
 
-        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $firms    = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $projects = $this->getAvailableProjects($request);
 
         return view('admin.reports.balance-sheet', compact(
             'cashReceived', 'rentalCashReceived', 'totalCashAndBank', 'receivables',
             'propertyValue', 'materialStockValue', 'securityDeposits', 'totalAssets',
             'loanOutstanding', 'unpaidExpenses', 'creditNotePayable',
             'loanTotal', 'loanPaid', 'totalLiabilities',
-            'netWorth', 'firms'
+            'netWorth', 'firms', 'projects'
         ));
     }
 
     public function balanceSheetExportExcel(Request $request)
     {
-        $asOnDate = $request->filled('as_on_date') ? $request->as_on_date : null;
+        $asOnDate  = $request->filled('as_on_date') ? $request->as_on_date : null;
+        $projectId = $request->filled('filter_project') ? $request->filter_project : null;
 
         $payQuery = Payment::query();
         $this->applyFirmScope($payQuery, $request);
+        if ($projectId) {
+            $payQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('propertySale.property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('propertySale.properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $cashFromPayments = $payQuery->when($asOnDate, fn($q) => $q->whereDate('payment_date', '<=', $asOnDate))->sum('payment_amount');
 
         $bkQuery = Booking::query();
         $this->applyFirmScope($bkQuery, $request);
+        if ($projectId) {
+            $bkQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $cashFromBookings = $bkQuery->when($asOnDate, fn($q) => $q->whereDate('booking_date', '<=', $asOnDate))->sum('booking_amount');
 
         $cashReceived = max($cashFromPayments, $cashFromBookings);
 
         $rentPayQuery = RentalPayment::query();
         $this->applyFirmScope($rentPayQuery, $request, 'firm_id', 'rental');
+        if ($projectId) {
+            $rentPayQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('rental.property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('rental.properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $rentalCashReceived = $rentPayQuery->when($asOnDate, fn($q) => $q->whereDate('payment_date', '<=', $asOnDate))->sum('paid_amount');
 
         $saleRecQuery = PropertySale::query();
         $this->applyFirmScope($saleRecQuery, $request);
+        if ($projectId) {
+            $saleRecQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $receivablesFromSales = $saleRecQuery->when($asOnDate, fn($q) => $q->whereDate('sale_date', '<=', $asOnDate))
             ->whereIn('payment_status', ['pending', 'partial'])->sum('remaining_amount');
 
         $bkRecQuery = Booking::query();
         $this->applyFirmScope($bkRecQuery, $request);
+        if ($projectId) {
+            $bkRecQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $receivablesFromBookings = $bkRecQuery->when($asOnDate, fn($q) => $q->whereDate('booking_date', '<=', $asOnDate))
             ->whereIn('payment_status', ['unpaid', 'partial'])->sum('remaining_amount');
 
@@ -760,24 +929,47 @@ class ReportsController extends Controller
 
         $propQuery = Property::whereIn('status', ['available', 'booked']);
         $this->applyFirmScope($propQuery, $request);
+        if ($projectId) {
+            $propQuery->where('project_id', $projectId);
+        }
         $propertyValue = $propQuery->sum('price');
 
         $rentQuery = Rental::where('rental_status', 'active');
         $this->applyFirmScope($rentQuery, $request);
+        if ($projectId) {
+            $rentQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $securityDeposits = $rentQuery->when($asOnDate, fn($q) => $q->whereDate('rent_start_date', '<=', $asOnDate))->sum('security_deposit');
 
         $totalAssets = $cashReceived + $rentalCashReceived + $receivables + $propertyValue + $securityDeposits;
 
         $loanQuery = Loan::query();
         $this->applyFirmScope($loanQuery, $request);
+        if ($projectId) {
+            $loanQuery->whereHas('property', fn($p) => $p->where('project_id', $projectId));
+        }
         $loanOutstanding = $loanQuery->when($asOnDate, fn($q) => $q->whereDate('loan_start_date', '<=', $asOnDate))->sum('pending_amount');
 
         $expQuery = Expense::where('approval_status', 'Pending');
         $this->applyFirmScope($expQuery, $request);
+        if ($projectId) {
+            $expQuery->where('project_id', $projectId)
+                     ->whereNull('property_id')
+                     ->whereDoesntHave('properties');
+        }
         $unpaidExpenses = $expQuery->when($asOnDate, fn($q) => $q->whereDate('expense_date', '<=', $asOnDate))->sum('amount');
 
         $cnQuery = CreditNote::whereIn('status', ['Pending', 'Approved']);
         $this->applyFirmScope($cnQuery, $request);
+        if ($projectId) {
+            $cnQuery->whereHas('propertySale', function($ps) use ($projectId) {
+                $ps->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                   ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $creditNotePayable = $cnQuery->when($asOnDate, fn($q) => $q->whereDate('credit_note_date', '<=', $asOnDate))->sum('credit_amount');
 
         $totalLiabilities = $loanOutstanding + $unpaidExpenses + $creditNotePayable;
@@ -814,12 +1006,20 @@ class ReportsController extends Controller
     // ---------------------------------------------------------------
     public function cashFlow(Request $request)
     {
-        $fromDate = $request->filled('from_date') ? $request->from_date : null;
-        $toDate   = $request->filled('to_date')   ? $request->to_date   : null;
+        $fromDate  = $request->filled('from_date') ? $request->from_date : null;
+        $toDate    = $request->filled('to_date')   ? $request->to_date   : null;
+        $projectId = $request->filled('filter_project') ? $request->filter_project : null;
 
         // 1. Sales Payments
         $payQuery = Payment::with(['customer', 'propertySale.property', 'firm']);
         $this->applyFirmScope($payQuery, $request);
+        if ($projectId) {
+            $payQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('propertySale.property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('propertySale.properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $salesPayments = $payQuery->whereNotNull('payment_date')
             ->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('payment_date', '<=', $toDate))
@@ -840,6 +1040,12 @@ class ReportsController extends Controller
         if ($salesPayments->isEmpty()) {
             $bkQuery = Booking::with(['customer', 'property', 'firm']);
             $this->applyFirmScope($bkQuery, $request);
+            if ($projectId) {
+                $bkQuery->where(function($q) use ($projectId) {
+                    $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                      ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+                });
+            }
             $salesPayments = $bkQuery->whereNotNull('booking_date')->where('booking_amount', '>', 0)
                 ->when($fromDate, fn($q) => $q->whereDate('booking_date', '>=', $fromDate))
                 ->when($toDate,   fn($q) => $q->whereDate('booking_date', '<=', $toDate))
@@ -859,6 +1065,13 @@ class ReportsController extends Controller
         // 2. Rental Payments
         $rentQuery = RentalPayment::with(['rental.property', 'rental.firm']);
         $this->applyFirmScope($rentQuery, $request, 'firm_id', 'rental');
+        if ($projectId) {
+            $rentQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('rental.property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('rental.properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $rentalPayments = $rentQuery->whereNotNull('payment_date')
             ->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('payment_date', '<=', $toDate))
@@ -877,6 +1090,11 @@ class ReportsController extends Controller
         // 3. Expenses
         $expQuery = Expense::query();
         $this->applyFirmScope($expQuery, $request);
+        if ($projectId) {
+            $expQuery->where('project_id', $projectId)
+                     ->whereNull('property_id')
+                     ->whereDoesntHave('properties');
+        }
         $expensePayments = $expQuery
             ->when($fromDate, fn($q) => $q->whereDate('expense_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('expense_date', '<=', $toDate))
@@ -894,6 +1112,9 @@ class ReportsController extends Controller
         // 4. Loan EMI Repayments
         $loanQuery = LoanEmiSchedule::with('loan')->whereIn('emi_status', ['Paid', 'Partial']);
         $this->applyFirmScope($loanQuery, $request, 'firm_id', 'loan');
+        if ($projectId) {
+            $loanQuery->whereHas('loan.property', fn($p) => $p->where('project_id', $projectId));
+        }
         $loanRepayments = $loanQuery->whereNotNull('payment_date')
             ->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('payment_date', '<=', $toDate))
@@ -935,23 +1156,32 @@ class ReportsController extends Controller
             ->sortKeys()
             ->values();
 
-        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $firms    = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $projects = $this->getAvailableProjects($request);
 
         return view('admin.reports.cash-flow', compact(
             'allTransactions',
             'totalSalesInflow', 'totalRentalInflow', 'totalInflow',
             'totalExpenseOutflow', 'totalLoanOutflow', 'totalOutflow',
-            'netCashFlow', 'monthlyRows', 'firms'
+            'netCashFlow', 'monthlyRows', 'firms', 'projects'
         ));
     }
 
     public function cashFlowExportExcel(Request $request)
     {
-        $fromDate = $request->filled('from_date') ? $request->from_date : null;
-        $toDate   = $request->filled('to_date')   ? $request->to_date   : null;
+        $fromDate  = $request->filled('from_date') ? $request->from_date : null;
+        $toDate    = $request->filled('to_date')   ? $request->to_date   : null;
+        $projectId = $request->filled('filter_project') ? $request->filter_project : null;
 
         $payQuery = Payment::with(['customer','propertySale.property']);
         $this->applyFirmScope($payQuery, $request);
+        if ($projectId) {
+            $payQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('propertySale.property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('propertySale.properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $salesPayments = $payQuery->whereNotNull('payment_date')
             ->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('payment_date', '<=', $toDate))
@@ -964,6 +1194,12 @@ class ReportsController extends Controller
         if ($salesPayments->isEmpty()) {
             $bkQuery = Booking::with(['customer', 'property']);
             $this->applyFirmScope($bkQuery, $request);
+            if ($projectId) {
+                $bkQuery->where(function($q) use ($projectId) {
+                    $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                      ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+                });
+            }
             $salesPayments = $bkQuery->whereNotNull('booking_date')->where('booking_amount', '>', 0)
                 ->when($fromDate, fn($q) => $q->whereDate('booking_date', '>=', $fromDate))
                 ->when($toDate,   fn($q) => $q->whereDate('booking_date', '<=', $toDate))
@@ -976,6 +1212,13 @@ class ReportsController extends Controller
 
         $rentQuery = RentalPayment::with(['rental']);
         $this->applyFirmScope($rentQuery, $request, 'firm_id', 'rental');
+        if ($projectId) {
+            $rentQuery->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('rental.property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('rental.properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $rentalPayments = $rentQuery->whereNotNull('payment_date')
             ->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('payment_date', '<=', $toDate))
@@ -987,6 +1230,13 @@ class ReportsController extends Controller
 
         $expQuery = Expense::query();
         $this->applyFirmScope($expQuery, $request);
+        if ($projectId) {
+            $expQuery->where(function($q) use ($projectId) {
+                $q->where('project_id', $projectId)
+                  ->orWhereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
         $expensePayments = $expQuery
             ->when($fromDate, fn($q) => $q->whereDate('expense_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('expense_date', '<=', $toDate))
@@ -998,6 +1248,9 @@ class ReportsController extends Controller
 
         $loanQuery = LoanEmiSchedule::with('loan')->whereIn('emi_status', ['Paid','Partial']);
         $this->applyFirmScope($loanQuery, $request, 'firm_id', 'loan');
+        if ($projectId) {
+            $loanQuery->whereHas('loan.property', fn($p) => $p->where('project_id', $projectId));
+        }
         $loanRepayments = $loanQuery->whereNotNull('payment_date')
             ->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
             ->when($toDate,   fn($q) => $q->whereDate('payment_date', '<=', $toDate))
@@ -1048,6 +1301,13 @@ class ReportsController extends Controller
         if ($request->filled('filter_property')) $query->where('property_id', $request->filter_property);
         if ($request->filled('filter_customer')) $query->where('customer_id', $request->filter_customer);
         if ($request->filled('filter_status'))   $query->where('payment_status', $request->filter_status);
+        if ($request->filled('filter_project')) {
+            $projectId = $request->filter_project;
+            $query->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
 
         $sales = $query->orderBy('sale_date', 'desc')->get();
 
@@ -1085,15 +1345,19 @@ class ReportsController extends Controller
         $custQuery = Customer::orderBy('name');
         $this->applyFirmScope($propQuery, $request);
         $this->applyFirmScope($custQuery, $request);
+        if ($request->filled('filter_project')) {
+            $propQuery->where('project_id', $request->filter_project);
+        }
 
         $properties = $propQuery->get();
         $customers  = $custQuery->get();
         $firms      = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $projects   = $this->getAvailableProjects($request);
 
         return view('admin.reports.sales', compact(
             'records', 'totalSale', 'totalPurchaseCost', 'totalCommission', 'totalNetProfit',
             'profitMargin', 'totalReceived', 'totalPending',
-            'totalBookings', 'properties', 'customers', 'firms'
+            'totalBookings', 'properties', 'customers', 'firms', 'projects'
         ));
     }
 
@@ -1189,81 +1453,303 @@ class ReportsController extends Controller
     }
 
     // ---------------------------------------------------------------
-    // Payment Report
+    // Payment Report (Unified Inflows & Outflows: મળ્યા & આપ્યા)
     // ---------------------------------------------------------------
     private function getPaymentsData(Request $request)
     {
-        $query = Payment::with(['propertySale.property', 'customer', 'property', 'firm']);
-        $this->applyFirmScope($query, $request);
+        $fromDate  = $request->filled('from_date') ? $request->from_date : null;
+        $toDate    = $request->filled('to_date') ? $request->to_date : null;
+        $projectId = $request->filled('filter_project') ? $request->filter_project : null;
+        $propId    = $request->filled('filter_property') ? $request->filter_property : null;
+        $mode      = $request->filled('filter_mode') ? $request->filter_mode : null;
+        $status    = $request->filled('filter_status') ? strtolower($request->filter_status) : null;
+        $custId    = $request->filled('filter_customer') ? $request->filter_customer : null;
+        $payType   = $request->input('payment_type', 'all'); // 'all', 'received', 'paid'
 
-        if ($request->filled('from_date'))       $query->whereDate('payment_date', '>=', $request->from_date);
-        if ($request->filled('to_date'))         $query->whereDate('payment_date', '<=', $request->to_date);
-        if ($request->filled('filter_mode'))     $query->where('payment_mode', $request->filter_mode);
-        if ($request->filled('filter_status'))   $query->where('status', $request->filter_status);
-        if ($request->filled('filter_customer')) $query->where('customer_id', $request->filter_customer);
-        if ($request->filled('filter_property')) $query->where('property_id', $request->filter_property);
+        $items = collect();
 
-        return $query->orderBy('payment_date', 'desc')->get();
+        // ── 1. RECEIVED PAYMENTS (મળ્યા / લીધા - Inflows) ──
+        if ($payType === 'all' || $payType === 'received') {
+            // (a) Customer Property Sale Payments
+            $payQuery = Payment::with(['propertySale.property', 'customer', 'property', 'firm']);
+            $this->applyFirmScope($payQuery, $request);
+            if ($fromDate) $payQuery->whereDate('payment_date', '>=', $fromDate);
+            if ($toDate)   $payQuery->whereDate('payment_date', '<=', $toDate);
+            if ($mode)     $payQuery->where('payment_mode', $mode);
+            if ($status)   $payQuery->where('status', $status);
+            if ($custId)   $payQuery->where('customer_id', $custId);
+            if ($propId)   $payQuery->where('property_id', $propId);
+            if ($projectId) {
+                $payQuery->where(function($q) use ($projectId) {
+                    $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                      ->orWhereHas('propertySale.property', fn($p) => $p->where('project_id', $projectId))
+                      ->orWhereHas('propertySale.properties', fn($p) => $p->where('project_id', $projectId));
+                });
+            }
+
+            foreach ($payQuery->get() as $p) {
+                $st = strtolower($p->status ?? 'paid');
+                $items->push((object)[
+                    'id'               => 'PAY-' . $p->id,
+                    'raw_id'           => $p->id,
+                    'model_type'       => 'payment',
+                    'direction'        => 'received',
+                    'direction_label'  => 'Received',
+                    'payment_date'     => $p->payment_date,
+                    'party_name'       => $p->customer?->name ?? 'Customer',
+                    'party_sub'        => $p->customer?->mobile ? 'Mob: ' . $p->customer->mobile : 'Customer Receipt',
+                    'property_name'    => $p->property?->property_name ?: ($p->propertySale?->property?->property_name ?? '—'),
+                    'particular'       => 'Sales Receipt / Installment',
+                    'reference'        => $p->propertySale?->invoice_no ?: ($p->transaction_ref ? 'Ref: ' . $p->transaction_ref : '—'),
+                    'payment_mode'     => $p->payment_mode ?? 'Cash',
+                    'amount'           => (float) $p->payment_amount,
+                    'pending_amount'   => (float) $p->pending_amount,
+                    'status'           => ucfirst($p->status ?? 'paid'),
+                    'status_class'     => match($st) {
+                        'paid'      => 'pb-paid',
+                        'partial'   => 'pb-partial',
+                        'cancelled' => 'pb-cancelled',
+                        default     => 'pb-pending',
+                    },
+                    'view_url'         => route('payments.show', $p->id),
+                ]);
+            }
+
+            // (b) Rental Income Payments (if not filtering specific customer)
+            if (!$custId) {
+                $rentQuery = RentalPayment::with(['rental.property', 'rental.firm']);
+                $this->applyFirmScope($rentQuery, $request, 'firm_id', 'rental');
+                if ($fromDate) $rentQuery->whereDate('payment_date', '>=', $fromDate);
+                if ($toDate)   $rentQuery->whereDate('payment_date', '<=', $toDate);
+                if ($mode)     $rentQuery->where('payment_mode', $mode);
+                if ($status)   $rentQuery->where('status', $status);
+                if ($propId) {
+                    $rentQuery->where(function($q) use ($propId) {
+                        $q->where('property_id', $propId)
+                          ->orWhereHas('rental.property', fn($p) => $p->where('id', $propId));
+                    });
+                }
+                if ($projectId) {
+                    $rentQuery->where(function($q) use ($projectId) {
+                        $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                          ->orWhereHas('rental.property', fn($p) => $p->where('project_id', $projectId))
+                          ->orWhereHas('rental.properties', fn($p) => $p->where('project_id', $projectId));
+                    });
+                }
+
+                foreach ($rentQuery->get() as $r) {
+                    $st = strtolower($r->status ?? 'paid');
+                    $items->push((object)[
+                        'id'               => 'RNT-' . $r->id,
+                        'raw_id'           => $r->id,
+                        'model_type'       => 'rental_payment',
+                        'direction'        => 'received',
+                        'direction_label'  => 'Received',
+                        'payment_date'     => $r->payment_date,
+                        'party_name'       => $r->rental?->tenant_name ?? 'Tenant',
+                        'party_sub'        => $r->rental?->tenant_mobile ? 'Mob: ' . $r->rental->tenant_mobile : 'Tenant Rental',
+                        'property_name'    => $r->property?->property_name ?: ($r->rental?->property?->property_name ?? '—'),
+                        'particular'       => 'Rental Income' . ($r->payment_month ? ' (' . $r->payment_month . ' ' . $r->payment_year . ')' : ''),
+                        'reference'        => $r->receipt_no ?: ($r->transaction_id ? 'Txn: ' . $r->transaction_id : 'Rent Receipt'),
+                        'payment_mode'     => $r->payment_mode ?? 'Cash',
+                        'amount'           => (float) $r->paid_amount,
+                        'pending_amount'   => (float) ($r->pending_amount ?? 0),
+                        'status'           => ucfirst($r->status ?? 'paid'),
+                        'status_class'     => match($st) {
+                            'paid'      => 'pb-paid',
+                            'partial'   => 'pb-partial',
+                            'cancelled' => 'pb-cancelled',
+                            default     => 'pb-pending',
+                        },
+                        'view_url'         => $r->rental_id ? route('rental-payments.index', $r->rental_id) : route('rentals.index'),
+                    ]);
+                }
+            }
+        }
+
+        // ── 2. PAID PAYMENTS (Outflows) ──
+        if (($payType === 'all' || $payType === 'paid') && !$custId) {
+            // (a) Expenses Paid
+            $expQuery = Expense::with(['property', 'vendor', 'expenseCategory', 'firm']);
+            $this->applyFirmScope($expQuery, $request);
+            if ($fromDate) $expQuery->whereDate('expense_date', '>=', $fromDate);
+            if ($toDate)   $expQuery->whereDate('expense_date', '<=', $toDate);
+            if ($mode)     $expQuery->where('payment_mode', $mode);
+            if ($propId) {
+                $expQuery->where(function($q) use ($propId) {
+                    $q->where('property_id', $propId)
+                      ->orWhereHas('properties', fn($p) => $p->where('properties.id', $propId));
+                });
+            }
+            if ($projectId) {
+                $expQuery->where('project_id', $projectId)
+                         ->whereNull('property_id')
+                         ->whereDoesntHave('properties');
+            }
+            if ($status) {
+                if ($status === 'paid' || $status === 'approved') {
+                    $expQuery->where('approval_status', 'Approved');
+                } elseif ($status === 'pending') {
+                    $expQuery->where('approval_status', 'Pending');
+                } elseif ($status === 'cancelled' || $status === 'rejected') {
+                    $expQuery->where('approval_status', 'Rejected');
+                }
+            }
+
+            foreach ($expQuery->get() as $e) {
+                $appr = $e->approval_status ?? 'Approved';
+                $stClass = match(strtolower($appr)) {
+                    'approved', 'paid' => 'pb-paid',
+                    'rejected'         => 'pb-cancelled',
+                    default            => 'pb-pending',
+                };
+                $items->push((object)[
+                    'id'               => 'EXP-' . $e->id,
+                    'raw_id'           => $e->id,
+                    'model_type'       => 'expense',
+                    'direction'        => 'paid',
+                    'direction_label'  => 'Paid',
+                    'payment_date'     => $e->expense_date,
+                    'party_name'       => $e->paid_to ?: ($e->vendor?->name ?? 'Vendor / Payee'),
+                    'party_sub'        => $e->expenseCategory?->name ?? ($e->expense_category ?? 'Expense Outflow'),
+                    'property_name'    => $e->property?->property_name ?? 'General',
+                    'particular'       => 'Expense — ' . ($e->expense_title ?: ($e->expenseCategory?->name ?? 'Paid')),
+                    'reference'        => $e->bill_no ? 'Bill #' . $e->bill_no : ($e->payment_reference ?? '—'),
+                    'payment_mode'     => $e->payment_mode ?? 'Cash',
+                    'amount'           => (float) $e->amount,
+                    'pending_amount'   => strtolower($appr) === 'pending' ? (float)$e->amount : 0.0,
+                    'status'           => strtolower($appr) === 'approved' ? 'Paid' : ucfirst($appr),
+                    'status_class'     => $stClass,
+                    'view_url'         => route('expenses.show', $e->id),
+                ]);
+            }
+
+            // (b) Loan EMI Repayments Paid
+            $loanQuery = LoanEmiSchedule::with(['loan.property'])->whereIn('emi_status', ['Paid', 'Partial']);
+            $this->applyFirmScope($loanQuery, $request, 'firm_id', 'loan');
+            if ($fromDate) $loanQuery->whereDate('payment_date', '>=', $fromDate);
+            if ($toDate)   $loanQuery->whereDate('payment_date', '<=', $toDate);
+            if ($mode)     $loanQuery->where('payment_mode', $mode);
+            if ($propId)   $loanQuery->whereHas('loan.property', fn($p) => $p->where('id', $propId));
+            if ($projectId)$loanQuery->whereHas('loan.property', fn($p) => $p->where('project_id', $projectId));
+
+            foreach ($loanQuery->get() as $emi) {
+                $st = strtolower($emi->emi_status ?? 'paid');
+                $items->push((object)[
+                    'id'               => 'EMI-' . $emi->id,
+                    'raw_id'           => $emi->id,
+                    'model_type'       => 'loan_emi',
+                    'direction'        => 'paid',
+                    'direction_label'  => 'Paid',
+                    'payment_date'     => $emi->payment_date,
+                    'party_name'       => $emi->loan?->bank_name ?: ($emi->loan?->person_name ?? 'Bank / Lender'),
+                    'party_sub'        => 'Loan Repayment EMI',
+                    'property_name'    => $emi->loan?->property?->property_name ?? '—',
+                    'particular'       => 'Loan EMI — ' . ($emi->emi_month ?? '') . '/' . ($emi->emi_year ?? ''),
+                    'reference'        => $emi->transaction_reference ?: 'EMI Due: ' . $emi->emi_date,
+                    'payment_mode'     => $emi->payment_mode ?? 'Bank Transfer',
+                    'amount'           => (float) $emi->paid_amount,
+                    'pending_amount'   => max(0, (float)$emi->emi_amount - (float)$emi->paid_amount),
+                    'status'           => ucfirst($emi->emi_status ?? 'Paid'),
+                    'status_class'     => match($st) {
+                        'paid'    => 'pb-paid',
+                        'partial' => 'pb-partial',
+                        default   => 'pb-pending',
+                    },
+                    'view_url'         => route('loans.show', $emi->loan_id),
+                ]);
+            }
+        }
+
+        // Sort all transactions by payment_date descending
+        return $items->sortByDesc(fn($x) => ($x->payment_date ?? '') . ' ' . $x->id)->values();
     }
 
     public function payments(Request $request)
     {
         $records = $this->getPaymentsData($request);
 
-        $totalReceived     = $records->sum('payment_amount');
-        $totalPending      = $records->sum('pending_amount');
+        $paymentType = $request->input('payment_type', 'all');
+
+        $totalReceived = $records->where('direction', 'received')->sum('amount');
+        $totalPaid     = $records->where('direction', 'paid')->sum('amount');
+        $netBalance    = $totalReceived - $totalPaid;
+        $totalPending  = $records->sum('pending_amount');
         $totalTransactions = $records->count();
 
-        $todayQuery = Payment::whereDate('payment_date', today());
-        $this->applyFirmScope($todayQuery, $request);
-        $todayCollection = $todayQuery->sum('payment_amount');
+        // Calculate counts for tabs (unfiltered by payment_type)
+        $unfilteredReq = $request->duplicate();
+        $unfilteredReq->merge(['payment_type' => 'all']);
+        $allRecords = $this->getPaymentsData($unfilteredReq);
+
+        $countAll      = $allRecords->count();
+        $countReceived = $allRecords->where('direction', 'received')->count();
+        $countPaid     = $allRecords->where('direction', 'paid')->count();
+        $sumAllReceived= $allRecords->where('direction', 'received')->sum('amount');
+        $sumAllPaid    = $allRecords->where('direction', 'paid')->sum('amount');
+
+        // Today's summary
+        $todayReceived = $allRecords->filter(fn($r) => $r->direction === 'received' && $r->payment_date && \Carbon\Carbon::parse($r->payment_date)->isToday())->sum('amount');
+        $todayPaid     = $allRecords->filter(fn($r) => $r->direction === 'paid' && $r->payment_date && \Carbon\Carbon::parse($r->payment_date)->isToday())->sum('amount');
 
         $custQuery = Customer::orderBy('name');
         $propQuery = Property::orderBy('property_name');
         $this->applyFirmScope($custQuery, $request);
         $this->applyFirmScope($propQuery, $request);
+        if ($request->filled('filter_project')) {
+            $propQuery->where('project_id', $request->filter_project);
+        }
 
         $customers  = $custQuery->get();
         $properties = $propQuery->get();
         $firms      = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $projects   = $this->getAvailableProjects($request);
 
         return view('admin.reports.payments', compact(
-            'records', 'totalReceived', 'totalPending',
-            'totalTransactions', 'todayCollection',
-            'customers', 'properties', 'firms'
+            'records', 'totalReceived', 'totalPaid', 'netBalance', 'totalPending',
+            'totalTransactions', 'todayReceived', 'todayPaid',
+            'customers', 'properties', 'firms', 'projects',
+            'paymentType', 'countAll', 'countReceived', 'countPaid',
+            'sumAllReceived', 'sumAllPaid'
         ));
     }
 
     public function paymentsExportPdf(Request $request)
     {
-        $records           = $this->getPaymentsData($request);
-        $totalReceived     = $records->sum('payment_amount');
-        $totalPending      = $records->sum('pending_amount');
+        $records       = $this->getPaymentsData($request);
+        $paymentType   = $request->input('payment_type', 'all');
+        $totalReceived = $records->where('direction', 'received')->sum('amount');
+        $totalPaid     = $records->where('direction', 'paid')->sum('amount');
+        $netBalance    = $totalReceived - $totalPaid;
+        $totalPending  = $records->sum('pending_amount');
         $totalTransactions = $records->count();
 
         return view('admin.reports.payments-pdf', compact(
-            'records', 'totalReceived', 'totalPending', 'totalTransactions'
+            'records', 'totalReceived', 'totalPaid', 'netBalance', 'totalPending',
+            'totalTransactions', 'paymentType'
         ));
     }
 
     public function paymentsExportExcel(Request $request)
     {
-        $records = $this->getPaymentsData($request);
-
-        $totalReceived     = $records->sum('payment_amount');
-        $totalPending      = $records->sum('pending_amount');
+        $records       = $this->getPaymentsData($request);
+        $paymentType   = $request->input('payment_type', 'all');
+        $totalReceived = $records->where('direction', 'received')->sum('amount');
+        $totalPaid     = $records->where('direction', 'paid')->sum('amount');
+        $netBalance    = $totalReceived - $totalPaid;
+        $totalPending  = $records->sum('pending_amount');
         $totalTransactions = $records->count();
 
-        $filename = 'payment-report-' . date('Y-m-d') . '.csv';
+        $filename = 'payment-report-' . $paymentType . '-' . date('Y-m-d') . '.csv';
         $headers  = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
-        $callback = function () use ($records, $request, $totalReceived, $totalPending, $totalTransactions) {
+        $callback = function () use ($records, $request, $totalReceived, $totalPaid, $netBalance, $totalPending, $totalTransactions, $paymentType) {
             $h = fopen('php://output', 'w');
             fprintf($h, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            fputcsv($h, ['Delawala Properties & Management - Payment Report']);
+            fputcsv($h, ['Delawala Properties & Management - Payment Report (' . ucfirst($paymentType) . ')']);
             fputcsv($h, ['Generated on', date('d M Y, h:i A')]);
             if ($request->filled('from_date') || $request->filled('to_date')) {
                 $fromDisplay = $request->filled('from_date') ? \Carbon\Carbon::parse($request->from_date)->format('d M Y') : 'All time';
@@ -1274,29 +1760,31 @@ class ReportsController extends Controller
 
             fputcsv($h, ['SUMMARY']);
             fputcsv($h, ['Total Transactions', $totalTransactions]);
-            fputcsv($h, ['Total Received', number_format($totalReceived, 2)]);
+            fputcsv($h, ['Total Received (મળ્યા)', number_format($totalReceived, 2)]);
+            fputcsv($h, ['Total Paid (આપ્યા)', number_format($totalPaid, 2)]);
+            fputcsv($h, ['Net Balance (મળ્યા - આપ્યા)', number_format($netBalance, 2)]);
             fputcsv($h, ['Total Pending', number_format($totalPending, 2)]);
             fputcsv($h, []);
 
             fputcsv($h, [
-                'Sr', 'Payment Date', 'Customer', 'Property',
-                'Invoice / Booking No', 'Payment Mode', 'Transaction Ref',
-                'Paid Amount', 'Pending Amount', 'Status', 'Remarks',
+                'Sr', 'Payment Date', 'Type (મળ્યા / આપ્યા)', 'Party Name',
+                'Property / Project', 'Particular', 'Reference / Bill No',
+                'Payment Mode', 'Amount (₹)', 'Pending Amount (₹)', 'Status'
             ]);
 
-            foreach ($records as $i => $p) {
+            foreach ($records as $i => $r) {
                 fputcsv($h, [
                     $i + 1,
-                    $p->payment_date ? \Carbon\Carbon::parse($p->payment_date)->format('d M Y') : '-',
-                    $p->customer?->name ?? '-',
-                    $p->propertySale?->property?->property_name ?? '-',
-                    $p->propertySale?->invoice_no ?? '-',
-                    $p->payment_mode ?? '-',
-                    $p->transaction_ref ?? '-',
-                    number_format($p->payment_amount, 2),
-                    number_format($p->pending_amount, 2),
-                    ucfirst($p->status ?? 'pending'),
-                    $p->remarks ?? '-',
+                    $r->payment_date ? \Carbon\Carbon::parse($r->payment_date)->format('d M Y') : '-',
+                    $r->direction === 'received' ? 'Received (મળ્યા)' : 'Paid (આપ્યા)',
+                    $r->party_name ?? '-',
+                    $r->property_name ?? '-',
+                    $r->particular ?? '-',
+                    $r->reference ?? '-',
+                    $r->payment_mode ?? '-',
+                    number_format($r->amount, 2),
+                    number_format($r->pending_amount, 2),
+                    $r->status ?? 'Paid',
                 ]);
             }
             fclose($h);
@@ -1344,6 +1832,14 @@ class ReportsController extends Controller
                   ->orWhereHas('rental.property', fn($p) => $p->where('property_type_id', $typeId));
             });
         }
+        if ($request->filled('filter_project')) {
+            $projectId = $request->filter_project;
+            $query->where(function($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('rental.property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('rental.properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
 
         return $query->orderByDesc('payment_year')
                      ->orderByDesc('payment_month')
@@ -1362,15 +1858,23 @@ class ReportsController extends Controller
         $propQuery   = Property::orderBy('property_name');
         $this->applyFirmScope($activeQuery, $request);
         $this->applyFirmScope($propQuery, $request);
+        if ($request->filled('filter_project')) {
+            $activeQuery->where(function($q) use ($request) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $request->filter_project))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $request->filter_project));
+            });
+            $propQuery->where('project_id', $request->filter_project);
+        }
 
         $totalActive    = $activeQuery->count();
         $properties     = $propQuery->get();
         $firms          = Firm::where('status', 'active')->orderBy('firm_name')->get();
         $propertyTypes  = PropertyType::where('status', 'active')->orderBy('name')->get();
+        $projects       = $this->getAvailableProjects($request);
 
         return view('admin.reports.rentals', compact(
             'records', 'totalRentAmt', 'totalReceived',
-            'totalPending', 'totalActive', 'properties', 'firms', 'propertyTypes'
+            'totalPending', 'totalActive', 'properties', 'firms', 'propertyTypes', 'projects'
         ));
     }
 
@@ -1469,6 +1973,15 @@ class ReportsController extends Controller
             });
         }
 
+        if ($request->filled('filter_project')) {
+            $projectId = $request->filter_project;
+            $query->where(function($q) use ($projectId) {
+                $q->where('project_id', $projectId)
+                  ->orWhereHas('stockInwards', fn($si) => $si->where('project_id', $projectId))
+                  ->orWhereHas('stockOutwards', fn($so) => $so->where('project_id', $projectId));
+            });
+        }
+
         $materials = $query->orderBy('material_name')->get();
 
         $fromDate = $request->filled('from_date') ? $request->from_date : null;
@@ -1497,11 +2010,17 @@ class ReportsController extends Controller
             if ($request->filled('filter_supplier')) {
                 $inwardQuery->where('supplier_name', $request->filter_supplier);
             }
+            if ($request->filled('filter_project')) {
+                $inwardQuery->where('project_id', $request->filter_project);
+            }
             $m->computed_inward = (float)$inwardQuery->sum('quantity');
 
             $outwardQuery = StockOutward::where('material_id', $m->id);
             if ($fromDate) $outwardQuery->whereDate('outward_date', '>=', $fromDate);
             if ($toDate)   $outwardQuery->whereDate('outward_date', '<=', $toDate);
+            if ($request->filled('filter_project')) {
+                $outwardQuery->where('project_id', $request->filter_project);
+            }
             $m->computed_outward = (float)$outwardQuery->sum('quantity');
 
             $m->computed_available = $m->computed_opening + $m->computed_inward - $m->computed_outward;
@@ -1559,10 +2078,11 @@ class ReportsController extends Controller
         $this->applyFirmScope($suppQuery, $request);
         $suppliers = $suppQuery->orderBy('supplier_name')->pluck('supplier_name');
 
-        $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $firms    = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $projects = $this->getAvailableProjects($request);
 
         return view('admin.reports.inventory', compact(
-            'materials', 'categories', 'suppliers', 'firms',
+            'materials', 'categories', 'suppliers', 'firms', 'projects',
             'totalMaterials', 'totalStockQty', 'lowStockItems', 'outOfStockItems'
         ));
     }

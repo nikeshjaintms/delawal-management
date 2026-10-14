@@ -29,6 +29,8 @@
 .form-group { margin-bottom: 20px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.party-dates-grid { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 18px; align-items: start; margin-bottom: 10px; }
+@media(max-width: 820px){ .party-dates-grid { grid-template-columns: 1fr; gap: 14px; } }
 @media(max-width:768px){ .form-row-3 { grid-template-columns: 1fr 1fr; } }
 @media(max-width:576px){ .form-row, .form-row-3 { grid-template-columns: 1fr; gap: 0; } }
 
@@ -324,9 +326,11 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 @error('property_ids') <div class="text-error">{{ $message }}</div> @enderror
             </div>
 
-            <div class="form-row">
-                <div class="form-group" style="flex: 1.2;">
-                    <label class="form-label" for="customer_id">Customer <span>*</span></label>
+            <div class="party-dates-grid">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="customer_id">
+                        <i class="fa-solid fa-user-check" style="color: #60A5FA;"></i> Customer <span>*</span>
+                    </label>
                     <select name="customer_id" id="customer_id" class="form-control @error('customer_id') is-invalid @enderror" required>
                         <option value="">-- Select Customer --</option>
                         @foreach($customers as $customer)
@@ -335,11 +339,12 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                             </option>
                         @endforeach
                     </select>
+                    <div class="form-hint" style="color: #94A3B8;">Buyer / Client purchasing this property.</div>
                     @error('customer_id') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
-                <div class="form-group" style="flex: 1;">
+                <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label" for="purchase_date" style="color: #60A5FA !important;">
-                        <i class="fa-regular fa-calendar-check"></i> Acquisition / Purchase Date
+                        <i class="fa-regular fa-calendar-check"></i> Acquisition Date
                     </label>
                     <input type="date" name="purchase_date" id="purchase_date"
                            value="{{ old('purchase_date', $propertySale->purchase_date ? (is_string($propertySale->purchase_date) ? $propertySale->purchase_date : \Carbon\Carbon::parse($propertySale->purchase_date)->format('Y-m-d')) : ($propertySale->effective_purchase_date ? \Carbon\Carbon::parse($propertySale->effective_purchase_date)->format('Y-m-d') : '')) }}" class="form-control @error('purchase_date') is-invalid @enderror"
@@ -347,7 +352,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                     <div class="form-hint" style="color: #93C5FD;">When property was acquired (Auto-fills / Editable).</div>
                     @error('purchase_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
-                <div class="form-group" style="flex: 1;">
+                <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label" for="sale_date" style="color: #34D399 !important;">
                         <i class="fa-regular fa-calendar-days"></i> Sale Agreement Date <span>*</span>
                     </label>
@@ -358,6 +363,127 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                     @error('sale_date') <div class="text-error">{{ $message }}</div> @enderror
                 </div>
             </div>
+        </div>
+
+        {{-- Plot Size, Area & Rates Section --}}
+        <div class="form-section">
+            <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <span><i class="fa-solid fa-ruler-combined" style="color: #60A5FA;"></i> Plot Size &amp; Rate Details</span>
+                <span id="rate_calculation_badge" style="display: none; padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 700; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #93C5FD;"></span>
+            </div>
+
+            <div style="background: rgba(15, 23, 42, 0.65); border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 20px; margin-bottom: 22px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 14px;">
+                    
+                    <!-- 1. Total Plot Area / Size -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" id="areaLabel" style="color: #34D399 !important; font-size: 13px;">
+                            <i class="fa-solid fa-map" style="color: #34D399;"></i> Total Plot Area / Size <span style="color:#94A3B8; font-weight: normal;">(optional)</span>
+                        </label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" step="0.01" name="total_area" id="total_area" 
+                                   value="{{ old('total_area', $propertySale->total_area) }}" 
+                                   class="form-control @error('total_area') is-invalid @enderror" 
+                                   placeholder="e.g. 1933.00" 
+                                   style="font-weight: 700; color: #FFFFFF;"
+                                   oninput="this.dataset.autoFilled = '0'; onAreaOrRateChange();">
+                            <select name="area_unit" id="area_unit" class="form-control" style="width: 125px; flex-shrink: 0; font-weight: 700;" onchange="onAreaOrRateChange()">
+                                @foreach(['Sq.Ft', 'Sq.Yd', 'Sq.Mtr', 'Acre', 'Vigha', 'Guntha'] as $u)
+                                    <option value="{{ $u }}" {{ old('area_unit', $propertySale->area_unit ?? 'Sq.Ft') == $u ? 'selected' : '' }}>{{ $u }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-hint" style="color: #A7F3D0;">Total land/plot area (Auto-fills from plot/property).</div>
+                        @error('total_area') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- 2. Purchase Rate per Sq.Ft / Unit -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" id="purchaseRateLabel" style="color: #60A5FA !important; font-size: 13px;">
+                            <i class="fa-solid fa-tag" style="color: #60A5FA;"></i> Purchase Rate per Sq.Ft / Unit (₹) <span style="color:#94A3B8; font-weight: normal;">(optional)</span>
+                        </label>
+                        <input type="number" step="0.01" name="purchase_rate" id="purchase_rate" 
+                               value="{{ old('purchase_rate', $propertySale->purchase_rate) }}" 
+                               class="form-control @error('purchase_rate') is-invalid @enderror" 
+                               placeholder="e.g. 2500.00" 
+                               style="font-weight: 700; color: #93C5FD;"
+                               oninput="this.dataset.autoFilled = '0'; onAreaOrRateChange();">
+                        <div class="form-hint" style="color: #93C5FD;">Acquisition rate per unit (Auto-fills / Editable).</div>
+                        @error('purchase_rate') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- 3. Sell Rate per Sq.Ft / Unit -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" id="sellRateLabel" style="color: #FBBF24 !important; font-size: 13px;">
+                            <i class="fa-solid fa-hand-holding-dollar" style="color: #FBBF24;"></i> Sell Rate per Sq.Ft / Unit (₹) <span style="color:#94A3B8; font-weight: normal;">(optional)</span>
+                        </label>
+                        <input type="number" step="0.01" name="sell_rate" id="sell_rate" 
+                               value="{{ old('sell_rate', $propertySale->sell_rate) }}" 
+                               class="form-control @error('sell_rate') is-invalid @enderror" 
+                               placeholder="e.g. 3200.00" 
+                               style="font-weight: 700; color: #FDE68A;"
+                               oninput="onSellRateChange();">
+                        <div class="form-hint" style="color: #FDE68A;">Agreed selling rate (Calculates Sale Amount live).</div>
+                        @error('sell_rate') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                </div>
+
+                <!-- Live Area & Rate Calculation Summary Boxes -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-top: 14px;">
+                    
+                    <!-- Purchase Price Calc Box -->
+                    <div id="calcPurchasePriceCard" style="display: none; background: rgba(59, 130, 246, 0.10); border: 1.5px solid rgba(59, 130, 246, 0.35); border-radius: 12px; padding: 12px 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59, 130, 246, 0.20); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                                    <i class="fa-solid fa-calculator"></i>
+                                </div>
+                                <div>
+                                    <span style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: #93C5FD; font-weight: 700; display: block;">Calculated Base Purchase Price</span>
+                                    <div style="display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;">
+                                        <span id="calcPurchasePriceText" style="font-size: 16px; font-weight: 800; color: #FFFFFF;">₹ 0.00</span>
+                                        <span id="calcPurchasePriceFormula" style="font-size: 11.5px; color: #94A3B8; font-weight: 600;"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" onclick="applyCalculatedPurchasePrice()" style="padding: 6px 12px; font-size: 11.5px; border-radius: 6px; color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.50); background: rgba(59, 130, 246, 0.20); font-weight: 700; cursor: pointer;">
+                                <i class="fa-solid fa-arrow-down"></i> Auto-Apply to Purchase Cost
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sell Price Calc Box -->
+                    <div id="calcSalePriceCard" style="display: none; background: rgba(245, 158, 11, 0.10); border: 1.5px solid rgba(245, 158, 11, 0.35); border-radius: 12px; padding: 12px 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.20); color: #FBBF24; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                                    <i class="fa-solid fa-coins"></i>
+                                </div>
+                                <div>
+                                    <span style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: #FDE68A; font-weight: 700; display: block;">Calculated Total Sale Value</span>
+                                    <div style="display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;">
+                                        <span id="calcSalePriceText" style="font-size: 16px; font-weight: 800; color: #FFFFFF;">₹ 0.00</span>
+                                        <span id="calcSalePriceFormula" style="font-size: 11.5px; color: #94A3B8; font-weight: 600;"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" onclick="applyCalculatedSalePrice()" style="padding: 6px 12px; font-size: 11.5px; border-radius: 6px; color: #FDE68A; border: 1px solid rgba(245, 158, 11, 0.50); background: rgba(245, 158, 11, 0.20); font-weight: 700; cursor: pointer;">
+                                <i class="fa-solid fa-arrow-down"></i> Auto-Apply to Sale Amount
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        {{-- Seller & Broker Details Section --}}
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fa-solid fa-user-group" style="color: #A78BFA;"></i> Seller &amp; Broker Details <span style="font-size: 11.5px; font-weight: normal; color: #94A3B8; text-transform: none;">(Optional)</span>
+            </div>
+
             <div class="form-row">
                 <div class="form-group" style="flex: 1;">
                     <label class="form-label" for="seller_id">
@@ -494,119 +620,6 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                         <label class="form-label" style="color: #DDD6FE;">Broker Notes / Terms</label>
                         <input type="text" name="broker_notes" id="sale_broker_notes" value="{{ old('broker_notes', $propertySale->broker_notes) }}" class="form-control" placeholder="e.g. 1% commission on registry">
                     </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Plot Size, Area & Rates Section --}}
-        <div class="form-section">
-            <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <span><i class="fa-solid fa-ruler-combined" style="color: #60A5FA;"></i> Plot Size &amp; Rate Details</span>
-                <span id="rate_calculation_badge" style="display: none; padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 700; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #93C5FD;"></span>
-            </div>
-
-            <div style="background: rgba(15, 23, 42, 0.65); border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 20px; margin-bottom: 22px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 14px;">
-                    
-                    <!-- 1. Total Plot Area / Size -->
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" id="areaLabel" style="color: #34D399 !important; font-size: 13px;">
-                            <i class="fa-solid fa-map" style="color: #34D399;"></i> Total Plot Area / Size <span style="color:#94A3B8; font-weight: normal;">(optional)</span>
-                        </label>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="number" step="0.01" name="total_area" id="total_area" 
-                                   value="{{ old('total_area', $propertySale->total_area) }}" 
-                                   class="form-control @error('total_area') is-invalid @enderror" 
-                                   placeholder="e.g. 1933.00" 
-                                   style="font-weight: 700; color: #FFFFFF;"
-                                   oninput="this.dataset.autoFilled = '0'; onAreaOrRateChange();">
-                            <select name="area_unit" id="area_unit" class="form-control" style="width: 125px; flex-shrink: 0; font-weight: 700;" onchange="onAreaOrRateChange()">
-                                @foreach(['Sq.Ft', 'Sq.Yd', 'Sq.Mtr', 'Acre', 'Vigha', 'Guntha'] as $u)
-                                    <option value="{{ $u }}" {{ old('area_unit', $propertySale->area_unit ?? 'Sq.Ft') == $u ? 'selected' : '' }}>{{ $u }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="form-hint" style="color: #A7F3D0;">Total land/plot area (Auto-fills from plot/property).</div>
-                        @error('total_area') <div class="text-error">{{ $message }}</div> @enderror
-                    </div>
-
-                    <!-- 2. Purchase Rate per Sq.Ft / Unit -->
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" id="purchaseRateLabel" style="color: #60A5FA !important; font-size: 13px;">
-                            <i class="fa-solid fa-tag" style="color: #60A5FA;"></i> Purchase Rate per Sq.Ft / Unit (₹) <span style="color:#94A3B8; font-weight: normal;">(optional)</span>
-                        </label>
-                        <input type="number" step="0.01" name="purchase_rate" id="purchase_rate" 
-                               value="{{ old('purchase_rate', $propertySale->purchase_rate) }}" 
-                               class="form-control @error('purchase_rate') is-invalid @enderror" 
-                               placeholder="e.g. 2500.00" 
-                               style="font-weight: 700; color: #93C5FD;"
-                               oninput="this.dataset.autoFilled = '0'; onAreaOrRateChange();">
-                        <div class="form-hint" style="color: #93C5FD;">Acquisition rate per unit (Auto-fills / Editable).</div>
-                        @error('purchase_rate') <div class="text-error">{{ $message }}</div> @enderror
-                    </div>
-
-                    <!-- 3. Sell Rate per Sq.Ft / Unit -->
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" id="sellRateLabel" style="color: #FBBF24 !important; font-size: 13px;">
-                            <i class="fa-solid fa-hand-holding-dollar" style="color: #FBBF24;"></i> Sell Rate per Sq.Ft / Unit (₹) <span style="color:#94A3B8; font-weight: normal;">(optional)</span>
-                        </label>
-                        <input type="number" step="0.01" name="sell_rate" id="sell_rate" 
-                               value="{{ old('sell_rate', $propertySale->sell_rate) }}" 
-                               class="form-control @error('sell_rate') is-invalid @enderror" 
-                               placeholder="e.g. 3200.00" 
-                               style="font-weight: 700; color: #FDE68A;"
-                               oninput="onSellRateChange();">
-                        <div class="form-hint" style="color: #FDE68A;">Agreed selling rate (Calculates Sale Amount live).</div>
-                        @error('sell_rate') <div class="text-error">{{ $message }}</div> @enderror
-                    </div>
-
-                </div>
-
-                <!-- Live Area & Rate Calculation Summary Boxes -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-top: 14px;">
-                    
-                    <!-- Purchase Price Calc Box -->
-                    <div id="calcPurchasePriceCard" style="display: none; background: rgba(59, 130, 246, 0.10); border: 1.5px solid rgba(59, 130, 246, 0.35); border-radius: 12px; padding: 12px 16px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59, 130, 246, 0.20); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
-                                    <i class="fa-solid fa-calculator"></i>
-                                </div>
-                                <div>
-                                    <span style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: #93C5FD; font-weight: 700; display: block;">Calculated Base Purchase Price</span>
-                                    <div style="display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;">
-                                        <span id="calcPurchasePriceText" style="font-size: 16px; font-weight: 800; color: #FFFFFF;">₹ 0.00</span>
-                                        <span id="calcPurchasePriceFormula" style="font-size: 11.5px; color: #94A3B8; font-weight: 600;"></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="button" onclick="applyCalculatedPurchasePrice()" style="padding: 6px 12px; font-size: 11.5px; border-radius: 6px; color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.50); background: rgba(59, 130, 246, 0.20); font-weight: 700; cursor: pointer;">
-                                <i class="fa-solid fa-arrow-down"></i> Auto-Apply to Purchase Cost
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Sell Price Calc Box -->
-                    <div id="calcSalePriceCard" style="display: none; background: rgba(245, 158, 11, 0.10); border: 1.5px solid rgba(245, 158, 11, 0.35); border-radius: 12px; padding: 12px 16px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.20); color: #FBBF24; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
-                                    <i class="fa-solid fa-coins"></i>
-                                </div>
-                                <div>
-                                    <span style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: #FDE68A; font-weight: 700; display: block;">Calculated Total Sale Value</span>
-                                    <div style="display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;">
-                                        <span id="calcSalePriceText" style="font-size: 16px; font-weight: 800; color: #FFFFFF;">₹ 0.00</span>
-                                        <span id="calcSalePriceFormula" style="font-size: 11.5px; color: #94A3B8; font-weight: 600;"></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="button" onclick="applyCalculatedSalePrice()" style="padding: 6px 12px; font-size: 11.5px; border-radius: 6px; color: #FDE68A; border: 1px solid rgba(245, 158, 11, 0.50); background: rgba(245, 158, 11, 0.20); font-weight: 700; cursor: pointer;">
-                                <i class="fa-solid fa-arrow-down"></i> Auto-Apply to Sale Amount
-                            </button>
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </div>

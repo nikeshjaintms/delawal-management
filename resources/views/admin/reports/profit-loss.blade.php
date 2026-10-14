@@ -263,6 +263,26 @@
 {{-- Filter Bar --}}
 <div class="card-box">
     <form method="GET" action="{{ route('reports.profit-loss') }}" class="filter-bar">
+        @if(isset($firms) && Auth::user()?->isAdmin())
+        <div class="filter-group">
+            <span class="filter-label">Firm</span>
+            <select name="firm_id" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Firms</option>
+                @foreach($firms as $f)
+                    <option value="{{ $f->id }}" {{ request('firm_id') == $f->id ? 'selected' : '' }}>{{ $f->firm_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
+        <div class="filter-group">
+            <span class="filter-label">Project</span>
+            <select name="filter_project" class="filter-ctrl" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                @foreach($projects as $p)
+                    <option value="{{ $p->id }}" {{ request('filter_project') == $p->id ? 'selected' : '' }}>{{ $p->project_name }}</option>
+                @endforeach
+            </select>
+        </div>
         <div class="filter-group">
             <span class="filter-label">From Date</span>
             <input type="date" name="from_date" value="{{ request('from_date') }}" class="filter-ctrl @error('from_date') is-invalid @enderror">
@@ -271,21 +291,10 @@
             <span class="filter-label">To Date</span>
             <input type="date" name="to_date" value="{{ request('to_date') }}" class="filter-ctrl @error('to_date') is-invalid @enderror">
         </div>
-        @if(isset($firms) && $firms->count() > 1 && Auth::user()?->isAdmin())
-        <div class="filter-group">
-            <span class="filter-label">Firm</span>
-            <select name="firm_id" class="filter-ctrl">
-                <option value="">All Firms</option>
-                @foreach($firms as $f)
-                    <option value="{{ $f->id }}" {{ request('firm_id') == $f->id ? 'selected' : '' }}>{{ $f->firm_name }}</option>
-                @endforeach
-            </select>
-        </div>
-        @endif
         <button type="submit" class="btn-filter">
             <i class="fa-solid fa-magnifying-glass"></i> Apply Filter
         </button>
-        @if(request('from_date') || request('to_date') || request('firm_id'))
+        @if(request('from_date') || request('to_date') || request('firm_id') || request('filter_project'))
             <a href="{{ route('reports.profit-loss') }}" class="btn-reset">
                 <i class="fa-solid fa-rotate-left"></i> Reset
             </a>
