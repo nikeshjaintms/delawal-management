@@ -188,6 +188,22 @@ textarea.form-control { resize: vertical; min-height: 80px; }
             <img id="logoPreview" class="logo-preview" style="margin-top:10px;display:none;" alt="New Preview">
             @error('firm_logo')<div class="text-error">{{ $message }}</div>@enderror
         </div>
+        <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">Firm Digital Signature / Authorized Stamp Photo</label>
+            @if($firm->digital_signature)
+                <div style="margin-bottom:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <img src="{{ $firm->digital_signature_url ?: Storage::url($firm->digital_signature) }}" style="max-height: 48px; max-width: 150px; background: #fff; padding: 4px; border-radius: 4px;" alt="Current Signature">
+                    <span style="font-size:12px;color:var(--text-secondary)">Current default signature — automatically appears on all invoices of this firm.</span>
+                    <label style="font-size:12px;color:#F87171;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                        <input type="checkbox" name="remove_digital_signature" value="1">
+                        <span>Remove Signature</span>
+                    </label>
+                </div>
+            @endif
+            <input type="file" name="digital_signature" id="digital_signature" class="form-control @error('digital_signature') is-invalid @enderror" accept="image/*">
+            <div class="form-hint">JPEG, PNG, WebP — Used as default authorized signature on invoices of this firm</div>
+            @error('digital_signature')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
     </div>
 </div>
 

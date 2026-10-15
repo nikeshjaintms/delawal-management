@@ -208,6 +208,9 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::post('invoices/{invoice}/payments', [InvoiceController::class, 'recordPayment'])->name('invoices.payments.store');
     Route::put('invoices/{invoice}/payments/{payment}', [InvoiceController::class, 'updatePayment'])->name('invoices.payments.update');
     Route::delete('invoices/{invoice}/payments/{payment}', [InvoiceController::class, 'destroyPayment'])->name('invoices.payments.destroy');
+    Route::post('invoices/{invoice}/update-payment-mode', [InvoiceController::class, 'updatePaymentMode'])->name('invoices.update-payment-mode');
+    Route::post('invoices/{invoice}/upload-signature', [InvoiceController::class, 'uploadSignature'])->name('invoices.upload-signature');
+    Route::post('invoices/{invoice}/remove-signature', [InvoiceController::class, 'removeSignature'])->name('invoices.remove-signature');
     Route::resource('invoices', InvoiceController::class);
 
     Route::resource('incomes', \App\Http\Controllers\IncomeController::class)->middleware(['permission:income_view']);

@@ -42,6 +42,8 @@ class Invoice extends Model
         'paid_amount',
         'balance_amount',
         'payment_status',
+        'payment_mode',
+        'payment_mode_id',
         'status',
         'bank_name',
         'bank_account_no',
@@ -49,6 +51,7 @@ class Invoice extends Model
         'bank_branch',
         'terms_conditions',
         'notes',
+        'signature_image',
         'created_by',
     ];
 
@@ -124,6 +127,11 @@ class Invoice extends Model
     public function payments()
     {
         return $this->hasMany(InvoicePayment::class)->latest('payment_date');
+    }
+
+    public function paymentMode()
+    {
+        return $this->belongsTo(PaymentMode::class);
     }
 
     public function creator()
@@ -272,5 +280,48 @@ class Invoice extends Model
         }
 
         return $candidate;
+    }
+
+    /**
+     * Get the active digital signature URL (custom invoice signature or fallback to firm signature).
+     */
+    public function getActiveSignatureUrlAttribute()
+    {
+        $sig = $this->signature_image ?: ($this->firm?->digital_signature ?? null);
+        if (!$sig) {
+            return null;
+        }
+        if (file_exists(public_path($sig))) {
+            return asset($sig);
+        }
+        return asset('storage/' . $sig);
+    }
+
+    /**
+     * Determine whether the signature is invoice-specific or inherited from firm.
+     */
+    public function getSignatureSourceAttribute(): ?string
+    {
+        if (!empty($this->signature_image)) {
+            return 'invoice';
+        }
+        if (!empty($this->firm?->digital_signature)) {
+            return 'firm';
+        }
+        return null;
+    }
+
+    /**
+     * Check if a valid digital signature exists on disk.
+     */
+    public function hasDigitalSignature(): bool
+    {
+        $sig = $this->signature_image ?: ($this->firm?->digital_signature ?? null);
+        if (!$sig) {
+            return false;
+        }
+        return \Illuminate\Support\Facades\Storage::disk('public')->exists($sig)
+            || file_exists(public_path('storage/' . $sig))
+            || file_exists(public_path($sig));
     }
 }

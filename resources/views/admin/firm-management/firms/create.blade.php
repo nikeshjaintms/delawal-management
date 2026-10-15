@@ -182,6 +182,12 @@ textarea.form-control { resize: vertical; min-height: 80px; }
             <img id="logoPreview" class="logo-preview" style="margin-top:10px" alt="Preview">
             @error('firm_logo')<div class="text-error">{{ $message }}</div>@enderror
         </div>
+        <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">Firm Digital Signature / Authorized Stamp Photo</label>
+            <input type="file" name="digital_signature" id="digital_signature" class="form-control @error('digital_signature') is-invalid @enderror" accept="image/*">
+            <div class="form-hint">JPEG, PNG, WebP — Used as default authorized signature on invoices of this firm</div>
+            @error('digital_signature')<div class="text-error">{{ $message }}</div>@enderror
+        </div>
     </div>
 </div>
 

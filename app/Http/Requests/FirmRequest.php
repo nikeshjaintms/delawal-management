@@ -52,6 +52,7 @@ class FirmRequest extends FormRequest
             'gst_no' => 'nullable|string|max:50',
             'pan_number' => 'nullable|string|max:50',
             'firm_logo' => 'nullable|image|max:2048',
+            'digital_signature' => 'nullable|image|max:4096',
             'bank_name' => 'nullable|string|max:255',
             'account_number' => 'nullable|string|max:255',
             'ifsc_code' => 'nullable|string|max:50',

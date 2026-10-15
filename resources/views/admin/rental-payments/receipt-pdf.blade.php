@@ -109,6 +109,21 @@
         <div class="auth-line">Tenant Signature</div>
     </div>
     <div class="auth-col">
+        @php
+            $rpFirm = $rentalPayment->rental?->firm ?: ($rentalPayment->rental?->property?->project?->firm);
+            $rpSig = $rpFirm?->digital_signature ?? null;
+            $hasRpSig = !empty($rpSig) && (
+                \Illuminate\Support\Facades\Storage::disk('public')->exists($rpSig) ||
+                file_exists(public_path('storage/' . $rpSig)) ||
+                file_exists(public_path($rpSig))
+            );
+            $rpSigUrl = $hasRpSig ? (file_exists(public_path($rpSig)) ? asset($rpSig) : asset('storage/' . $rpSig)) : null;
+        @endphp
+        @if($rpSigUrl)
+            <div style="min-height: 40px; margin-bottom: 2px;">
+                <img src="{{ $rpSigUrl }}" style="max-height: 40px; max-width: 140px; object-fit: contain;" alt="Authorized Signature">
+            </div>
+        @endif
         <div class="auth-line">Authorized Signatory &amp; Stamp</div>
     </div>
 </div>

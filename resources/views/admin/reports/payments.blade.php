@@ -89,25 +89,119 @@
     border: 1px solid rgba(239, 68, 68, 0.35) !important;
 }
 
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px; }
-.stat-card {
-    background: rgba(20, 27, 41, 0.60) !important;
-    backdrop-filter: blur(20px) saturate(160%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 20px !important; padding: 20px 22px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.30); transition: all .25s ease;
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 24px;
 }
-.stat-card:hover { transform: translateY(-3px); border-color: rgba(59, 130, 246, 0.40) !important; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); }
-.stat-card .sc-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 19px; margin-bottom: 12px; }
+@media (max-width: 1100px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 680px) {
+    .stat-grid { grid-template-columns: 1fr; }
+}
+
+.stat-card {
+    position: relative;
+    background: rgba(15, 23, 42, 0.72) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 20px !important;
+    padding: 22px 24px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35);
+    transition: all .28s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3.5px;
+}
+.stat-card.card-green::before  { background: linear-gradient(90deg, #10B981, #34D399); }
+.stat-card.card-red::before    { background: linear-gradient(90deg, #EF4444, #F87171); }
+.stat-card.card-cyan::before   { background: linear-gradient(90deg, #06B6D4, #22D3EE); }
+.stat-card.card-blue::before   { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
+.stat-card.card-amber::before  { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+.stat-card.card-purple::before { background: linear-gradient(90deg, #A855F7, #C084FC); }
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.50);
+}
+.stat-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+.stat-card .sc-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    margin-bottom: 0;
+}
 .sc-blue   { background: rgba(59, 130, 246, 0.18) !important; color: #60A5FA !important; border: 1px solid rgba(59, 130, 246, 0.35) !important; }
 .sc-green  { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; border: 1px solid rgba(16, 185, 129, 0.35) !important; }
 .sc-amber  { background: rgba(245, 158, 11, 0.18) !important; color: #FBBF24 !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; }
 .sc-red    { background: rgba(239, 68, 68, 0.18) !important;  color: #F87171 !important; border: 1px solid rgba(239, 68, 68, 0.35) !important; }
 .sc-purple { background: rgba(168, 85, 247, 0.18) !important; color: #C084FC !important; border: 1px solid rgba(168, 85, 247, 0.35) !important; }
 .sc-cyan   { background: rgba(6, 182, 212, 0.18) !important; color: #22D3EE !important; border: 1px solid rgba(6, 182, 212, 0.35) !important; }
-.stat-card .sc-label { font-size: 11.5px; font-weight: 800; color: #94A3B8 !important; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
-.stat-card .sc-value { font-size: 22px; font-weight: 800; color: #FFFFFF !important; }
+
+.sc-tag {
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+.sc-tag-green  { background: rgba(16, 185, 129, 0.16); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.sc-tag-red    { background: rgba(239, 68, 68, 0.16);  color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+.sc-tag-cyan   { background: rgba(6, 182, 212, 0.16); color: #22D3EE; border: 1px solid rgba(6, 182, 212, 0.3); }
+.sc-tag-blue   { background: rgba(59, 130, 246, 0.16); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3); }
+.sc-tag-amber  { background: rgba(245, 158, 11, 0.16); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
+.sc-tag-purple { background: rgba(168, 85, 247, 0.16); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.3); }
+
+.stat-card .sc-label {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #94A3B8 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+}
+.stat-card .sc-value-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+.stat-card .sc-value {
+    font-size: clamp(17px, 1.35vw, 24px);
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: -0.3px;
+    word-break: break-word;
+    font-variant-numeric: tabular-nums;
+}
+.stat-card .sc-sub {
+    font-size: 12px;
+    color: #94A3B8 !important;
+    font-weight: 600;
+    line-height: 1.4;
+}
 
 .card-box {
     background: rgba(20, 27, 41, 0.60) !important;
@@ -285,54 +379,123 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
 
 {{-- ── KPI Cards ── --}}
 <div class="stat-grid">
-    <div class="stat-card">
-        <div class="sc-icon sc-green"><i class="fa-solid fa-arrow-down-long"></i></div>
-        <div class="sc-label">Total Received</div>
-        <div class="sc-value" style="color:#34D399 !important;">₹{{ number_format($totalReceived, 2) }}</div>
-        <div style="font-size:11.5px;color:#94A3B8;margin-top:4px;">Sales &amp; Rental Inflow</div>
-    </div>
-    <div class="stat-card">
-        <div class="sc-icon sc-red"><i class="fa-solid fa-arrow-up-long"></i></div>
-        <div class="sc-label">Total Paid</div>
-        <div class="sc-value" style="color:#F87171 !important;">₹{{ number_format($totalPaid, 2) }}</div>
-        <div style="font-size:11.5px;color:#94A3B8;margin-top:4px;">Expenses &amp; Loan EMIs</div>
-    </div>
-    <div class="stat-card">
-        <div class="sc-icon sc-cyan"><i class="fa-solid fa-scale-balanced"></i></div>
-        <div class="sc-label">Net Balance</div>
-        <div class="sc-value" style="color:{{ $netBalance >= 0 ? '#22D3EE' : '#F87171' }} !important;">
-            {{ $netBalance < 0 ? '− ' : '' }}₹{{ number_format(abs($netBalance), 2) }}
+    {{-- 1. Total Received --}}
+    <div class="stat-card card-green">
+        <div class="stat-card-top">
+            <div class="sc-icon sc-green"><i class="fa-solid fa-arrow-down-long"></i></div>
+            <span class="sc-tag sc-tag-green"><i class="fa-solid fa-circle-arrow-down" style="font-size:9px;"></i> INFLOW</span>
         </div>
-        <div style="font-size:11.5px;color:#94A3B8;margin-top:4px;">Inflow − Outflow Difference</div>
+        <div>
+            <div class="sc-label">Total Received</div>
+            <div class="sc-value-wrap">
+                <div class="sc-value" style="color:#34D399 !important;" title="Exact: ₹{{ number_format($totalReceived, 2) }}">
+                    ₹{{ number_format($totalReceived, 2) }}
+                </div>
+            </div>
+            <div class="sc-sub">Customer Sales &amp; Rental Inflow</div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="sc-icon sc-blue"><i class="fa-solid fa-receipt"></i></div>
-        <div class="sc-label">Total Transactions</div>
-        <div class="sc-value">{{ number_format($totalTransactions) }}</div>
-        <div style="font-size:11.5px;color:#94A3B8;margin-top:4px;">
-            @if(($paymentType ?? 'all') === 'received') Received Only
-            @elseif(($paymentType ?? 'all') === 'paid') Paid Only
-            @else Inflows &amp; Outflows
+
+    {{-- 2. Total Paid --}}
+    <div class="stat-card card-red">
+        <div class="stat-card-top">
+            <div class="sc-icon sc-red"><i class="fa-solid fa-arrow-up-long"></i></div>
+            <span class="sc-tag sc-tag-red"><i class="fa-solid fa-circle-arrow-up" style="font-size:9px;"></i> OUTFLOW</span>
+        </div>
+        <div>
+            <div class="sc-label">Total Paid</div>
+            <div class="sc-value-wrap">
+                <div class="sc-value" style="color:#F87171 !important;" title="Exact: ₹{{ number_format($totalPaid, 2) }}">
+                    ₹{{ number_format($totalPaid, 2) }}
+                </div>
+            </div>
+            <div class="sc-sub">Vendor Expenses &amp; Loan EMIs</div>
+        </div>
+    </div>
+
+    {{-- 3. Net Balance --}}
+    <div class="stat-card card-cyan">
+        <div class="stat-card-top">
+            <div class="sc-icon sc-cyan"><i class="fa-solid fa-scale-balanced"></i></div>
+            <span class="sc-tag sc-tag-cyan"><i class="fa-solid fa-chart-pie" style="font-size:9px;"></i> DIFFERENCE</span>
+        </div>
+        <div>
+            <div class="sc-label">Net Balance</div>
+            <div class="sc-value-wrap">
+                <div class="sc-value" style="color:{{ $netBalance >= 0 ? '#22D3EE' : '#F87171' }} !important;" title="Exact: ₹{{ number_format($netBalance, 2) }}">
+                    {{ $netBalance < 0 ? '− ' : '' }}₹{{ number_format(abs($netBalance), 2) }}
+                </div>
+            </div>
+            <div class="sc-sub">Net Cash Flow (Inflow − Outflow)</div>
+        </div>
+    </div>
+
+    {{-- 4. Total Transactions --}}
+    <div class="stat-card card-blue">
+        <div class="stat-card-top">
+            <div class="sc-icon sc-blue"><i class="fa-solid fa-receipt"></i></div>
+            <span class="sc-tag sc-tag-blue"><i class="fa-solid fa-list-check" style="font-size:9px;"></i> VOLUME</span>
+        </div>
+        <div>
+            <div class="sc-label">Total Transactions</div>
+            <div class="sc-value-wrap">
+                <div class="sc-value" style="color:#60A5FA !important;">
+                    {{ number_format($totalTransactions) }} <span style="font-size:14px;color:#94A3B8;font-weight:600;">Entries</span>
+                </div>
+            </div>
+            <div class="sc-sub">
+                @if(($paymentType ?? 'all') === 'received') Received Only
+                @elseif(($paymentType ?? 'all') === 'paid') Paid Only
+                @else Inflows &amp; Outflows
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- 5. Pending Due --}}
+    <div class="stat-card card-amber">
+        <div class="stat-card-top">
+            <div class="sc-icon sc-amber"><i class="fa-solid fa-clock"></i></div>
+            @if($totalPending > 0)
+                <span class="sc-tag sc-tag-amber"><i class="fa-solid fa-triangle-exclamation" style="font-size:9px;"></i> RECEIVABLE</span>
+            @else
+                <span class="sc-tag sc-tag-green"><i class="fa-solid fa-circle-check" style="font-size:9px;"></i> ALL CLEAR</span>
             @endif
         </div>
-    </div>
-    @if($totalPending > 0)
-    <div class="stat-card">
-        <div class="sc-icon sc-amber"><i class="fa-solid fa-clock"></i></div>
-        <div class="sc-label">Pending Due</div>
-        <div class="sc-value" style="color:#FBBF24 !important;">₹{{ number_format($totalPending, 2) }}</div>
-        <div style="font-size:11.5px;color:#94A3B8;margin-top:4px;">Pending on Sales Bookings</div>
-    </div>
-    @endif
-    <div class="stat-card">
-        <div class="sc-icon sc-purple"><i class="fa-solid fa-calendar-day"></i></div>
-        <div class="sc-label">Today's Activity</div>
-        <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px;">
-            <div style="font-size:13px;font-weight:800;color:#34D399;">
-                <i class="fa-solid fa-plus" style="font-size:11px;"></i> ₹{{ number_format($todayReceived ?? 0, 2) }} <span style="font-size:11px;color:#94A3B8;font-weight:600;">(Inflow)</span>
+        <div>
+            <div class="sc-label">Pending Due</div>
+            <div class="sc-value-wrap">
+                <div class="sc-value" style="color:{{ $totalPending > 0 ? '#FBBF24' : '#34D399' }} !important;" title="Exact: ₹{{ number_format($totalPending, 2) }}">
+                    ₹{{ number_format($totalPending, 2) }}
+                </div>
             </div>
-            <div style="font-size:13px;font-weight:800;color:#F87171;">
-                <i class="fa-solid fa-minus" style="font-size:11px;"></i> ₹{{ number_format($todayPaid ?? 0, 2) }} <span style="font-size:11px;color:#94A3B8;font-weight:600;">(Outflow)</span>
+            <div class="sc-sub">
+                @if($totalPending > 0)
+                    Pending on Sales Bookings &amp; Rentals
+                @else
+                    All Dues &amp; Installments Cleared
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- 6. Today's Activity --}}
+    <div class="stat-card card-purple">
+        <div class="stat-card-top">
+            <div class="sc-icon sc-purple"><i class="fa-solid fa-calendar-day"></i></div>
+            <span class="sc-tag sc-tag-purple"><i class="fa-solid fa-bolt" style="font-size:9px;"></i> TODAY</span>
+        </div>
+        <div>
+            <div class="sc-label">Today's Activity</div>
+            <div style="display:flex;flex-direction:column;gap:5px;margin-top:4px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(16, 185, 129, 0.12);border:1px solid rgba(16, 185, 129, 0.25);border-radius:8px;padding:4px 10px;">
+                    <span style="font-size:11.5px;color:#94A3B8;font-weight:700;"><i class="fa-solid fa-arrow-down-long" style="color:#34D399;font-size:10px;"></i> Inflow</span>
+                    <span style="font-size:13px;font-weight:800;color:#34D399;">+ ₹{{ number_format($todayReceived ?? 0, 2) }}</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(239, 68, 68, 0.12);border:1px solid rgba(239, 68, 68, 0.25);border-radius:8px;padding:4px 10px;">
+                    <span style="font-size:11.5px;color:#94A3B8;font-weight:700;"><i class="fa-solid fa-arrow-up-long" style="color:#F87171;font-size:10px;"></i> Outflow</span>
+                    <span style="font-size:13px;font-weight:800;color:#F87171;">− ₹{{ number_format($todayPaid ?? 0, 2) }}</span>
+                </div>
             </div>
         </div>
     </div>

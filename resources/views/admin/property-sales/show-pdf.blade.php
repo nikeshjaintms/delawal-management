@@ -143,6 +143,21 @@
         <div class="auth-line">Purchaser Signature</div>
     </div>
     <div class="auth-col">
+        @php
+            $psFirm = $sale->firm ?: ($sale->property?->project?->firm);
+            $psSig = $psFirm?->digital_signature ?? null;
+            $hasPsSig = !empty($psSig) && (
+                \Illuminate\Support\Facades\Storage::disk('public')->exists($psSig) ||
+                file_exists(public_path('storage/' . $psSig)) ||
+                file_exists(public_path($psSig))
+            );
+            $psSigUrl = $hasPsSig ? (file_exists(public_path($psSig)) ? asset($psSig) : asset('storage/' . $psSig)) : null;
+        @endphp
+        @if($psSigUrl)
+            <div style="min-height: 40px; margin-bottom: 2px;">
+                <img src="{{ $psSigUrl }}" style="max-height: 40px; max-width: 140px; object-fit: contain;" alt="Authorized Signature">
+            </div>
+        @endif
         <div class="auth-line">For {{ $sale->firm->firm_name ?? 'Delawala Infra Co.' }}<br><small style="color:#64748B;">(Authorized Signatory)</small></div>
     </div>
 </div>

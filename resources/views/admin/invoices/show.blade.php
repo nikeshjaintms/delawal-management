@@ -326,6 +326,9 @@
         <a href="{{ route('invoices.print', $invoice->id) }}" target="_blank" class="btn-print">
             <i class="fa-solid fa-print"></i> Print / PDF Invoice
         </a>
+        <button type="button" class="btn-primary-custom" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important; border-color: rgba(16, 185, 129, 0.4) !important;" onclick="document.getElementById('showSignFileInput').click()">
+            <i class="fa-solid fa-signature"></i> Digital Signature
+        </button>
         <button type="button" class="btn-gold" onclick="openPaymentModal()">
             <i class="fa-solid fa-money-bill-wave"></i> Record Payment
         </button>
@@ -472,8 +475,61 @@
         </div>
     </div>
 
-    <!-- RIGHT: FINANCIAL BREAKDOWN & PAYMENT TRACKER -->
+    <!-- RIGHT: FINANCIAL BREAKDOWN, SIGNATURE & PAYMENT TRACKER -->
     <div style="display: flex; flex-direction: column; gap: 24px;">
+        <!-- Digital Signature Card (Prominent & Right at Top) -->
+        @php
+            $activeSig = $invoice->signature_image ?: ($invoice->firm?->digital_signature ?? null);
+            $hasActiveSig = !empty($activeSig) && (
+                \Illuminate\Support\Facades\Storage::disk('public')->exists($activeSig) ||
+                file_exists(public_path('storage/' . $activeSig)) ||
+                file_exists(public_path($activeSig))
+            );
+            $sigUrl = $hasActiveSig ? (file_exists(public_path($activeSig)) ? asset($activeSig) : asset('storage/' . $activeSig)) : null;
+            $isFirmDefault = empty($invoice->signature_image) && !empty($invoice->firm?->digital_signature);
+        @endphp
+        <div class="inv-detail-card" style="padding: 22px; border: 1.5px solid rgba(16, 185, 129, 0.35); box-shadow: 0 8px 30px rgba(16, 185, 129, 0.12);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <div style="font-size: 15px; font-weight: 800; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-signature" style="color: #10B981; font-size: 17px;"></i> Digital Signature
+                </div>
+                @if($sigUrl)
+                    <span id="showSignBadge" class="badge-inv" style="background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 10px; padding: 3px 9px;">
+                        <i class="fa-solid fa-check"></i> {{ $isFirmDefault ? 'Firm Default' : 'Invoice Custom' }}
+                    </span>
+                @else
+                    <span id="showSignBadge" class="badge-inv" style="background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 10px; padding: 3px 9px;">
+                        <i class="fa-solid fa-circle-exclamation"></i> Not Attached
+                    </span>
+                @endif
+            </div>
+
+            <div id="showSignPreviewBox" style="background: rgba(15, 23, 42, 0.70); border: 1.5px dashed {{ $sigUrl ? 'rgba(16, 185, 129, 0.5)' : 'rgba(255, 255, 255, 0.2)' }}; border-radius: 12px; padding: 14px; text-align: center; margin-bottom: 14px;">
+                <img id="showSignImg" src="{{ $sigUrl ?: '' }}" alt="Digital Signature" style="max-height: 55px; max-width: 180px; object-fit: contain; background: #FFFFFF; padding: 4px 10px; border-radius: 6px; display: {{ $sigUrl ? 'inline-block' : 'none' }}; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
+                <div id="showSignPlaceholder" style="display: {{ $sigUrl ? 'none' : 'block' }}; color: #94A3B8; font-size: 12.5px; padding: 8px 0;">
+                    <i class="fa-solid fa-file-signature" style="font-size: 26px; margin-bottom: 6px; display: block; color: #64748B;"></i>
+                    No digital signature photo attached yet
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <input type="file" id="showSignFileInput" accept="image/*" style="display: none;" onchange="handleShowSignatureUpload(this)">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" onclick="document.getElementById('showSignFileInput').click()" class="btn-primary-custom" style="font-size: 12.5px; padding: 9px 16px; flex: 1; justify-content: center; background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important; border-color: rgba(16, 185, 129, 0.5) !important; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                        <i class="fa-solid fa-upload"></i> <span id="showSignBtnText">{{ $sigUrl ? 'Change Signature Photo' : 'Upload Signature Photo' }}</span>
+                    </button>
+                    <button type="button" id="showRemoveSignBtn" onclick="handleShowSignatureRemove()" class="btn-secondary-custom" style="font-size: 12px; padding: 8px 12px; color: #F87171 !important; border-color: rgba(239, 68, 68, 0.3) !important; display: {{ $sigUrl ? 'inline-flex' : 'none' }};" title="Remove Signature">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+                <label style="font-size: 11px; color: #CBD5E1; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none;">
+                    <input type="checkbox" id="showApplyToFirmCheck" value="1" checked style="cursor: pointer;">
+                    <span>Apply to all invoices of {{ $invoice->firm->firm_name ?? 'this firm' }}</span>
+                </label>
+                <div id="showSignStatusMsg" style="display: none; font-size: 11.5px; font-weight: 700; color: #34D399; margin-top: 4px;"></div>
+            </div>
+        </div>
+
         <!-- Financial Summary -->
         <div class="inv-detail-card" style="padding: 22px;">
             <div style="font-size: 15px; font-weight: 800; color: #FFFFFF; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
@@ -531,6 +587,14 @@
                     <td style="text-align: right;">
                         <span class="badge-inv {{ $invoice->payment_badge_class }}">
                             {{ str_replace('_', ' ', $invoice->payment_status) }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Payment Mode</td>
+                    <td style="text-align: right;">
+                        <span class="badge-inv" style="background: rgba(96, 165, 250, 0.15); color: #60A5FA; border: 1px solid rgba(96, 165, 250, 0.3); font-weight: 700;">
+                            {{ $invoice->payment_mode ?: ($invoice->payments->first()?->payment_mode ?: ($invoice->paymentMode?->name ?? 'Cash')) }}
                         </span>
                     </td>
                 </tr>
@@ -757,5 +821,125 @@ document.addEventListener('keydown', function(e) {
         closeEditInvoicePaymentModal();
     }
 });
+
+function handleShowSignatureUpload(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = document.getElementById('showSignImg');
+        const placeholder = document.getElementById('showSignPlaceholder');
+        const box = document.getElementById('showSignPreviewBox');
+        if (img) {
+            img.src = e.target.result;
+            img.style.display = 'inline-block';
+        }
+        if (placeholder) placeholder.style.display = 'none';
+        if (box) box.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+
+        const removeBtn = document.getElementById('showRemoveSignBtn');
+        if (removeBtn) removeBtn.style.display = 'inline-flex';
+        const btnText = document.getElementById('showSignBtnText');
+        if (btnText) btnText.textContent = 'Change Signature Photo';
+    };
+    reader.readAsDataURL(file);
+
+    const statusMsg = document.getElementById('showSignStatusMsg');
+    if (statusMsg) {
+        statusMsg.style.display = 'inline-block';
+        statusMsg.style.color = '#FBBF24';
+        statusMsg.textContent = 'Uploading signature photo...';
+    }
+
+    const applyCheck = document.getElementById('showApplyToFirmCheck');
+    const applyToFirm = applyCheck ? (applyCheck.checked ? '1' : '0') : '1';
+
+    const formData = new FormData();
+    formData.append('signature_image', file);
+    formData.append('apply_to_firm', applyToFirm);
+
+    fetch('{{ route('invoices.upload-signature', $invoice->id) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.signature_url) {
+            const img = document.getElementById('showSignImg');
+            if (img) img.src = data.signature_url;
+
+            const badge = document.getElementById('showSignBadge');
+            if (badge) {
+                badge.textContent = data.applied_to_firm ? 'Firm Default' : 'Invoice Custom';
+                badge.style.background = 'rgba(16, 185, 129, 0.15)';
+                badge.style.color = '#34D399';
+                badge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+            }
+
+            if (statusMsg) {
+                statusMsg.style.color = '#34D399';
+                statusMsg.textContent = data.applied_to_firm
+                    ? '✓ Signature saved and applied to all ' + (data.firm_name || '') + ' invoices!'
+                    : '✓ Signature saved for this invoice!';
+                setTimeout(() => { statusMsg.style.display = 'none'; }, 4000);
+            }
+        } else {
+            if (statusMsg) {
+                statusMsg.style.color = '#F87171';
+                statusMsg.textContent = data.message || 'Error uploading signature';
+            }
+        }
+    })
+    .catch(err => {
+        console.error('Signature upload error:', err);
+        if (statusMsg) {
+            statusMsg.style.color = '#F87171';
+            statusMsg.textContent = 'Error uploading signature.';
+        }
+    });
+}
+
+function handleShowSignatureRemove() {
+    if (!confirm('Remove digital signature from this invoice?')) return;
+
+    const removeFromFirm = confirm('Also remove this signature from firm default so all invoices are reset?') ? '1' : '0';
+
+    const img = document.getElementById('showSignImg');
+    if (img) {
+        img.src = '';
+        img.style.display = 'none';
+    }
+    const placeholder = document.getElementById('showSignPlaceholder');
+    if (placeholder) placeholder.style.display = 'block';
+    const box = document.getElementById('showSignPreviewBox');
+    if (box) box.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+
+    const removeBtn = document.getElementById('showRemoveSignBtn');
+    if (removeBtn) removeBtn.style.display = 'none';
+    const btnText = document.getElementById('showSignBtnText');
+    if (btnText) btnText.textContent = 'Upload Signature Photo';
+    const badge = document.getElementById('showSignBadge');
+    if (badge) {
+        badge.textContent = 'Not Attached';
+        badge.style.background = 'rgba(239, 68, 68, 0.15)';
+        badge.style.color = '#F87171';
+        badge.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+    }
+
+    fetch('{{ route('invoices.remove-signature', $invoice->id) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ remove_from_firm: removeFromFirm })
+    }).catch(err => console.error('Error removing signature:', err));
+}
 </script>
 @endsection

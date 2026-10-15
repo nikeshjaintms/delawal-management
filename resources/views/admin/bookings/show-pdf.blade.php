@@ -111,6 +111,21 @@
         <div class="auth-line">Customer Signature</div>
     </div>
     <div class="auth-col">
+        @php
+            $bkFirm = $booking->firm ?: ($booking->property?->project?->firm);
+            $bkSig = $bkFirm?->digital_signature ?? null;
+            $hasBkSig = !empty($bkSig) && (
+                \Illuminate\Support\Facades\Storage::disk('public')->exists($bkSig) ||
+                file_exists(public_path('storage/' . $bkSig)) ||
+                file_exists(public_path($bkSig))
+            );
+            $bkSigUrl = $hasBkSig ? (file_exists(public_path($bkSig)) ? asset($bkSig) : asset('storage/' . $bkSig)) : null;
+        @endphp
+        @if($bkSigUrl)
+            <div style="min-height: 40px; margin-bottom: 2px;">
+                <img src="{{ $bkSigUrl }}" style="max-height: 40px; max-width: 140px; object-fit: contain;" alt="Authorized Signature">
+            </div>
+        @endif
         <div class="auth-line">Authorized Signatory &amp; Stamp</div>
     </div>
 </div>

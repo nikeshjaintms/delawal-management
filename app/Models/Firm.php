@@ -9,12 +9,39 @@ class Firm extends Model
     protected $fillable = [
         'firm_name', 'owner_name', 'email', 'password', 'mobile', 'alternate_mobile',
         'address', 'city', 'state', 'pincode',
-        'gst_no', 'pan_number', 'firm_logo',
+        'gst_no', 'pan_number', 'firm_logo', 'digital_signature',
         'bank_name', 'account_number', 'ifsc_code', 'branch_name',
         'status',
     ];
 
     protected $hidden = ['password'];
+
+    /**
+     * Get full URL for firm digital signature photo
+     */
+    public function getDigitalSignatureUrlAttribute()
+    {
+        if (!$this->digital_signature) {
+            return null;
+        }
+        if (file_exists(public_path($this->digital_signature))) {
+            return asset($this->digital_signature);
+        }
+        return asset('storage/' . $this->digital_signature);
+    }
+
+    /**
+     * Check if firm has a valid signature file
+     */
+    public function hasDigitalSignature(): bool
+    {
+        if (!$this->digital_signature) {
+            return false;
+        }
+        return \Illuminate\Support\Facades\Storage::disk('public')->exists($this->digital_signature)
+            || file_exists(public_path('storage/' . $this->digital_signature))
+            || file_exists(public_path($this->digital_signature));
+    }
 
     public function users()
     {

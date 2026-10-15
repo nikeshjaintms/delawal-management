@@ -46,6 +46,11 @@ class FirmController extends Controller
                 ->store('firm-logos', 'public');
         }
 
+        if ($request->hasFile('digital_signature')) {
+            $validated['digital_signature'] = $request->file('digital_signature')
+                ->store('firm-signatures', 'public');
+        }
+
         if (!empty($validated['password'])) {
             $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
         }
@@ -76,6 +81,20 @@ class FirmController extends Controller
             }
             $validated['firm_logo'] = $request->file('firm_logo')
                 ->store('firm-logos', 'public');
+        }
+
+        if ($request->hasFile('digital_signature')) {
+            // Delete old signature
+            if ($firmMaster->digital_signature) {
+                Storage::disk('public')->delete($firmMaster->digital_signature);
+            }
+            $validated['digital_signature'] = $request->file('digital_signature')
+                ->store('firm-signatures', 'public');
+        } elseif ($request->boolean('remove_digital_signature')) {
+            if ($firmMaster->digital_signature) {
+                Storage::disk('public')->delete($firmMaster->digital_signature);
+            }
+            $validated['digital_signature'] = null;
         }
 
         if (!empty($validated['password'])) {

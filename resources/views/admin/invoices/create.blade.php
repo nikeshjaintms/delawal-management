@@ -600,7 +600,7 @@
     </div>
 </div>
 
-<form action="{{ route('invoices.store') }}" method="POST" id="invoiceForm">
+<form action="{{ route('invoices.store') }}" method="POST" id="invoiceForm" enctype="multipart/form-data">
     @csrf
 
     <!-- SECTION 1: INVOICE TYPE & MAIN CONFIG -->
@@ -675,6 +675,49 @@
                 </select>
             </div>
         </div>
+
+        <!-- Prominent Digital Signature Upload (Moved to top for ease of access) -->
+        <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.10); background: rgba(16, 185, 129, 0.05); padding: 14px 18px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.25);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                <label class="form-label" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0; font-size: 13.5px; font-weight: 700; color: #FFFFFF;">
+                    <i class="fa-solid fa-signature" style="color: #10B981; font-size: 16px;"></i>
+                    <span>Digital Signature / Authorized Sign Photo</span>
+                    <span class="opt" style="font-size: 11px; color: #94A3B8;">(Optional)</span>
+                </label>
+                <label style="font-size: 11.5px; color: #CBD5E1; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none;">
+                    <input type="checkbox" name="set_as_firm_default_signature" value="1" checked style="cursor: pointer;">
+                    <span>Also save as default signature for all invoices of selected firm</span>
+                </label>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <input type="file" name="signature_image" class="f-control" accept="image/*" id="createSignInput" onchange="previewCreateSignature(this)">
+                </div>
+                <div id="createSignPreviewWrap" style="display: none; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.7); padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4);">
+                    <img id="createSignPreviewImg" src="" style="max-height: 40px; max-width: 130px; object-fit: contain; background: #FFFFFF; padding: 2px 6px; border-radius: 4px;" alt="Signature Preview">
+                    <span style="font-size: 11.5px; color: #34D399; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> Attached</span>
+                </div>
+            </div>
+            <span style="font-size: 11px; color: #94A3B8; margin-top: 5px; display: block;">
+                If uploaded, this signature photo will appear automatically above "Authorized Signatory" on this invoice and all printed bills.
+            </span>
+        </div>
+        <script>
+            function previewCreateSignature(input) {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.getElementById('createSignPreviewImg');
+                        const wrap = document.getElementById('createSignPreviewWrap');
+                        if (img && wrap) {
+                            img.src = e.target.result;
+                            wrap.style.display = 'inline-flex';
+                        }
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+        </script>
     </div>
 
     <!-- SECTION 2: RECIPIENT INFORMATION & QUICK PICKER -->

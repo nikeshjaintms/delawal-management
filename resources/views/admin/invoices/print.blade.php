@@ -52,6 +52,14 @@
     $firmAcc = $activeFirm->account_number ?? ($activeFirm->bank_account_no ?? '—');
     $firmIfsc = $activeFirm->ifsc_code ?? ($activeFirm->bank_ifsc ?? '—');
     $firmBranch = $activeFirm->branch_name ?? ($activeFirm->bank_branch ?? 'Dahegam Branch');
+
+    $activePaymentMode = $invoice->payment_mode
+        ?: ($invoice->payments->first()?->payment_mode
+        ?: ($invoice->paymentMode?->name ?? 'Cash'));
+
+    $allPaymentModes = isset($paymentModes) && $paymentModes->isNotEmpty()
+        ? $paymentModes
+        : \App\Models\PaymentMode::where('status', 'active')->orderBy('name')->get();
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -420,6 +428,65 @@
     'backUrl' => isset($invoice->id) ? route('invoices.show', $invoice->id) : route('invoices.index')
 ])
 
+<div class="no-print" style="max-width: 760px; margin: 0 auto 12px auto; padding: 10px 16px; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border: 1.5px solid rgba(245, 158, 11, 0.45); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 16px rgba(0,0,0,0.25); flex-wrap: wrap; gap: 12px;">
+    {{-- Left: Payment Mode Selector --}}
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span style="font-size: 13px; font-weight: 700; color: #F8FAFC; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-credit-card" style="color: #FBBF24; font-size: 15px;"></i>
+            <span>Payment Mode:</span>
+        </span>
+        <select id="quickPaymentModeSelect" style="background: #0F172A; color: #FFFFFF; border: 1.5px solid #F59E0B; padding: 6px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 700; cursor: pointer; outline: none; min-width: 150px;" onchange="handlePaymentModeChange(this.value)">
+            @foreach($allPaymentModes as $pm)
+                <option value="{{ $pm->name }}" {{ strcasecmp($activePaymentMode, $pm->name) === 0 ? 'selected' : '' }}>
+                    {{ $pm->name }}
+                </option>
+            @endforeach
+        </select>
+        <span id="saveModeSpinner" style="display: none; color: #FBBF24; font-size: 12px;">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+        </span>
+        <span id="saveModeSuccess" style="display: none; color: #34D399; font-size: 12px; font-weight: 700;">
+            <i class="fa-solid fa-circle-check"></i>
+        </span>
+    </div>
+
+    {{-- Right: Digital Signature Photo Upload & Actions --}}
+    @php
+        $activeSignature = $invoice->signature_image ?: ($activeFirm->digital_signature ?? null);
+        $hasSign = !empty($activeSignature) && (
+            \Illuminate\Support\Facades\Storage::disk('public')->exists($activeSignature) ||
+            file_exists(public_path('storage/' . $activeSignature)) ||
+            file_exists(public_path($activeSignature))
+        );
+        $signSrc = $hasSign
+            ? (file_exists(public_path($activeSignature)) ? asset($activeSignature) : asset('storage/' . $activeSignature))
+            : '';
+        $isFirmDefault = empty($invoice->signature_image) && !empty($activeFirm->digital_signature);
+    @endphp
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        @if($hasSign)
+            <span id="signTypeBadge" style="font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                {{ $isFirmDefault ? 'Firm Default Signature' : 'Custom Signature' }}
+            </span>
+        @endif
+        <input type="file" id="invSignFileInput" accept="image/*" style="display: none;" onchange="handleSignatureUpload(this)">
+        <button type="button" onclick="document.getElementById('invSignFileInput').click()" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: #FFFFFF; padding: 6px 13px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);">
+            <i class="fa-solid fa-signature"></i> <span id="signBtnText">{{ $hasSign ? 'Change Signature Photo' : 'Upload Signature Photo' }}</span>
+        </button>
+        <label style="font-size: 11px; color: #CBD5E1; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; user-select: none;">
+            <input type="checkbox" id="applyToFirmCheck" value="1" checked style="cursor: pointer;">
+            <span>Apply to all invoices</span>
+        </label>
+        <button type="button" id="removeSignBtn" onclick="handleSignatureRemove()" style="background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 6px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; display: {{ $hasSign ? 'inline-flex' : 'none' }}; align-items: center; gap: 4px;" title="Remove Signature">
+            <i class="fa-solid fa-trash-can"></i> Remove
+        </button>
+        <span id="signUploadSpinner" style="display: none; color: #34D399; font-size: 12px;">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Saving Signature...
+        </span>
+        <span id="signUploadMsg" style="display: none; color: #34D399; font-size: 11px; font-weight: 700;"></span>
+    </div>
+</div>
+
 <div id="delawala-printable-area" class="delawala-printable-area invoice-print-sheet">
     <!-- Header Section -->
     <div class="inv-header-box">
@@ -519,6 +586,10 @@
                 <div class="inv-row">
                     <span class="inv-lbl">Payment Status:</span>
                     <span class="inv-val" style="text-transform:uppercase;">{{ str_replace('_', ' ', $invoice->payment_status ?? 'Unpaid') }}</span>
+                </div>
+                <div class="inv-row">
+                    <span class="inv-lbl">Payment Mode:</span>
+                    <span class="inv-val" id="invDocPaymentMode" style="font-weight:700; text-transform:uppercase; color:#0F172A;">{{ $activePaymentMode }}</span>
                 </div>
                 <div class="inv-row">
                     <span class="inv-lbl">Reference No:</span>
@@ -662,11 +733,16 @@
 
     <!-- Signatures Block -->
     <div class="inv-auth-grid">
-        <div class="inv-auth-box">
-            <div class="inv-auth-line">Customer / Receiver Signature</div>
+        <div class="inv-auth-box" style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center;">
+            <div style="min-height: 48px; max-height: 52px;"></div>
+            <div class="inv-auth-line" style="width: 100%; margin-top: 0;">Customer / Receiver Signature</div>
         </div>
-        <div class="inv-auth-box">
-            <div class="inv-auth-line">For <strong>{{ $firmDisplayName }}</strong><br><span style="font-size:7px; font-weight:600;">(Authorized Signatory)</span></div>
+        <div class="inv-auth-box" style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center;">
+            <div id="invSignWrapper" style="min-height: 48px; max-height: 52px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 3px;">
+                <img id="invSignImg" src="{{ $signSrc }}" alt="Authorized Signature"
+                     style="max-height: 46px; max-width: 140px; object-fit: contain; {{ $hasSign ? 'display:block;' : 'display:none;' }}">
+            </div>
+            <div class="inv-auth-line" style="width: 100%; margin-top: 0;">For <strong>{{ $firmDisplayName }}</strong><br><span style="font-size:7px; font-weight:600;">(Authorized Signatory)</span></div>
         </div>
     </div>
 
@@ -677,6 +753,141 @@
         <span>Computer Generated Document</span>
     </div>
 </div>
+
+<script>
+    function handlePaymentModeChange(newMode) {
+        // 1. Immediately update the display on the printed sheet (synchronous for instant printing)
+        const docModeEl = document.getElementById('invDocPaymentMode');
+        if (docModeEl) {
+            docModeEl.textContent = (newMode || 'CASH').toUpperCase();
+        }
+
+        // 2. Show indicator
+        const spinner = document.getElementById('saveModeSpinner');
+        const success = document.getElementById('saveModeSuccess');
+        if (spinner) spinner.style.display = 'inline-block';
+        if (success) success.style.display = 'none';
+
+        // 3. Persist via AJAX
+        fetch('{{ route('invoices.update-payment-mode', $invoice->id) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ payment_mode: newMode })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (spinner) spinner.style.display = 'none';
+            if (success) {
+                success.style.display = 'inline-block';
+                setTimeout(() => { success.style.display = 'none'; }, 2500);
+            }
+        })
+        .catch(err => {
+            if (spinner) spinner.style.display = 'none';
+            console.error('Error saving payment mode:', err);
+        });
+    }
+
+    function handleSignatureUpload(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+
+        // 1. Instant local preview on the printed invoice
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById('invSignImg');
+            if (img) {
+                img.src = e.target.result;
+                img.style.display = 'block';
+            }
+            const removeBtn = document.getElementById('removeSignBtn');
+            if (removeBtn) removeBtn.style.display = 'inline-flex';
+            const btnText = document.getElementById('signBtnText');
+            if (btnText) btnText.textContent = 'Change Signature Photo';
+        };
+        reader.readAsDataURL(file);
+
+        // 2. Upload to server via AJAX
+        const spinner = document.getElementById('signUploadSpinner');
+        const msgEl = document.getElementById('signUploadMsg');
+        if (spinner) spinner.style.display = 'inline-block';
+        if (msgEl) msgEl.style.display = 'none';
+
+        const applyToFirmCheck = document.getElementById('applyToFirmCheck');
+        const applyToFirm = applyToFirmCheck ? (applyToFirmCheck.checked ? '1' : '0') : '1';
+
+        const formData = new FormData();
+        formData.append('signature_image', file);
+        formData.append('apply_to_firm', applyToFirm);
+
+        fetch('{{ route('invoices.upload-signature', $invoice->id) }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (spinner) spinner.style.display = 'none';
+            if (data.success && data.signature_url) {
+                const img = document.getElementById('invSignImg');
+                if (img) img.src = data.signature_url;
+
+                if (msgEl) {
+                    msgEl.textContent = data.applied_to_firm
+                        ? '✓ Saved for all ' + (data.firm_name || '') + ' invoices!'
+                        : '✓ Saved for this invoice!';
+                    msgEl.style.display = 'inline-block';
+                    setTimeout(() => { msgEl.style.display = 'none'; }, 4000);
+                }
+
+                const badge = document.getElementById('signTypeBadge');
+                if (badge) {
+                    badge.textContent = data.applied_to_firm ? 'Firm Default Signature' : 'Custom Signature';
+                    badge.style.display = 'inline-block';
+                }
+            }
+        })
+        .catch(err => {
+            if (spinner) spinner.style.display = 'none';
+            console.error('Error uploading signature:', err);
+        });
+    }
+
+    function handleSignatureRemove() {
+        if (!confirm('Remove digital signature from this invoice?')) return;
+
+        const removeFromFirm = confirm('Also remove this signature from firm default so all invoices are reset?') ? '1' : '0';
+
+        const img = document.getElementById('invSignImg');
+        if (img) {
+            img.src = '';
+            img.style.display = 'none';
+        }
+        const removeBtn = document.getElementById('removeSignBtn');
+        if (removeBtn) removeBtn.style.display = 'none';
+        const btnText = document.getElementById('signBtnText');
+        if (btnText) btnText.textContent = 'Upload Signature Photo';
+        const badge = document.getElementById('signTypeBadge');
+        if (badge) badge.style.display = 'none';
+
+        fetch('{{ route('invoices.remove-signature', $invoice->id) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ remove_from_firm: removeFromFirm })
+        }).catch(err => console.error('Error removing signature:', err));
+    }
+</script>
 
 </body>
 </html>

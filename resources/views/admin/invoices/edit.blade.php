@@ -239,7 +239,7 @@
     </div>
 </div>
 
-<form action="{{ route('invoices.update', $invoice->id) }}" method="POST" id="invoiceEditForm">
+<form action="{{ route('invoices.update', $invoice->id) }}" method="POST" id="invoiceEditForm" enctype="multipart/form-data">
     @csrf
     @method('PUT')
 
@@ -306,6 +306,52 @@
                     <option value="cancelled" {{ old('status', $invoice->status) == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                 </select>
             </div>
+        </div>
+
+        <!-- Prominent Digital Signature Upload (Moved to top for ease of access) -->
+        <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.10); background: rgba(16, 185, 129, 0.05); padding: 14px 18px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.25);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                <label class="form-label" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0; font-size: 13.5px; font-weight: 700; color: #FFFFFF;">
+                    <i class="fa-solid fa-signature" style="color: #10B981; font-size: 16px;"></i>
+                    <span>Digital Signature / Authorized Sign Photo</span>
+                    <span class="opt" style="font-size: 11px; color: #94A3B8;">(Optional)</span>
+                </label>
+                <label style="font-size: 11.5px; color: #CBD5E1; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none;">
+                    <input type="checkbox" name="set_as_firm_default_signature" value="1" style="cursor: pointer;">
+                    <span>Also update as default signature for all invoices of selected firm</span>
+                </label>
+            </div>
+
+            @php
+                $activeSig = $invoice->signature_image ?: ($invoice->firm?->digital_signature ?? null);
+                $hasActiveSig = !empty($activeSig) && (
+                    \Illuminate\Support\Facades\Storage::disk('public')->exists($activeSig) ||
+                    file_exists(public_path('storage/' . $activeSig)) ||
+                    file_exists(public_path($activeSig))
+                );
+                $sigUrl = $hasActiveSig ? (file_exists(public_path($activeSig)) ? asset($activeSig) : asset('storage/' . $activeSig)) : null;
+                $isFirmDefault = empty($invoice->signature_image) && !empty($invoice->firm?->digital_signature);
+            @endphp
+
+            @if($sigUrl)
+                <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 12px; background: rgba(15, 23, 42, 0.7); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3); width: fit-content; flex-wrap: wrap;">
+                    <img src="{{ $sigUrl }}" style="max-height: 42px; max-width: 140px; object-fit: contain; background: #FFFFFF; padding: 3px 6px; border-radius: 4px;" alt="Current Signature">
+                    <span style="font-size: 12px; color: #CBD5E1;">
+                        {{ $isFirmDefault ? 'Firm Default Signature (' . ($invoice->firm->firm_name ?? 'Firm') . ')' : 'Custom Signature Photo' }}
+                    </span>
+                    @if(!$isFirmDefault)
+                        <label style="font-size: 12px; color: #F87171; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-left: 10px;">
+                            <input type="checkbox" name="remove_signature" value="1">
+                            <span>Remove Custom Signature</span>
+                        </label>
+                    @endif
+                </div>
+            @endif
+
+            <input type="file" name="signature_image" class="f-control" accept="image/*">
+            <span style="font-size: 11px; color: #94A3B8; margin-top: 5px; display: block;">
+                If uploaded, this signature photo will appear automatically above "Authorized Signatory" on this invoice and all printed bills.
+            </span>
         </div>
     </div>
 
@@ -480,10 +526,50 @@
         </div>
     </div>
 
-    <!-- SECTION 4: BANK DETAILS & TERMS -->
+    <!-- SECTION 4: PAYMENT DETAILS -->
     <div class="form-section-card">
         <div class="section-head">
-            <i class="fa-solid fa-building-columns"></i> 4. Bank Account &amp; Terms
+            <i class="fa-solid fa-credit-card"></i> 4. Payment Mode &amp; Status
+        </div>
+
+        <div class="form-grid-3">
+            <div class="form-group">
+                <label class="form-label">Payment Mode <span class="opt">(Cash / Cheque / Bank Transfer / UPI / RTGS)</span></label>
+                @php
+                    $activeEditMode = old('payment_mode', $invoice->payment_mode ?: ($invoice->payments->first()?->payment_mode ?: 'Cash'));
+                @endphp
+                <select name="payment_mode" id="edit_payment_mode" class="f-control" style="font-weight: 700; color: #F8FAFC;">
+                    @if(isset($paymentModes))
+                        @foreach($paymentModes as $pm)
+                            <option value="{{ $pm->name }}" {{ strcasecmp($activeEditMode, $pm->name) === 0 ? 'selected' : '' }}>
+                                {{ $pm->name }}
+                            </option>
+                        @endforeach
+                    @else
+                        <option value="Cash" {{ $activeEditMode === 'Cash' ? 'selected' : '' }}>Cash</option>
+                        <option value="Cheque" {{ $activeEditMode === 'Cheque' ? 'selected' : '' }}>Cheque</option>
+                        <option value="Bank Transfer" {{ $activeEditMode === 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                        <option value="RTGS" {{ $activeEditMode === 'RTGS' ? 'selected' : '' }}>RTGS</option>
+                        <option value="NEFT" {{ $activeEditMode === 'NEFT' ? 'selected' : '' }}>NEFT</option>
+                        <option value="UPI" {{ $activeEditMode === 'UPI' ? 'selected' : '' }}>UPI</option>
+                    @endif
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Payment Status</label>
+                <input type="text" readonly class="f-control" style="background: rgba(15, 23, 42, 0.6); font-weight: 700; color: #FBBF24;" value="{{ strtoupper(str_replace('_', ' ', $invoice->payment_status ?? 'unpaid')) }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Total Amount Paid (₹)</label>
+                <input type="text" readonly class="f-control" style="background: rgba(15, 23, 42, 0.6); font-weight: 700; color: #34D399;" value="₹{{ number_format($invoice->paid_amount ?? 0, 2) }}">
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 5: BANK DETAILS & TERMS -->
+    <div class="form-section-card">
+        <div class="section-head">
+            <i class="fa-solid fa-building-columns"></i> 5. Bank Account &amp; Terms
         </div>
 
         <div class="form-grid-4">
@@ -515,6 +601,7 @@
                 <textarea name="notes" class="f-control" rows="3">{{ old('notes', $invoice->notes) }}</textarea>
             </div>
         </div>
+
     </div>
 
     <!-- ACTIONS -->

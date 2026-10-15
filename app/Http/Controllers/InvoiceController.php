@@ -20,6 +20,7 @@ use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class InvoiceController extends Controller
 {
@@ -286,6 +287,29 @@ class InvoiceController extends Controller
             $paymentStatus = 'partially_paid';
         }
 
+        $initModeId = $request->input('initial_payment_mode_id', $request->input('payment_mode_id'));
+        $initModeName = $request->input('initial_payment_mode', $request->input('payment_mode'));
+        if ($initModeId && empty($initModeName)) {
+            $pm = PaymentMode::find($initModeId);
+            $initModeName = $pm ? $pm->name : 'Cash';
+        }
+        if (empty($initModeName)) {
+            $initModeName = 'Cash';
+        }
+
+        $signaturePath = null;
+        if ($request->hasFile('signature_image')) {
+            $signaturePath = $request->file('signature_image')->store('invoices/signatures', 'public');
+
+            // If requested or if firm has no signature, sync to firm as well so ALL invoices of this firm have it
+            if ($request->boolean('set_as_firm_default_signature', true) && $request->filled('firm_id')) {
+                $targetFirm = Firm::find($request->firm_id);
+                if ($targetFirm) {
+                    $targetFirm->update(['digital_signature' => $signaturePath]);
+                }
+            }
+        }
+
         DB::beginTransaction();
         try {
             $invoice = Invoice::create([
@@ -322,6 +346,8 @@ class InvoiceController extends Controller
                 'paid_amount' => $paidAmount,
                 'balance_amount' => $balanceAmount,
                 'payment_status' => $paymentStatus,
+                'payment_mode' => $initModeName,
+                'payment_mode_id' => $initModeId,
                 'status' => $request->status ?? 'issued',
                 'bank_name' => $request->bank_name,
                 'bank_account_no' => $request->bank_account_no,
@@ -329,6 +355,7 @@ class InvoiceController extends Controller
                 'bank_branch' => $request->bank_branch,
                 'terms_conditions' => $request->terms_conditions,
                 'notes' => $request->notes,
+                'signature_image' => $signaturePath,
                 'created_by' => $user ? $user->id : null,
             ]);
 
@@ -340,8 +367,8 @@ class InvoiceController extends Controller
                 $invoice->payments()->create([
                     'payment_date' => $request->initial_payment_date ?? $request->invoice_date,
                     'amount' => $paidAmount,
-                    'payment_mode_id' => $request->initial_payment_mode_id,
-                    'payment_mode' => $request->initial_payment_mode ?? 'Cash',
+                    'payment_mode_id' => $initModeId,
+                    'payment_mode' => $initModeName,
                     'transaction_reference' => $request->initial_payment_ref,
                     'notes' => 'Initial payment upon invoice issuance',
                     'received_by' => $user ? $user->id : null,
@@ -516,6 +543,26 @@ class InvoiceController extends Controller
         $roundOff = (float) ($request->round_off ?? 0);
         $grandTotal = $taxableAmount + $totalTax + $roundOff;
 
+        $signaturePath = $invoice->signature_image;
+        if ($request->hasFile('signature_image')) {
+            if ($signaturePath && Storage::disk('public')->exists($signaturePath)) {
+                Storage::disk('public')->delete($signaturePath);
+            }
+            $signaturePath = $request->file('signature_image')->store('invoices/signatures', 'public');
+
+            if ($request->boolean('set_as_firm_default_signature') && $request->filled('firm_id')) {
+                $targetFirm = Firm::find($request->firm_id);
+                if ($targetFirm) {
+                    $targetFirm->update(['digital_signature' => $signaturePath]);
+                }
+            }
+        } elseif ($request->boolean('remove_signature')) {
+            if ($signaturePath && Storage::disk('public')->exists($signaturePath)) {
+                Storage::disk('public')->delete($signaturePath);
+            }
+            $signaturePath = null;
+        }
+
         DB::beginTransaction();
         try {
             $invoice->update([
@@ -550,13 +597,26 @@ class InvoiceController extends Controller
                 'round_off' => $roundOff,
                 'total_amount' => $grandTotal,
                 'status' => $request->status ?? $invoice->status,
+                'payment_mode' => $request->payment_mode ?: ($request->payment_mode_id ? (PaymentMode::find($request->payment_mode_id)?->name ?? 'Cash') : $invoice->payment_mode),
+                'payment_mode_id' => $request->payment_mode_id ?: $invoice->payment_mode_id,
                 'bank_name' => $request->bank_name,
                 'bank_account_no' => $request->bank_account_no,
                 'bank_ifsc' => $request->bank_ifsc,
                 'bank_branch' => $request->bank_branch,
                 'terms_conditions' => $request->terms_conditions,
                 'notes' => $request->notes,
+                'signature_image' => $signaturePath,
             ]);
+
+            if ($request->filled('payment_mode') || $request->filled('payment_mode_id')) {
+                $latestPmt = $invoice->payments()->latest('id')->first();
+                if ($latestPmt) {
+                    $latestPmt->update([
+                        'payment_mode' => $invoice->payment_mode,
+                        'payment_mode_id' => $invoice->payment_mode_id,
+                    ]);
+                }
+            }
 
             // Sync items
             $invoice->items()->delete();
@@ -729,10 +789,147 @@ class InvoiceController extends Controller
             'vendor',
             'items',
             'payments.paymentMode',
+            'paymentMode',
             'creator'
         ]);
 
-        return view('admin.invoices.print', compact('invoice'));
+        $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
+
+        return view('admin.invoices.print', compact('invoice', 'paymentModes'));
+    }
+
+    /**
+     * Quick update payment mode via dropdown (e.g. from Print page or Show page).
+     */
+    public function updatePaymentMode(Request $request, Invoice $invoice)
+    {
+        [$isAdmin, $firmId, $user] = $this->getAuthContext();
+
+        if (!$isAdmin && $invoice->firm_id != $firmId) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $modeName = trim((string) $request->input('payment_mode', ''));
+        $modeId = $request->input('payment_mode_id');
+
+        if (!$modeId && !empty($modeName)) {
+            $pm = PaymentMode::where('name', $modeName)->first();
+            if ($pm) {
+                $modeId = $pm->id;
+            }
+        } elseif ($modeId && empty($modeName)) {
+            $pm = PaymentMode::find($modeId);
+            if ($pm) {
+                $modeName = $pm->name;
+            }
+        }
+
+        if (empty($modeName)) {
+            $modeName = 'Cash';
+        }
+
+        $invoice->update([
+            'payment_mode' => $modeName,
+            'payment_mode_id' => $modeId,
+        ]);
+
+        // Also update latest payment or create one if paid_amount > 0
+        $latestPayment = $invoice->payments()->latest('id')->first();
+        if ($latestPayment) {
+            $latestPayment->update([
+                'payment_mode' => $modeName,
+                'payment_mode_id' => $modeId,
+            ]);
+        } elseif ($invoice->paid_amount > 0) {
+            $invoice->payments()->create([
+                'payment_date' => $invoice->invoice_date ?? now(),
+                'amount' => $invoice->paid_amount,
+                'payment_mode' => $modeName,
+                'payment_mode_id' => $modeId,
+                'notes' => 'Recorded via Invoice Payment Mode selection',
+                'received_by' => $user ? $user->id : null,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'payment_mode' => $modeName,
+            'payment_mode_id' => $modeId,
+            'message' => 'Payment mode updated successfully.'
+        ]);
+    }
+
+    /**
+     * Upload digital signature photo for this invoice.
+     */
+    public function uploadSignature(Request $request, Invoice $invoice)
+    {
+        [$isAdmin, $firmId] = $this->getAuthContext();
+
+        if (!$isAdmin && $invoice->firm_id != $firmId) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'signature_image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:4096',
+        ]);
+
+        if ($request->hasFile('signature_image')) {
+            if ($invoice->signature_image && Storage::disk('public')->exists($invoice->signature_image)) {
+                Storage::disk('public')->delete($invoice->signature_image);
+            }
+
+            $path = $request->file('signature_image')->store('invoices/signatures', 'public');
+            $invoice->update(['signature_image' => $path]);
+
+            // Sync to firm default signature if requested or by default
+            $applyToFirm = $request->has('apply_to_firm') ? $request->boolean('apply_to_firm') : true;
+            if ($applyToFirm && $invoice->firm) {
+                $invoice->firm->update(['digital_signature' => $path]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'signature_url' => asset('storage/' . $path),
+                'applied_to_firm' => $applyToFirm && $invoice->firm ? true : false,
+                'firm_name' => $invoice->firm?->firm_name ?? '',
+                'message' => ($applyToFirm && $invoice->firm)
+                    ? 'Digital signature uploaded and applied to all ' . $invoice->firm->firm_name . ' invoices!'
+                    : 'Digital signature uploaded for this invoice!'
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'No signature image file provided.'], 400);
+    }
+
+    /**
+     * Remove digital signature from this invoice.
+     */
+    public function removeSignature(Request $request, Invoice $invoice)
+    {
+        [$isAdmin, $firmId] = $this->getAuthContext();
+
+        if (!$isAdmin && $invoice->firm_id != $firmId) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        if ($invoice->signature_image && Storage::disk('public')->exists($invoice->signature_image)) {
+            Storage::disk('public')->delete($invoice->signature_image);
+        }
+
+        $invoice->update(['signature_image' => null]);
+
+        if ($request->boolean('remove_from_firm') && $invoice->firm) {
+            if ($invoice->firm->digital_signature && Storage::disk('public')->exists($invoice->firm->digital_signature)) {
+                Storage::disk('public')->delete($invoice->firm->digital_signature);
+            }
+            $invoice->firm->update(['digital_signature' => null]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Digital signature removed successfully.'
+        ]);
     }
 
     /**
