@@ -292,37 +292,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
         </div>
         @endif
 
-        @if(($activeType ?? '') === 'Property')
-        <div class="filter-group">
-            <span class="filter-label">Entire Property</span>
-            <select name="filter_property_master" id="filter_property_master" class="filter-control">
-                <option value="">All Entire Properties</option>
-                @if(isset($propertyMasters))
-                    @foreach($propertyMasters as $pm)
-                        <option value="{{ $pm->id }}" {{ request('filter_property_master') == $pm->id ? 'selected' : '' }}>
-                            {{ $pm->property_name }}
-                        </option>
-                    @endforeach
-                @endif
-            </select>
-        </div>
-
-        <div class="filter-group">
-            <span class="filter-label">Property Plot / Unit</span>
-            <select name="filter_property" id="filter_property_plot" class="filter-control">
-                <option value="">All Plots / Units</option>
-                @if(isset($propertyPlots))
-                    @foreach($propertyPlots as $prop)
-                        <option value="{{ $prop->id }}"
-                                data-master-id="{{ $prop->property_master_id }}"
-                                {{ request('filter_property') == $prop->id ? 'selected' : '' }}>
-                            {{ $prop->property_name }}{{ $prop->unit_no ? ' (Unit '.$prop->unit_no.')' : '' }}
-                        </option>
-                    @endforeach
-                @endif
-            </select>
-        </div>
-        @elseif(!in_array(($activeType ?? ''), ['Project', 'General', 'Personal']))
+        @if(!in_array(($activeType ?? ''), ['Project', 'General', 'Personal']))
         <div class="filter-group">
             <span class="filter-label">{{ ($activeType ?? '') === 'Rental' ? 'Rental Property' : 'Property' }}</span>
             <select name="filter_property" class="filter-control">
@@ -793,47 +763,6 @@ function confirmDelete(id, title) {
         customClass: { popup: 'swal-exp-popup' }
     }).then(r => { if (r.isConfirmed) document.getElementById('del-exp-' + id).submit(); });
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const masterSelect = document.getElementById('filter_property_master');
-    const plotSelect = document.getElementById('filter_property_plot');
-
-    if (masterSelect && plotSelect) {
-        const originalOptions = Array.from(plotSelect.querySelectorAll('option'));
-
-        function syncPlotOptions() {
-            const selectedMaster = masterSelect.value;
-            const currentSelectedPlot = plotSelect.value;
-
-            plotSelect.innerHTML = '';
-            plotSelect.appendChild(originalOptions[0].cloneNode(true));
-
-            let currentPlotStillValid = false;
-
-            originalOptions.slice(1).forEach(opt => {
-                const optMasterId = opt.getAttribute('data-master-id');
-                if (!selectedMaster || optMasterId === selectedMaster) {
-                    const cloned = opt.cloneNode(true);
-                    if (cloned.value === currentSelectedPlot) {
-                        cloned.selected = true;
-                        currentPlotStillValid = true;
-                    }
-                    plotSelect.appendChild(cloned);
-                }
-            });
-
-            if (!currentPlotStillValid && currentSelectedPlot !== '') {
-                plotSelect.value = '';
-            }
-        }
-
-        masterSelect.addEventListener('change', syncPlotOptions);
-
-        if (masterSelect.value) {
-            syncPlotOptions();
-        }
-    }
-});
 </script>
 <style>.swal-exp-popup{font-family:'Outfit',sans-serif!important;border-radius:14px!important;}</style>
 @endsection

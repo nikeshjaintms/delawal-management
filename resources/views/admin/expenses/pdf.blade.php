@@ -23,13 +23,9 @@
     if(!empty($activeType)) {
         $filters['Expense Stream'] = $activeType;
     }
-    if(request('filter_property_master')) {
-        $pm = \App\Models\PropertyMaster::find(request('filter_property_master'));
-        if($pm) $filters['Entire Property'] = $pm->property_name;
-    }
     if(request('filter_property')) {
         $pr = \App\Models\Property::find(request('filter_property'));
-        if($pr) $filters['Plot / Unit'] = $pr->property_name . ($pr->unit_no ? ' (Unit '.$pr->unit_no.')' : '');
+        if($pr) $filters['Property'] = $pr->property_name . ($pr->unit_no ? ' (Unit '.$pr->unit_no.')' : '');
     }
     if(request('filter_project') && !in_array(($activeType ?? ''), ['Property', 'Rental', 'General', 'Personal'])) {
         $p = \App\Models\Project::find(request('filter_project'));
