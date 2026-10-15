@@ -1,3 +1,10 @@
+@php
+    $pdAmt = (float)($rentalPayment->paid_amount ?? 0);
+    $rtAmt = (float)($rentalPayment->rent_amount ?? 0);
+    $mtAmt = (float)($rentalPayment->maintenance_amount ?? 0);
+    $totDue = $rtAmt + $mtAmt;
+    $balAmt = (float)($rentalPayment->pending_amount ?? max(0, $totDue - $pdAmt));
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,17 +22,17 @@
 
 @include('admin.components.pdf-header', [
     'title' => 'Official Rent Payment Receipt',
-    'subtitle' => 'Monthly Rent Settlement Slip',
+    'subtitle' => 'Monthly Rent Settlement Slip & Collection Voucher',
     'docRef' => 'RCP-' . str_pad($rentalPayment->id ?? 1, 5, '0', STR_PAD_LEFT)
 ])
 
 <div class="stat-row">
     <div class="stat-box s-green">
-        <div class="s-label">Amount Received</div>
-        <div class="s-value">₹{{ number_format($rentalPayment->paid_amount ?? 0, 2) }}</div>
+        <div class="s-label">Amount Realized</div>
+        <div class="s-value" style="font-size:14px; color:#059669;">{{ formatIndianCurrency($pdAmt) }}</div>
     </div>
     <div class="stat-box s-gold">
-        <div class="s-label">Period / Month</div>
+        <div class="s-label">Billing Period</div>
         <div class="s-value" style="font-size:13px;">{{ ($rentalPayment->payment_month ?? '') . ' ' . ($rentalPayment->payment_year ?? '') }}</div>
     </div>
     <div class="stat-box s-blue">
@@ -38,28 +45,28 @@
     <div class="grid-col">
         <div class="col-heading"><i class="fa-solid fa-user"></i> Tenant Particulars</div>
         <div class="info-row">
-            <span class="info-label">Tenant Name:</span>
-            <span class="info-val">{{ $rental->tenant_name ?? ($rental->tenant?->name ?? 'Tenant') }}</span>
+            <span class="info-label">Tenant Full Name:</span>
+            <span class="info-val"><strong>{{ $rental->tenant_name ?? ($rental->tenant?->name ?? 'Tenant') }}</strong></span>
         </div>
         <div class="info-row">
             <span class="info-label">Mobile Number:</span>
             <span class="info-val">{{ $rental->tenant_mobile ?? ($rental->tenant?->mobile ?? '—') }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Agreement No:</span>
-            <span class="info-val">{{ $rental->agreement_no ?: 'RA-'.str_pad($rental->id ?? 1, 5, '0', STR_PAD_LEFT) }}</span>
+            <span class="info-label">Agreement Reference:</span>
+            <span class="info-val" style="color:#1E3A8A; font-weight:700;">{{ $rental->agreement_no ?: 'RA-'.str_pad($rental->id ?? 1, 5, '0', STR_PAD_LEFT) }}</span>
         </div>
     </div>
 
     <div class="grid-col">
-        <div class="col-heading"><i class="fa-solid fa-building"></i> Property Details</div>
+        <div class="col-heading"><i class="fa-solid fa-building"></i> Property &amp; Transaction Details</div>
         <div class="info-row">
-            <span class="info-label">Property Name:</span>
-            <span class="info-val">{{ $rental->property->property_name ?? 'Delawala Property' }}</span>
+            <span class="info-label">Leased Property:</span>
+            <span class="info-val"><strong>{{ $rental->property->property_name ?? 'Delawala Property' }}</strong></span>
         </div>
         <div class="info-row">
-            <span class="info-label">Payment Mode:</span>
-            <span class="info-val">{{ ucfirst($rentalPayment->payment_mode ?? 'Cash') }}</span>
+            <span class="info-label">Settlement Mode:</span>
+            <span class="info-val">{{ ucfirst(str_replace('_', ' ', $rentalPayment->payment_mode ?: 'Cash')) }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Payment Date:</span>
@@ -68,45 +75,47 @@
     </div>
 </div>
 
-<div class="section-label"><i class="fa-solid fa-calculator"></i> Rent Breakdown</div>
+<div class="section-label"><i class="fa-solid fa-calculator"></i> Monthly Rent Accrual &amp; Settlement Statement</div>
 <table>
     <thead>
         <tr>
-            <th>Item Description</th>
-            <th class="r">Amount (₹)</th>
+            <th>Item Particulars</th>
+            <th class="r" style="width: 150px;">Amount (₹)</th>
         </tr>
     </thead>
     <tbody>
         <tr>
             <td>Monthly Base Rent Amount ({{ $rentalPayment->payment_month ?? '' }} {{ $rentalPayment->payment_year ?? '' }})</td>
-            <td class="r">₹{{ number_format($rentalPayment->rent_amount ?? 0, 2) }}</td>
+            <td class="r" style="font-weight:600; color:#1E3A8A;">{{ formatIndianCurrency($rtAmt) }}</td>
         </tr>
-        @if(($rentalPayment->maintenance_amount ?? 0) > 0)
+        @if($mtAmt > 0)
         <tr>
-            <td>Society / Maintenance Charges</td>
-            <td class="r">₹{{ number_format($rentalPayment->maintenance_amount, 2) }}</td>
+            <td>Society Maintenance &amp; Common Utility Charges</td>
+            <td class="r" style="font-weight:600;">{{ formatIndianCurrency($mtAmt) }}</td>
         </tr>
         @endif
-        <tr style="background:#F1F5F9; font-weight:800;">
-            <td>Total Billed / Due</td>
-            <td class="r">₹{{ number_format(($rentalPayment->rent_amount ?? 0) + ($rentalPayment->maintenance_amount ?? 0), 2) }}</td>
+        <tr style="background:#F8FAFC; font-weight:700;">
+            <td>Total Billed Demand</td>
+            <td class="r">{{ formatIndianCurrency($totDue) }}</td>
         </tr>
-        <tr style="background:#ECFDF5; font-weight:800; color:#059669;">
-            <td>Amount Received / Paid</td>
-            <td class="r" style="color:#059669;">₹{{ number_format($rentalPayment->paid_amount ?? 0, 2) }}</td>
+        <tr style="background:#F0FDF4; font-weight:800; color:#059669;">
+            <td>Amount Realized / Paid (Credit)</td>
+            <td class="r" style="color:#059669;">{{ formatIndianCurrency($pdAmt) }}</td>
         </tr>
-        @if(($rentalPayment->pending_amount ?? 0) > 0)
-        <tr style="color:#DC2626; font-weight:800;">
-            <td>Balance Pending for this Month</td>
-            <td class="r" style="color:#DC2626;">₹{{ number_format($rentalPayment->pending_amount, 2) }}</td>
+        <tr class="double-total">
+            <td><strong>Remaining Balance Due for this Billing Period</strong></td>
+            <td class="r" style="color:{{ $balAmt > 0 ? '#DC2626' : '#10B981' }}; font-size:11px;"><strong>{{ formatIndianCurrency($balAmt) }}</strong></td>
         </tr>
-        @endif
     </tbody>
 </table>
 
+<div style="margin-top:10px; font-size:8.5px; color:#64748B;">
+    <strong>Amount in Words:</strong> {{ numberToWordsIndian($pdAmt) }}
+</div>
+
 <div class="auth-block">
     <div class="auth-col">
-        <div class="auth-line">Tenant Signature</div>
+        <div class="auth-line">Tenant Acknowledgment</div>
     </div>
     <div class="auth-col">
         @php

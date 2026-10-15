@@ -192,11 +192,14 @@
         @endif
     </div>
     <div class="rpt-action-btns">
+        <a href="{{ route('reports.cash-flow.pdf', request()->query()) }}" target="_blank" class="btn-pdf">
+            <i class="fa-solid fa-file-pdf"></i> Export PDF
+        </a>
         <a href="{{ route('reports.cash-flow.excel', request()->query()) }}" class="btn-excel">
             <i class="fa-solid fa-file-csv"></i> Export Excel
         </a>
         <button onclick="window.print()" class="btn-print">
-            <i class="fa-solid fa-print"></i> Print / PDF
+            <i class="fa-solid fa-print"></i> Print
         </button>
     </div>
 </div>

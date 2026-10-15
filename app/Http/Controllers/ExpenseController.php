@@ -229,7 +229,7 @@ class ExpenseController extends Controller
             });
         }
 
-        if ($request->filled('filter_project')) {
+        if ($request->filled('filter_project') && !in_array($activeType, ['Property', 'Rental', 'General', 'Personal'])) {
             $query->where('project_id', $request->filter_project)
                   ->whereNull('property_id')
                   ->whereDoesntHave('properties');

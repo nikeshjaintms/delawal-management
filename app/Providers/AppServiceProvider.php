@@ -162,5 +162,11 @@ class AppServiceProvider extends ServiceProvider
                 });
             }
         }
+
+        // ── 3. Register Global Accounting Blade Directives ──
+        \Illuminate\Support\Facades\Blade::directive('currency', function ($expression) {
+            return "<?php echo \\App\Helpers\\AccountingHelper::formatIndianCurrency($expression); ?>";
+        });
     }
 }
+

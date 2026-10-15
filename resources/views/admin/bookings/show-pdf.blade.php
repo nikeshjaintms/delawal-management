@@ -1,3 +1,8 @@
+@php
+    $fAmt = (float)($booking->final_amount ?? 0);
+    $bAmt = (float)($booking->booking_amount ?? 0);
+    $rAmt = (float)($booking->remaining_amount ?? max(0, $fAmt - $bAmt));
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,31 +19,36 @@
 ])
 
 @include('admin.components.pdf-header', [
-    'title' => 'Official Booking Slip & Token Advance',
-    'subtitle' => 'Property Reservation Agreement',
+    'title' => 'Official Booking Slip & Token Advance Receipt',
+    'subtitle' => 'Property Allotment Reservation & Advance Token Agreement',
+    'firm' => $booking->firm ?? null,
     'docRef' => $booking->booking_code ?? ('BK-' . $booking->id)
 ])
 
 <div class="stat-row">
-    <div class="stat-box s-gold">
-        <div class="s-label">Booking Code</div>
-        <div class="s-value" style="font-size:14px;">{{ $booking->booking_code ?: ('BK-' . $booking->id) }}</div>
+    <div class="stat-box s-blue">
+        <div class="s-label">Booking Reference</div>
+        <div class="s-value" style="font-size:13px; color:#1E3A8A;">{{ $booking->booking_code ?: ('BK-' . $booking->id) }}</div>
+    </div>
+    <div class="stat-box s-purple">
+        <div class="s-label">Agreed Final Value</div>
+        <div class="s-value" style="font-size:13px;">{{ formatIndianCurrency($fAmt) }}</div>
     </div>
     <div class="stat-box s-green">
-        <div class="s-label">Token Advance Paid</div>
-        <div class="s-value">₹{{ number_format($booking->booking_amount, 2) }}</div>
+        <div class="s-label">Token Advance Realized</div>
+        <div class="s-value" style="font-size:13px;">{{ formatIndianCurrency($bAmt) }}</div>
     </div>
-    <div class="stat-box s-blue">
-        <div class="s-label">Final Agreed Amount</div>
-        <div class="s-value">₹{{ number_format($booking->final_amount, 2) }}</div>
+    <div class="stat-box s-red">
+        <div class="s-label">Remaining Balance Due</div>
+        <div class="s-value" style="font-size:13px;">{{ formatIndianCurrency($rAmt) }}</div>
     </div>
 </div>
 
 <div class="grid-2">
     <div class="grid-col">
-        <div class="col-heading"><i class="fa-solid fa-user"></i> Customer & Parties</div>
+        <div class="col-heading"><i class="fa-solid fa-user"></i> Customer &amp; Intermediary Details</div>
         <div class="info-row">
-            <span class="info-label">Customer:</span>
+            <span class="info-label">Customer / Allottee:</span>
             <span class="info-val"><strong>{{ $booking->customer->name ?? '—' }}</strong></span>
         </div>
         <div class="info-row">
@@ -47,23 +57,23 @@
         </div>
         <div class="info-row">
             <span class="info-label">Seller / Owner:</span>
-            <span class="info-val">{{ $booking->effective_seller_name ?: '—' }}</span>
+            <span class="info-val">{{ $booking->effective_seller_name ?: 'Direct Property' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Broker / Agent:</span>
-            <span class="info-val">{{ $booking->effective_broker_name ?: 'Direct' }}</span>
+            <span class="info-label">Sourcing Broker:</span>
+            <span class="info-val">{{ $booking->effective_broker_name ?: 'Direct Deal' }}</span>
         </div>
     </div>
 
     <div class="grid-col">
-        <div class="col-heading"><i class="fa-solid fa-building"></i> Property & Booking Info</div>
+        <div class="col-heading"><i class="fa-solid fa-building"></i> Property &amp; Reservation Info</div>
         <div class="info-row">
-            <span class="info-label">Property:</span>
+            <span class="info-label">Property Unit:</span>
             <span class="info-val"><strong>{{ $booking->property->property_name ?? '—' }}</strong></span>
         </div>
         <div class="info-row">
-            <span class="info-label">Project:</span>
-            <span class="info-val">{{ $booking->property?->project?->project_name ?? 'Direct Property' }}</span>
+            <span class="info-label">Project / Scheme:</span>
+            <span class="info-val">{{ $booking->property?->project?->project_name ?? 'Standalone Scheme' }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Booking Date:</span>
@@ -71,37 +81,37 @@
         </div>
         @if($booking->agreement_date)
         <div class="info-row">
-            <span class="info-label">Agreement Date:</span>
+            <span class="info-label">Target Agreement Date:</span>
             <span class="info-val">{{ \Carbon\Carbon::parse($booking->agreement_date)->format('d M Y') }}</span>
         </div>
         @endif
         <div class="info-row">
-            <span class="info-label">Status:</span>
+            <span class="info-label">Reservation Status:</span>
             <span class="info-val"><span class="badge badge-success">{{ ucfirst($booking->status) }}</span></span>
         </div>
     </div>
 </div>
 
-<div class="section-label"><i class="fa-solid fa-calculator"></i> Payment Summary</div>
+<div class="section-label"><i class="fa-solid fa-calculator"></i> Consideration &amp; Advance Token Statement</div>
 <table>
     <thead>
         <tr>
-            <th>Description</th>
-            <th class="r">Amount (₹)</th>
+            <th>Transaction Particulars</th>
+            <th class="r" style="width:160px;">Amount (₹)</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>Total Agreed Sale / Booking Amount</td>
-            <td class="r"><strong>₹{{ number_format($booking->final_amount, 2) }}</strong></td>
+            <td>Total Agreed Sale / Booking Consideration</td>
+            <td class="r" style="font-weight:700; color:#1E3A8A;">{{ formatIndianCurrency($fAmt) }}</td>
         </tr>
         <tr>
-            <td>Advance Token Paid</td>
-            <td class="r" style="color:#059669; font-weight:700;">₹{{ number_format($booking->booking_amount, 2) }}</td>
+            <td>Advance Token Received to Date (Held as Deposit)</td>
+            <td class="r" style="color:#059669; font-weight:700;">{{ formatIndianCurrency($bAmt) }}</td>
         </tr>
-        <tr>
-            <td>Remaining Balance Payable</td>
-            <td class="r" style="color:#B45309; font-weight:700;">₹{{ number_format($booking->remaining_amount, 2) }}</td>
+        <tr class="double-total">
+            <td><strong>Remaining Balance Payable upon Conveyance Deed Execution</strong></td>
+            <td class="r" style="color:{{ $rAmt > 0 ? '#DC2626' : '#10B981' }}; font-size:11px;"><strong>{{ formatIndianCurrency($rAmt) }}</strong></td>
         </tr>
     </tbody>
 </table>
@@ -126,7 +136,7 @@
                 <img src="{{ $bkSigUrl }}" style="max-height: 40px; max-width: 140px; object-fit: contain;" alt="Authorized Signature">
             </div>
         @endif
-        <div class="auth-line">Authorized Signatory &amp; Stamp</div>
+        <div class="auth-line">Authorized Signatory / {{ $booking->firm->firm_name ?? 'Delawala Infrastructure' }}</div>
     </div>
 </div>
 

@@ -19,8 +19,12 @@
 <div class="delawala-pdf-header">
     <div class="dph-left">
         <div class="dph-logo-wrap">
-            @if(file_exists(public_path('images/pdf-logo.png')))
+            @if(file_exists(public_path('images/logo 1.png')))
+                <img src="{{ asset('images/logo 1.png') }}?v={{ filemtime(public_path('images/logo 1.png')) }}" alt="{{ $firmDisplayName }}" class="dph-logo" onerror="this.style.display='none';">
+            @elseif(file_exists(public_path('images/pdf-logo.png')))
                 <img src="{{ asset('images/pdf-logo.png') }}?v={{ filemtime(public_path('images/pdf-logo.png')) }}" alt="{{ $firmDisplayName }}" class="dph-logo" onerror="this.style.display='none';">
+            @elseif(file_exists(public_path('assets/logos/logo 1.png')))
+                <img src="{{ asset('assets/logos/logo 1.png') }}?v={{ filemtime(public_path('assets/logos/logo 1.png')) }}" alt="{{ $firmDisplayName }}" class="dph-logo" onerror="this.style.display='none';">
             @else
                 <img src="{{ asset('images/logo.png') }}" alt="{{ $firmDisplayName }}" class="dph-logo" onerror="this.style.display='none';">
             @endif
@@ -50,11 +54,49 @@
             <div class="dph-doc-sub">{{ $docSubtitle }}</div>
         @endif
         <div class="dph-meta-item"><span class="dph-meta-lbl">Generated:</span> <strong>{{ $docDate }}</strong></div>
+        @if(isset($period) && !empty($period))
+            <div class="dph-meta-item"><span class="dph-meta-lbl">Period:</span> <strong>{{ $period }}</strong></div>
+        @elseif(request('from_date') || request('to_date'))
+            <div class="dph-meta-item">
+                <span class="dph-meta-lbl">Period:</span>
+                <strong>
+                    {{ request('from_date') ? \Carbon\Carbon::parse(request('from_date'))->format('d M Y') : 'Beginning' }}
+                    to
+                    {{ request('to_date') ? \Carbon\Carbon::parse(request('to_date'))->format('d M Y') : 'Present' }}
+                </strong>
+            </div>
+        @elseif(request('as_on_date'))
+            <div class="dph-meta-item"><span class="dph-meta-lbl">As On:</span> <strong>{{ \Carbon\Carbon::parse(request('as_on_date'))->format('d M Y') }}</strong></div>
+        @endif
         @if(isset($docRef))
             <div class="dph-meta-item"><span class="dph-meta-lbl">Ref No:</span> <strong>{{ $docRef }}</strong></div>
         @endif
     </div>
 </div>
+
+{{-- ── Audit / Filter Criteria Chips ── --}}
+@php
+    $chips = [];
+    if (isset($filters) && is_array($filters)) {
+        $chips = $filters;
+    } else {
+        if (request('from_date')) $chips['From Date'] = \Carbon\Carbon::parse(request('from_date'))->format('d M Y');
+        if (request('to_date')) $chips['To Date'] = \Carbon\Carbon::parse(request('to_date'))->format('d M Y');
+        if (request('as_on_date')) $chips['As On Date'] = \Carbon\Carbon::parse(request('as_on_date'))->format('d M Y');
+        if (request('payment_type')) $chips['Payment Type'] = ucfirst(request('payment_type'));
+        if (request('filter_status')) $chips['Status'] = ucfirst(request('filter_status'));
+        if (request('filter_mode')) $chips['Payment Mode'] = request('filter_mode');
+    }
+@endphp
+@if(count($chips) > 0)
+<div class="filter-criteria-bar">
+    <span style="font-weight:700; color:#475569;"><i class="fa-solid fa-filter" style="font-size:7.5px;"></i> Filter Criteria:</span>
+    @foreach($chips as $lbl => $val)
+        <span class="filter-chip">{{ $lbl }}: <strong>{{ $val }}</strong></span>
+    @endforeach
+</div>
+@endif
+
 
 <style>
     .delawala-pdf-header {
@@ -80,13 +122,18 @@
     .dph-logo-wrap {
         flex-shrink: 0;
         background: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     .dph-logo {
-        height: 76px;
-        max-height: 80px;
+        height: 72px;
+        max-height: 74px;
+        max-width: 135px;
         width: auto;
         object-fit: contain;
         display: block;
+        image-rendering: -webkit-optimize-contrast;
     }
     .dph-company-details {
         display: flex;
@@ -195,6 +242,13 @@
         .delawala-pdf-header {
             border-bottom: 1.5px solid #000000 !important;
             background: #FFFFFF !important;
+        }
+        .dph-logo {
+            max-height: 70px !important;
+            max-width: 135px !important;
+            object-fit: contain !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
         .dph-gst-badge, .dph-info-badge {
             background: #FFFFFF !important;

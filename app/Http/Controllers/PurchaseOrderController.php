@@ -472,7 +472,7 @@ class PurchaseOrderController extends Controller
     {
         $this->authorise($purchaseOrder);
         $purchaseOrder->load(['firm', 'vendor', 'contractor', 'contractors', 'creator', 'project.propertyMaster', 'items.material']);
-        return view('admin.purchase-orders.show', compact('purchaseOrder'))->with('printMode', true);
+        return view('admin.purchase-orders.pdf', compact('purchaseOrder'));
     }
 
     public function exportExcel(Request $request)
@@ -566,6 +566,54 @@ class PurchaseOrderController extends Controller
 
     public function exportPdf(Request $request)
     {
-        return $this->exportExcel($request);
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $query = PurchaseOrder::with(['firm', 'vendor', 'contractor', 'contractors', 'creator', 'project', 'items.material']);
+
+        if (!$isAdmin) {
+            $firmId = $user ? $user->firm_id : session('firm_id');
+            $query->forFirms([$firmId]);
+        } elseif ($request->filled('firm_id')) {
+            $query->forFirms([$request->firm_id]);
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('po_number', 'like', "%{$s}%")
+                  ->orWhere('status', 'like', "%{$s}%")
+                  ->orWhereHas('vendor', fn($v) => $v->where('name', 'like', "%{$s}%"))
+                  ->orWhereHas('firm', fn($f) => $f->where('firm_name', 'like', "%{$s}%"))
+                  ->orWhereHas('project', fn($p) => $p->where('project_name', 'like', "%{$s}%"))
+                  ->orWhereHas('contractor', fn($c) => $c->where('contractor_name', 'like', "%{$s}%"))
+                  ->orWhereHas('contractors', fn($c) => $c->where('contractor_name', 'like', "%{$s}%"));
+            });
+        }
+
+        if ($request->filled('filter_status')) {
+            $query->where('status', $request->filter_status);
+        }
+        if ($request->filled('filter_project')) {
+            $query->where('project_id', $request->filter_project);
+        }
+        if ($request->filled('filter_contractor')) {
+            $cId = $request->filter_contractor;
+            $query->where(function($q) use ($cId) {
+                $q->where('contractor_id', $cId)
+                  ->orWhereHas('contractors', fn($c) => $c->where('contractors.id', $cId));
+            });
+        }
+        if ($request->filled('start_date')) {
+            $query->whereDate('po_date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('po_date', '<=', $request->end_date);
+        }
+
+        $purchaseOrders = $query->orderBy('po_date', 'desc')->get();
+        $totalOrders = $purchaseOrders->count();
+        $totalAmount = $purchaseOrders->sum('grand_total');
+
+        return view('admin.purchase-orders.pdf', compact('purchaseOrders', 'totalOrders', 'totalAmount'));
     }
 }

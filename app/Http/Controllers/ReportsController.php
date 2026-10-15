@@ -864,6 +864,12 @@ class ReportsController extends Controller
         ));
     }
 
+    public function balanceSheetExportPdf(Request $request)
+    {
+        $view = $this->balanceSheet($request);
+        return view('admin.reports.balance-sheet-pdf', $view->getData());
+    }
+
     public function balanceSheetExportExcel(Request $request)
     {
         $asOnDate  = $request->filled('as_on_date') ? $request->as_on_date : null;
@@ -1165,6 +1171,12 @@ class ReportsController extends Controller
             'totalExpenseOutflow', 'totalLoanOutflow', 'totalOutflow',
             'netCashFlow', 'monthlyRows', 'firms', 'projects'
         ));
+    }
+
+    public function cashFlowExportPdf(Request $request)
+    {
+        $view = $this->cashFlow($request);
+        return view('admin.reports.cash-flow-pdf', $view->getData());
     }
 
     public function cashFlowExportExcel(Request $request)

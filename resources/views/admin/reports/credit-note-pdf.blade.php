@@ -14,63 +14,95 @@
 ])
 
 @include('admin.components.pdf-header', [
-    'title' => 'Credit Notes Statement Report',
-    'subtitle' => 'Sales Returns & Customer Credit Adjustments'
+    'title' => 'Credit Notes Register & Adjustments Statement',
+    'subtitle' => 'Sales Allowances, Cancellation Adjustments & Customer Credit Notes Ledger'
 ])
 
+{{-- ── KPI Summary Cards ── --}}
 <div class="stat-row">
     <div class="stat-box s-blue">
         <div class="s-label">Total Credit Notes</div>
-        <div class="s-value">{{ $notes->count() }}</div>
+        <div class="s-value">{{ $notes->count() }} Notes</div>
     </div>
     <div class="stat-box s-gold">
-        <div class="s-label">Taxable Value</div>
-        <div class="s-value">₹{{ number_format($totalTaxable ?? 0, 2) }}</div>
+        <div class="s-label">Total Taxable Value</div>
+        <div class="s-value">{{ formatIndianCurrency($totalTaxable ?? 0) }}</div>
     </div>
     <div class="stat-box s-red">
         <div class="s-label">Total GST Reversal</div>
-        <div class="s-value">₹{{ number_format($totalGst ?? 0, 2) }}</div>
+        <div class="s-value">{{ formatIndianCurrency($totalGst ?? 0) }}</div>
     </div>
     <div class="stat-box s-green">
-        <div class="s-label">Total Credit Amount</div>
-        <div class="s-value">₹{{ number_format($totalCredit ?? 0, 2) }}</div>
+        <div class="s-label">Total Credit Value (Gross)</div>
+        <div class="s-value">{{ formatIndianCurrency($totalCredit ?? 0) }}</div>
     </div>
 </div>
 
-<div class="section-label"><i class="fa-solid fa-file-invoice-dollar"></i> Issued Credit Notes Ledger</div>
+<div class="section-label">
+    <i class="fa-solid fa-file-invoice-dollar" style="color:#059669;"></i> Issued Customer Credit Notes Register
+</div>
 <table>
     <thead>
         <tr>
             <th style="width:24px;" class="c">#</th>
-            <th>Note No</th>
-            <th>Date</th>
-            <th>Customer / Party</th>
-            <th>Original Invoice</th>
-            <th class="r">Taxable</th>
-            <th class="r">GST</th>
-            <th class="r">Credit Total</th>
-            <th class="c">Status</th>
+            <th style="width:75px;">Note Date</th>
+            <th style="width:90px;">Credit Note #</th>
+            <th>Customer / Buyer Name</th>
+            <th>Original Invoice / Ref</th>
+            <th>Reason / Remarks</th>
+            <th class="r" style="width:110px;">Taxable (₹)</th>
+            <th class="r" style="width:95px;">GST (₹)</th>
+            <th class="r" style="width:115px;">Credit Total (₹)</th>
+            <th class="c" style="width:70px;">Status</th>
         </tr>
     </thead>
     <tbody>
         @forelse($notes as $i => $n)
         <tr>
             <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
-            <td><strong>{{ $n->credit_note_no ?? 'CN-'.$n->id }}</strong></td>
-            <td>{{ $n->note_date ? \Carbon\Carbon::parse($n->note_date)->format('d M Y') : '—' }}</td>
-            <td>{{ $n->customer->name ?? '—' }}</td>
-            <td>{{ $n->invoice->invoice_no ?? '—' }}</td>
-            <td class="r">₹{{ number_format($n->taxable_amount ?? 0, 2) }}</td>
-            <td class="r">₹{{ number_format($n->tax_amount ?? 0, 2) }}</td>
-            <td class="r" style="color:#DC2626; font-weight:700;">₹{{ number_format($n->total_amount ?? 0, 2) }}</td>
-            <td class="c"><span class="badge badge-success">{{ ucfirst($n->status ?? 'Active') }}</span></td>
+            <td style="white-space:nowrap;">{{ $n->note_date ? \Carbon\Carbon::parse($n->note_date)->format('d M Y') : '—' }}</td>
+            <td><strong>{{ $n->credit_note_no ?? ('CN-' . $n->id) }}</strong></td>
+            <td><strong>{{ $n->customer->name ?? '—' }}</strong></td>
+            <td>{{ $n->invoice->invoice_no ?? ($n->propertySale?->agreement_no ?? '—') }}</td>
+            <td style="font-size:8px;">{{ $n->reason ?? ($n->remarks ?? 'Sales Adjustment') }}</td>
+            <td class="r">{{ formatIndianCurrency($n->taxable_amount ?? 0) }}</td>
+            <td class="r" style="color:#64748B;">{{ formatIndianCurrency($n->tax_amount ?? 0) }}</td>
+            <td class="r" style="color:#DC2626; font-weight:700;">{{ formatIndianCurrency($n->total_amount ?? 0) }}</td>
+            <td class="c">
+                <span class="badge badge-success">{{ ucfirst($n->status ?? 'Active') }}</span>
+            </td>
         </tr>
         @empty
-        <tr><td colspan="9" class="c" style="padding:20px;color:#64748B;">No credit note records found.</td></tr>
+        <tr>
+            <td colspan="10" class="c" style="padding:24px; color:#64748B;">No credit note vouchers found for the selected period.</td>
+        </tr>
         @endforelse
     </tbody>
+    @if($notes->count() > 0)
+    <tfoot>
+        <tr class="double-total">
+            <td colspan="6" class="r">CREDIT NOTES GRAND TOTAL:</td>
+            <td class="r" style="font-weight:800;">{{ formatIndianCurrency($totalTaxable ?? 0) }}</td>
+            <td class="r" style="font-weight:800;">{{ formatIndianCurrency($totalGst ?? 0) }}</td>
+            <td class="r" style="color:#DC2626; font-size:10px; font-weight:900;">
+                {{ formatIndianCurrency($totalCredit ?? 0) }}
+            </td>
+            <td></td>
+        </tr>
+    </tfoot>
+    @endif
 </table>
 
-@include('admin.components.pdf-footer')
+{{-- ── Signatures Block ── --}}
+<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
+    <div class="auth-col">
+        <div class="auth-line">Billing &amp; Tax Officer</div>
+    </div>
+    <div class="auth-col">
+        <div class="auth-line">Authorised Signatory / Partner Approval</div>
+    </div>
+</div>
+
+@include('admin.components.pdf-footer', ['note' => 'Statutory Credit Notes Register • Section 34 of CGST Act Compliant'])
 </body>
 </html>

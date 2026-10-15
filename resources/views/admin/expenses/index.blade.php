@@ -278,7 +278,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
             </select>
         </div>
 
-        @if(($activeType ?? '') !== 'Rental')
+        @if(!in_array(($activeType ?? ''), ['Property', 'Rental', 'General', 'Personal']))
         <div class="filter-group">
             <span class="filter-label">Project</span>
             <select name="filter_project" class="filter-control">
@@ -292,6 +292,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
         </div>
         @endif
 
+        @if(!in_array(($activeType ?? ''), ['Project', 'General', 'Personal']))
         <div class="filter-group">
             <span class="filter-label">{{ ($activeType ?? '') === 'Rental' ? 'Rental Property' : 'Property' }}</span>
             <select name="filter_property" class="filter-control">
@@ -303,6 +304,7 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                 @endforeach
             </select>
         </div>
+        @endif
 
         @if(($activeType ?? '') === 'Rental')
         <div class="filter-group">
@@ -442,6 +444,17 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                         <th>Paid To / Payee</th>
                         <th>Amount (₹)</th>
                         <th>Tenant Recovery</th>
+                    @elseif(($activeType ?? '') === 'Property')
+                        <th>Property</th>
+                        <th>Paid To / Vendor</th>
+                        <th>Amount (₹)</th>
+                    @elseif(($activeType ?? '') === 'Project')
+                        <th>Project</th>
+                        <th>Paid To / Vendor</th>
+                        <th>Amount (₹)</th>
+                    @elseif(in_array(($activeType ?? ''), ['General', 'Personal']))
+                        <th>Paid To / Vendor</th>
+                        <th>Amount (₹)</th>
                     @else
                         <th>Project</th>
                         <th>Property</th>
@@ -554,7 +567,80 @@ select.filter-control option { background: #101622 !important; color: #FFFFFF !i
                                 <span style="color:#64748B; font-size:11.5px;">Not Recoverable</span>
                             @endif
                         </td>
+                    @elseif(($activeType ?? '') === 'Property')
+                        {{-- Property only (No Project column) --}}
+                        <td>
+                            @if($expense->relationLoaded('properties') && $expense->properties->isNotEmpty())
+                                @foreach($expense->properties as $prop)
+                                    <div style="font-weight:700;font-size:12.5px;color:#FFFFFF; margin-bottom: 2px;">
+                                        {{ $prop->property_name }}
+                                        @if($prop->unit_no)
+                                            <span style="font-size:11px;color:#93C5FD;">(Unit {{ $prop->unit_no }})</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            @elseif($expense->property)
+                                <div style="font-weight:700;font-size:13px;color:#FFFFFF;">{{ $expense->property->property_name }}</div>
+                                @if($expense->property->unit_no)
+                                    <div style="font-size:11px;color:#93C5FD;">Unit: {{ $expense->property->unit_no }}</div>
+                                @endif
+                            @else
+                                <span style="color:#94A3B8;">—</span>
+                            @endif
+                        </td>
+                        <td style="color:#CBD5E1;">
+                            @if($expense->vendor)
+                                <a href="{{ route('vendors.show', $expense->vendor_id) }}" style="color:#60A5FA; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="View Vendor Profile">
+                                    <i class="fa-solid fa-building-user" style="font-size:11px;"></i> {{ $expense->vendor->name }}
+                                </a>
+                                @if($expense->paid_to && $expense->paid_to !== $expense->vendor->name)
+                                    <div style="font-size:11px; color:#94A3B8;">({{ $expense->paid_to }})</div>
+                                @endif
+                            @else
+                                {{ $expense->paid_to ?? '—' }}
+                            @endif
+                        </td>
+                        <td class="amount-col">₹{{ number_format($expense->amount, 2) }}</td>
+                    @elseif(($activeType ?? '') === 'Project')
+                        {{-- Project only --}}
+                        <td>
+                            @if($expense->project ?? $expense->property?->project)
+                                @php $pObj = $expense->project ?? $expense->property->project; @endphp
+                                <div style="font-weight:700;font-size:13px;color:#60A5FA;">{{ $pObj->project_name }}</div>
+                            @else
+                                <span style="color:#94A3B8;">General / None</span>
+                            @endif
+                        </td>
+                        <td style="color:#CBD5E1;">
+                            @if($expense->vendor)
+                                <a href="{{ route('vendors.show', $expense->vendor_id) }}" style="color:#60A5FA; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="View Vendor Profile">
+                                    <i class="fa-solid fa-building-user" style="font-size:11px;"></i> {{ $expense->vendor->name }}
+                                </a>
+                                @if($expense->paid_to && $expense->paid_to !== $expense->vendor->name)
+                                    <div style="font-size:11px; color:#94A3B8;">({{ $expense->paid_to }})</div>
+                                @endif
+                            @else
+                                {{ $expense->paid_to ?? '—' }}
+                            @endif
+                        </td>
+                        <td class="amount-col">₹{{ number_format($expense->amount, 2) }}</td>
+                    @elseif(in_array(($activeType ?? ''), ['General', 'Personal']))
+                        {{-- General / Personal --}}
+                        <td style="color:#CBD5E1;">
+                            @if($expense->vendor)
+                                <a href="{{ route('vendors.show', $expense->vendor_id) }}" style="color:#60A5FA; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="View Vendor Profile">
+                                    <i class="fa-solid fa-building-user" style="font-size:11px;"></i> {{ $expense->vendor->name }}
+                                </a>
+                                @if($expense->paid_to && $expense->paid_to !== $expense->vendor->name)
+                                    <div style="font-size:11px; color:#94A3B8;">({{ $expense->paid_to }})</div>
+                                @endif
+                            @else
+                                {{ $expense->paid_to ?? '—' }}
+                            @endif
+                        </td>
+                        <td class="amount-col">₹{{ number_format($expense->amount, 2) }}</td>
                     @else
+                        {{-- All Expenses (Default) --}}
                         <td>
                             @if($expense->project ?? $expense->property?->project)
                                 @php $pObj = $expense->project ?? $expense->property->project; @endphp

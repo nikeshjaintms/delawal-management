@@ -289,8 +289,10 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
         Route::get('profit-loss/export-pdf', [ReportsController::class, 'profitLossExportPdf'])->name('profit-loss.pdf');
         Route::get('profit-loss/export-excel', [ReportsController::class, 'profitLossExportExcel'])->name('profit-loss.excel');
         Route::get('balance-sheet', [ReportsController::class, 'balanceSheet'])->name('balance-sheet');
+        Route::get('balance-sheet/export-pdf', [ReportsController::class, 'balanceSheetExportPdf'])->name('balance-sheet.pdf');
         Route::get('balance-sheet/export-excel', [ReportsController::class, 'balanceSheetExportExcel'])->name('balance-sheet.excel');
         Route::get('cash-flow', [ReportsController::class, 'cashFlow'])->name('cash-flow');
+        Route::get('cash-flow/export-pdf', [ReportsController::class, 'cashFlowExportPdf'])->name('cash-flow.pdf');
         Route::get('cash-flow/export-excel', [ReportsController::class, 'cashFlowExportExcel'])->name('cash-flow.excel');
         Route::get('sales', [ReportsController::class, 'sales'])->name('sales');
         Route::get('sales/export-pdf', [ReportsController::class, 'salesExportPdf'])->name('sales.pdf');

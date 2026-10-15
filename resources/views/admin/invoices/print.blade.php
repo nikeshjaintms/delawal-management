@@ -120,10 +120,12 @@
         .inv-logo-img {
             height: 72px;
             max-height: 75px;
+            max-width: 135px;
             width: auto;
             object-fit: contain;
             flex-shrink: 0;
             display: block;
+            image-rendering: -webkit-optimize-contrast;
         }
         .inv-firm-name {
             font-size: 16px;
@@ -417,6 +419,13 @@
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
+            .inv-logo-img {
+                max-height: 70px !important;
+                max-width: 135px !important;
+                object-fit: contain !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }
     </style>
 </head>
@@ -493,8 +502,12 @@
         <div class="inv-brand-col">
             @if(!empty($activeFirm->firm_logo) && file_exists(public_path('storage/' . $activeFirm->firm_logo)))
                 <img src="{{ asset('storage/' . $activeFirm->firm_logo) }}" alt="{{ $firmDisplayName }}" class="inv-logo-img" onerror="this.style.display='none';">
+            @elseif(file_exists(public_path('images/logo 1.png')))
+                <img src="{{ asset('images/logo 1.png') }}?v={{ filemtime(public_path('images/logo 1.png')) }}" alt="{{ $firmDisplayName }}" class="inv-logo-img" onerror="this.style.display='none';">
             @elseif(file_exists(public_path('images/pdf-logo.png')))
                 <img src="{{ asset('images/pdf-logo.png') }}?v={{ filemtime(public_path('images/pdf-logo.png')) }}" alt="{{ $firmDisplayName }}" class="inv-logo-img" onerror="this.style.display='none';">
+            @elseif(file_exists(public_path('assets/logos/logo 1.png')))
+                <img src="{{ asset('assets/logos/logo 1.png') }}?v={{ filemtime(public_path('assets/logos/logo 1.png')) }}" alt="{{ $firmDisplayName }}" class="inv-logo-img" onerror="this.style.display='none';">
             @else
                 <img src="{{ asset('images/logo.png') }}" alt="{{ $firmDisplayName }}" class="inv-logo-img" onerror="this.style.display='none';">
             @endif

@@ -132,8 +132,12 @@
 <div class="delawala-pdf-toolbar no-print">
     <div class="pdf-bar-brand">
         <div class="pdf-bar-logo-wrap">
-            @if(file_exists(public_path('images/pdf-logo.png')))
+            @if(file_exists(public_path('images/logo 1.png')))
+                <img src="{{ asset('images/logo 1.png') }}?v={{ filemtime(public_path('images/logo 1.png')) }}" alt="Delawala Properties">
+            @elseif(file_exists(public_path('images/pdf-logo.png')))
                 <img src="{{ asset('images/pdf-logo.png') }}?v={{ filemtime(public_path('images/pdf-logo.png')) }}" alt="Delawala Properties">
+            @elseif(file_exists(public_path('assets/logos/logo 1.png')))
+                <img src="{{ asset('assets/logos/logo 1.png') }}?v={{ filemtime(public_path('assets/logos/logo 1.png')) }}" alt="Delawala Properties">
             @else
                 <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties">
             @endif

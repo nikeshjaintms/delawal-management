@@ -2,6 +2,9 @@
     $sale = $sale ?? $propertySale;
     $propDisplay = $sale->property_names ?: ($sale->property->property_name ?? '—');
     $projDisplay = $sale->project_name ?: ($sale->property?->project?->project_name ?? 'Direct Property');
+    $sAmt = (float)($sale->sale_amount ?? 0);
+    $bAmt = (float)($sale->booking_amount ?? 0);
+    $rAmt = (float)($sale->remaining_amount ?? max(0, $sAmt - $bAmt));
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -19,24 +22,28 @@
 ])
 
 @include('admin.components.pdf-header', [
-    'title' => 'Property Sale Agreement & Deed',
-    'subtitle' => 'Official Conveyance & Payment Terms',
+    'title' => 'Property Sale Agreement & Conveyance Deed',
+    'subtitle' => 'Official Conveyance, Consideration Terms & Payment Schedule',
     'firm' => $sale->firm ?? null,
     'docRef' => $sale->agreement_no ?? ('SALE-' . $sale->id)
 ])
 
 <div class="stat-row">
-    <div class="stat-box s-gold">
-        <div class="s-label">Agreement No</div>
-        <div class="s-value" style="font-size:14px;">{{ $sale->agreement_no ?: ('SALE-' . $sale->id) }}</div>
+    <div class="stat-box s-blue">
+        <div class="s-label">Agreement Reference</div>
+        <div class="s-value" style="font-size:13px; color:#1E3A8A;">{{ $sale->agreement_no ?: ('SALE-' . $sale->id) }}</div>
+    </div>
+    <div class="stat-box s-purple">
+        <div class="s-label">Total Consideration</div>
+        <div class="s-value" style="font-size:13px;">{{ formatIndianCurrency($sAmt) }}</div>
     </div>
     <div class="stat-box s-green">
-        <div class="s-label">Total Sale Value</div>
-        <div class="s-value">₹{{ number_format($sale->sale_amount, 2) }}</div>
+        <div class="s-label">Realized Amount</div>
+        <div class="s-value" style="font-size:13px;">{{ formatIndianCurrency($bAmt) }}</div>
     </div>
-    <div class="stat-box s-blue">
-        <div class="s-label">Amount Received</div>
-        <div class="s-value">₹{{ number_format($sale->booking_amount, 2) }}</div>
+    <div class="stat-box s-red">
+        <div class="s-label">Outstanding Balance</div>
+        <div class="s-value" style="font-size:13px;">{{ formatIndianCurrency($rAmt) }}</div>
     </div>
 </div>
 
@@ -52,11 +59,11 @@
             <span class="info-val">{{ $sale->customer->mobile ?? '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Email:</span>
+            <span class="info-label">Email Address:</span>
             <span class="info-val">{{ $sale->customer->email ?? '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Address:</span>
+            <span class="info-label">Billing Address:</span>
             <span class="info-val">{{ $sale->customer->address ?? 'Dahegam, Bharuch' }}</span>
         </div>
     </div>
@@ -68,73 +75,79 @@
             <span class="info-val"><strong>{{ $propDisplay }}</strong></span>
         </div>
         <div class="info-row">
-            <span class="info-label">Project:</span>
+            <span class="info-label">Project / Scheme:</span>
             <span class="info-val">{{ $projDisplay }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Sale Date:</span>
+            <span class="info-label">Execution Date:</span>
             <span class="info-val">{{ $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date)->format('d M Y') : '—' }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">Status:</span>
+            <span class="info-label">Sale Status:</span>
             <span class="info-val"><span class="badge badge-success">{{ ucfirst($sale->sale_status ?: 'Sold') }}</span></span>
         </div>
         @if($sale->broker || $sale->broker_name)
         <div class="info-row">
-            <span class="info-label">Broker / Agent:</span>
-            <span class="info-val">{{ $sale->broker->name ?? $sale->broker_name }} @if(($sale->broker_commission_amount ?? $sale->broker_commission) > 0)(Commission: ₹{{ number_format($sale->broker_commission_amount ?? $sale->broker_commission, 2) }})@endif</span>
+            <span class="info-label">Sourcing Broker:</span>
+            <span class="info-val">{{ $sale->broker->name ?? $sale->broker_name }} @if(($sale->broker_commission_amount ?? $sale->broker_commission) > 0)({{ formatIndianCurrency($sale->broker_commission_amount ?? $sale->broker_commission) }})@endif</span>
         </div>
         @endif
     </div>
 </div>
 
-<div class="section-label"><i class="fa-solid fa-receipt"></i> Financial Settlement Statement</div>
+<div class="section-label"><i class="fa-solid fa-receipt"></i> Consideration &amp; Settlement Statement</div>
 <table>
     <thead>
         <tr>
-            <th>Description</th>
-            <th class="r">Amount (₹)</th>
+            <th>Transaction Description</th>
+            <th class="r" style="width:160px;">Amount (₹)</th>
         </tr>
     </thead>
     <tbody>
         <tr>
             <td>Total Agreed Consideration / Sale Price</td>
-            <td class="r"><strong>₹{{ number_format($sale->sale_amount, 2) }}</strong></td>
+            <td class="r" style="font-weight:700; color:#1E3A8A;">{{ formatIndianCurrency($sAmt) }}</td>
         </tr>
         <tr>
-            <td>Total Amount Received So Far</td>
-            <td class="r" style="color:#059669; font-weight:700;">₹{{ number_format($sale->booking_amount, 2) }}</td>
+            <td>Total Amount Realized So Far (Credits)</td>
+            <td class="r" style="color:#059669; font-weight:700;">{{ formatIndianCurrency($bAmt) }}</td>
         </tr>
-        <tr>
-            <td>Remaining Balance Outstanding</td>
-            <td class="r" style="color:#B45309; font-weight:700;">₹{{ number_format($sale->remaining_amount, 2) }}</td>
+        <tr class="double-total">
+            <td><strong>Remaining Balance Outstanding Due (Sundry Debtors)</strong></td>
+            <td class="r" style="color:{{ $rAmt > 0 ? '#DC2626' : '#10B981' }}; font-size:11px;"><strong>{{ formatIndianCurrency($rAmt) }}</strong></td>
         </tr>
     </tbody>
 </table>
 
 @if($sale->payments && $sale->payments->count() > 0)
-<div class="section-label" style="margin-top: 15px;"><i class="fa-solid fa-clock-rotate-left"></i> Payment Installments History</div>
+<div class="section-label" style="margin-top: 15px;"><i class="fa-solid fa-clock-rotate-left"></i> Realized Payment Installments History</div>
 <table>
     <thead>
         <tr>
-            <th style="width: 30px;">#</th>
-            <th>Date</th>
-            <th>Mode</th>
-            <th>Reference No</th>
-            <th class="r">Amount (₹)</th>
+            <th style="width: 28px;" class="c">#</th>
+            <th style="width: 85px;">Payment Date</th>
+            <th style="width: 85px;">Payment Mode</th>
+            <th>Transaction Reference / Instrument</th>
+            <th class="r" style="width: 120px;">Amount (₹)</th>
         </tr>
     </thead>
     <tbody>
         @foreach($sale->payments as $pIdx => $pmt)
         <tr>
-            <td>{{ $pIdx + 1 }}</td>
-            <td>{{ $pmt->payment_date ? \Carbon\Carbon::parse($pmt->payment_date)->format('d M Y') : '—' }}</td>
-            <td>{{ $pmt->payment_mode ?: 'Cash' }}</td>
-            <td>{{ $pmt->transaction_ref ?: '—' }}</td>
-            <td class="r" style="font-weight: 700; color: #059669;">₹{{ number_format($pmt->payment_amount, 2) }}</td>
+            <td class="c" style="color:#64748B;">{{ $pIdx + 1 }}</td>
+            <td style="white-space:nowrap; color:#475569;">{{ $pmt->payment_date ? \Carbon\Carbon::parse($pmt->payment_date)->format('d-M-Y') : '—' }}</td>
+            <td style="text-transform:capitalize; color:#475569;">{{ str_replace('_', ' ', $pmt->payment_mode ?: 'Cash') }}</td>
+            <td>{{ $pmt->transaction_ref ?: 'Direct Settlement' }}</td>
+            <td class="r" style="font-weight: 700; color: #059669;">{{ formatIndianCurrency($pmt->payment_amount ?? 0, 2, false) }}</td>
         </tr>
         @endforeach
     </tbody>
+    <tfoot>
+        <tr class="double-total">
+            <td colspan="4" class="r"><strong>TOTAL INSTALLMENTS REALIZED:</strong></td>
+            <td class="r" style="color:#059669; font-size:11px;"><strong>{{ formatIndianCurrency($sale->payments->sum('payment_amount')) }}</strong></td>
+        </tr>
+    </tfoot>
 </table>
 @endif
 
@@ -158,7 +171,7 @@
                 <img src="{{ $psSigUrl }}" style="max-height: 40px; max-width: 140px; object-fit: contain;" alt="Authorized Signature">
             </div>
         @endif
-        <div class="auth-line">For {{ $sale->firm->firm_name ?? 'Delawala Infra Co.' }}<br><small style="color:#64748B;">(Authorized Signatory)</small></div>
+        <div class="auth-line">Authorized Signatory / {{ $sale->firm->firm_name ?? 'Delawala Infrastructure' }}</div>
     </div>
 </div>
 

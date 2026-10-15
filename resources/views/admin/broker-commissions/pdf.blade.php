@@ -14,57 +14,110 @@
 ])
 
 @include('admin.components.pdf-header', [
-    'title' => 'Broker Commissions Statement',
-    'subtitle' => 'Deal Brokerages & Payout Ledger'
+    'title' => 'Broker Commissions Statement & Payout Ledger',
+    'subtitle' => 'Real Estate Agent Brokerage Accruals, Payouts & Outstanding Liabilities'
 ])
 
+{{-- ── KPI Summary Cards ── --}}
 <div class="stat-row">
     <div class="stat-box s-blue">
         <div class="s-label">Total Commission Accrued</div>
-        <div class="s-value">₹{{ number_format($totalCommission ?? 0, 2) }}</div>
+        <div class="s-value">{{ formatIndianCurrency($totalCommission ?? 0) }}</div>
     </div>
     <div class="stat-box s-green">
-        <div class="s-label">Commission Paid</div>
-        <div class="s-value">₹{{ number_format($paidCommission ?? 0, 2) }}</div>
+        <div class="s-label">Commission Paid / Disbursed</div>
+        <div class="s-value">{{ formatIndianCurrency($paidCommission ?? 0) }}</div>
     </div>
-    <div class="stat-box s-gold">
-        <div class="s-label">Pending Commission</div>
-        <div class="s-value">₹{{ number_format($pendingCommission ?? 0, 2) }}</div>
+    <div class="stat-box s-red">
+        <div class="s-label">Pending Brokerage Liability</div>
+        <div class="s-value">{{ formatIndianCurrency($pendingCommission ?? 0) }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="s-label">Total Broker Deals</div>
+        <div class="s-value">{{ $commissions->count() }} Entries</div>
     </div>
 </div>
 
-<div class="section-label"><i class="fa-solid fa-handshake"></i> Commission Settlements Register</div>
+<div class="section-label">
+    <i class="fa-solid fa-handshake" style="color:#059669;"></i> Brokerage Accruals &amp; Commission Disbursal Register
+</div>
 <table>
     <thead>
         <tr>
             <th style="width:24px;" class="c">#</th>
-            <th>Broker Name</th>
-            <th>Property / Deal</th>
-            <th>Customer</th>
-            <th>Deal Date</th>
-            <th class="r">Deal Value</th>
-            <th class="r">Commission (₹)</th>
-            <th class="c">Status</th>
+            <th style="width:75px;">Deal Date</th>
+            <th>Broker Name &amp; Contact</th>
+            <th>Property / Deal Unit</th>
+            <th>Customer / Buyer</th>
+            <th class="c" style="width:90px;">Commission Rate</th>
+            <th class="r" style="width:115px;">Commission (₹)</th>
+            <th class="c" style="width:80px;">Payment Status</th>
+            <th style="width:80px;">Settlement Date</th>
         </tr>
     </thead>
     <tbody>
         @forelse($commissions as $i => $c)
+        @php
+            $st = strtolower($c->payment_status ?? 'paid');
+            $brokerName = $c->broker->name ?? '—';
+            $brokerMob = $c->broker->mobile ?? '';
+        @endphp
         <tr>
             <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
-            <td><strong>{{ $c->broker->name ?? '—' }}</strong></td>
+            <td style="white-space:nowrap;">{{ $c->created_at ? \Carbon\Carbon::parse($c->created_at)->format('d M Y') : '—' }}</td>
+            <td>
+                <strong>{{ $brokerName }}</strong>
+                @if(!empty($brokerMob))
+                    <div style="font-size:7.5px; color:#64748B;">Mob: {{ $brokerMob }}</div>
+                @endif
+            </td>
             <td>{{ $c->property->property_name ?? '—' }}</td>
             <td>{{ $c->customer->name ?? '—' }}</td>
-            <td>{{ $c->deal_date ? \Carbon\Carbon::parse($c->deal_date)->format('d M Y') : '—' }}</td>
-            <td class="r">₹{{ number_format($c->deal_amount ?? 0, 2) }}</td>
-            <td class="r" style="color:#059669; font-weight:700;">₹{{ number_format($c->commission_amount ?? 0, 2) }}</td>
-            <td class="c"><span class="badge badge-success">{{ ucfirst($c->status ?? 'Paid') }}</span></td>
+            <td class="c">
+                <span class="badge" style="font-size:7.5px;">
+                    {{ ucfirst($c->commission_type ?? 'fixed') }}:
+                    <strong>{{ $c->commission_value ?? '—' }}{{ ($c->commission_type ?? '') === 'percentage' ? '%' : '' }}</strong>
+                </span>
+            </td>
+            <td class="r" style="font-weight:700; color:{{ $st === 'paid' ? '#059669' : '#DC2626' }};">
+                {{ formatIndianCurrency($c->commission_amount ?? 0) }}
+            </td>
+            <td class="c">
+                <span class="badge {{ $st === 'paid' ? 'badge-success' : 'badge-danger' }}">
+                    {{ ucfirst($c->payment_status ?? 'Paid') }}
+                </span>
+            </td>
+            <td>{{ $c->payment_date ? \Carbon\Carbon::parse($c->payment_date)->format('d M Y') : '—' }}</td>
         </tr>
         @empty
-        <tr><td colspan="8" class="c" style="padding:20px;color:#64748B;">No commission records found.</td></tr>
+        <tr>
+            <td colspan="9" class="c" style="padding:24px; color:#64748B;">No broker commission records found for the selected period.</td>
+        </tr>
         @endforelse
     </tbody>
+    @if($commissions->count() > 0)
+    <tfoot>
+        <tr class="double-total">
+            <td colspan="6" class="r">TOTAL ACCRUED COMMISSION:</td>
+            <td class="r" style="color:#059669; font-size:10px; font-weight:800;">
+                {{ formatIndianCurrency($totalCommission ?? 0) }}
+            </td>
+            <td colspan="2"></td>
+        </tr>
+    </tfoot>
+    @endif
 </table>
 
-@include('admin.components.pdf-footer')
+{{-- ── Signatures Block ── --}}
+<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
+    <div class="auth-col">
+        <div class="auth-line">Sales &amp; Channel Partner Manager</div>
+    </div>
+    <div class="auth-col">
+        <div class="auth-line">Managing Director / Partner Approval</div>
+    </div>
+</div>
+
+@include('admin.components.pdf-footer', ['note' => 'Broker Commissions Statement • Verified Against Executed Booking Agreements'])
 </body>
 </html>

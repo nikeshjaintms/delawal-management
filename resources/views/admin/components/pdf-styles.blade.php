@@ -151,8 +151,16 @@
         table-layout: auto;
         box-sizing: border-box;
     }
+    thead {
+        display: table-header-group;
+    }
+    tfoot {
+        display: table-footer-group;
+    }
     thead tr {
         background: #F8FAFC;
+        page-break-inside: avoid;
+        break-inside: avoid;
     }
     thead th {
         padding: 6px 7px;
@@ -166,9 +174,17 @@
         border-bottom: 1.5px solid #0F172A;
     }
     thead th.c, tbody td.c { text-align: center; }
-    thead th.r, tbody td.r, thead th.num, tbody td.num, tfoot td.r { text-align: right; }
+    thead th.r, tbody td.r, thead th.num, tbody td.num, tfoot td.r {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum";
+    }
     tbody tr:nth-child(even) {
         background: #FFFFFF;
+    }
+    tbody tr {
+        page-break-inside: avoid;
+        break-inside: avoid;
     }
     tbody td {
         padding: 5.5px 7px;
@@ -176,10 +192,14 @@
         vertical-align: top;
         color: #0F172A;
         word-break: break-word;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum";
     }
     tfoot tr {
         background: #F8FAFC;
         font-weight: 800;
+        page-break-inside: avoid;
+        break-inside: avoid;
     }
     tfoot td {
         padding: 5.5px 7px;
@@ -188,6 +208,43 @@
         font-size: 9px;
         color: #0F172A;
         word-break: break-word;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum";
+    }
+    .double-total {
+        border-top: 1.5px solid #0F172A !important;
+        border-bottom: 3.5px double #0F172A !important;
+        font-weight: 800 !important;
+        background: #F1F5F9 !important;
+    }
+
+    /* ── Audit / Filter Criteria Chips ── */
+    .filter-criteria-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-left: 3px solid #2563EB;
+        padding: 5px 10px;
+        border-radius: 4px;
+        margin-bottom: 12px;
+        font-size: 8px;
+        color: #334155;
+    }
+    .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #FFFFFF;
+        border: 1px solid #CBD5E1;
+        border-radius: 3px;
+        padding: 2px 6px;
+        font-weight: 600;
+    }
+    .filter-chip strong {
+        color: #0F172A;
     }
 
     /* ── Badges ── */
