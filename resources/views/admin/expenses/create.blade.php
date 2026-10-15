@@ -312,22 +312,37 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                 {{-- Property / Unit Multi-Select or Single Select --}}
                 <div class="form-group" id="property-field-wrapper" style="grid-column: 1 / -1;">
                     <label class="form-label" for="property_ids" id="property-label">
-                        <span id="property-label-text">{{ $currType === 'Rental' ? 'Rental Property / Unit' : 'Property / Unit' }}</span>
+                        <span id="property-label-text">{{ $currType === 'Rental' ? 'Rental Property / Unit' : 'Property' }}</span>
                         <span class="opt" id="property-label-opt">{{ $currType === 'Rental' ? '(Selecting a property auto-fetches Tenant & Agreement)' : '(Multi-Select Enabled)' }}</span>
                     </label>
                     @php
                         $selectedPropIds = (array) old('property_ids', request('property_ids') ?: (request('property_id') ? [request('property_id')] : (old('property_id') ? [old('property_id')] : ($selectedPropertyIds ?? ($selectedPropertyId ? [$selectedPropertyId] : [])))));
                     @endphp
-                    <select name="property_ids[]" id="property_ids" class="form-control select2-multi @error('property_ids') is-invalid @enderror" multiple data-placeholder="Search and select property / unit...">
+                    <select name="property_ids[]" id="property_ids" class="form-control select2-multi @error('property_ids') is-invalid @enderror" multiple data-placeholder="{{ $currType === 'Rental' ? 'Search and select property / unit...' : 'Search and select property...' }}">
                         @if(isset($properties))
                             @foreach($properties as $prop)
+                                @php
+                                    $isEntire = str_contains((string) $prop->property_name, '(Entire Property)') || str_ends_with((string) $prop->property_code, '-ENTIRE');
+                                    $hasUnitNo = !empty($prop->unit_no);
+                                    $isSubPlot = $prop->property_master_id && !$isEntire;
+                                    $isProjectUnit = $prop->project_id && $hasUnitNo;
+                                    $isUnit = ($hasUnitNo || $isSubPlot || $isProjectUnit) && !$isEntire;
+
+                                    $baseName = preg_replace('/\s*\(Entire Property\)$/i', '', $prop->property_name);
+                                    if ($prop->unit_no) {
+                                        $displayName = $baseName . ' · Unit ' . $prop->unit_no;
+                                    } else {
+                                        $displayName = $baseName;
+                                    }
+                                    $firmSuffix = $prop->firm ? ' (' . $prop->firm->firm_name . ')' : '';
+                                @endphp
                                 <option value="{{ $prop->id }}"
                                         data-project-id="{{ $prop->project_id }}"
                                         data-firm-id="{{ $prop->firm_id }}"
+                                        data-is-unit="{{ $isUnit ? '1' : '0' }}"
                                         data-project="{{ $prop->project->project_name ?? ($prop->project->propertyMaster->property_name ?? '') }}"
                                         {{ in_array($prop->id, $selectedPropIds) ? 'selected' : '' }}>
-                                    {{ $prop->property_name }}{{ $prop->unit_no ? ' · Unit '.$prop->unit_no : '' }}
-                                    @if(!$prop->project_id) [Direct Property] @elseif($prop->project) ({{ $prop->project->project_name }}) @endif
+                                    {{ $displayName }}{{ $firmSuffix }}
                                 </option>
                             @endforeach
                         @endif
@@ -880,15 +895,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const allProjectOptions = projectSelect ? Array.from(projectSelect.querySelectorAll('option')).slice(1) : [];
     const allPropOptions    = propSelect ? Array.from(propSelect.querySelectorAll('option')) : [];
 
-    // Initialize Select2 on property_ids if not already done
-    if (propSelect && $.fn.select2) {
-        $(propSelect).select2({
-            placeholder: "Search and select property / unit...",
-            allowClear: true,
-            width: '100%'
-        });
-    }
-
     // Paid to vendor auto-link
     if (paidToInput) {
         paidToInput.addEventListener('input', function() {
@@ -908,6 +914,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getSelectedFirmIds() {
         if (!firmSelect) return [];
+        if (window.jQuery && $.fn.select2 && $(firmSelect).hasClass('select2-hidden-accessible')) {
+            const vals = $(firmSelect).val() || [];
+            return Array.isArray(vals) ? vals.map(String).filter(Boolean) : [String(vals)].filter(Boolean);
+        }
         if (firmSelect.multiple) {
             return Array.from(firmSelect.selectedOptions).map(o => String(o.value)).filter(Boolean);
         } else if (firmSelect.value) {
@@ -943,9 +953,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!propSelect) return;
         const selectedProjectId = projectSelect ? projectSelect.value : '';
         const selectedFirmIds   = getSelectedFirmIds();
-        
+        const typeInput         = document.getElementById('expense_type_input');
+        const currentType       = typeInput ? typeInput.value : 'Property';
+        const isPropertyExpense = (currentType === 'Property');
+
         let currentPropVals = [];
-        if ($.fn.select2 && $(propSelect).hasClass('select2-hidden-accessible')) {
+        if (window.jQuery && $.fn.select2 && $(propSelect).hasClass('select2-hidden-accessible')) {
             currentPropVals = $(propSelect).val() || [];
         } else {
             currentPropVals = Array.from(propSelect.selectedOptions).map(o => o.value);
@@ -954,15 +967,26 @@ document.addEventListener('DOMContentLoaded', function() {
             currentPropVals = currentPropVals ? [currentPropVals] : [];
         }
 
+        // Destroy existing Select2 before updating DOM options
+        if (window.jQuery && $.fn.select2 && $(propSelect).hasClass('select2-hidden-accessible')) {
+            $(propSelect).select2('destroy');
+        }
+
         propSelect.innerHTML = '';
 
         let validSelected = [];
         allPropOptions.forEach(opt => {
             const optProjId = String(opt.getAttribute('data-project-id') || '');
             const optFirmId = String(opt.getAttribute('data-firm-id') || '');
+            const isUnit    = opt.getAttribute('data-is-unit') === '1';
+
+            // In Property Expense: NEVER show units! Only main/entire properties!
+            if (isPropertyExpense && isUnit) {
+                return;
+            }
 
             const firmMatch = selectedFirmIds.length === 0 || selectedFirmIds.includes(optFirmId) || !optFirmId;
-            const projMatch = !selectedProjectId || optProjId === String(selectedProjectId);
+            const projMatch = isPropertyExpense || !selectedProjectId || optProjId === String(selectedProjectId);
 
             if (firmMatch && projMatch) {
                 const newOpt = opt.cloneNode(true);
@@ -974,10 +998,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        if ($.fn.select2 && $(propSelect).hasClass('select2-hidden-accessible')) {
+        const ph = isPropertyExpense ? "Search and select property..." : "Search and select property / unit...";
+        if (window.jQuery && $.fn.select2) {
+            $(propSelect).select2({
+                placeholder: ph,
+                allowClear: true,
+                width: '100%'
+            });
             $(propSelect).val(validSelected).trigger('change.select2');
         }
     }
+
+    window.filterPropertiesByProject = filterPropertiesByProject;
 
     if (firmSelect) {
         $(firmSelect).on('change', filterProjectsAndProperties);
@@ -1014,10 +1046,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initialize state
-    if (projectSelect && projectSelect.value) {
-        filterPropertiesByProject();
-    }
+    // Initialize dropdowns filter immediately
+    filterPropertiesByProject();
 });
 
 // Quick Add Category Modal Functions
@@ -1055,6 +1085,10 @@ function selectExpenseType(type) {
         if (propLabel) propLabel.textContent = 'Rental Property / Unit';
         if (propOpt) propOpt.textContent = '(Selecting a property auto-fetches Tenant & Agreement)';
 
+        if (window.filterPropertiesByProject) {
+            window.filterPropertiesByProject();
+        }
+
         const propSelect = document.getElementById('property_ids');
         if (propSelect) {
             const selVal = $(propSelect).val();
@@ -1072,8 +1106,12 @@ function selectExpenseType(type) {
         if (rentalCard) rentalCard.style.display = 'none';
         if (rentalChips) rentalChips.style.display = 'none';
         if (titleEl) titleEl.textContent = '1. Property Expense Classification';
-        if (propLabel) propLabel.textContent = 'Property / Unit';
+        if (propLabel) propLabel.textContent = 'Property';
         if (propOpt) propOpt.textContent = '(Multi-Select Enabled)';
+
+        if (window.filterPropertiesByProject) {
+            window.filterPropertiesByProject();
+        }
     } else if (type === 'General') {
         if (row) row.style.display = 'none';
         if (rentalCard) rentalCard.style.display = 'none';

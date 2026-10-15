@@ -21,24 +21,45 @@ class PaymentController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
-        $query = PropertySale::with(['customer', 'property']);
-        if (!$isAdmin) {
+        $query = PropertySale::with(['customer', 'property.project', 'properties.project', 'firm']);
+        if (!$isAdmin && $firmId) {
             $query->where('firm_id', $firmId);
         }
         $sale = $query->findOrFail($id);
 
-        // Total paid so far from all payment entries
-        $totalPaidSoFar = Payment::where('property_sale_id', $sale->id)->sum('payment_amount');
+        $prop = $sale->property ?: $sale->properties->first();
+        $propNames = $sale->properties->isNotEmpty()
+            ? $sale->properties->pluck('property_name')->join(', ')
+            : ($prop?->property_name ?? '—');
+        $unitNos = $sale->properties->isNotEmpty()
+            ? $sale->properties->pluck('unit_no')->filter()->join(', ')
+            : ($prop?->unit_no ?? '');
+        $project = $prop?->project ?: $sale->properties->first()?->project;
+        if (!$project) {
+            $pmId = $prop?->property_master_id ?: $sale->properties->first()?->property_master_id;
+            if ($pmId) {
+                $project = \App\Models\Project::where('property_id', $pmId)->first();
+            }
+        }
+
+        // Total paid so far from all payment entries or initial booking_amount
+        $paymentsSum = (float) Payment::where('property_sale_id', $sale->id)->sum('payment_amount');
+        $totalPaidSoFar = max($paymentsSum, (float) ($sale->booking_amount ?? 0));
 
         return response()->json([
+            'id'             => $sale->id,
+            'customer_id'    => $sale->customer_id,
             'customer_name'  => $sale->customer->name ?? '',
             'customer_mobile'=> $sale->customer->mobile ?? '',
-            'property_name'  => $sale->property->property_name ?? '',
-            'property_code'  => $sale->property->property_code ?? '',
-            'unit_no'        => $sale->property->unit_no ?? '',
-            'total_amount'   => $sale->sale_amount ?? 0,
+            'project_id'     => $project?->id ?? '',
+            'project_name'   => $project?->project_name ?? '',
+            'property_id'    => $prop?->id ?? '',
+            'property_name'  => $propNames,
+            'property_code'  => $prop?->property_code ?? '',
+            'unit_no'        => $unitNos,
+            'total_amount'   => (float) ($sale->sale_amount ?? 0),
             'paid_amount'    => $totalPaidSoFar,
-            'pending_amount' => max(0, ($sale->sale_amount ?? 0) - $totalPaidSoFar),
+            'pending_amount' => max(0, (float) ($sale->sale_amount ?? 0) - $totalPaidSoFar),
         ]);
     }
 
@@ -83,17 +104,24 @@ class PaymentController extends Controller
         $isAdmin = $user && $user->isAdmin();
         $firmId = $user ? $user->firm_id : session('firm_id');
 
-        $bookingsQuery = PropertySale::with(['customer', 'property', 'firm'])
+        $bookingsQuery = PropertySale::with(['customer', 'property.project', 'properties.project', 'firm'])
             ->whereIn('sale_status', ['booked', 'sold']);
 
-        if (!$isAdmin) {
+        $projectsQuery = \App\Models\Project::where('status', 'active')->orderBy('project_name');
+        $propertiesQuery = \App\Models\Property::with('project')->orderBy('property_name');
+
+        if (!$isAdmin && $firmId) {
             $bookingsQuery->where('firm_id', $firmId);
+            $projectsQuery->where('firm_id', $firmId);
+            $propertiesQuery->where('firm_id', $firmId);
         }
 
-        $bookings = $bookingsQuery->latest()->get();
-        $firms    = Firm::where('status', 'active')->orderBy('firm_name')->get();
+        $bookings   = $bookingsQuery->latest()->get();
+        $projects   = $projectsQuery->get();
+        $properties = $propertiesQuery->get();
+        $firms      = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        return view('admin.payments.create', compact('bookings', 'firms'));
+        return view('admin.payments.create', compact('bookings', 'projects', 'properties', 'firms'));
     }
 
     public function store(PaymentRequest $request)

@@ -124,16 +124,76 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         <div class="form-section">
             <div class="section-title"><i class="fa-solid fa-file-contract"></i> Select Booking</div>
             @include('admin.components.firm-select')
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="filter_project"><i class="fa-solid fa-city" style="color:#60A5FA;"></i> Project <span class="opt">(Filter Bookings)</span></label>
+                    <select id="filter_project" class="form-control" onchange="filterBookingsAndProperties()">
+                        <option value="">-- All Projects --</option>
+                        @foreach($projects as $p)
+                            <option value="{{ $p->id }}">{{ $p->project_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="filter_property"><i class="fa-solid fa-building" style="color:#34D399;"></i> Property / Plot <span class="opt">(Filter Bookings)</span></label>
+                    <select id="filter_property" class="form-control" onchange="filterBookingsByProperty()">
+                        <option value="">-- All Properties / Plots --</option>
+                        @foreach($properties as $prop)
+                            @php
+                                $propProjId = $prop->project_id ?: ($projects->firstWhere('property_id', $prop->property_master_id)?->id ?? '');
+                            @endphp
+                            <option value="{{ $prop->id }}" data-project-id="{{ $propProjId }}">
+                                {{ $prop->property_name }} @if($prop->property_code) ({{ $prop->property_code }}) @endif
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label class="form-label" for="property_sale_id">Property Booking / Sale <span>*</span></label>
-                <select name="property_sale_id" id="property_sale_id" class="form-control @error('property_sale_id') is-invalid @enderror" onchange="loadBookingInfo(this.value)">
-                    <option value="">-- Select Booking --</option>
+                <select name="property_sale_id" id="property_sale_id" class="form-control @error('property_sale_id') is-invalid @enderror" onchange="loadBookingInfo(this.value)" required>
+                    <option value="">-- Select Booking / Sale --</option>
                     @foreach($bookings as $booking)
-                        <option value="{{ $booking->id }}" {{ old('property_sale_id') == $booking->id ? 'selected' : '' }}>
-                            #{{ $booking->id }} —
-                            {{ $booking->property->property_name ?? 'N/A' }}
-                            @if($booking->property?->property_code) ({{ $booking->property->property_code }}) @endif
-                            — {{ $booking->customer->name ?? '' }}
+                        @php
+                            $bProp = $booking->property ?: $booking->properties->first();
+                            
+                            // Collect all linked plot/property IDs (for old & new multi-plot sales)
+                            $allPropIds = $booking->properties->pluck('id')->all();
+                            if ($booking->property_id && !in_array($booking->property_id, $allPropIds)) {
+                                $allPropIds[] = $booking->property_id;
+                            }
+                            $bPropIdsStr = implode(',', $allPropIds);
+
+                            // Collect all linked project IDs
+                            $allProjIds = [];
+                            if ($bProp?->project_id) {
+                                $allProjIds[] = $bProp->project_id;
+                            } elseif ($bProp?->property_master_id) {
+                                $pmProjId = $projects->firstWhere('property_id', $bProp->property_master_id)?->id;
+                                if ($pmProjId) $allProjIds[] = $pmProjId;
+                            }
+                            foreach ($booking->properties as $p) {
+                                if ($p->project_id) {
+                                    $allProjIds[] = $p->project_id;
+                                } elseif ($p->property_master_id) {
+                                    $pmProjId = $projects->firstWhere('property_id', $p->property_master_id)?->id;
+                                    if ($pmProjId) $allProjIds[] = $pmProjId;
+                                }
+                            }
+                            $bProjIdsStr = implode(',', array_unique(array_filter($allProjIds)));
+
+                            $bPropNames = $booking->properties->isNotEmpty()
+                                ? $booking->properties->pluck('property_name')->join(', ')
+                                : ($bProp?->property_name ?? 'N/A');
+                        @endphp
+                        <option value="{{ $booking->id }}"
+                                data-project-ids="{{ $bProjIdsStr }}"
+                                data-property-ids="{{ $bPropIdsStr }}"
+                                {{ old('property_sale_id') == $booking->id ? 'selected' : '' }}>
+                            #{{ $booking->id }} — {{ $bPropNames }}
+                            @if($bProp?->property_code) ({{ $bProp->property_code }}) @endif
+                            — {{ $booking->customer->name ?? '' }} (Deal: ₹{{ number_format($booking->sale_amount, 2) }})
                         </option>
                     @endforeach
                 </select>
@@ -266,9 +326,97 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
 <script>
 let bookingData = null;
+let _allBookingOptions = null;
+let _allPropOptions = null;
 
 function formatINR(num) {
     return '₹' + parseFloat(num || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function filterBookingsAndProperties() {
+    const projSelect = document.getElementById('filter_project');
+    const propSelect = document.getElementById('filter_property');
+    const bookingSelect = document.getElementById('property_sale_id');
+    if (!propSelect || !bookingSelect) return;
+
+    if (!_allPropOptions) {
+        _allPropOptions = Array.from(propSelect.querySelectorAll('option'));
+    }
+    if (!_allBookingOptions) {
+        _allBookingOptions = Array.from(bookingSelect.querySelectorAll('option'));
+    }
+
+    const projId = projSelect ? projSelect.value : '';
+    const currentPropVal = propSelect.value;
+    propSelect.innerHTML = '';
+    let matchedProp = false;
+
+    _allPropOptions.forEach((opt, idx) => {
+        if (idx === 0) {
+            propSelect.appendChild(opt.cloneNode(true));
+            return;
+        }
+        const optProjId = opt.getAttribute('data-project-id') || '';
+        if (!projId || optProjId === String(projId) || !optProjId) {
+            const newOpt = opt.cloneNode(true);
+            if (newOpt.value === currentPropVal) {
+                newOpt.selected = true;
+                matchedProp = true;
+            }
+            propSelect.appendChild(newOpt);
+        }
+    });
+
+    if (!matchedProp && currentPropVal) {
+        propSelect.value = '';
+    }
+
+    filterBookingsByProperty();
+}
+
+function filterBookingsByProperty() {
+    const projSelect = document.getElementById('filter_project');
+    const propSelect = document.getElementById('filter_property');
+    const bookingSelect = document.getElementById('property_sale_id');
+    if (!bookingSelect) return;
+
+    if (!_allBookingOptions) {
+        _allBookingOptions = Array.from(bookingSelect.querySelectorAll('option'));
+    }
+
+    const projId = projSelect ? projSelect.value : '';
+    const propId = propSelect ? propSelect.value : '';
+    const currentBookingVal = bookingSelect.value;
+    bookingSelect.innerHTML = '';
+    let matchedBooking = false;
+
+    _allBookingOptions.forEach((opt, idx) => {
+        if (idx === 0) {
+            bookingSelect.appendChild(opt.cloneNode(true));
+            return;
+        }
+        const optProjIds = (opt.getAttribute('data-project-ids') || opt.getAttribute('data-project-id') || '').split(',').filter(Boolean);
+        const optPropIds = (opt.getAttribute('data-property-ids') || opt.getAttribute('data-property-id') || '').split(',').filter(Boolean);
+
+        const projMatch = !projId || optProjIds.length === 0 || optProjIds.includes(String(projId));
+        const propMatch = !propId || optPropIds.length === 0 || optPropIds.includes(String(propId));
+
+        if (projMatch && propMatch) {
+            const newOpt = opt.cloneNode(true);
+            if (newOpt.value === currentBookingVal) {
+                newOpt.selected = true;
+                matchedBooking = true;
+            }
+            bookingSelect.appendChild(newOpt);
+        }
+    });
+
+    if (!matchedBooking && currentBookingVal) {
+        bookingSelect.value = '';
+        loadBookingInfo('');
+    } else if (bookingSelect.value) {
+        loadBookingInfo(bookingSelect.value);
+    }
 }
 
 function loadBookingInfo(id) {
@@ -293,6 +441,17 @@ function loadBookingInfo(id) {
             document.getElementById('total_amount_display').value       = formatINR(data.total_amount);
             document.getElementById('already_paid_display').value       = formatINR(data.paid_amount);
             document.getElementById('bookingInfoBox').classList.add('visible');
+
+            // Sync Project and Property dropdowns if not set
+            const projSelect = document.getElementById('filter_project');
+            const propSelect = document.getElementById('filter_property');
+            if (data.project_id && projSelect && !projSelect.value) {
+                projSelect.value = data.project_id;
+            }
+            if (data.property_id && propSelect && !propSelect.value) {
+                propSelect.value = data.property_id;
+            }
+
             calcPending();
         })
         .catch(() => {});
@@ -313,9 +472,17 @@ function calcPending() {
 
 // Auto-load if old value exists (on validation fail return)
 window.addEventListener('DOMContentLoaded', function () {
-    const sel = document.getElementById('property_sale_id');
-    if (sel && sel.value) {
-        loadBookingInfo(sel.value);
+    const propSelect = document.getElementById('filter_property');
+    const bookingSelect = document.getElementById('property_sale_id');
+    if (propSelect && !_allPropOptions) {
+        _allPropOptions = Array.from(propSelect.querySelectorAll('option'));
+    }
+    if (bookingSelect && !_allBookingOptions) {
+        _allBookingOptions = Array.from(bookingSelect.querySelectorAll('option'));
+    }
+
+    if (bookingSelect && bookingSelect.value) {
+        loadBookingInfo(bookingSelect.value);
     }
 });
 </script>

@@ -45,7 +45,7 @@ class ExpenseController extends Controller
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
-        $propQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
+        $propQuery = Property::with(['project.propertyMaster', 'firm', 'propertyMaster'])->orderBy('property_name');
         $catQuery = ExpenseCategory::where('status', 'active')->orderBy('name');
         $projQuery = Project::with('propertyMaster')->orderBy('project_name');
         $vendorQuery = Vendor::where('status', 'active')->orderBy('name');

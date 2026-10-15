@@ -287,6 +287,28 @@ class PropertyMasterController extends Controller
             }
         }
 
+        // Ensure an Entire Property record exists in properties table for this PropertyMaster
+        $entireCode = ($propertyMaster->property_code ?: ('PROP-' . str_pad($propertyMaster->id, 4, '0', STR_PAD_LEFT))) . '-ENTIRE';
+        if (Property::where('property_code', $entireCode)->exists()) {
+            $entireCode .= '-' . Str::random(3);
+        }
+        Property::firstOrCreate(
+            ['property_master_id' => $propertyMaster->id, 'unit_no' => null],
+            [
+                'firm_id' => $firmId,
+                'property_name' => $propertyMaster->property_name . ' (Entire Property)',
+                'property_code' => $entireCode,
+                'price' => $propertyMaster->purchase_price ?: 0,
+                'purchase_rate' => $propertyMaster->purchase_rate ?: null,
+                'purchase_date' => $propertyMaster->purchase_date ?: date('Y-m-d'),
+                'location' => $propertyMaster->location,
+                'city' => $propertyMaster->city,
+                'address' => $propertyMaster->address,
+                'status' => 'available',
+                'description' => 'Entire Property Master: ' . $propertyMaster->property_name,
+            ]
+        );
+
         if ($paidAmount > 0) {
             $paymentModeId = null;
             if ($request->payment_mode) {

@@ -467,6 +467,111 @@ textarea.form-control { resize: vertical; min-height: 85px; }
             </div>
         </div>
 
+        {{-- Amounts --}}
+        <div class="form-section">
+            <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <span><i class="fa-solid fa-indian-rupee-sign"></i> Amount & Financial Details</span>
+                <span id="financial_live_profit_badge" style="display: none; padding: 4px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 800; align-items: center; gap: 6px;"></span>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.65); border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px; margin-bottom: 22px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                    <!-- 1. Base Purchase / Acquisition Cost -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="purchase_cost" style="color: #93C5FD !important; font-size: 13px;">
+                            <i class="fa-solid fa-receipt"></i> Purchase / Base Cost (₹)
+                        </label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 14px; top: 11px; color: #93C5FD; font-weight: 700; font-size: 15px;">₹</span>
+                            <input type="number" step="0.01" name="purchase_cost" id="purchase_cost"
+                                   value="{{ old('purchase_cost') }}" class="form-control @error('purchase_cost') is-invalid @enderror"
+                                   placeholder="0.00" oninput="onPurchaseCostInput()"
+                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #93C5FD !important; border-color: rgba(147, 197, 253, 0.4) !important;">
+                        </div>
+                        <div class="form-hint" style="color: #94A3B8;">Acquisition cost (auto-fills / editable).</div>
+                        @error('purchase_cost') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- 2. Incurred Property Expenses -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="property_expenses" style="color: #F59E0B !important; font-size: 13px;">
+                            <i class="fa-solid fa-file-invoice-dollar"></i> Incurred Expenses (₹)
+                        </label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 14px; top: 11px; color: #F59E0B; font-weight: 700; font-size: 15px;">₹</span>
+                            <input type="number" step="0.01" name="property_expenses" id="property_expenses"
+                                   value="{{ old('property_expenses') }}" class="form-control @error('property_expenses') is-invalid @enderror"
+                                   placeholder="0.00" oninput="this.dataset.autoFilled = '0'; recalcDealAnalytics();"
+                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #F59E0B !important; border-color: rgba(245, 158, 11, 0.4) !important;">
+                        </div>
+                        <div class="form-hint" style="color: #FCD34D;">Property expenses (auto-fills / editable).</div>
+                        @error('property_expenses') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- 3. Total Sale Amount -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="sale_amount" style="color: #60A5FA !important; font-size: 13px;">
+                            <i class="fa-solid fa-money-bill-wave"></i> Total Sale Amount (₹) <span>*</span>
+                        </label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 14px; top: 11px; color: #60A5FA; font-weight: 700; font-size: 15px;">₹</span>
+                            <input type="number" step="0.01" name="sale_amount" id="sale_amount"
+                                   value="{{ old('sale_amount') }}" class="form-control @error('sale_amount') is-invalid @enderror"
+                                   placeholder="0.00" oninput="onSaleAmountInput()" required
+                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #60A5FA !important; border-color: rgba(96, 165, 250, 0.4) !important;">
+                        </div>
+                        <div class="form-hint" style="color: #93C5FD;">Agreed selling price / deal.</div>
+                        @error('sale_amount') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- 4. Paid / Booking Amount -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="booking_amount" style="color: #34D399 !important; font-size: 13px;">
+                            <i class="fa-solid fa-circle-check"></i> Paid / Advance Amount (₹)
+                        </label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 14px; top: 11px; color: #34D399; font-weight: 700; font-size: 15px;">₹</span>
+                            <input type="number" step="0.01" name="booking_amount" id="booking_amount"
+                                   value="{{ old('booking_amount', '0.00') }}" class="form-control @error('booking_amount') is-invalid @enderror"
+                                   placeholder="0.00" min="0" oninput="calcRemaining()"
+                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #34D399 !important; border-color: rgba(52, 211, 153, 0.4) !important;">
+                        </div>
+                        <div class="form-hint" style="color: #A7F3D0;">Received advance / token.</div>
+                        @error('booking_amount') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- 5. Remaining Due Balance -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="remaining_amount" style="color: #F87171 !important; font-size: 13px;">
+                            <i class="fa-solid fa-clock-rotate-left"></i> Remaining Due (₹)
+                        </label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 14px; top: 11px; color: #F87171; font-weight: 700; font-size: 15px;">₹</span>
+                            <input type="number" step="0.01" name="remaining_amount" id="remaining_amount"
+                                   value="{{ old('remaining_amount') }}" class="form-control @error('remaining_amount') is-invalid @enderror"
+                                   placeholder="0.00" readonly
+                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #F87171 !important; background: rgba(239, 68, 68, 0.08) !important; border-color: rgba(248, 113, 113, 0.4) !important; cursor: not-allowed;">
+                        </div>
+                        <div class="form-hint" style="color: #FCA5A5;">Auto = Sale − Paid</div>
+                        @error('remaining_amount') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <!-- Quick Buttons -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding-top: 10px; border-top: 1px dashed rgba(255, 255, 255, 0.1);">
+                    <span style="font-size: 12px; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Quick Set:</span>
+                    <button type="button" onclick="setSaleQuickPayment('full')" style="background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 8px; cursor: pointer;">
+                        <i class="fa-solid fa-check-double"></i> Full Paid (100%)
+                    </button>
+                    <button type="button" onclick="setSaleQuickPayment('half')" style="background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.4); color: #FBBF24; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 8px; cursor: pointer;">
+                        <i class="fa-solid fa-percent"></i> 50% Advance
+                    </button>
+                    <button type="button" onclick="setSaleQuickPayment('unpaid')" style="background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.4); color: #F87171; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 8px; cursor: pointer;">
+                        <i class="fa-solid fa-xmark"></i> Unpaid (0%)
+                    </button>
+                </div>
+            </div>
+        </div>
+
         {{-- Seller & Broker Details Section --}}
         <div class="form-section">
             <div class="section-title">
@@ -609,111 +714,6 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                         <label class="form-label" style="color: #DDD6FE;">Broker Notes / Terms</label>
                         <input type="text" name="broker_notes" id="sale_broker_notes" value="{{ old('broker_notes') }}" class="form-control" placeholder="e.g. 1% commission on registry">
                     </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Amounts --}}
-        <div class="form-section">
-            <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <span><i class="fa-solid fa-indian-rupee-sign"></i> Amount & Financial Details</span>
-                <span id="financial_live_profit_badge" style="display: none; padding: 4px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 800; align-items: center; gap: 6px;"></span>
-            </div>
-            <div style="background: rgba(15, 23, 42, 0.65); border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 22px; margin-bottom: 22px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
-                    <!-- 1. Base Purchase / Acquisition Cost -->
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="purchase_cost" style="color: #93C5FD !important; font-size: 13px;">
-                            <i class="fa-solid fa-receipt"></i> Purchase / Base Cost (₹)
-                        </label>
-                        <div style="position: relative;">
-                            <span style="position: absolute; left: 14px; top: 11px; color: #93C5FD; font-weight: 700; font-size: 15px;">₹</span>
-                            <input type="number" step="0.01" name="purchase_cost" id="purchase_cost"
-                                   value="{{ old('purchase_cost') }}" class="form-control @error('purchase_cost') is-invalid @enderror"
-                                   placeholder="0.00" oninput="onPurchaseCostInput()"
-                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #93C5FD !important; border-color: rgba(147, 197, 253, 0.4) !important;">
-                        </div>
-                        <div class="form-hint" style="color: #94A3B8;">Acquisition cost (auto-fills / editable).</div>
-                        @error('purchase_cost') <div class="text-error">{{ $message }}</div> @enderror
-                    </div>
-
-                    <!-- 2. Incurred Property Expenses -->
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="property_expenses" style="color: #F59E0B !important; font-size: 13px;">
-                            <i class="fa-solid fa-file-invoice-dollar"></i> Incurred Expenses (₹)
-                        </label>
-                        <div style="position: relative;">
-                            <span style="position: absolute; left: 14px; top: 11px; color: #F59E0B; font-weight: 700; font-size: 15px;">₹</span>
-                            <input type="number" step="0.01" name="property_expenses" id="property_expenses"
-                                   value="{{ old('property_expenses') }}" class="form-control @error('property_expenses') is-invalid @enderror"
-                                   placeholder="0.00" oninput="this.dataset.autoFilled = '0'; recalcDealAnalytics();"
-                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #F59E0B !important; border-color: rgba(245, 158, 11, 0.4) !important;">
-                        </div>
-                        <div class="form-hint" style="color: #FCD34D;">Property expenses (auto-fills / editable).</div>
-                        @error('property_expenses') <div class="text-error">{{ $message }}</div> @enderror
-                    </div>
-
-                    <!-- 3. Total Sale Amount -->
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="sale_amount" style="color: #60A5FA !important; font-size: 13px;">
-                            <i class="fa-solid fa-money-bill-wave"></i> Total Sale Amount (₹) <span>*</span>
-                        </label>
-                        <div style="position: relative;">
-                            <span style="position: absolute; left: 14px; top: 11px; color: #60A5FA; font-weight: 700; font-size: 15px;">₹</span>
-                            <input type="number" step="0.01" name="sale_amount" id="sale_amount"
-                                   value="{{ old('sale_amount') }}" class="form-control @error('sale_amount') is-invalid @enderror"
-                                   placeholder="0.00" oninput="onSaleAmountInput()" required
-                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #60A5FA !important; border-color: rgba(96, 165, 250, 0.4) !important;">
-                        </div>
-                        <div class="form-hint" style="color: #93C5FD;">Agreed selling price / deal.</div>
-                        @error('sale_amount') <div class="text-error">{{ $message }}</div> @enderror
-                    </div>
-
-                    <!-- 4. Paid / Booking Amount -->
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="booking_amount" style="color: #34D399 !important; font-size: 13px;">
-                            <i class="fa-solid fa-circle-check"></i> Paid / Advance Amount (₹)
-                        </label>
-                        <div style="position: relative;">
-                            <span style="position: absolute; left: 14px; top: 11px; color: #34D399; font-weight: 700; font-size: 15px;">₹</span>
-                            <input type="number" step="0.01" name="booking_amount" id="booking_amount"
-                                   value="{{ old('booking_amount', '0.00') }}" class="form-control @error('booking_amount') is-invalid @enderror"
-                                   placeholder="0.00" min="0" oninput="calcRemaining()"
-                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #34D399 !important; border-color: rgba(52, 211, 153, 0.4) !important;">
-                        </div>
-                        <div class="form-hint" style="color: #A7F3D0;">Received advance / token.</div>
-                        @error('booking_amount') <div class="text-error">{{ $message }}</div> @enderror
-                    </div>
-
-                    <!-- 5. Remaining Due Balance -->
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="remaining_amount" style="color: #F87171 !important; font-size: 13px;">
-                            <i class="fa-solid fa-clock-rotate-left"></i> Remaining Due (₹)
-                        </label>
-                        <div style="position: relative;">
-                            <span style="position: absolute; left: 14px; top: 11px; color: #F87171; font-weight: 700; font-size: 15px;">₹</span>
-                            <input type="number" step="0.01" name="remaining_amount" id="remaining_amount"
-                                   value="{{ old('remaining_amount') }}" class="form-control @error('remaining_amount') is-invalid @enderror"
-                                   placeholder="0.00" readonly
-                                   style="padding-left: 32px; font-weight: 800; font-size: 15px; color: #F87171 !important; background: rgba(239, 68, 68, 0.08) !important; border-color: rgba(248, 113, 113, 0.4) !important; cursor: not-allowed;">
-                        </div>
-                        <div class="form-hint" style="color: #FCA5A5;">Auto = Sale − Paid</div>
-                        @error('remaining_amount') <div class="text-error">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-
-                <!-- Quick Buttons -->
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding-top: 10px; border-top: 1px dashed rgba(255, 255, 255, 0.1);">
-                    <span style="font-size: 12px; font-weight: 700; color: #94A3B8; text-transform: uppercase;">Quick Set:</span>
-                    <button type="button" onclick="setSaleQuickPayment('full')" style="background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 8px; cursor: pointer;">
-                        <i class="fa-solid fa-check-double"></i> Full Paid (100%)
-                    </button>
-                    <button type="button" onclick="setSaleQuickPayment('half')" style="background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.4); color: #FBBF24; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 8px; cursor: pointer;">
-                        <i class="fa-solid fa-percent"></i> 50% Advance
-                    </button>
-                    <button type="button" onclick="setSaleQuickPayment('unpaid')" style="background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.4); color: #F87171; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 8px; cursor: pointer;">
-                        <i class="fa-solid fa-xmark"></i> Unpaid (0%)
-                    </button>
                 </div>
             </div>
         </div>

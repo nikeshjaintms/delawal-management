@@ -527,7 +527,7 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
         @endif
         <div class="filter-group">
             <span class="filter-label">Project</span>
-            <select name="filter_project" class="filter-ctrl" onchange="this.form.submit()">
+            <select name="filter_project" id="rpt_filter_project" class="filter-ctrl" onchange="onProjectFilterChange(this.value)">
                 <option value="">All Projects</option>
                 @foreach($projects as $p)
                     <option value="{{ $p->id }}" {{ request('filter_project') == $p->id ? 'selected' : '' }}>{{ $p->project_name }}</option>
@@ -536,24 +536,29 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
         </div>
         <div class="filter-group">
             <span class="filter-label">Property</span>
-            <select name="filter_property" class="filter-ctrl @error('filter_property') is-invalid @enderror">
+            <select name="filter_property" id="rpt_filter_property" class="filter-ctrl @error('filter_property') is-invalid @enderror" onchange="this.form.submit()">
                 <option value="">All Properties</option>
                 @foreach($properties as $prop)
-                    <option value="{{ $prop->id }}" {{ request('filter_property')==$prop->id?'selected':'' }}>{{ $prop->property_name }}</option>
+                    @php
+                        $propProjId = $prop->project_id ?: ($projects->firstWhere('property_id', $prop->property_master_id)?->id ?? '');
+                    @endphp
+                    <option value="{{ $prop->id }}" data-project-id="{{ $propProjId }}" {{ request('filter_property')==$prop->id?'selected':'' }}>
+                        {{ $prop->property_name }} @if($prop->property_code) ({{ $prop->property_code }}) @endif
+                    </option>
                 @endforeach
             </select>
         </div>
         <div class="filter-group">
             <span class="filter-label">From Date</span>
-            <input type="date" name="from_date" value="{{ request('from_date') }}" class="filter-ctrl @error('from_date') is-invalid @enderror">
+            <input type="date" name="from_date" value="{{ request('from_date') }}" class="filter-ctrl @error('from_date') is-invalid @enderror" onchange="this.form.submit()">
         </div>
         <div class="filter-group">
             <span class="filter-label">To Date</span>
-            <input type="date" name="to_date" value="{{ request('to_date') }}" class="filter-ctrl @error('to_date') is-invalid @enderror">
+            <input type="date" name="to_date" value="{{ request('to_date') }}" class="filter-ctrl @error('to_date') is-invalid @enderror" onchange="this.form.submit()">
         </div>
         <div class="filter-group">
             <span class="filter-label">Customer / Party</span>
-            <select name="filter_customer" class="filter-ctrl @error('filter_customer') is-invalid @enderror">
+            <select name="filter_customer" class="filter-ctrl @error('filter_customer') is-invalid @enderror" onchange="this.form.submit()">
                 <option value="">All Parties</option>
                 @foreach($customers as $c)
                     <option value="{{ $c->id }}" {{ request('filter_customer')==$c->id?'selected':'' }}>{{ $c->name }}</option>
@@ -562,7 +567,7 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
         </div>
         <div class="filter-group">
             <span class="filter-label">Payment Mode</span>
-            <select name="filter_mode" class="filter-ctrl @error('filter_mode') is-invalid @enderror">
+            <select name="filter_mode" class="filter-ctrl @error('filter_mode') is-invalid @enderror" onchange="this.form.submit()">
                 <option value="">All Modes</option>
                 @foreach(['Cash','Cheque','Bank Transfer','UPI','Other'] as $m)
                     <option value="{{ $m }}" {{ request('filter_mode')==$m?'selected':'' }}>{{ $m }}</option>
@@ -571,7 +576,7 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
         </div>
         <div class="filter-group">
             <span class="filter-label">Status</span>
-            <select name="filter_status" class="filter-ctrl @error('filter_status') is-invalid @enderror">
+            <select name="filter_status" class="filter-ctrl @error('filter_status') is-invalid @enderror" onchange="this.form.submit()">
                 <option value="">All Status</option>
                 @foreach(['paid','pending','partial','cancelled'] as $s)
                     <option value="{{ $s }}" {{ request('filter_status')==$s?'selected':'' }}>{{ ucfirst($s) }}</option>
@@ -755,4 +760,72 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
     @endif
 </div>
 
+<script>
+let _allRptPropertyOptions = null;
+
+function onProjectFilterChange(selectedProjectId) {
+    const propSelect = document.getElementById('rpt_filter_property');
+    if (!propSelect) return;
+
+    if (!_allRptPropertyOptions) {
+        _allRptPropertyOptions = Array.from(propSelect.querySelectorAll('option'));
+    }
+
+    const currentVal = propSelect.value;
+    propSelect.innerHTML = '';
+    let matchedCurrent = false;
+
+    _allRptPropertyOptions.forEach((opt, idx) => {
+        if (idx === 0) {
+            propSelect.appendChild(opt.cloneNode(true));
+            return;
+        }
+        const optProjId = opt.getAttribute('data-project-id') || '';
+        if (!selectedProjectId || optProjId === String(selectedProjectId) || !optProjId) {
+            const newOpt = opt.cloneNode(true);
+            if (newOpt.value === currentVal) {
+                newOpt.selected = true;
+                matchedCurrent = true;
+            }
+            propSelect.appendChild(newOpt);
+        }
+    });
+
+    if (!matchedCurrent && currentVal) {
+        propSelect.value = '';
+    }
+
+    // Direct fetch / instant submit
+    propSelect.form.submit();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const propSelect = document.getElementById('rpt_filter_property');
+    if (propSelect && !_allRptPropertyOptions) {
+        _allRptPropertyOptions = Array.from(propSelect.querySelectorAll('option'));
+    }
+
+    // If project was already selected, filter properties to match
+    const projSelect = document.getElementById('rpt_filter_project');
+    if (projSelect && projSelect.value && propSelect && _allRptPropertyOptions) {
+        const selectedProjectId = projSelect.value;
+        const currentVal = propSelect.value;
+        propSelect.innerHTML = '';
+        _allRptPropertyOptions.forEach((opt, idx) => {
+            if (idx === 0) {
+                propSelect.appendChild(opt.cloneNode(true));
+                return;
+            }
+            const optProjId = opt.getAttribute('data-project-id') || '';
+            if (!selectedProjectId || optProjId === String(selectedProjectId) || !optProjId) {
+                const newOpt = opt.cloneNode(true);
+                if (newOpt.value === currentVal) {
+                    newOpt.selected = true;
+                }
+                propSelect.appendChild(newOpt);
+            }
+        });
+    }
+});
+</script>
 @endsection

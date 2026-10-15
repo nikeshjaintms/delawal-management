@@ -317,7 +317,7 @@ select.form-control-glass option {
                                 data-farm-id="{{ $l->farm_id }}"
                                 data-farm-name="{{ $l->farm?->farm_name }}"
                                 data-wage="{{ $l->daily_wage }}"
-                                data-salary="{{ $l->monthly_salary }}"
+                                data-salary="{{ $l->fixed_salary ?: $l->monthly_salary }}"
                                 data-advance-bal="{{ $l->advance_balance }}"
                                 data-pending="{{ $l->pending_amount }}"
                                 {{ (old('labour_id', request('labour_id')) == $l->id || ($selectedLabour && $selectedLabour->id == $l->id)) ? 'selected' : '' }}>
