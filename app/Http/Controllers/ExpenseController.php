@@ -49,10 +49,18 @@ class ExpenseController extends Controller
         $catQuery = ExpenseCategory::where('status', 'active')->orderBy('name');
         $projQuery = Project::with('propertyMaster')->orderBy('project_name');
         $vendorQuery = Vendor::where('status', 'active')->orderBy('name');
+        $pmQuery = PropertyMaster::where(function ($q) {
+            $q->where('status', 'active')->orWhereNull('status');
+        })->orderBy('property_name');
+        $propPlotsQuery = Property::whereNotNull('property_master_id')
+            ->whereNull('project_id')
+            ->orderByRaw('CAST(COALESCE(NULLIF(unit_no, ""), id) AS UNSIGNED) ASC, property_name ASC');
 
         if ($firmId && (!$user || !$user->isAdmin())) {
             $propQuery->where('firm_id', $firmId);
             $projQuery->where('firm_id', $firmId);
+            $pmQuery->where('firm_id', $firmId);
+            $propPlotsQuery->where('firm_id', $firmId);
             $vendorQuery->where(function ($q) use ($firmId) {
                 $q
                     ->where('firm_id', $firmId)
@@ -63,17 +71,6 @@ class ExpenseController extends Controller
                 $q->where('firms.id', $firmId);
             });
         }
-
-        $paymentModes = PaymentMode::where('status', 'active')
-            ->when($firmId, function ($q) use ($firmId) {
-                $q->where(function ($sub) use ($firmId) {
-                    $sub
-                        ->whereHas('firms', fn($f) => $f->where('firms.id', $firmId))
-                        ->orWhereDoesntHave('firms');
-                });
-            })
-            ->orderBy('name')
-            ->get();
 
         $paymentModes = PaymentMode::where('status', 'active')
             ->when($firmId, function ($q) use ($firmId) {
@@ -103,6 +100,8 @@ class ExpenseController extends Controller
             'firms' => $firms,
             'projects' => $projQuery->get(),
             'properties' => $propQuery->get(),
+            'propertyMasters' => $pmQuery->get(),
+            'propertyPlots' => $propPlotsQuery->get(),
             'categories' => $catQuery->get(),
             'vendors' => $vendorQuery->get(),
             'paymentModes' => $paymentModes,
@@ -240,6 +239,12 @@ class ExpenseController extends Controller
             $query->where(function ($q) use ($propId) {
                 $q->where('property_id', $propId)
                   ->orWhereHas('properties', fn($p) => $p->where('properties.id', $propId));
+            });
+        } elseif ($request->filled('filter_property_master')) {
+            $pmId = $request->filter_property_master;
+            $query->where(function ($q) use ($pmId) {
+                $q->whereHas('property', fn($p) => $p->where('property_master_id', $pmId))
+                  ->orWhereHas('properties', fn($p) => $p->where('properties.property_master_id', $pmId));
             });
         }
 
@@ -842,7 +847,7 @@ class ExpenseController extends Controller
             });
         }
 
-        if ($request->filled('filter_project')) {
+        if ($request->filled('filter_project') && !in_array($activeType, ['Property', 'Rental', 'General', 'Personal'])) {
             $query->where('project_id', $request->filter_project)
                   ->whereNull('property_id')
                   ->whereDoesntHave('properties');
@@ -853,6 +858,12 @@ class ExpenseController extends Controller
             $query->where(function ($q) use ($propId) {
                 $q->where('property_id', $propId)
                   ->orWhereHas('properties', fn($p) => $p->where('properties.id', $propId));
+            });
+        } elseif ($request->filled('filter_property_master')) {
+            $pmId = $request->filter_property_master;
+            $query->where(function ($q) use ($pmId) {
+                $q->whereHas('property', fn($p) => $p->where('property_master_id', $pmId))
+                  ->orWhereHas('properties', fn($p) => $p->where('properties.property_master_id', $pmId));
             });
         }
 
