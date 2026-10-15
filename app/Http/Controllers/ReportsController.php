@@ -19,6 +19,15 @@ use App\Models\Project;
 use App\Models\Property;
 use App\Models\PropertySale;
 use App\Models\PropertyType;
+use App\Models\PropertyMaster;
+use App\Models\PropertyMasterPayment;
+use App\Models\Purchase;
+use App\Models\PurchasePayment;
+use App\Models\ContractorPayment;
+use App\Models\AgriLabourPayment;
+use App\Models\AgriExpense;
+use App\Models\AgriIncome;
+use App\Models\BrokerCommission;
 use App\Models\Rental;
 use App\Models\RentalPayment;
 use App\Models\StockInward;
@@ -1618,16 +1627,36 @@ class ReportsController extends Controller
         $fromDate = $request->filled('from_date') ? $request->from_date : null;
         $toDate = $request->filled('to_date') ? $request->to_date : null;
         $projectId = $request->filled('filter_project') ? $request->filter_project : null;
-        $linkedPmId = $projectId ? \App\Models\Project::find($projectId)?->property_id : null;
-        $propId = $request->filled('filter_property') ? $request->filter_property : null;
+        $linkedPmId = $projectId ? Project::find($projectId)?->property_id : null;
+        $rawPropFilter = $request->filled('filter_property') ? (string) $request->filter_property : null;
         $mode = $request->filled('filter_mode') ? $request->filter_mode : null;
         $status = $request->filled('filter_status') ? strtolower($request->filter_status) : null;
         $custId = $request->filled('filter_customer') ? $request->filter_customer : null;
         $payType = $request->input('payment_type', 'all');  // 'all', 'received', 'paid'
 
+        // Resolve Property & PropertyMaster IDs for universal matching
+        $allMatchingPropIds = [];
+        $allMatchingPmIds = [];
+        if ($rawPropFilter) {
+            if (str_starts_with($rawPropFilter, 'pm_')) {
+                $pmId = (int) substr($rawPropFilter, 3);
+                $allMatchingPmIds = [$pmId];
+                $allMatchingPropIds = Property::where('property_master_id', $pmId)->pluck('id')->all();
+            } else {
+                $pId = (int) $rawPropFilter;
+                $prop = Property::find($pId);
+                $allMatchingPropIds = [$pId];
+                if ($prop?->property_master_id) {
+                    $allMatchingPmIds = [(int) $prop->property_master_id];
+                }
+            }
+        }
+
         $items = collect();
 
+        // ══════════════════════════════════════════════════════════════
         // ── 1. RECEIVED PAYMENTS (મળ્યા / લીધા - Inflows) ──
+        // ══════════════════════════════════════════════════════════════
         if ($payType === 'all' || $payType === 'received') {
             // (a) Customer Property Sale Payments
             $payQuery = Payment::with(['propertySale.property', 'propertySale.properties', 'customer', 'property', 'firm']);
@@ -1642,14 +1671,14 @@ class ReportsController extends Controller
                 $payQuery->where('status', $status);
             if ($custId)
                 $payQuery->where('customer_id', $custId);
-            if ($propId) {
-                $payQuery->where(function ($q) use ($propId) {
+            if (!empty($allMatchingPropIds)) {
+                $payQuery->where(function ($q) use ($allMatchingPropIds) {
                     $q
-                        ->where('property_id', $propId)
-                        ->orWhereHas('propertySale', function ($sq) use ($propId) {
+                        ->whereIn('property_id', $allMatchingPropIds)
+                        ->orWhereHas('propertySale', function ($sq) use ($allMatchingPropIds) {
                             $sq
-                                ->where('property_id', $propId)
-                                ->orWhereHas('properties', fn($p) => $p->where('properties.id', $propId));
+                                ->whereIn('property_id', $allMatchingPropIds)
+                                ->orWhereHas('properties', fn($p) => $p->whereIn('properties.id', $allMatchingPropIds));
                         });
                 });
             }
@@ -1713,11 +1742,11 @@ class ReportsController extends Controller
                 $directSalesQuery->whereDate('sale_date', '<=', $toDate);
             if ($custId)
                 $directSalesQuery->where('customer_id', $custId);
-            if ($propId) {
-                $directSalesQuery->where(function ($q) use ($propId) {
+            if (!empty($allMatchingPropIds)) {
+                $directSalesQuery->where(function ($q) use ($allMatchingPropIds) {
                     $q
-                        ->where('property_id', $propId)
-                        ->orWhereHas('properties', fn($p) => $p->where('properties.id', $propId));
+                        ->whereIn('property_id', $allMatchingPropIds)
+                        ->orWhereHas('properties', fn($p) => $p->whereIn('properties.id', $allMatchingPropIds));
                 });
             }
             if ($projectId) {
@@ -1776,12 +1805,12 @@ class ReportsController extends Controller
                     $rentQuery->where('payment_mode', $mode);
                 if ($status)
                     $rentQuery->where('status', $status);
-                if ($propId) {
-                    $rentQuery->where(function ($q) use ($propId) {
+                if (!empty($allMatchingPropIds)) {
+                    $rentQuery->where(function ($q) use ($allMatchingPropIds) {
                         $q
-                            ->where('property_id', $propId)
-                            ->orWhereHas('rental.property', fn($p) => $p->where('id', $propId))
-                            ->orWhereHas('rental.properties', fn($p) => $p->where('properties.id', $propId));
+                            ->whereIn('property_id', $allMatchingPropIds)
+                            ->orWhereHas('rental.property', fn($p) => $p->whereIn('id', $allMatchingPropIds))
+                            ->orWhereHas('rental.properties', fn($p) => $p->whereIn('properties.id', $allMatchingPropIds));
                     });
                 }
                 if ($projectId) {
@@ -1832,12 +1861,216 @@ class ReportsController extends Controller
                         'view_url' => $r->rental_id ? route('rental-payments.index', $r->rental_id) : route('rentals.index'),
                     ]);
                 }
+
+                // (d) Agri Income Inflows
+                $agriIncQuery = AgriIncome::where('payment_received', '>', 0);
+                $this->applyFirmScope($agriIncQuery, $request);
+                if ($fromDate)
+                    $agriIncQuery->whereDate('income_date', '>=', $fromDate);
+                if ($toDate)
+                    $agriIncQuery->whereDate('income_date', '<=', $toDate);
+                if ($mode)
+                    $agriIncQuery->where('payment_method', $mode);
+                if (!empty($allMatchingPropIds))
+                    $agriIncQuery->whereIn('property_id', $allMatchingPropIds);
+                if ($projectId)
+                    $agriIncQuery->where('project_id', $projectId);
+
+                foreach ($agriIncQuery->get() as $ai) {
+                    $st = strtolower($ai->payment_status ?? 'paid');
+                    $items->push((object) [
+                        'id' => 'AGINC-' . $ai->id,
+                        'raw_id' => $ai->id,
+                        'model_type' => 'agri_income',
+                        'direction' => 'received',
+                        'direction_label' => 'Received',
+                        'payment_date' => $ai->income_date,
+                        'party_name' => $ai->buyer_name ?: 'Agri Produce Buyer',
+                        'party_sub' => 'Agri Produce Inflow',
+                        'property_name' => $ai->crop_product ?: 'Crop Sale',
+                        'particular' => 'Agri Income — ' . ($ai->crop_product ?: ($ai->income_type ?: 'Produce')),
+                        'reference' => $ai->invoice_no ? 'Inv #' . $ai->invoice_no : 'Agri Income',
+                        'payment_mode' => $ai->payment_method ?? 'Cash',
+                        'amount' => (float) $ai->payment_received,
+                        'pending_amount' => (float) ($ai->pending_amount ?? 0),
+                        'status' => ucfirst($ai->payment_status ?? 'paid'),
+                        'status_class' => match ($st) {
+                            'paid' => 'pb-paid',
+                            'partial' => 'pb-partial',
+                            default => 'pb-pending',
+                        },
+                        'view_url' => \Illuminate\Support\Facades\Route::has('agriculture.incomes.index') ? route('agriculture.incomes.index') : null,
+                    ]);
+                }
             }
         }
 
-        // ── 2. PAID PAYMENTS (Outflows) ──
+        // ══════════════════════════════════════════════════════════════
+        // ── 2. PAID PAYMENTS (ચૂકવ્યા / ખર્ચ / ચૂકવણી - Outflows) ──
+        // ══════════════════════════════════════════════════════════════
         if (($payType === 'all' || $payType === 'paid') && !$custId) {
-            // (a) Expenses Paid
+            // (a) Property Master Purchase Payments (જમીન / પ્રોપર્ટી ખરીદી પેમેન્ટ)
+            $pmpQuery = PropertyMasterPayment::with(['propertyMaster.seller', 'propertyMaster']);
+            $this->applyFirmScope($pmpQuery, $request, 'firm_id', 'propertyMaster');
+            if ($fromDate)
+                $pmpQuery->whereDate('payment_date', '>=', $fromDate);
+            if ($toDate)
+                $pmpQuery->whereDate('payment_date', '<=', $toDate);
+            if ($mode)
+                $pmpQuery->where('payment_mode', $mode);
+            if (!empty($allMatchingPmIds)) {
+                $pmpQuery->whereIn('property_master_id', $allMatchingPmIds);
+            }
+            if ($projectId) {
+                $pmpQuery->where(function ($q) use ($projectId, $linkedPmId) {
+                    if ($linkedPmId) $q->where('property_master_id', $linkedPmId);
+                    $q->orWhereHas('propertyMaster.projects', fn($pq) => $pq->where('projects.id', $projectId));
+                });
+            }
+
+            foreach ($pmpQuery->get() as $pmp) {
+                $pm = $pmp->propertyMaster;
+                $items->push((object) [
+                    'id' => 'PMP-' . $pmp->id,
+                    'raw_id' => $pmp->id,
+                    'model_type' => 'property_master_payment',
+                    'direction' => 'paid',
+                    'direction_label' => 'Paid',
+                    'payment_date' => $pmp->payment_date,
+                    'party_name' => $pm?->seller_name ?: ($pm?->seller?->name ?: 'Land / Property Seller'),
+                    'party_sub' => 'Property Purchase Outflow',
+                    'property_name' => $pm?->property_name ?? 'Property Master',
+                    'particular' => 'Property Purchase — ' . ($pm?->property_name ?? 'Land Deal'),
+                    'reference' => $pmp->reference_no ?: ('PM #' . $pmp->property_master_id),
+                    'payment_mode' => $pmp->payment_mode ?: 'Bank Transfer',
+                    'amount' => (float) $pmp->amount,
+                    'pending_amount' => (float) ($pm?->due_amount ?? 0),
+                    'status' => 'Paid',
+                    'status_class' => 'pb-paid',
+                    'view_url' => $pm ? route('property-masters.show', $pm->id) : route('property-masters.index'),
+                ]);
+            }
+
+            // (b) Direct Property Master Purchases (Initial paid_amount with no separate payment rows)
+            $directPmQuery = PropertyMaster::with('seller')->where('paid_amount', '>', 0)->whereDoesntHave('payments');
+            $this->applyFirmScope($directPmQuery, $request);
+            if ($fromDate)
+                $directPmQuery->whereDate('purchase_date', '>=', $fromDate);
+            if ($toDate)
+                $directPmQuery->whereDate('purchase_date', '<=', $toDate);
+            if ($mode)
+                $directPmQuery->where('payment_mode', $mode);
+            if (!empty($allMatchingPmIds)) {
+                $directPmQuery->whereIn('id', $allMatchingPmIds);
+            }
+            if ($projectId) {
+                $directPmQuery->where(function ($q) use ($projectId, $linkedPmId) {
+                    if ($linkedPmId) $q->where('id', $linkedPmId);
+                    $q->orWhereHas('projects', fn($pq) => $pq->where('projects.id', $projectId));
+                });
+            }
+            foreach ($directPmQuery->get() as $pm) {
+                $st = strtolower($pm->payment_status ?? 'paid');
+                $items->push((object) [
+                    'id' => 'PM-' . $pm->id,
+                    'raw_id' => $pm->id,
+                    'model_type' => 'property_master',
+                    'direction' => 'paid',
+                    'direction_label' => 'Paid',
+                    'payment_date' => $pm->purchase_date,
+                    'party_name' => $pm->seller_name ?: ($pm->seller?->name ?: 'Land / Property Seller'),
+                    'party_sub' => 'Initial Purchase Down Payment',
+                    'property_name' => $pm->property_name,
+                    'particular' => 'Property Purchase — ' . $pm->property_name,
+                    'reference' => $pm->property_code ?: ('PM #' . $pm->id),
+                    'payment_mode' => $pm->payment_mode ?: 'Cash',
+                    'amount' => (float) $pm->paid_amount,
+                    'pending_amount' => (float) ($pm->due_amount ?? 0),
+                    'status' => ucfirst($pm->payment_status ?: 'paid'),
+                    'status_class' => match ($st) {
+                        'paid' => 'pb-paid',
+                        'partial' => 'pb-partial',
+                        default => 'pb-pending',
+                    },
+                    'view_url' => route('property-masters.show', $pm->id),
+                ]);
+            }
+
+            // (c) Property Purchases Module Payments (Purchases Table)
+            $purPayQuery = PurchasePayment::with(['purchase.seller', 'purchase.vendor', 'purchase']);
+            $this->applyFirmScope($purPayQuery, $request);
+            if ($fromDate)
+                $purPayQuery->whereDate('payment_date', '>=', $fromDate);
+            if ($toDate)
+                $purPayQuery->whereDate('payment_date', '<=', $toDate);
+            if ($mode)
+                $purPayQuery->where('payment_mode', $mode);
+            if (!empty($allMatchingPropIds)) {
+                $purPayQuery->whereHas('purchase', fn($pq) => $pq->whereIn('property_id', $allMatchingPropIds));
+            }
+            foreach ($purPayQuery->get() as $pp) {
+                $pur = $pp->purchase;
+                $items->push((object) [
+                    'id' => 'PURP-' . $pp->id,
+                    'raw_id' => $pp->id,
+                    'model_type' => 'purchase_payment',
+                    'direction' => 'paid',
+                    'direction_label' => 'Paid',
+                    'payment_date' => $pp->payment_date,
+                    'party_name' => $pur?->seller?->name ?: ($pur?->vendor?->name ?: 'Seller / Vendor'),
+                    'party_sub' => 'Property Purchase Payment',
+                    'property_name' => $pur?->display_name ?? 'Property Purchase',
+                    'particular' => 'Purchase Payment — ' . ($pur?->display_name ?? ''),
+                    'reference' => $pp->reference_no ?: ('Pur #' . $pp->purchase_id),
+                    'payment_mode' => $pp->payment_mode ?: 'Cash',
+                    'amount' => (float) $pp->amount,
+                    'pending_amount' => (float) ($pur?->due_amount ?? 0),
+                    'status' => 'Paid',
+                    'status_class' => 'pb-paid',
+                    'view_url' => $pur ? route('purchases.show', $pur->id) : route('purchases.index'),
+                ]);
+            }
+
+            // (d) Direct Purchases without separate payment rows
+            $directPurQuery = Purchase::with(['seller', 'vendor'])->where('paid_amount', '>', 0)->whereDoesntHave('payments');
+            $this->applyFirmScope($directPurQuery, $request);
+            if ($fromDate)
+                $directPurQuery->whereDate('purchase_date', '>=', $fromDate);
+            if ($toDate)
+                $directPurQuery->whereDate('purchase_date', '<=', $toDate);
+            if ($mode)
+                $directPurQuery->where('payment_mode', $mode);
+            if (!empty($allMatchingPropIds)) {
+                $directPurQuery->whereIn('property_id', $allMatchingPropIds);
+            }
+            foreach ($directPurQuery->get() as $pur) {
+                $st = strtolower($pur->payment_status ?? 'paid');
+                $items->push((object) [
+                    'id' => 'PUR-' . $pur->id,
+                    'raw_id' => $pur->id,
+                    'model_type' => 'purchase',
+                    'direction' => 'paid',
+                    'direction_label' => 'Paid',
+                    'payment_date' => $pur->purchase_date,
+                    'party_name' => $pur->seller?->name ?: ($pur->vendor?->name ?: 'Seller / Vendor'),
+                    'party_sub' => 'Purchase Down Payment',
+                    'property_name' => $pur->display_name,
+                    'particular' => 'Purchase — ' . $pur->display_name,
+                    'reference' => $pur->reference_no ?: ('Pur #' . $pur->id),
+                    'payment_mode' => $pur->payment_mode ?: 'Cash',
+                    'amount' => (float) $pur->paid_amount,
+                    'pending_amount' => (float) ($pur->due_amount ?? 0),
+                    'status' => ucfirst($pur->payment_status ?: 'paid'),
+                    'status_class' => match ($st) {
+                        'paid' => 'pb-paid',
+                        'partial' => 'pb-partial',
+                        default => 'pb-pending',
+                    },
+                    'view_url' => route('purchases.show', $pur->id),
+                ]);
+            }
+
+            // (e) Expenses Paid
             $expQuery = Expense::with(['property', 'properties', 'vendor', 'expenseCategory', 'firm']);
             $this->applyFirmScope($expQuery, $request);
             if ($fromDate)
@@ -1846,11 +2079,11 @@ class ReportsController extends Controller
                 $expQuery->whereDate('expense_date', '<=', $toDate);
             if ($mode)
                 $expQuery->where('payment_mode', $mode);
-            if ($propId) {
-                $expQuery->where(function ($q) use ($propId) {
+            if (!empty($allMatchingPropIds)) {
+                $expQuery->where(function ($q) use ($allMatchingPropIds) {
                     $q
-                        ->where('property_id', $propId)
-                        ->orWhereHas('properties', fn($p) => $p->where('properties.id', $propId));
+                        ->whereIn('property_id', $allMatchingPropIds)
+                        ->orWhereHas('properties', fn($p) => $p->whereIn('properties.id', $allMatchingPropIds));
                 });
             }
             if ($projectId) {
@@ -1907,7 +2140,7 @@ class ReportsController extends Controller
                 ]);
             }
 
-            // (b) Loan EMI Repayments Paid
+            // (f) Loan EMI Repayments Paid
             $loanQuery = LoanEmiSchedule::with(['loan.property', 'loan'])->whereIn('emi_status', ['Paid', 'Partial']);
             $this->applyFirmScope($loanQuery, $request, 'firm_id', 'loan');
             if ($fromDate)
@@ -1916,8 +2149,8 @@ class ReportsController extends Controller
                 $loanQuery->whereDate('payment_date', '<=', $toDate);
             if ($mode)
                 $loanQuery->where('payment_mode', $mode);
-            if ($propId)
-                $loanQuery->whereHas('loan.property', fn($p) => $p->where('id', $propId));
+            if (!empty($allMatchingPropIds))
+                $loanQuery->whereHas('loan.property', fn($p) => $p->whereIn('id', $allMatchingPropIds));
             if ($projectId) {
                 $loanQuery->whereHas('loan.property', function ($p) use ($projectId, $linkedPmId) {
                     $p->where('project_id', $projectId)
@@ -1949,6 +2182,142 @@ class ReportsController extends Controller
                         default => 'pb-pending',
                     },
                     'view_url' => route('loans.show', $emi->loan_id),
+                ]);
+            }
+
+            // (g) Contractor Payments
+            $cpQuery = ContractorPayment::with(['contractor', 'property', 'project']);
+            $this->applyFirmScope($cpQuery, $request);
+            if ($fromDate)
+                $cpQuery->whereDate('payment_date', '>=', $fromDate);
+            if ($toDate)
+                $cpQuery->whereDate('payment_date', '<=', $toDate);
+            if ($mode)
+                $cpQuery->where('payment_mode', $mode);
+            if (!empty($allMatchingPropIds))
+                $cpQuery->whereIn('property_id', $allMatchingPropIds);
+            if ($projectId)
+                $cpQuery->where('project_id', $projectId);
+
+            foreach ($cpQuery->get() as $cp) {
+                $items->push((object) [
+                    'id' => 'CP-' . $cp->id,
+                    'raw_id' => $cp->id,
+                    'model_type' => 'contractor_payment',
+                    'direction' => 'paid',
+                    'direction_label' => 'Paid',
+                    'payment_date' => $cp->payment_date,
+                    'party_name' => $cp->contractor?->name ?? 'Contractor',
+                    'party_sub' => 'Contractor Payment',
+                    'property_name' => $cp->property?->property_name ?: ($cp->project?->project_name ?? 'Civil / Work'),
+                    'particular' => 'Contractor Payment — ' . ($cp->payment_type ?: 'Work'),
+                    'reference' => $cp->reference_no ?: ($cp->bill_no ? 'Bill #' . $cp->bill_no : '—'),
+                    'payment_mode' => $cp->payment_mode ?: 'Bank Transfer',
+                    'amount' => (float) $cp->amount,
+                    'pending_amount' => 0.0,
+                    'status' => 'Paid',
+                    'status_class' => 'pb-paid',
+                    'view_url' => \Illuminate\Support\Facades\Route::has('contractor-payments.index') ? route('contractor-payments.index') : null,
+                ]);
+            }
+
+            // (h) Agri Labour Payments
+            $alpQuery = AgriLabourPayment::with(['labour', 'farm']);
+            $this->applyFirmScope($alpQuery, $request);
+            if ($fromDate)
+                $alpQuery->whereDate('payment_date', '>=', $fromDate);
+            if ($toDate)
+                $alpQuery->whereDate('payment_date', '<=', $toDate);
+            if ($mode)
+                $alpQuery->where('payment_mode', $mode);
+
+            foreach ($alpQuery->get() as $alp) {
+                $items->push((object) [
+                    'id' => 'ALP-' . $alp->id,
+                    'raw_id' => $alp->id,
+                    'model_type' => 'agri_labour_payment',
+                    'direction' => 'paid',
+                    'direction_label' => 'Paid',
+                    'payment_date' => $alp->payment_date,
+                    'party_name' => $alp->labour?->name ?? 'Agri Labour',
+                    'party_sub' => 'Labour Wages',
+                    'property_name' => $alp->farm?->farm_name ?? 'Agriculture Farm',
+                    'particular' => 'Labour Payment' . ($alp->payment_type ? ' (' . ucfirst($alp->payment_type) . ')' : ''),
+                    'reference' => $alp->reference_no ?: 'Wage',
+                    'payment_mode' => $alp->payment_mode ?: 'Cash',
+                    'amount' => (float) $alp->amount,
+                    'pending_amount' => 0.0,
+                    'status' => ucfirst($alp->payment_status ?: 'paid'),
+                    'status_class' => 'pb-paid',
+                    'view_url' => \Illuminate\Support\Facades\Route::has('agriculture.labour-payments.index') ? route('agriculture.labour-payments.index') : null,
+                ]);
+            }
+
+            // (i) Agri Expenses
+            $aeQuery = AgriExpense::with(['farm', 'vendor'])->where('amount', '>', 0);
+            $this->applyFirmScope($aeQuery, $request);
+            if ($fromDate)
+                $aeQuery->whereDate('expense_date', '>=', $fromDate);
+            if ($toDate)
+                $aeQuery->whereDate('expense_date', '<=', $toDate);
+            if ($mode)
+                $aeQuery->where('payment_method', $mode);
+            if (!empty($allMatchingPropIds))
+                $aeQuery->whereIn('property_id', $allMatchingPropIds);
+            if ($projectId)
+                $aeQuery->where('project_id', $projectId);
+
+            foreach ($aeQuery->get() as $ae) {
+                $items->push((object) [
+                    'id' => 'AGEXP-' . $ae->id,
+                    'raw_id' => $ae->id,
+                    'model_type' => 'agri_expense',
+                    'direction' => 'paid',
+                    'direction_label' => 'Paid',
+                    'payment_date' => $ae->expense_date,
+                    'party_name' => $ae->vendor?->name ?? 'Agri Supplier',
+                    'party_sub' => 'Agri Expense',
+                    'property_name' => $ae->farm?->farm_name ?? 'Agriculture Farm',
+                    'particular' => 'Agri Expense — ' . ($ae->category ?: ($ae->expense_type ?: 'General')),
+                    'reference' => $ae->bill_no ? 'Bill #' . $ae->bill_no : ($ae->invoice_no ? 'Inv #' . $ae->invoice_no : '—'),
+                    'payment_mode' => $ae->payment_method ?: 'Cash',
+                    'amount' => (float) $ae->amount,
+                    'pending_amount' => 0.0,
+                    'status' => ucfirst($ae->payment_status ?: 'paid'),
+                    'status_class' => 'pb-paid',
+                    'view_url' => \Illuminate\Support\Facades\Route::has('agriculture.expenses.index') ? route('agriculture.expenses.index') : null,
+                ]);
+            }
+
+            // (j) Broker Commissions Paid
+            $bcQuery = BrokerCommission::with(['broker', 'property'])->where('payment_status', 'paid');
+            $this->applyFirmScope($bcQuery, $request);
+            if ($fromDate)
+                $bcQuery->whereDate('payment_date', '>=', $fromDate);
+            if ($toDate)
+                $bcQuery->whereDate('payment_date', '<=', $toDate);
+            if (!empty($allMatchingPropIds))
+                $bcQuery->whereIn('property_id', $allMatchingPropIds);
+
+            foreach ($bcQuery->get() as $bc) {
+                $items->push((object) [
+                    'id' => 'BRK-' . $bc->id,
+                    'raw_id' => $bc->id,
+                    'model_type' => 'broker_commission',
+                    'direction' => 'paid',
+                    'direction_label' => 'Paid',
+                    'payment_date' => $bc->payment_date,
+                    'party_name' => $bc->broker?->name ?? 'Broker',
+                    'party_sub' => 'Broker Commission',
+                    'property_name' => $bc->property?->property_name ?: 'Property Brokerage',
+                    'particular' => 'Broker Commission — ' . ($bc->property?->property_name ?? ''),
+                    'reference' => 'Booking #' . $bc->booking_id,
+                    'payment_mode' => 'Bank / Cash',
+                    'amount' => (float) $bc->commission_amount,
+                    'pending_amount' => 0.0,
+                    'status' => 'Paid',
+                    'status_class' => 'pb-paid',
+                    'view_url' => \Illuminate\Support\Facades\Route::has('broker-commissions.index') ? route('broker-commissions.index') : null,
                 ]);
             }
         }
@@ -1986,11 +2355,13 @@ class ReportsController extends Controller
 
         $custQuery = Customer::orderBy('name');
         $propQuery = Property::with('project')->orderBy('property_name');
+        $pmQuery   = PropertyMaster::orderBy('property_name');
         $this->applyFirmScope($custQuery, $request);
         $this->applyFirmScope($propQuery, $request);
+        $this->applyFirmScope($pmQuery, $request);
 
-        // Keep all properties so client-side JavaScript can dynamically filter by data-project-id
         $properties = $propQuery->get();
+        $propertyMasters = $pmQuery->get();
         $customers = $custQuery->get();
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
         $projects = $this->getAvailableProjects($request);
@@ -1998,7 +2369,7 @@ class ReportsController extends Controller
         return view('admin.reports.payments', compact(
             'records', 'totalReceived', 'totalPaid', 'netBalance', 'totalPending',
             'totalTransactions', 'todayReceived', 'todayPaid',
-            'customers', 'properties', 'firms', 'projects',
+            'customers', 'properties', 'propertyMasters', 'firms', 'projects',
             'paymentType', 'countAll', 'countReceived', 'countPaid',
             'sumAllReceived', 'sumAllPaid'
         ));

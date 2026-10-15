@@ -538,14 +538,28 @@ select.filter-ctrl option { background: #101622 !important; color: #FFFFFF !impo
             <span class="filter-label">Property</span>
             <select name="filter_property" id="rpt_filter_property" class="filter-ctrl @error('filter_property') is-invalid @enderror" onchange="this.form.submit()">
                 <option value="">All Properties</option>
-                @foreach($properties as $prop)
-                    @php
-                        $propProjId = $prop->project_id ?: ($projects->firstWhere('property_id', $prop->property_master_id)?->id ?? '');
-                    @endphp
-                    <option value="{{ $prop->id }}" data-project-id="{{ $propProjId }}" {{ request('filter_property')==$prop->id?'selected':'' }}>
-                        {{ $prop->property_name }} @if($prop->property_code) ({{ $prop->property_code }}) @endif
-                    </option>
-                @endforeach
+                @if(isset($propertyMasters) && $propertyMasters->isNotEmpty())
+                    <optgroup label="── Property Masters (Whole Properties) ──">
+                        @foreach($propertyMasters as $pm)
+                            @php
+                                $pmProjId = $projects->firstWhere('property_id', $pm->id)?->id ?? '';
+                            @endphp
+                            <option value="pm_{{ $pm->id }}" data-project-id="{{ $pmProjId }}" {{ request('filter_property') == 'pm_'.$pm->id ? 'selected' : '' }}>
+                                ★ {{ $pm->property_name }} @if($pm->property_code) ({{ $pm->property_code }}) @endif
+                            </option>
+                        @endforeach
+                    </optgroup>
+                @endif
+                <optgroup label="── Individual Units / Plots ──">
+                    @foreach($properties as $prop)
+                        @php
+                            $propProjId = $prop->project_id ?: ($projects->firstWhere('property_id', $prop->property_master_id)?->id ?? '');
+                        @endphp
+                        <option value="{{ $prop->id }}" data-project-id="{{ $propProjId }}" {{ request('filter_property') == (string)$prop->id ? 'selected' : '' }}>
+                            {{ $prop->property_name }} @if($prop->property_code) ({{ $prop->property_code }}) @endif
+                        </option>
+                    @endforeach
+                </optgroup>
             </select>
         </div>
         <div class="filter-group">
