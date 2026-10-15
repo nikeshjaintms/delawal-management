@@ -322,24 +322,14 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                         @if(isset($properties))
                             @foreach($properties as $prop)
                                 @php
-                                    $isEntire = str_contains((string) $prop->property_name, '(Entire Property)') || str_ends_with((string) $prop->property_code, '-ENTIRE');
-                                    $hasUnitNo = !empty($prop->unit_no);
-                                    $isSubPlot = $prop->property_master_id && !$isEntire;
-                                    $isProjectUnit = $prop->project_id && $hasUnitNo;
-                                    $isUnit = ($hasUnitNo || $isSubPlot || $isProjectUnit) && !$isEntire;
-
-                                    $baseName = preg_replace('/\s*\(Entire Property\)$/i', '', $prop->property_name);
-                                    if ($prop->unit_no) {
-                                        $displayName = $baseName . ' · Unit ' . $prop->unit_no;
-                                    } else {
-                                        $displayName = $baseName;
-                                    }
-                                    $firmSuffix = $prop->firm ? ' (' . $prop->firm->firm_name . ')' : '';
+                                    $cleanName = preg_replace('/\s*\(Entire Property\)$/i', '', $prop->property_name);
+                                    $codeStr = $prop->property_code ? ' (' . $prop->property_code . ')' : '';
+                                    $displayName = $cleanName . $codeStr;
+                                    $firmSuffix = $prop->firm ? ' [' . $prop->firm->firm_name . ']' : '';
                                 @endphp
                                 <option value="{{ $prop->id }}"
-                                        data-project-id="{{ $prop->project_id }}"
-                                        data-firm-id="{{ $prop->firm_id }}"
-                                        data-is-unit="{{ $isUnit ? '1' : '0' }}"
+                                        data-project-id="{{ $prop->project_id ?? '' }}"
+                                        data-firm-id="{{ $prop->firm_id ?? '' }}"
                                         data-project="{{ $prop->project->project_name ?? ($prop->project->propertyMaster->property_name ?? '') }}"
                                         {{ in_array($prop->id, $selectedPropIds) ? 'selected' : '' }}>
                                     {{ $displayName }}{{ $firmSuffix }}
@@ -978,12 +968,6 @@ document.addEventListener('DOMContentLoaded', function() {
         allPropOptions.forEach(opt => {
             const optProjId = String(opt.getAttribute('data-project-id') || '');
             const optFirmId = String(opt.getAttribute('data-firm-id') || '');
-            const isUnit    = opt.getAttribute('data-is-unit') === '1';
-
-            // In Property Expense: NEVER show units! Only main/entire properties!
-            if (isPropertyExpense && isUnit) {
-                return;
-            }
 
             const firmMatch = selectedFirmIds.length === 0 || selectedFirmIds.includes(optFirmId) || !optFirmId;
             const projMatch = isPropertyExpense || !selectedProjectId || optProjId === String(selectedProjectId);

@@ -45,6 +45,34 @@ class ExpenseController extends Controller
 
         $firms = Firm::where('status', 'active')->orderBy('firm_name')->get();
 
+        // Ensure all PropertyMasters have a corresponding Property record so they can be selected in dropdowns
+        $missingPms = PropertyMaster::whereDoesntHave('properties', function ($q) {
+            $q->whereNull('unit_no')->orWhere('property_name', 'like', '%(Entire Property)%');
+        })->get();
+
+        foreach ($missingPms as $pm) {
+            $entireCode = ($pm->property_code ?: ('PROP-' . str_pad($pm->id, 4, '0', STR_PAD_LEFT))) . '-ENTIRE';
+            if (Property::where('property_code', $entireCode)->exists()) {
+                $entireCode .= '-' . Str::random(3);
+            }
+            Property::firstOrCreate(
+                ['property_master_id' => $pm->id, 'unit_no' => null],
+                [
+                    'firm_id' => $pm->firm_id,
+                    'property_name' => $pm->property_name . ' (Entire Property)',
+                    'property_code' => $entireCode,
+                    'price' => $pm->purchase_price ?: 0,
+                    'purchase_rate' => $pm->purchase_rate ?: null,
+                    'purchase_date' => $pm->purchase_date ?: date('Y-m-d'),
+                    'location' => $pm->location,
+                    'city' => $pm->city,
+                    'address' => $pm->address,
+                    'status' => 'available',
+                    'description' => 'Entire Property Master: ' . $pm->property_name,
+                ]
+            );
+        }
+
         $propQuery = Property::with(['project.propertyMaster', 'firm', 'propertyMaster'])->orderBy('property_name');
         $catQuery = ExpenseCategory::where('status', 'active')->orderBy('name');
         $projQuery = Project::with('propertyMaster')->orderBy('project_name');
