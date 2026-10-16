@@ -1561,119 +1561,372 @@
         }
     }
 
+    /* ================================================================
+       UNIVERSAL MOBILE RESPONSIVE SYSTEM (All Modules & Screens)
+    ================================================================ */
     @media (max-width: 768px) {
-        .topbar { 
-            padding: 0 16px !important; 
+        html, body {
+            overflow-x: hidden !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            position: relative !important;
+            -webkit-text-size-adjust: 100% !important;
         }
-        .content-body { 
-            padding: 12px 12px 24px !important; 
+        body.sidebar-open {
+            overflow: hidden !important;
         }
-        .user-info { 
-            display: none !important; 
+
+        .main-content {
+            margin-left: 0 !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+            padding: 0 !important;
+        }
+
+        .content-body {
+            padding: 14px 10px 48px !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            box-sizing: border-box !important;
+        }
+
+        /* ── Topbar Mobile Polish ── */
+        .topbar {
+            height: 56px !important;
+            min-height: 56px !important;
+            padding: 0 12px !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            box-sizing: border-box !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 99 !important;
+        }
+        .topbar-left {
+            gap: 10px !important;
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            overflow: hidden !important;
+        }
+        .sidebar-toggle-btn {
+            width: 40px !important;
+            height: 40px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            border-radius: 10px !important;
+            font-size: 16px !important;
+            flex-shrink: 0 !important;
+            padding: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         .page-header-title {
             font-size: 14px !important;
-            max-width: 160px !important;
+            font-weight: 700 !important;
             white-space: nowrap !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
+            margin: 0 !important;
+            line-height: 1.2 !important;
+            max-width: 140px !important;
         }
         .topbar-right {
-            gap: 12px !important;
+            gap: 6px !important;
+            align-items: center !important;
+            flex-shrink: 0 !important;
         }
         .user-panel {
-            gap: 6px !important;
+            gap: 0 !important;
+            margin: 0 !important;
+        }
+        .user-info {
+            display: none !important;
+        }
+        .user-avatar {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 12px !important;
+        }
+        .topbar-quick-invoice, .topbar-quick-expense, .logout-btn {
+            height: 36px !important;
+            min-height: 36px !important;
+            padding: 6px 10px !important;
+            border-radius: 8px !important;
+            font-size: 12px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .topbar-quick-expense span, .logout-btn span {
+            display: none !important;
         }
 
-        /* General Forms stack and spacing */
-        body .form-row, body .form-row-2, body .form-row-3, body .form-row-4, body .form-grid, body .grid-cols-2, body .grid-cols-3, body .grid-cols-4, body .form-row-extra {
-            grid-template-columns: 1fr !important;
-            gap: 16px !important;
+        /* ── Sidebar Mobile Off-Canvas Drawer ── */
+        .sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            left: -290px !important;
+            width: 285px !important;
+            max-width: 85vw !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            z-index: 9999 !important;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease !important;
+            box-shadow: none !important;
         }
-        body .form-group, body .form-group-row {
-            margin-bottom: 16px !important;
-            width: 100% !important;
+        .sidebar.active {
+            left: 0 !important;
+            box-shadow: 12px 0 45px rgba(0, 0, 0, 0.85) !important;
         }
-        body .form-control, body select, body input, body textarea {
+        .sidebar-overlay {
+            position: fixed !important;
+            inset: 0 !important;
+            background: rgba(0, 0, 0, 0.70) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+            z-index: 9998 !important;
+        }
+
+        /* ── Forms, Inputs & iOS Zoom Prevention ── */
+        input, select, textarea, .form-control, .search-input, .select2-container .select2-selection {
+            font-size: 16px !important; /* Prevents auto-zoom on iOS */
+            min-height: 42px !important;
             width: 100% !important;
             max-width: 100% !important;
-            display: block !important;
+            box-sizing: border-box !important;
+        }
+        .form-row, .form-row-2, .form-row-3, .form-row-4, .form-grid, 
+        .grid-cols-2, .grid-cols-3, .grid-cols-4, .row:not(.no-stack),
+        .form-row-extra, #project-property-row {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 14px !important;
+        }
+        .col, .col-12, .col-md-6, .col-lg-4, .col-lg-3, .col-md-4, .col-md-3, .col-sm-6 {
+            width: 100% !important;
+            max-width: 100% !important;
+            flex: 0 0 100% !important;
+        }
+        .form-group, .form-group-row, .form-field, .input-wrap {
+            margin-bottom: 14px !important;
+            width: 100% !important;
+        }
+        .form-group[style*="grid-column"] {
+            grid-column: 1 / -1 !important;
         }
 
-        /* Touch friendly form actions - primary CTA on top, cancel/back on bottom */
-        body .form-actions {
+        /* ── Touch-Friendly Form Actions (CTA on top) ── */
+        .form-actions {
             flex-direction: column-reverse !important;
             align-items: stretch !important;
             gap: 10px !important;
             margin-top: 20px !important;
             padding-top: 16px !important;
-        }
-        body .form-actions > * {
             width: 100% !important;
+        }
+        .form-actions > *, .form-actions button, .form-actions a {
+            width: 100% !important;
+            min-height: 44px !important;
             text-align: center !important;
             justify-content: center !important;
+            font-size: 14px !important;
+            font-weight: 700 !important;
+            border-radius: 10px !important;
         }
 
-        /* Cards & KPI Boxes Spacing */
-        body .card-box, body .card, body .crud-box, body .stat-card, body .kpi-card {
-            padding: 16px !important;
+        /* ── Select2 Responsive Polish ── */
+        .select2-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            display: block !important;
+        }
+        .select2-container--default .select2-selection--single,
+        .select2-container--default .select2-selection--multiple {
+            min-height: 42px !important;
+            width: 100% !important;
+        }
+        .select2-dropdown {
+            max-width: calc(100vw - 20px) !important;
+            left: 0 !important;
+            z-index: 99999 !important;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            font-size: 12px !important;
+            padding: 3px 8px !important;
+            margin: 4px 4px 0 0 !important;
         }
 
-        /* Mobile specific font adjustments */
-        body h1, body .page-header-title { font-size: 15px !important; }
-        body h2, body .crud-title h2, body .rpt-title-block h2 { font-size: 18px !important; }
-        body h3, body .summary-title { font-size: 13px !important; }
-        body { font-size: 13px !important; }
+        /* ── Universal Responsive Tables (Smooth Horizontal Scroll) ── */
+        .table-container, .table-wrap, .table-responsive, 
+        .auto-table-responsive, .card-box:has(table), .card:has(table), 
+        div:has(> table), div:has(> .table), div:has(> .premium-table) {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            display: block !important;
+            position: relative !important;
+            margin-bottom: 16px !important;
+            border-radius: 14px !important;
+        }
+        table, .premium-table, .erp-table, .sales-table, .pay-table, .rent-table, .r-table {
+            min-width: 580px !important;
+            width: 100% !important;
+        }
+        td.actions, td.action-column, .action-links, .table-action-buttons, .action-buttons, .btn-actions {
+            white-space: nowrap !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+        td.actions a, td.actions button, .action-buttons a, .action-buttons button {
+            min-height: 32px !important;
+            min-width: 32px !important;
+            padding: 5px 10px !important;
+            font-size: 12px !important;
+        }
 
-        /* KPI Layout */
-        body .kpi-grid, body .kpi-grid-2 {
+        /* ── Cards, Stats & Dashboard Grids ── */
+        .card-box, .card, .crud-box, .form-section {
+            padding: 16px 12px !important;
+            border-radius: 16px !important;
+            margin-bottom: 16px !important;
+        }
+        .dashboard-grid, .summary-grid, .kpi-grid, .kpi-grid-2, .stat-grid, .stats-row {
+            display: grid !important;
             grid-template-columns: 1fr !important;
+            gap: 12px !important;
+            width: 100% !important;
+        }
+        .stat-card, .kpi-card {
+            padding: 14px !important;
+            width: 100% !important;
         }
 
-        /* Table header styling for small screens */
-        body .crud-header, body .rpt-header {
+        /* ── Page & CRUD Headers ── */
+        .crud-header, .page-header, .rpt-header {
             flex-direction: column !important;
             align-items: stretch !important;
-            gap: 16px !important;
-            margin-bottom: 20px !important;
+            text-align: center !important;
+            gap: 14px !important;
+            margin-bottom: 18px !important;
         }
-        body .crud-title, body .rpt-title-block {
+        .crud-title, .rpt-title-block {
             text-align: center !important;
         }
-        body .crud-header .action-buttons, body .crud-header .btn-actions, body .rpt-action-btns {
-            justify-content: center !important;
+        .crud-title h2, .rpt-title-block h2 {
+            font-size: 19px !important;
+        }
+        .crud-title p, .rpt-title-block p {
+            font-size: 12.5px !important;
+        }
+        .crud-header .action-buttons, .crud-header .btn-actions, .rpt-action-btns {
+            flex-direction: column !important;
             width: 100% !important;
-            flex-wrap: wrap !important;
             gap: 8px !important;
         }
-        body .crud-header .action-buttons > *, body .crud-header .btn-actions > *, body .rpt-action-btns > * {
-            flex: 1 !important;
-            min-width: 120px !important;
-            text-align: center !important;
+        .crud-header .action-buttons > *, .crud-header .btn-actions > *, .rpt-action-btns > * {
+            width: 100% !important;
+            min-height: 42px !important;
+            display: flex !important;
             justify-content: center !important;
+            align-items: center !important;
+        }
+
+        /* ── Filter Bars & Search Boxes ── */
+        .filter-bar, .search-bar, .filter-box {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+            width: 100% !important;
+            padding: 12px !important;
+        }
+        .filter-group, .filter-control, .search-input, .btn-search, .btn-reset {
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        /* ── Modals & Popups (SweetAlert & Quick Modals) ── */
+        .modal-dialog, .cat-modal-box, .swal2-popup {
+            width: 94vw !important;
+            max-width: 94vw !important;
+            margin: 10px auto !important;
+            padding: 16px !important;
+            border-radius: 16px !important;
+        }
+
+        /* ── Breadcrumb & Pagination ── */
+        .breadcrumb-nav {
+            padding: 6px 12px !important;
+            font-size: 11.5px !important;
+            gap: 5px !important;
+            margin-bottom: 14px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .pagination-wrapper, .pagination-container, .d-flex.justify-content-between.align-items-center {
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 12px !important;
+            text-align: center !important;
+        }
+        .pagination {
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+            gap: 4px !important;
+        }
+
+        /* ── Expense Type Selector Bar ── */
+        .expense-type-bar {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+        }
+        .type-btn {
+            padding: 10px 8px !important;
+            font-size: 12px !important;
+            min-height: 42px !important;
         }
     }
 
+    /* Small Mobile Breakpoint (<= 480px) */
     @media (max-width: 480px) {
-        body .filter-bar {
-            grid-template-columns: 1fr !important;
+        .content-body {
+            padding: 10px 8px 40px !important;
         }
-        body .logout-btn span {
+        .topbar {
+            padding: 0 8px !important;
+            height: 52px !important;
+            min-height: 52px !important;
+        }
+        .topbar-left {
+            gap: 8px !important;
+        }
+        .page-header-title {
             display: none !important;
         }
-        body .logout-btn {
-            padding: 8px 10px !important;
+        .card-box, .card, .crud-box, .form-section {
+            padding: 14px 10px !important;
         }
-        body .page-header-title {
-            max-width: 100px !important;
+        .expense-type-bar {
+            grid-template-columns: 1fr !important;
         }
-        body .crud-header .action-buttons > *, body .crud-header .btn-actions > *, body .rpt-action-btns > * {
-            width: 100% !important;
-            flex: none !important;
+        .type-btn {
+            justify-content: flex-start !important;
+            padding: 11px 14px !important;
+        }
+        .topbar-quick-invoice span {
+            display: none !important;
         }
     }
 
-    /* Keep generic touch padding and alignment for action buttons */
+    /* Universal Touch-Friendly Buttons */
     body .btn, body .btn-gold, body .btn-outline, body .btn-view, body .btn-edit, body .btn-delete, body .btn-search {
         min-height: 38px !important;
         display: inline-flex !important;
@@ -3151,6 +3404,7 @@ if (sidebarToggle && sidebar && overlay) {
             // Mobile: slide sidebar in/out as off-canvas
             const isNowOpen = sidebar.classList.toggle('active');
             overlay.classList.toggle('active', isNowOpen);
+            body.classList.toggle('sidebar-open', isNowOpen);
         }
         syncToggleBtn();
     });
@@ -3159,6 +3413,7 @@ if (sidebarToggle && sidebar && overlay) {
     overlay.addEventListener('click', () => {
         sidebar.classList.remove('active');
         overlay.classList.remove('active');
+        body.classList.remove('sidebar-open');
         syncToggleBtn();
     });
 
@@ -3171,6 +3426,7 @@ if (sidebarToggle && sidebar && overlay) {
             // Switched to desktop: close mobile sidebar/overlay
             sidebar.classList.remove('active');
             overlay.classList.remove('active');
+            body.classList.remove('sidebar-open');
             // Restore persisted desktop state
             if (localStorage.getItem(STORAGE_KEY) === '1') {
                 body.classList.add('sidebar-collapsed');
@@ -3263,11 +3519,34 @@ document.querySelectorAll('.menu-link:not(.submenu-toggle), .submenu-link').forE
         if (!isDesktop() && sidebar && overlay) {
             sidebar.classList.remove('active');
             overlay.classList.remove('active');
+            body.classList.remove('sidebar-open');
             syncToggleBtn();
         }
     });
 });
 
+// ── Universal Mobile Table Auto-Scroll Wrapper ──
+document.addEventListener('DOMContentLoaded', function () {
+    // Ensures any <table> across any view that is not inside .table-responsive or .table-container
+    // gets wrapped automatically so it smoothly scrolls horizontally on mobile without breaking layout.
+    document.querySelectorAll('table').forEach(table => {
+        const parent = table.parentElement;
+        if (!parent) return;
+        const hasScrollParent = parent.classList.contains('table-responsive') || 
+                                parent.classList.contains('table-container') || 
+                                parent.classList.contains('table-wrap') ||
+                                parent.classList.contains('auto-table-responsive');
+        if (!hasScrollParent) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-responsive auto-table-responsive';
+            wrapper.style.width = '100%';
+            wrapper.style.overflowX = 'auto';
+            wrapper.style.webkitOverflowScrolling = 'touch';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        }
+    });
+});
 
 // ── Client-side 10-digit numeric-only validation for mobile inputs ──
 document.addEventListener('DOMContentLoaded', function () {
