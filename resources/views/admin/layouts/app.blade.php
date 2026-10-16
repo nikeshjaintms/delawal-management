@@ -2489,6 +2489,37 @@
                     $authUser->role->loadMissing('permissions');
                 }
             }
+
+            // Expense type resolution for accurate sidebar highlighting
+            $expTypeParam = request('type') ?: request('expense_type');
+            if (!$expTypeParam && isset($selectedType)) {
+                $expTypeParam = $selectedType;
+            } elseif (!$expTypeParam && isset($expense) && is_object($expense) && isset($expense->expense_type)) {
+                $expTypeParam = $expense->expense_type ?: ($expense->rental_id ? 'Rental' : ($expense->property_id || ($expense->relationLoaded('properties') && $expense->properties->isNotEmpty()) ? 'Property' : ($expense->project_id ? 'Project' : 'General')));
+            } elseif (!$expTypeParam && isset($activeType)) {
+                $expTypeParam = $activeType;
+            }
+
+            $isAnyExpense = str_starts_with($currentRoute ?? '', 'expenses.');
+            $isProjectExpenseActive = request()->is('expenses/project-wise*') ||
+                in_array($currentRoute, ['expenses.project-wise', 'expenses.project-wise.pdf']) ||
+                ($isAnyExpense && $expTypeParam === 'Project');
+
+            $isRentalExpenseActive = request()->is('expenses/rental*') ||
+                ($currentRoute === 'expenses.rental') ||
+                ($isAnyExpense && $expTypeParam === 'Rental');
+
+            $isGeneralExpenseActive = request()->is('expenses/general*') ||
+                ($currentRoute === 'expenses.general') ||
+                ($isAnyExpense && in_array($expTypeParam, ['General', 'Office']));
+
+            $isPersonalExpenseActive = request()->is('expenses/personal*') ||
+                ($currentRoute === 'expenses.personal') ||
+                ($isAnyExpense && $expTypeParam === 'Personal');
+
+            $isPropertyExpenseActive = request()->is('expenses/property*') ||
+                ($currentRoute === 'expenses.property') ||
+                ($isAnyExpense && !$isProjectExpenseActive && !$isRentalExpenseActive && !$isGeneralExpenseActive && !$isPersonalExpenseActive);
         @endphp
 
         <li class="menu-item">
@@ -2521,7 +2552,7 @@
 
         {{-- 1. Property Management --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'property-masters.') || str_starts_with($currentRoute ?? '', 'property-sales.') || str_starts_with($currentRoute ?? '', 'property-availability.') || str_starts_with($currentRoute ?? '', 'property-documents.') || str_starts_with($currentRoute ?? '', 'sellers.') || request()->is('expenses/property*')) ? 'parent-active' : '' }}" data-label="1. Property Management">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'property-masters.') || str_starts_with($currentRoute ?? '', 'property-sales.') || str_starts_with($currentRoute ?? '', 'property-availability.') || str_starts_with($currentRoute ?? '', 'property-documents.') || str_starts_with($currentRoute ?? '', 'sellers.') || $isPropertyExpenseActive) ? 'parent-active' : '' }}" data-label="1. Property Management">
                 <i class="fa-solid fa-building"></i><span>1. Property Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
@@ -2558,7 +2589,7 @@
                 @endif
                 @if($authUser->hasPermission('expense_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('expenses.property') }}" class="submenu-link {{ request()->is('expenses/property*') ? 'active' : '' }}">
+                    <a href="{{ route('expenses.property') }}" class="submenu-link {{ $isPropertyExpenseActive ? 'active' : '' }}">
                         <i class="fa-solid fa-file-invoice-dollar" style="color: #60A5FA;"></i><span>Property Expenses</span>
                     </a>
                 </li>
@@ -2576,7 +2607,7 @@
         {{-- 2. Project Management --}}
         @if($authUser->hasPermission('project_view'))
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'projects.') || str_starts_with($currentRoute ?? '', 'contractors.') || str_starts_with($currentRoute ?? '', 'expenses.') || str_starts_with($currentRoute ?? '', 'vendors.') || str_starts_with($currentRoute ?? '', 'materials.') || str_starts_with($currentRoute ?? '', 'purchase-orders.') || str_starts_with($currentRoute ?? '', 'stock-inwards.') || str_starts_with($currentRoute ?? '', 'stock-outwards.') || str_starts_with($currentRoute ?? '', 'stock-report.')) ? 'parent-active' : '' }}" data-label="2. Project Management">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'projects.') || str_starts_with($currentRoute ?? '', 'contractors.') || $isProjectExpenseActive || str_starts_with($currentRoute ?? '', 'vendors.') || str_starts_with($currentRoute ?? '', 'materials.') || str_starts_with($currentRoute ?? '', 'purchase-orders.') || str_starts_with($currentRoute ?? '', 'stock-inwards.') || str_starts_with($currentRoute ?? '', 'stock-outwards.') || str_starts_with($currentRoute ?? '', 'stock-report.')) ? 'parent-active' : '' }}" data-label="2. Project Management">
                 <i class="fa-solid fa-city"></i><span>2. Project Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
@@ -2593,7 +2624,7 @@
                 </li>
                 @if($authUser->hasPermission('expense_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('expenses.project-wise') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'expenses.') ? 'active' : '' }}">
+                    <a href="{{ route('expenses.project-wise') }}" class="submenu-link {{ $isProjectExpenseActive ? 'active' : '' }}">
                         <i class="fa-solid fa-receipt"></i><span>Project Expenses</span>
                     </a>
                 </li>
@@ -2732,7 +2763,7 @@
 
         {{-- 5. Rental Management --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'tenants.') || str_starts_with($currentRoute ?? '', 'rentals.') || str_starts_with($currentRoute ?? '', 'rental-payments.') || $currentRoute == 'reports.rentals' || request()->is('expenses/rental*')) ? 'parent-active' : '' }}" data-label="5. Rental Management">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'tenants.') || str_starts_with($currentRoute ?? '', 'rentals.') || str_starts_with($currentRoute ?? '', 'rental-payments.') || $currentRoute == 'reports.rentals' || $isRentalExpenseActive) ? 'parent-active' : '' }}" data-label="5. Rental Management">
                 <i class="fa-solid fa-house"></i><span>5. Rental Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
@@ -2761,7 +2792,7 @@
                 @endif
                 @if($authUser->hasPermission('expense_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('expenses.rental') }}" class="submenu-link {{ request()->is('expenses/rental*') ? 'active' : '' }}">
+                    <a href="{{ route('expenses.rental') }}" class="submenu-link {{ $isRentalExpenseActive ? 'active' : '' }}">
                         <i class="fa-solid fa-receipt" style="color: #F87171;"></i><span>Rental Expenses</span>
                     </a>
                 </li>
@@ -2771,7 +2802,7 @@
 
         {{-- 6. Finance & Accounts --}}
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'invoices.') || str_starts_with($currentRoute ?? '', 'incomes.') || str_starts_with($currentRoute ?? '', 'receipts.') || str_starts_with($currentRoute ?? '', 'loans.') || str_starts_with($currentRoute ?? '', 'emi-schedules.') || request()->is('expenses/general*')) ? 'parent-active' : '' }}" data-label="6. Finance & Accounts">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'invoices.') || str_starts_with($currentRoute ?? '', 'incomes.') || str_starts_with($currentRoute ?? '', 'receipts.') || str_starts_with($currentRoute ?? '', 'loans.') || str_starts_with($currentRoute ?? '', 'emi-schedules.') || $isGeneralExpenseActive) ? 'parent-active' : '' }}" data-label="6. Finance & Accounts">
                 <i class="fa-solid fa-calculator"></i><span>6. Finance & Accounts</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
@@ -2791,7 +2822,7 @@
 
                 @if($authUser->hasPermission('expense_view'))
                 <li class="submenu-item">
-                    <a href="{{ route('expenses.general') }}" class="submenu-link {{ request()->is('expenses/general*') ? 'active' : '' }}">
+                    <a href="{{ route('expenses.general') }}" class="submenu-link {{ $isGeneralExpenseActive ? 'active' : '' }}">
                         <i class="fa-solid fa-file-invoice-dollar" style="color: #A78BFA;"></i><span>General Expenses</span>
                     </a>
                 </li>
@@ -2865,7 +2896,7 @@
         {{-- 8. Personal Expenses --}}
         @if($authUser->hasPermission('expense_view'))
         <li class="menu-item">
-            <a href="{{ route('expenses.personal') }}" class="menu-link {{ request()->is('expenses/personal*') ? 'active' : '' }}" data-label="8. Personal Expenses">
+            <a href="{{ route('expenses.personal') }}" class="menu-link {{ $isPersonalExpenseActive ? 'active' : '' }}" data-label="8. Personal Expenses">
                 <i class="fa-solid fa-wallet" style="color: #F59E0B;"></i><span>8. Personal Expenses</span>
             </a>
         </li>

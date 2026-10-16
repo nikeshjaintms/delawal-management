@@ -99,15 +99,21 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     box-shadow: 0 4px 14px rgba(37, 99, 235, 0.40);
 }
 
-/* ── 4 Distinct Expense Type Selector Bar ── */
+/* ── 5 Distinct Expense Type Selector Bar ── */
 .expense-type-bar {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 12px;
     margin-bottom: 24px;
 }
-@media (max-width: 768px) {
+@media (max-width: 992px) {
+    .expense-type-bar { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px) {
     .expense-type-bar { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 420px) {
+    .expense-type-bar { grid-template-columns: 1fr; }
 }
 .type-btn {
     padding: 13px 16px;
@@ -199,6 +205,9 @@ textarea.form-control { resize: vertical; min-height: 80px; }
         <div class="expense-type-bar">
             <button type="button" class="type-btn {{ $currType === 'Property' ? 'active' : '' }}" onclick="selectExpenseType('Property')">
                 <i class="fa-solid fa-building"></i> <span>Property Expense</span>
+            </button>
+            <button type="button" class="type-btn {{ $currType === 'Project' ? 'active' : '' }}" onclick="selectExpenseType('Project')">
+                <i class="fa-solid fa-city"></i> <span>Project Expense</span>
             </button>
             <button type="button" class="type-btn {{ $currType === 'General' ? 'active' : '' }}" onclick="selectExpenseType('General')">
                 <i class="fa-solid fa-briefcase"></i> <span>General Expense</span>
@@ -292,10 +301,10 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 
             <div class="form-row" id="project-property-row" style="{{ in_array($currType, ['General', 'Personal']) ? 'display:none;' : '' }}">
                 {{-- Project (Only shown for Project Expense, never for Property or Rental) --}}
-                <div class="form-group" id="project-field-wrapper" style="display:none;">
-                    <label class="form-label" for="project_id">Project <span class="opt">(Optional - Project-wise Expense)</span></label>
+                <div class="form-group" id="project-field-wrapper" style="{{ $currType === 'Project' ? '' : 'display:none;' }}">
+                    <label class="form-label" for="project_id">Project <span class="opt">(Project-wise Expense)</span></label>
                     <select name="project_id" id="project_id" class="form-control @error('project_id') is-invalid @enderror">
-                        <option value="">— All Projects / General —</option>
+                        <option value="">— Select Project —</option>
                         @if(isset($projects))
                             @foreach($projects as $proj)
                                 <option value="{{ $proj->id }}"
@@ -310,10 +319,10 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                 </div>
 
                 {{-- Property / Unit Multi-Select or Single Select --}}
-                <div class="form-group" id="property-field-wrapper" style="grid-column: 1 / -1;">
+                <div class="form-group" id="property-field-wrapper" style="{{ $currType === 'Project' ? '' : 'grid-column: 1 / -1;' }}">
                     <label class="form-label" for="property_ids" id="property-label">
-                        <span id="property-label-text">{{ $currType === 'Rental' ? 'Rental Property / Unit' : 'Property' }}</span>
-                        <span class="opt" id="property-label-opt">{{ $currType === 'Rental' ? '(Selecting a property auto-fetches Tenant & Agreement)' : '(Multi-Select Enabled)' }}</span>
+                        <span id="property-label-text">{{ $currType === 'Rental' ? 'Rental Property / Unit' : ($currType === 'Project' ? 'Property / Unit' : 'Property') }}</span>
+                        <span class="opt" id="property-label-opt">{{ $currType === 'Rental' ? '(Selecting a property auto-fetches Tenant & Agreement)' : ($currType === 'Project' ? '(Optional - Filtered by Project)' : '(Multi-Select Enabled)') }}</span>
                     </label>
                     @php
                         $selectedPropIds = (array) old('property_ids', request('property_ids') ?: (request('property_id') ? [request('property_id')] : (old('property_id') ? [old('property_id')] : ($selectedPropertyIds ?? ($selectedPropertyId ? [$selectedPropertyId] : [])))));
@@ -1047,6 +1056,42 @@ function selectExpenseType(type) {
         }
     });
 
+    // Dynamically sync sidebar active item with selected tab
+    try {
+        const sidebarLinks = {
+            'Property': document.querySelector('a[href*="expenses/property"]'),
+            'Project': document.querySelector('a[href*="expenses/project-wise"]'),
+            'General': document.querySelector('a[href*="expenses/general"]'),
+            'Rental': document.querySelector('a[href*="expenses/rental"]'),
+            'Personal': document.querySelector('a[href*="expenses/personal"]')
+        };
+        Object.values(sidebarLinks).forEach(link => {
+            if (link) {
+                link.classList.remove('active');
+                const menuItem = link.closest('.menu-item');
+                if (menuItem) {
+                    const toggle = menuItem.querySelector('.submenu-toggle');
+                    if (toggle) toggle.classList.remove('parent-active');
+                    menuItem.classList.remove('open');
+                    const subList = menuItem.querySelector('.submenu-list');
+                    if (subList) subList.style.display = 'none';
+                }
+            }
+        });
+        const targetLink = sidebarLinks[type];
+        if (targetLink) {
+            targetLink.classList.add('active');
+            const menuItem = targetLink.closest('.menu-item');
+            if (menuItem) {
+                const toggle = menuItem.querySelector('.submenu-toggle');
+                if (toggle) toggle.classList.add('parent-active');
+                menuItem.classList.add('open');
+                const subList = menuItem.querySelector('.submenu-list');
+                if (subList) subList.style.display = 'block';
+            }
+        }
+    } catch(e) {}
+
     const row = document.getElementById('project-property-row');
     const projWrapper = document.getElementById('project-field-wrapper');
     const propWrapper = document.getElementById('property-field-wrapper');
@@ -1079,6 +1124,21 @@ function selectExpenseType(type) {
             if (selVal && (Array.isArray(selVal) ? selVal[0] : selVal)) {
                 fetchRentalInfoForProperty(Array.isArray(selVal) ? selVal[0] : selVal);
             }
+        }
+    } else if (type === 'Project') {
+        if (row) row.style.display = 'grid';
+        if (projWrapper) {
+            projWrapper.style.display = 'block';
+        }
+        if (propWrapper) propWrapper.style.gridColumn = '';
+        if (rentalCard) rentalCard.style.display = 'none';
+        if (rentalChips) rentalChips.style.display = 'none';
+        if (titleEl) titleEl.textContent = '1. Project Expense Classification';
+        if (propLabel) propLabel.textContent = 'Property / Unit';
+        if (propOpt) propOpt.textContent = '(Optional - Filtered by Project)';
+
+        if (window.filterPropertiesByProject) {
+            window.filterPropertiesByProject();
         }
     } else if (type === 'Property') {
         if (row) row.style.display = 'grid';
