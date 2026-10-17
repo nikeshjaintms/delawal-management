@@ -224,6 +224,20 @@
         }, 50);
     };
 
+    function removeAllDelawalaSigPlaceholders() {
+        try {
+            document.querySelectorAll('#delawalaSigPlaceholder, .delawala-sig-placeholder, [class*="sig-placeholder"]').forEach(el => {
+                el.remove();
+            });
+        } catch(e) {}
+    }
+    removeAllDelawalaSigPlaceholders();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', removeAllDelawalaSigPlaceholders);
+    }
+    window.addEventListener('load', removeAllDelawalaSigPlaceholders);
+    window.addEventListener('beforeprint', removeAllDelawalaSigPlaceholders);
+
     window.triggerPdfSignatureUpload = function() {
         const inp = document.getElementById('pdfBarSigInput') || document.getElementById('invSignFileInput');
         if (inp) inp.click();
@@ -241,8 +255,7 @@
                 img.src = e.target.result;
                 img.style.display = 'block';
             });
-            const placeholders = document.querySelectorAll('#delawalaSigPlaceholder, .delawala-sig-placeholder');
-            placeholders.forEach(p => p.style.display = 'none');
+            removeAllDelawalaSigPlaceholders();
 
             const removeBtn = document.getElementById('btnPdfRemoveSig');
             if (removeBtn) removeBtn.style.display = 'inline-flex';
@@ -326,8 +339,6 @@
                     img.src = '';
                     img.style.display = 'none';
                 });
-                const placeholders = document.querySelectorAll('#delawalaSigPlaceholder, .delawala-sig-placeholder');
-                placeholders.forEach(p => p.style.display = 'inline-flex');
 
                 const removeBtn = document.getElementById('btnPdfRemoveSig');
                 if (removeBtn) removeBtn.style.display = 'none';
@@ -358,8 +369,21 @@
 
         window.scrollTo(0, 0);
 
-        const toolbar = document.querySelector('.delawala-pdf-toolbar');
-        if (toolbar) toolbar.style.display = 'none';
+        removeAllDelawalaSigPlaceholders();
+
+        // Hide all no-print elements and toolbar before generating PDF
+        const noPrintEls = document.querySelectorAll('.delawala-pdf-toolbar, .no-print, .no-print-bar, .delawala-sig-placeholder, #delawalaSigPlaceholder');
+        noPrintEls.forEach(el => el.style.setProperty('display', 'none', 'important'));
+
+        const restoreNoPrints = function() {
+            noPrintEls.forEach(el => el.style.removeProperty('display'));
+            const toolbar = document.querySelector('.delawala-pdf-toolbar');
+            if (toolbar) toolbar.style.display = 'flex';
+            if (btn) {
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+            }
+        };
 
         const element = document.getElementById('delawala-printable-area') 
             || document.querySelector('.delawala-printable-area') 
@@ -376,7 +400,18 @@
                 useCORS: true, 
                 logging: false,
                 scrollY: 0,
-                scrollX: 0
+                scrollX: 0,
+                ignoreElements: function(node) {
+                    if (!node) return false;
+                    if (node.id === 'delawalaSigPlaceholder') return true;
+                    if (node.classList) {
+                        return node.classList.contains('no-print') || 
+                               node.classList.contains('delawala-pdf-toolbar') || 
+                               node.classList.contains('delawala-sig-placeholder') ||
+                               node.classList.contains('no-print-bar');
+                    }
+                    return false;
+                }
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: orientation || 'portrait' },
             pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
@@ -385,18 +420,10 @@
         // Allow DOM to settle before snapshot
         setTimeout(function() {
             html2pdf().set(opt).from(element).save().then(() => {
-                if (toolbar) toolbar.style.display = 'flex';
-                if (btn) {
-                    btn.innerHTML = oldHtml;
-                    btn.disabled = false;
-                }
+                restoreNoPrints();
             }).catch(err => {
                 console.error('PDF export error:', err);
-                if (toolbar) toolbar.style.display = 'flex';
-                if (btn) {
-                    btn.innerHTML = oldHtml;
-                    btn.disabled = false;
-                }
+                restoreNoPrints();
                 window.print();
             });
         }, 120);

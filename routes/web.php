@@ -93,6 +93,8 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
 
     Route::resource('payment-modes', PaymentModeController::class)->middleware(['permission:payment_mode_view']);
     Route::post('expense-categories/quick-store', [ExpenseCategoryController::class, 'quickStore'])->name('expense-categories.quick-store')->middleware(['auth']);
+    Route::post('expense-categories/quick-destroy', [ExpenseCategoryController::class, 'quickDestroy'])->name('expense-categories.quick-destroy')->middleware(['auth']);
+    Route::get('expense-categories/quick-list', [ExpenseCategoryController::class, 'quickList'])->name('expense-categories.quick-list')->middleware(['auth']);
     Route::resource('expense-categories', ExpenseCategoryController::class)->middleware(['permission:expense_category_view']);
 
     // ── Property Management ──────────────────────────────────────────

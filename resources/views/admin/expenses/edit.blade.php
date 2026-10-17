@@ -90,6 +90,56 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     box-shadow: 0 4px 14px rgba(37, 99, 235, 0.40);
 }
 
+.btn-quick-del-cat {
+    background: rgba(239, 68, 68, 0.20) !important;
+    border: 1.5px solid rgba(239, 68, 68, 0.50) !important;
+    color: #F87171 !important; padding: 10px 14px; border-radius: 10px;
+    font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex;
+    align-items: center; gap: 6px; white-space: nowrap; transition: all .2s ease;
+    font-family: inherit; flex-shrink: 0;
+}
+.btn-quick-del-cat:hover {
+    background: #DC2626 !important; color: #FFFFFF !important;
+    border-color: #EF4444 !important; transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.40);
+}
+
+.btn-quick-manage-cat {
+    background: rgba(148, 163, 184, 0.15) !important;
+    border: 1.5px solid rgba(148, 163, 184, 0.35) !important;
+    color: #CBD5E1 !important; padding: 10px 14px; border-radius: 10px;
+    font-size: 13.5px; font-weight: 600; cursor: pointer; display: inline-flex;
+    align-items: center; justify-content: center; gap: 6px; transition: all .2s ease;
+    font-family: inherit; flex-shrink: 0;
+}
+.btn-quick-manage-cat:hover {
+    background: rgba(148, 163, 184, 0.28) !important; color: #FFFFFF !important;
+    border-color: #94A3B8 !important; transform: translateY(-1px);
+}
+
+.btn-link-manage-cat {
+    background: none; border: none; padding: 0;
+    color: #60A5FA; font-size: 12px; font-weight: 600;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+    transition: color .2s;
+}
+.btn-link-manage-cat:hover {
+    color: #93C5FD; text-decoration: underline;
+}
+
+.btn-cat-row-delete {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border: 1px solid rgba(239, 68, 68, 0.35) !important;
+    color: #F87171 !important; padding: 6px 12px; border-radius: 8px;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px; transition: all .2s;
+    flex-shrink: 0;
+}
+.btn-cat-row-delete:hover {
+    background: #DC2626 !important; color: #FFFFFF !important;
+    border-color: #EF4444 !important; transform: translateY(-1px);
+}
+
 /* Category Quick Modal */
 .cat-modal-backdrop {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -286,9 +336,14 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                     @error('expense_date')<div class="text-error">{{ $message }}</div>@enderror
                 </div>
 
-                {{-- Expense Category with Dark Dropdown & Quick Add Button --}}
+                {{-- Expense Category with Dark Dropdown & Quick Add / Remove / Manage Buttons --}}
                 <div class="form-group">
-                    <label class="form-label" for="expense_category">Expense Category <span class="req">*</span></label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="form-label" for="expense_category" style="margin-bottom: 0;">Expense Category <span class="req">*</span></label>
+                        <button type="button" class="btn-link-manage-cat" onclick="openManageCategoriesModal()" title="Manage or Remove Categories">
+                            <i class="fa-solid fa-list-check"></i> Manage Categories
+                        </button>
+                    </div>
                     <div style="display: flex; gap: 8px; align-items: center;">
                         @php
                             $currentCat = old('expense_category', $expense->expense_category ?: ($expense->expenseCategory->name ?? ''));
@@ -297,7 +352,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                             <option value="">— Select Category —</option>
                             @if(isset($categories))
                                 @foreach($categories as $cat)
-                                    <option value="{{ $cat->name }}" {{ $currentCat == $cat->name ? 'selected' : '' }}>
+                                    <option value="{{ $cat->name }}" data-id="{{ $cat->id }}" {{ $currentCat == $cat->name ? 'selected' : '' }}>
                                         {{ $cat->name }}
                                     </option>
                                 @endforeach
@@ -306,9 +361,16 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                                 <option value="{{ $currentCat }}" selected>{{ $currentCat }}</option>
                             @endif
                             <option value="__new__" style="color: #60A5FA; font-weight: 700; background: #1E293B;">➕ + Add New Category...</option>
+                            <option value="__manage__" style="color: #F87171; font-weight: 700; background: #1E293B;">🗑️ Manage / Remove Categories...</option>
                         </select>
                         <button type="button" class="btn-quick-add-cat" onclick="openCategoryModal()" title="Add New Category">
                             <i class="fa-solid fa-plus"></i> <span>Add</span>
+                        </button>
+                        <button type="button" id="btn-quick-del-cat" class="btn-quick-del-cat" onclick="deleteCurrentSelectedCategory()" title="Remove Selected Category" style="display: none;">
+                            <i class="fa-solid fa-trash-can"></i> <span>Remove</span>
+                        </button>
+                        <button type="button" class="btn-quick-manage-cat" onclick="openManageCategoriesModal()" title="Manage & Remove Categories">
+                            <i class="fa-solid fa-gear"></i>
                         </button>
                     </div>
                     @error('expense_category')<div class="text-error">{{ $message }}</div>@enderror
@@ -1251,11 +1313,279 @@ function closeCategoryModalOnBackdrop(e) {
     }
 }
 
+function updateCategoryDeleteButton() {
+    const select = document.getElementById('expense_category');
+    const delBtn = document.getElementById('btn-quick-del-cat');
+    if (!select || !delBtn) return;
+    const val = select.value;
+    if (val && val !== '__new__' && val !== '__manage__' && val !== '') {
+        delBtn.style.display = 'inline-flex';
+        delBtn.title = 'Remove "' + val + '" Category';
+    } else {
+        delBtn.style.display = 'none';
+    }
+}
+
 function handleCategoryDropdownChange(select) {
     if (select.value === '__new__') {
         openCategoryModal();
+    } else if (select.value === '__manage__') {
+        openManageCategoriesModal();
+        select.value = '';
     }
+    updateCategoryDeleteButton();
 }
+
+function deleteCurrentSelectedCategory() {
+    const select = document.getElementById('expense_category');
+    if (!select || !select.value) return;
+    const val = select.value;
+    if (val === '__new__' || val === '__manage__') return;
+
+    const opt = select.options[select.selectedIndex];
+    const catId = opt ? opt.getAttribute('data-id') : null;
+
+    if (!confirm('Are you sure you want to permanently remove category "' + val + '" from the system?')) {
+        return;
+    }
+
+    const delBtn = document.getElementById('btn-quick-del-cat');
+    if (delBtn) {
+        delBtn.disabled = true;
+        delBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    }
+
+    fetch('{{ route("expense-categories.quick-destroy") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ id: catId, name: val })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (delBtn) {
+            delBtn.disabled = false;
+            delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i> <span>Remove</span>';
+        }
+
+        if (data.success) {
+            if (opt) opt.remove();
+            select.value = '';
+            updateCategoryDeleteButton();
+
+            // Also remove from manage modal list if open
+            const itemInList = document.querySelector(`.manage-cat-item[data-cat-name="${CSS.escape(val)}"]`);
+            if (itemInList) itemInList.remove();
+
+            showCategoryToast(data.message || 'Category removed successfully.', 'success');
+        } else {
+            alert(data.message || 'Error removing category.');
+        }
+    })
+    .catch(err => {
+        if (delBtn) {
+            delBtn.disabled = false;
+            delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i> <span>Remove</span>';
+        }
+        console.error(err);
+        alert('Server error while removing category.');
+    });
+}
+
+function openManageCategoriesModal() {
+    const modal = document.getElementById('manageCatModal');
+    const listContainer = document.getElementById('manageCatListContainer');
+    const searchInput = document.getElementById('manage_cat_search');
+    if (searchInput) searchInput.value = '';
+    if (modal) modal.style.display = 'flex';
+
+    if (listContainer) {
+        listContainer.innerHTML = '<div style="padding: 30px; text-align: center; color: #94A3B8;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top: 10px; font-size: 13px;">Loading categories...</p></div>';
+    }
+
+    fetch('{{ route("expense-categories.quick-list") }}', {
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.categories) {
+            renderManageCategoriesList(data.categories);
+        } else {
+            if (listContainer) {
+                listContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #F87171;">Failed to load categories.</div>';
+            }
+        }
+    })
+    .catch(err => {
+        if (listContainer) {
+            listContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #F87171;">Server error loading categories.</div>';
+        }
+    });
+}
+
+function closeManageCategoriesModal() {
+    const modal = document.getElementById('manageCatModal');
+    if (modal) modal.style.display = 'none';
+    const select = document.getElementById('expense_category');
+    if (select && select.value === '__manage__') {
+        select.value = '';
+    }
+    updateCategoryDeleteButton();
+}
+
+function renderManageCategoriesList(categories) {
+    const listContainer = document.getElementById('manageCatListContainer');
+    const countBadge = document.getElementById('manageCatCountBadge');
+    if (countBadge) countBadge.textContent = categories.length + ' Total';
+
+    if (!listContainer) return;
+    if (categories.length === 0) {
+        listContainer.innerHTML = '<div style="padding: 24px; text-align: center; color: #94A3B8; font-size: 13px;">No categories found.</div>';
+        return;
+    }
+
+    let html = '';
+    categories.forEach(cat => {
+        const usageText = cat.usage_count > 0 ? `${cat.usage_count} vouchers linked` : 'Not in use';
+        const usageBadge = cat.usage_count > 0 
+            ? `<span style="font-size: 11px; padding: 2px 7px; border-radius: 4px; background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.3);">${usageText}</span>` 
+            : `<span style="font-size: 11px; padding: 2px 7px; border-radius: 4px; background: rgba(148, 163, 184, 0.12); color: #94A3B8; border: 1px solid rgba(148, 163, 184, 0.2);">${usageText}</span>`;
+
+        html += `
+        <div class="manage-cat-item" data-cat-id="${cat.id}" data-cat-name="${escapeHtml(cat.name)}" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); transition: background .15s;">
+            <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(37, 99, 235, 0.18); color: #60A5FA; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;">
+                    <i class="fa-solid fa-tag"></i>
+                </div>
+                <div>
+                    <div style="font-size: 14px; font-weight: 700; color: #FFFFFF;" class="cat-name-display">${escapeHtml(cat.name)}</div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px;">
+                        ${usageBadge}
+                        ${cat.description ? `<span style="font-size: 11.5px; color: #94A3B8; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(cat.description)}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn-cat-row-delete" onclick="deleteCategoryFromManageModal(${cat.id}, '${escapeHtml(cat.name)}', this)" title="Remove Category">
+                <i class="fa-solid fa-trash-can"></i> Remove
+            </button>
+        </div>
+        `;
+    });
+
+    listContainer.innerHTML = html;
+}
+
+function filterManageCategories(query) {
+    const q = (query || '').toLowerCase().trim();
+    const items = document.querySelectorAll('.manage-cat-item');
+    items.forEach(item => {
+        const name = (item.getAttribute('data-cat-name') || '').toLowerCase();
+        if (!q || name.includes(q)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function deleteCategoryFromManageModal(id, name, btn) {
+    if (!confirm(`Are you sure you want to permanently remove category "${name}"?`)) {
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+    fetch('{{ route("expense-categories.quick-destroy") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ id: id, name: name })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const row = btn.closest('.manage-cat-item');
+            if (row) {
+                row.style.transition = 'all .3s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(20px)';
+                setTimeout(() => {
+                    row.remove();
+                    const remaining = document.querySelectorAll('.manage-cat-item').length;
+                    const countBadge = document.getElementById('manageCatCountBadge');
+                    if (countBadge) countBadge.textContent = remaining + ' Total';
+                }, 300);
+            }
+
+            const select = document.getElementById('expense_category');
+            if (select) {
+                const opt = Array.from(select.options).find(o => o.value.toLowerCase() === name.toLowerCase());
+                if (opt) opt.remove();
+                if (select.value.toLowerCase() === name.toLowerCase()) {
+                    select.value = '';
+                }
+                updateCategoryDeleteButton();
+            }
+
+            showCategoryToast(data.message || `Category "${name}" removed.`, 'success');
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> Remove';
+            alert(data.message || 'Error removing category.');
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> Remove';
+        console.error(err);
+        alert('Server error while removing category.');
+    });
+}
+
+function showCategoryToast(message, type = 'success') {
+    let toast = document.getElementById('catActionToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'catActionToast';
+        toast.style.cssText = 'position: fixed; bottom: 24px; right: 24px; z-index: 100000; padding: 12px 20px; border-radius: 12px; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: all .3s ease; opacity: 0; transform: translateY(15px); pointer-events: none;';
+        document.body.appendChild(toast);
+    }
+
+    const isSuccess = type === 'success';
+    toast.style.background = isSuccess ? '#064E3B' : '#7F1D1D';
+    toast.style.border = isSuccess ? '1px solid #10B981' : '1px solid #EF4444';
+    toast.style.color = isSuccess ? '#A7F3D0' : '#FECACA';
+    toast.innerHTML = `<i class="fa-solid ${isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> <span>${escapeHtml(message)}</span>`;
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+
+    clearTimeout(window.__catToastTimer);
+    window.__catToastTimer = setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(15px)';
+    }, 3500);
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateCategoryDeleteButton();
+});
 
 function handleQuickCatKey(e) {
     if (e.key === 'Enter') {
@@ -1324,6 +1654,7 @@ function submitQuickCategory() {
                     opt = document.createElement('option');
                     opt.value = data.category.name;
                     opt.textContent = data.category.name;
+                    opt.setAttribute('data-id', data.category.id);
                     const newOption = select.querySelector('option[value="__new__"]');
                     if (newOption) {
                         select.insertBefore(opt, newOption);
@@ -1332,8 +1663,10 @@ function submitQuickCategory() {
                     }
                 }
                 select.value = opt.value;
+                updateCategoryDeleteButton();
             }
             closeCategoryModal();
+            showCategoryToast(data.message || 'Category added successfully.', 'success');
         } else {
             if (errorEl) {
                 errorEl.textContent = data.message || 'Error saving category.';
@@ -1383,6 +1716,45 @@ function submitQuickCategory() {
             <button type="button" id="btn-save-cat" class="btn-gold" onclick="submitQuickCategory()" style="padding: 8px 20px; font-size: 13px;">
                 <i class="fa-solid fa-check"></i> Save Category
             </button>
+        </div>
+    </div>
+</div>
+
+{{-- Manage Categories Modal --}}
+<div id="manageCatModal" class="cat-modal-backdrop" style="display: none;" onclick="if(event.target && event.target.id === 'manageCatModal') closeManageCategoriesModal()">
+    <div class="cat-modal-box" style="max-width: 520px;">
+        <div class="cat-modal-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="cat-modal-icon" style="background: rgba(239, 68, 68, 0.18); color: #F87171;">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <h3 style="margin: 0; color: #FFFFFF; font-size: 16.5px; font-weight: 800;">Manage Categories</h3>
+                        <span id="manageCatCountBadge" style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.1); color: #CBD5E1; border: 1px solid rgba(255, 255, 255, 0.15);">0 Total</span>
+                    </div>
+                    <p style="margin: 2px 0 0; font-size: 12px; color: #94A3B8;">Remove unwanted or accidental categories from the system</p>
+                </div>
+            </div>
+            <button type="button" class="cat-modal-close" onclick="closeManageCategoriesModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div style="padding: 14px 20px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.15);">
+            <div style="position: relative;">
+                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748B; font-size: 13px;"></i>
+                <input type="text" id="manage_cat_search" class="form-control" placeholder="Search categories to remove..." style="padding-left: 36px; height: 38px; font-size: 13px;" oninput="filterManageCategories(this.value)">
+            </div>
+        </div>
+
+        <div id="manageCatListContainer" style="max-height: 340px; overflow-y: auto; padding: 0;">
+            <!-- Rendered dynamically -->
+        </div>
+
+        <div class="cat-modal-footer" style="justify-content: space-between; align-items: center;">
+            <button type="button" class="btn-quick-add-cat" onclick="closeManageCategoriesModal(); openCategoryModal();" style="font-size: 12.5px; padding: 8px 14px;">
+                <i class="fa-solid fa-plus"></i> Add New Category
+            </button>
+            <button type="button" class="btn-outline" onclick="closeManageCategoriesModal()" style="padding: 8px 18px; font-size: 13px;">Done</button>
         </div>
     </div>
 </div>

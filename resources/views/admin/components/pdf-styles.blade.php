@@ -474,4 +474,19 @@
         font-weight: 700;
         color: #000000 !important;
     }
+
+    /* Never show placeholder buttons or dashed borders in PDF / Print */
+    .delawala-sig-placeholder, 
+    #delawalaSigPlaceholder,
+    .sig-placeholder,
+    [id*="delawalaSigPlaceholder"], 
+    [class*="delawala-sig-placeholder"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+        overflow: hidden !important;
+        border: none !important;
+    }
 </style>
