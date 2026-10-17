@@ -123,15 +123,11 @@
     @endif
 </table>
 
-{{-- ── Signatures Block ── --}}
-<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">Legal &amp; Conveyance Officer</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Managing Director / Partner Signature</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Legal & Conveyance Officer',
+    'rightRole' => 'Managing Director / Partner Signature'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Official Sales Register • Audited from Executed Sale Deeds & Registry Records'])
 </body>

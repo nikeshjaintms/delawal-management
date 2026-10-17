@@ -113,29 +113,12 @@
     <strong>Amount in Words:</strong> {{ numberToWordsIndian($pdAmt) }}
 </div>
 
-<div class="auth-block">
-    <div class="auth-col">
-        <div class="auth-line">Tenant Acknowledgment</div>
-    </div>
-    <div class="auth-col">
-        @php
-            $rpFirm = $rentalPayment->rental?->firm ?: ($rentalPayment->rental?->property?->project?->firm);
-            $rpSig = $rpFirm?->digital_signature ?? null;
-            $hasRpSig = !empty($rpSig) && (
-                \Illuminate\Support\Facades\Storage::disk('public')->exists($rpSig) ||
-                file_exists(public_path('storage/' . $rpSig)) ||
-                file_exists(public_path($rpSig))
-            );
-            $rpSigUrl = $hasRpSig ? (file_exists(public_path($rpSig)) ? asset($rpSig) : asset('storage/' . $rpSig)) : null;
-        @endphp
-        @if($rpSigUrl)
-            <div style="min-height: 40px; margin-bottom: 2px;">
-                <img src="{{ $rpSigUrl }}" style="max-height: 40px; max-width: 140px; object-fit: contain;" alt="Authorized Signature">
-            </div>
-        @endif
-        <div class="auth-line">Authorized Signatory &amp; Stamp</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Tenant Acknowledgment',
+    'rightRole' => 'Authorized Signatory & Stamp',
+    'firm' => $rentalPayment->rental?->firm ?: ($rentalPayment->rental?->property?->project?->firm)
+])
 
 @include('admin.components.pdf-footer')
 </body>

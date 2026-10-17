@@ -211,15 +211,11 @@
     </tbody>
 </table>
 
-{{-- ── Authorization & Signatures Block ── --}}
-<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">Prepared By (Senior Accountant)</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Verified &amp; Certified (Managing Partner / Director)</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Prepared By (Senior Accountant)',
+    'rightRole' => 'Verified & Certified (Managing Partner / Director)'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Statutory Profit & Loss Account • Compliant with Indian Real Estate Accounting Standards'])
 </body>

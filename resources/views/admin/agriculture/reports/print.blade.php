@@ -254,15 +254,11 @@
     </table>
 @endif
 
-{{-- ── Signatures Block ── --}}
-<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">Farm Supervisor / In-Charge</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Agri Business Head / Managing Partner</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Farm Supervisor / In-Charge',
+    'rightRole' => 'Agri Business Head / Managing Partner'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Agriculture Operations Statement • Compliant with Delawala Farm Accounting Systems'])
 </body>

@@ -147,14 +147,11 @@
 </table>
 
 {{-- ── Signatures Block ── --}}
-<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">Finance &amp; Banking Officer</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Managing Director / Partner Approval</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Finance & Banking Officer',
+    'rightRole' => 'Managing Director / Partner Approval'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Statutory Loan Statement • Certified from Banking Sanction Letters & Amortization Records'])
 </body>

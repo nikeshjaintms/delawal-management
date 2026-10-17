@@ -1,7 +1,12 @@
 @php
     $footerNote = $note ?? 'Confidential & Proprietary • Delawala Management ERP';
     $footerDate = $date ?? now()->format('d M Y, h:i A');
+    $skipSignature = $skipSignature ?? false;
 @endphp
+
+@if(!$skipSignature && (!isset($hasCustomAuthBlock) || !$hasCustomAuthBlock))
+    @include('admin.components.pdf-signature')
+@endif
 
 <div class="delawala-pdf-footer">
     <div class="dpf-left">

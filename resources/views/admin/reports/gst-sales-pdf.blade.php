@@ -112,15 +112,11 @@
     @endif
 </table>
 
-{{-- ── Signatures Block ── --}}
-<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">GST Tax Accountant</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Authorized Signatory / Delawala Management</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'GST Tax Accountant',
+    'rightRole' => 'Authorized Signatory / Delawala Management'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Statutory GST Sales Statement • GSTR-1 Outward Supplies Ledger'])
 </body>

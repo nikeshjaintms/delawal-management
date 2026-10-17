@@ -88,29 +88,12 @@
     </div>
 </div>
 
-<div class="auth-block">
-    <div class="auth-col">
-        <div class="auth-line">Tenant Signature</div>
-    </div>
-    <div class="auth-col">
-        @php
-            $rntFirm = $rental->firm ?: ($rental->property?->project?->firm);
-            $rntSig = $rntFirm?->digital_signature ?? null;
-            $hasRntSig = !empty($rntSig) && (
-                \Illuminate\Support\Facades\Storage::disk('public')->exists($rntSig) ||
-                file_exists(public_path('storage/' . $rntSig)) ||
-                file_exists(public_path($rntSig))
-            );
-            $rntSigUrl = $hasRntSig ? (file_exists(public_path($rntSig)) ? asset($rntSig) : asset('storage/' . $rntSig)) : null;
-        @endphp
-        @if($rntSigUrl)
-            <div style="min-height: 40px; margin-bottom: 2px;">
-                <img src="{{ $rntSigUrl }}" style="max-height: 40px; max-width: 140px; object-fit: contain;" alt="Authorized Signature">
-            </div>
-        @endif
-        <div class="auth-line">Authorized Signatory / {{ $rntFirm->firm_name ?? 'Delawala Infrastructure' }}</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Tenant Signature',
+    'rightRole' => 'Authorized Signatory / ' . ($rntFirm->firm_name ?? 'Delawala Infrastructure'),
+    'firm' => $rental->firm ?: ($rental->property?->project?->firm)
+])
 
 @include('admin.components.pdf-footer')
 </body>

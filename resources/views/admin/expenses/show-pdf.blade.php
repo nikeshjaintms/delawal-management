@@ -118,29 +118,12 @@
     <strong>Amount in Words:</strong> {{ numberToWordsIndian($expAmt) }}
 </div>
 
-<div class="auth-block">
-    <div class="auth-col">
-        <div class="auth-line">Receiver / Payee Signature</div>
-    </div>
-    <div class="auth-col">
-        @php
-            $expFirm = $expense->firm ?: ($expense->project?->firm);
-            $expSig = $expFirm?->digital_signature ?? null;
-            $hasExpSig = !empty($expSig) && (
-                \Illuminate\Support\Facades\Storage::disk('public')->exists($expSig) ||
-                file_exists(public_path('storage/' . $expSig)) ||
-                file_exists(public_path($expSig))
-            );
-            $expSigUrl = $hasExpSig ? (file_exists(public_path($expSig)) ? asset($expSig) : asset('storage/' . $expSig)) : null;
-        @endphp
-        @if($expSigUrl)
-            <div style="min-height: 40px; margin-bottom: 2px;">
-                <img src="{{ $expSigUrl }}" style="max-height: 40px; max-width: 140px; object-fit: contain;" alt="Authorized Signature">
-            </div>
-        @endif
-        <div class="auth-line">Authorized Signatory / {{ $expense->firm->firm_name ?? 'Delawala Infrastructure' }}</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Receiver / Payee Signature',
+    'rightRole' => 'Authorized Signatory / ' . ($expense->firm->firm_name ?? 'Delawala Infrastructure'),
+    'firm' => $expense->firm ?: ($expense->project?->firm)
+])
 
 @include('admin.components.pdf-footer')
 </body>

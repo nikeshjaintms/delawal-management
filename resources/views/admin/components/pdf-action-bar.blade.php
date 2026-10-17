@@ -2,6 +2,9 @@
     $pageTitle = $title ?? ($pdfTitle ?? 'Delawala Management Document');
     $fileName = $fileName ?? (\Illuminate\Support\Str::slug($pageTitle) . '-' . date('Ymd-Hi'));
     $orientation = $orientation ?? 'portrait';
+    $barFirm = $firm ?? ($reportFirm ?? (session('login_type') === 'firm' && session('firm_id') ? \App\Models\Firm::find(session('firm_id')) : \App\Models\Firm::first()));
+    $hasBarSig = $barFirm?->hasDigitalSignature() ?? false;
+    $barSigUrl = $barFirm?->digital_signature_url;
 @endphp
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -24,6 +27,8 @@
         margin: 0 0 20px 0;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
         border-bottom: 2px solid #000000;
+        flex-wrap: wrap;
+        gap: 12px;
     }
     .pdf-bar-brand {
         display: flex;
@@ -69,13 +74,14 @@
     .pdf-bar-actions {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
+        flex-wrap: wrap;
     }
     .btn-pdf-act {
         display: inline-flex;
         align-items: center;
         gap: 7px;
-        padding: 8px 15px;
+        padding: 7px 13px;
         border-radius: 6px;
         font-size: 12px;
         font-weight: 700;
@@ -90,6 +96,15 @@
     }
     .btn-pdf-act:active {
         transform: translateY(0);
+    }
+    .btn-pdf-signature {
+        background: #1E293B;
+        color: #FFFFFF;
+        border: 1px solid #475569;
+    }
+    .btn-pdf-signature:hover {
+        background: #334155;
+        border-color: #64748B;
     }
     .btn-pdf-back {
         background: #334155;
@@ -152,7 +167,28 @@
         </div>
         <span class="pdf-bar-badge">Delawala PDF</span>
     </div>
+    
     <div class="pdf-bar-actions">
+        {{-- Digital Signature Field & Upload Action --}}
+        <input type="file" id="pdfBarSigInput" accept="image/*" style="display: none;" onchange="window.handlePdfBarSignatureUpload(this)">
+        
+        <span id="pdfBarSigBadge" class="pdf-bar-sig-badge" style="font-size: 10px; font-weight: 700; padding: 4px 9px; border-radius: 5px; border: 1px solid {{ $hasBarSig ? '#10B981' : '#64748B' }}; color: {{ $hasBarSig ? '#34D399' : '#CBD5E1' }}; background: rgba(0,0,0,0.35); display: inline-flex; align-items: center; gap: 5px;">
+            <i class="fa-solid fa-signature"></i> <span id="pdfBarSigBadgeText">{{ $hasBarSig ? 'Signature Active' : 'No Signature' }}</span>
+        </span>
+
+        <button type="button" onclick="document.getElementById('pdfBarSigInput').click()" class="btn-pdf-act btn-pdf-signature" id="btnPdfSig" title="Upload or Change Digital Signature Photo">
+            <i class="fa-solid fa-file-signature"></i> <span id="pdfBarSigBtnText">{{ $hasBarSig ? 'Change Signature' : 'Add Signature' }}</span>
+        </button>
+
+        <button type="button" onclick="window.handlePdfBarSignatureRemove()" class="btn-pdf-act btn-pdf-remove-sig" id="btnPdfRemoveSig" style="{{ $hasBarSig ? 'display:inline-flex;' : 'display:none;' }}; background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.4); padding: 7px 10px;" title="Remove Digital Signature">
+            <i class="fa-solid fa-trash-can"></i>
+        </button>
+
+        <span id="pdfBarSigSpinner" style="display: none; color: #38BDF8; font-size: 12px;">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+        </span>
+        <span id="pdfBarSigMsg" style="display: none; color: #34D399; font-size: 11px; font-weight: 700;"></span>
+
         <button type="button" onclick="handlePdfBack(event, '{{ $backUrl ?? '' }}')" class="btn-pdf-act btn-pdf-back" title="Go Back">
             <i class="fa-solid fa-arrow-left"></i> Back
         </button>
@@ -186,6 +222,130 @@
                 window.history.back();
             }
         }, 50);
+    };
+
+    window.triggerPdfSignatureUpload = function() {
+        const inp = document.getElementById('pdfBarSigInput') || document.getElementById('invSignFileInput');
+        if (inp) inp.click();
+    };
+
+    window.handlePdfBarSignatureUpload = function(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+
+        // 1. Instant local preview on document signature area
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewImgs = document.querySelectorAll('#delawalaSigImg, .delawala-sig-img, #invSignImg');
+            previewImgs.forEach(img => {
+                img.src = e.target.result;
+                img.style.display = 'block';
+            });
+            const placeholders = document.querySelectorAll('#delawalaSigPlaceholder, .delawala-sig-placeholder');
+            placeholders.forEach(p => p.style.display = 'none');
+
+            const removeBtn = document.getElementById('btnPdfRemoveSig');
+            if (removeBtn) removeBtn.style.display = 'inline-flex';
+            const btnText = document.getElementById('pdfBarSigBtnText');
+            if (btnText) btnText.textContent = 'Change Signature';
+            const badgeText = document.getElementById('pdfBarSigBadgeText');
+            if (badgeText) badgeText.textContent = 'Signature Active';
+            const badge = document.getElementById('pdfBarSigBadge');
+            if (badge) {
+                badge.style.borderColor = '#10B981';
+                badge.style.color = '#34D399';
+            }
+        };
+        reader.readAsDataURL(file);
+
+        // 2. AJAX Upload to backend
+        const spinner = document.getElementById('pdfBarSigSpinner');
+        const msg = document.getElementById('pdfBarSigMsg');
+        if (spinner) spinner.style.display = 'inline-block';
+        if (msg) msg.style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('signature_image', file);
+        formData.append('firm_id', '{{ $barFirm->id ?? '' }}');
+
+        fetch('{{ route('pdf.upload-signature') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (spinner) spinner.style.display = 'none';
+            if (data.success && data.signature_url) {
+                const previewImgs = document.querySelectorAll('#delawalaSigImg, .delawala-sig-img, #invSignImg');
+                previewImgs.forEach(img => {
+                    img.src = data.signature_url;
+                    img.style.display = 'block';
+                });
+                if (msg) {
+                    msg.textContent = '✓ Saved!';
+                    msg.style.display = 'inline-block';
+                    setTimeout(() => { msg.style.display = 'none'; }, 3500);
+                }
+            } else {
+                alert(data.message || 'Error uploading signature');
+            }
+        })
+        .catch(err => {
+            if (spinner) spinner.style.display = 'none';
+            console.error('Signature upload error:', err);
+        });
+    };
+
+    window.handlePdfBarSignatureRemove = function() {
+        if (!confirm('Remove digital signature from firm defaults?')) return;
+
+        const spinner = document.getElementById('pdfBarSigSpinner');
+        if (spinner) spinner.style.display = 'inline-block';
+
+        const formData = new FormData();
+        formData.append('firm_id', '{{ $barFirm->id ?? '' }}');
+
+        fetch('{{ route('pdf.remove-signature') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (spinner) spinner.style.display = 'none';
+            if (data.success) {
+                const previewImgs = document.querySelectorAll('#delawalaSigImg, .delawala-sig-img, #invSignImg');
+                previewImgs.forEach(img => {
+                    img.src = '';
+                    img.style.display = 'none';
+                });
+                const placeholders = document.querySelectorAll('#delawalaSigPlaceholder, .delawala-sig-placeholder');
+                placeholders.forEach(p => p.style.display = 'inline-flex');
+
+                const removeBtn = document.getElementById('btnPdfRemoveSig');
+                if (removeBtn) removeBtn.style.display = 'none';
+                const btnText = document.getElementById('pdfBarSigBtnText');
+                if (btnText) btnText.textContent = 'Add Signature';
+                const badgeText = document.getElementById('pdfBarSigBadgeText');
+                if (badgeText) badgeText.textContent = 'No Signature';
+                const badge = document.getElementById('pdfBarSigBadge');
+                if (badge) {
+                    badge.style.borderColor = '#64748B';
+                    badge.style.color = '#CBD5E1';
+                }
+            }
+        })
+        .catch(err => {
+            if (spinner) spinner.style.display = 'none';
+            console.error('Signature remove error:', err);
+        });
     };
 
     window.downloadDelawalaPDF = function(filename, orientation) {

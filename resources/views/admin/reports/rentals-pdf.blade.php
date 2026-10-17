@@ -123,15 +123,11 @@
     @endif
 </table>
 
-{{-- ── Signatures Block ── --}}
-<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">Property / Tenancy Manager</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Finance Controller / Authorized Signatory</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Property / Tenancy Manager',
+    'rightRole' => 'Finance Controller / Authorized Signatory'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Tenancy & Rental Ledger • Verified Against Executed Lease Agreements'])
 </body>

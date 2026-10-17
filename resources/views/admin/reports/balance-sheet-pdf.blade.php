@@ -214,15 +214,11 @@
     </ol>
 </div>
 
-{{-- ── Signatures Block ── --}}
-<div class="auth-block" style="margin-top:18px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">Chartered Accountant / Accounts Head</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">For Delawala Properties &amp; Management (Authorized Signatory)</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Chartered Accountant / Accounts Head',
+    'rightRole' => 'For Delawala Properties & Management (Authorized Signatory)'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Statutory Balance Sheet • Verified from General Ledgers & Books of Account'])
 </body>

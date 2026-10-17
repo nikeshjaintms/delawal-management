@@ -108,15 +108,11 @@
     @endif
 </table>
 
-{{-- ── Signatures Block ── --}}
-<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">Sales &amp; Channel Partner Manager</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Managing Director / Partner Approval</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Sales & Channel Partner Manager',
+    'rightRole' => 'Managing Director / Partner Approval'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Broker Commissions Statement • Verified Against Executed Booking Agreements'])
 </body>

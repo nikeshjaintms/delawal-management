@@ -125,4 +125,62 @@ class FirmController extends Controller
         return redirect()->route('firm-master.index')
             ->with('success', 'Firm deleted successfully!');
     }
+
+    /**
+     * Upload digital signature photo for firm directly from any PDF view
+     */
+    public function uploadPdfSignature(Request $request)
+    {
+        $request->validate([
+            'signature_image' => 'required|image|max:4096',
+            'firm_id' => 'nullable|exists:firms,id'
+        ]);
+
+        $firmId = $request->input('firm_id') ?: (session('firm_id') ?: Firm::first()?->id);
+        $firm = Firm::find($firmId);
+
+        if (!$firm) {
+            return response()->json(['success' => false, 'message' => 'Firm not found.'], 404);
+        }
+
+        if ($firm->digital_signature && Storage::disk('public')->exists($firm->digital_signature)) {
+            Storage::disk('public')->delete($firm->digital_signature);
+        }
+
+        $path = $request->file('signature_image')->store('firm-signatures', 'public');
+        $firm->update(['digital_signature' => $path]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Digital signature uploaded successfully for ' . $firm->firm_name,
+            'signature_url' => asset('storage/' . $path),
+            'firm_name' => $firm->firm_name,
+            'firm_id' => $firm->id
+        ]);
+    }
+
+    /**
+     * Remove digital signature for firm directly from any PDF view
+     */
+    public function removePdfSignature(Request $request)
+    {
+        $firmId = $request->input('firm_id') ?: (session('firm_id') ?: Firm::first()?->id);
+        $firm = Firm::find($firmId);
+
+        if (!$firm) {
+            return response()->json(['success' => false, 'message' => 'Firm not found.'], 404);
+        }
+
+        if ($firm->digital_signature && Storage::disk('public')->exists($firm->digital_signature)) {
+            Storage::disk('public')->delete($firm->digital_signature);
+        }
+
+        $firm->update(['digital_signature' => null]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Digital signature removed successfully from ' . $firm->firm_name,
+            'firm_name' => $firm->firm_name
+        ]);
+    }
 }

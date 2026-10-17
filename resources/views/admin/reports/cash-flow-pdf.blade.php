@@ -163,15 +163,11 @@
     @endif
 </table>
 
-{{-- ── Signatures Block ── --}}
-<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">Cashier / Accounts Officer</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Finance Manager / Authorized Signatory</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Cashier / Accounts Officer',
+    'rightRole' => 'Finance Manager / Authorized Signatory'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Official Cash & Bank Statement • Compiled in Accordance with Accounting Standard AS-3'])
 </body>

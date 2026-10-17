@@ -129,14 +129,11 @@
 </table>
 
 {{-- ── Signatures Block ── --}}
-<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">Project Cost Accountant</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Chief Financial Officer / Managing Director</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Project Cost Accountant',
+    'rightRole' => 'Chief Financial Officer / Managing Director'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Project Cost Audit Report • Certified According to Project Accounting Systems'])
 </body>

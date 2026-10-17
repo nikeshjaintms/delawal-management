@@ -125,15 +125,11 @@
     @endif
 </table>
 
-{{-- ── Signatures Block ── --}}
-<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">Purchase &amp; Tax Officer</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Authorized Signatory / Delawala Management</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Purchase & Tax Officer',
+    'rightRole' => 'Authorized Signatory / Delawala Management'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Statutory GST Purchase Statement • Input Tax Credit (ITC) Reconciled with GSTR-2B'])
 </body>

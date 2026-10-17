@@ -93,15 +93,11 @@
     @endif
 </table>
 
-{{-- ── Signatures Block ── --}}
-<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">Billing &amp; Tax Officer</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Authorised Signatory / Partner Approval</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Billing & Tax Officer',
+    'rightRole' => 'Authorised Signatory / Partner Approval'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Statutory Credit Notes Register • Section 34 of CGST Act Compliant'])
 </body>

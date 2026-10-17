@@ -138,15 +138,11 @@
     @endif
 </table>
 
-{{-- ── Signatures Block ── --}}
-<div class="auth-block" style="margin-top:20px; page-break-inside:avoid;">
-    <div class="auth-col">
-        <div class="auth-line">Cashier / Disbursing Officer</div>
-    </div>
-    <div class="auth-col">
-        <div class="auth-line">Accounts Manager / Delawala Management</div>
-    </div>
-</div>
+@php $hasCustomAuthBlock = true; @endphp
+@include('admin.components.pdf-signature', [
+    'leftRole' => 'Cashier / Disbursing Officer',
+    'rightRole' => 'Accounts Manager / Delawala Management'
+])
 
 @include('admin.components.pdf-footer', ['note' => 'Official Cash & Bank Register • Audited from System Payment Vouchers'])
 </body>
