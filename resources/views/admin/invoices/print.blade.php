@@ -69,10 +69,10 @@
     <title>{{ $invHeading }} - {{ $invoice->invoice_no ?? 'INV' }} - Delawala Management</title>
     @include('admin.components.pdf-styles', ['orientation' => 'portrait'])
     <style>
-        /* ── Exact Match Formal Clean GST Invoice Design Optimized for A4 ── */
+        /* ── Exact Match Formal Clean GST Invoice Design Optimized for A4 (Monochrome B&W) ── */
         html, body {
             background: #FFFFFF !important;
-            color: #0F172A;
+            color: #000000 !important;
             font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
             font-size: 8.5px;
             line-height: 1.35;
@@ -93,9 +93,10 @@
             max-width: 760px;
             margin: 0 auto;
             background: #FFFFFF !important;
-            color: #0F172A;
+            color: #000000 !important;
             padding: 10px 14px;
             box-sizing: border-box;
+            border: 1px solid #000000;
         }
 
         /* ── Header ── */
@@ -103,7 +104,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 1.5px solid #0F172A;
+            border-bottom: 2px solid #000000;
             padding-bottom: 8px;
             margin-bottom: 10px;
             gap: 12px;
@@ -126,6 +127,8 @@
             flex-shrink: 0;
             display: block;
             image-rendering: -webkit-optimize-contrast;
+            filter: grayscale(100%) contrast(120%) !important;
+            -webkit-filter: grayscale(100%) contrast(120%) !important;
         }
         .inv-firm-name {
             font-size: 16px;
@@ -133,20 +136,20 @@
             text-transform: uppercase;
             letter-spacing: 0.3px;
             line-height: 1.15;
-            color: #0F172A;
+            color: #000000;
         }
         .inv-firm-sub {
             font-size: 8px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #334155;
+            color: #333333;
             margin-top: 1px;
             margin-bottom: 2px;
         }
         .inv-firm-addr {
             font-size: 7.5px;
-            color: #475569;
+            color: #444444;
             line-height: 1.3;
         }
         .inv-firm-meta {
@@ -158,19 +161,19 @@
         .inv-meta-pill {
             display: inline-flex;
             align-items: center;
-            border: 1px solid #CBD5E1;
+            border: 1px solid #000000;
             padding: 1.5px 6px;
             font-size: 7.5px;
             font-weight: 600;
             background: #FFFFFF;
-            color: #1E293B;
+            color: #000000;
             white-space: nowrap;
             border-radius: 3px;
         }
         .inv-meta-pill strong {
             font-weight: 700;
             margin-right: 3px;
-            color: #0F172A;
+            color: #000000;
         }
 
         .inv-title-col {
@@ -187,19 +190,19 @@
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.4px;
-            color: #0F172A;
+            color: #000000;
             line-height: 1.1;
             margin-bottom: 1px;
         }
         .inv-rule-sub {
             font-size: 7.5px;
             font-weight: 600;
-            color: #64748B;
+            color: #444444;
             margin-bottom: 3px;
         }
         .inv-doc-info {
             font-size: 8px;
-            color: #1E293B;
+            color: #000000;
             line-height: 1.35;
             display: flex;
             justify-content: flex-end;
@@ -207,12 +210,12 @@
             width: 100%;
         }
         .inv-doc-info .inv-doc-label {
-            color: #475569;
+            color: #444444;
             font-weight: 600;
         }
         .inv-doc-info strong, .inv-doc-info .inv-doc-val {
             font-weight: 700;
-            color: #0F172A;
+            color: #000000;
         }
 
         /* ── 2-Column Details Box ── */
@@ -226,21 +229,21 @@
         .inv-col-box {
             flex: 1;
             min-width: 0;
-            border: 1px solid #CBD5E1;
+            border: 1px solid #000000;
             background: #FFFFFF;
             box-sizing: border-box;
             border-radius: 4px;
             overflow: hidden;
         }
         .inv-box-head {
-            background: #F8FAFC;
-            color: #0F172A;
+            background: #F3F4F6;
+            color: #000000;
             font-size: 8px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 4px 7px;
-            border-bottom: 1px solid #CBD5E1;
+            border-bottom: 1px solid #000000;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -253,7 +256,7 @@
             justify-content: space-between;
             padding: 2.5px 0;
             font-size: 8px;
-            border-bottom: 1px dotted #E2E8F0;
+            border-bottom: 1px dotted #CCCCCC;
             gap: 6px;
             align-items: baseline;
         }
@@ -261,12 +264,12 @@
             border-bottom: none;
         }
         .inv-lbl {
-            color: #475569;
+            color: #444444;
             font-weight: 600;
             flex-shrink: 0;
         }
         .inv-val {
-            color: #0F172A;
+            color: #000000;
             font-weight: 700;
             text-align: right;
             word-break: break-word;
@@ -278,7 +281,7 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #0F172A;
+            color: #000000;
             margin-bottom: 4px;
             display: flex;
             align-items: center;
@@ -289,19 +292,20 @@
             border-collapse: collapse;
             font-size: 8px;
             margin-bottom: 6px;
-            border: 1px solid #CBD5E1;
+            border: 1.5px solid #000000;
             table-layout: fixed;
             background: #FFFFFF;
         }
         table.inv-items-tbl thead th {
-            background: #F8FAFC;
-            color: #0F172A;
+            background: #F3F4F6;
+            color: #000000;
             padding: 4.5px 6px;
             font-size: 7.5px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.4px;
-            border: 1px solid #CBD5E1;
+            border: 1px solid #000000;
+            border-bottom: 2px solid #000000;
             text-align: left;
             overflow: hidden;
         }
@@ -311,45 +315,47 @@
         table.inv-items-tbl tbody td {
             background: #FFFFFF;
             padding: 4.5px 6px;
-            border: 1px solid #CBD5E1;
-            color: #0F172A;
+            border: 1px solid #D1D5DB;
+            color: #000000;
             vertical-align: top;
             word-break: break-word;
         }
         table.inv-items-tbl tfoot td {
             background: #FFFFFF;
             padding: 3.5px 6px;
-            border: 1px solid #CBD5E1;
-            color: #0F172A;
+            border: 1px solid #000000;
+            color: #000000;
             font-size: 8px;
             word-break: break-word;
         }
         .tfoot-grand-total {
-            background: #F8FAFC !important;
+            background: #F3F4F6 !important;
             font-weight: 900 !important;
         }
         .tfoot-grand-total td {
-            background: #F8FAFC !important;
-            color: #0F172A !important;
+            background: #F3F4F6 !important;
+            color: #000000 !important;
             font-size: 8.5px !important;
             font-weight: 900 !important;
             padding: 4px 6px !important;
+            border-top: 2px solid #000000 !important;
+            border-bottom: 3.5px double #000000 !important;
         }
 
         /* ── Words Bar ── */
         .inv-words-bar {
-            border: 1px solid #CBD5E1;
+            border: 1px solid #000000;
             padding: 4px 7px;
             margin-bottom: 8px;
             background: #FFFFFF;
             font-size: 8px;
-            color: #475569;
+            color: #000000;
             word-break: break-word;
             border-radius: 4px;
         }
         .inv-words-bar strong {
             font-weight: 800;
-            color: #0F172A;
+            color: #000000;
         }
 
         /* ── Bank & Terms ── */
@@ -376,23 +382,23 @@
             text-align: center;
         }
         .inv-auth-line {
-            border-top: 1.5px solid #0F172A;
+            border-top: 1.5px solid #000000;
             margin-top: 24px;
             padding-top: 3px;
             font-size: 8px;
             font-weight: 700;
-            color: #0F172A;
+            color: #000000;
         }
 
         /* ── Footer ── */
         .inv-footer {
-            border-top: 1px solid #CBD5E1;
+            border-top: 1.5px solid #000000;
             padding-top: 4px;
             margin-top: 6px;
             display: flex;
             justify-content: space-between;
             font-size: 7.5px;
-            color: #64748B;
+            color: #333333;
             width: 100%;
             box-sizing: border-box;
         }
@@ -400,12 +406,14 @@
         @media print {
             html, body {
                 background: #FFFFFF !important;
+                color: #000000 !important;
                 padding: 0 !important;
                 margin: 0 !important;
                 width: 100% !important;
             }
             .invoice-print-sheet {
                 box-shadow: none !important;
+                border: none !important;
                 padding: 0 !important;
                 margin: 0 !important;
                 max-width: 100% !important;
@@ -415,7 +423,8 @@
                 display: none !important;
             }
             .inv-box-head, table.inv-items-tbl thead th, .tfoot-grand-total td {
-                background: #F8FAFC !important;
+                background: #F3F4F6 !important;
+                color: #000000 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -423,6 +432,8 @@
                 max-height: 70px !important;
                 max-width: 135px !important;
                 object-fit: contain !important;
+                filter: grayscale(100%) contrast(120%) !important;
+                -webkit-filter: grayscale(100%) contrast(120%) !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }

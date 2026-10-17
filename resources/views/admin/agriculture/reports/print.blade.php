@@ -60,7 +60,7 @@
     <div style="display:flex; gap:14px; margin-top:10px;">
         {{-- Income Breakdown --}}
         <div style="flex:1;">
-            <div class="section-label"><i class="fa-solid fa-seedling" style="color:#059669;"></i> Crop &amp; Produce Income Streams</div>
+            <div class="section-label"><i class="fa-solid fa-seedling" style="color:#000000;"></i> Crop &amp; Produce Income Streams</div>
             <table>
                 <thead>
                     <tr>
@@ -75,16 +75,16 @@
                     <tr>
                         <td class="c">{{ $iIdx++ }}</td>
                         <td><strong>{{ $iType ?: 'Agricultural Produce' }}</strong></td>
-                        <td class="r" style="color:#059669; font-weight:700;">{{ formatIndianCurrency($iAmt) }}</td>
+                        <td class="r" style="color:#000000; font-weight:700;">{{ formatIndianCurrency($iAmt) }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="3" class="c" style="padding:14px; color:#64748B;">No crop income recorded.</td></tr>
+                    <tr><td colspan="3" class="c" style="padding:14px; color:#444444;">No crop income recorded.</td></tr>
                     @endforelse
                 </tbody>
                 <tfoot>
                     <tr class="double-total">
                         <td colspan="2" class="r">TOTAL CROP REVENUE:</td>
-                        <td class="r" style="color:#059669; font-size:10px;">{{ formatIndianCurrency($totInc) }}</td>
+                        <td class="r" style="color:#000000; font-size:10px;">{{ formatIndianCurrency($totInc) }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -92,7 +92,7 @@
 
         {{-- Expense Breakdown --}}
         <div style="flex:1;">
-            <div class="section-label"><i class="fa-solid fa-wheat-awn-circle-exclamation" style="color:#DC2626;"></i> Farm Input &amp; Labour Outlays</div>
+            <div class="section-label"><i class="fa-solid fa-wheat-awn-circle-exclamation" style="color:#000000;"></i> Farm Input &amp; Labour Outlays</div>
             <table>
                 <thead>
                     <tr>
@@ -107,16 +107,16 @@
                     <tr>
                         <td class="c">{{ $eIdx++ }}</td>
                         <td><strong>{{ $eCat ?: 'General Input' }}</strong></td>
-                        <td class="r" style="color:#DC2626; font-weight:700;">{{ formatIndianCurrency($eAmt) }}</td>
+                        <td class="r" style="color:#000000; font-weight:700;">{{ formatIndianCurrency($eAmt) }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="3" class="c" style="padding:14px; color:#64748B;">No farm expenses recorded.</td></tr>
+                    <tr><td colspan="3" class="c" style="padding:14px; color:#444444;">No farm expenses recorded.</td></tr>
                     @endforelse
                 </tbody>
                 <tfoot>
                     <tr class="double-total">
                         <td colspan="2" class="r">TOTAL FARM EXPENSES:</td>
-                        <td class="r" style="color:#DC2626; font-size:10px;">{{ formatIndianCurrency($totExp) }}</td>
+                        <td class="r" style="color:#000000; font-size:10px;">{{ formatIndianCurrency($totExp) }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -126,21 +126,21 @@
 {{-- ── 2. CROP INCOME TYPE ── --}}
 @elseif($rType === 'income')
     <div class="stat-row">
-        <div class="stat-box s-green">
+        <div class="stat-box">
             <div class="s-label">Total Crop Sales Billed</div>
             <div class="s-value">{{ formatIndianCurrency($reportData['totalAmount'] ?? 0) }}</div>
         </div>
-        <div class="stat-box s-blue">
+        <div class="stat-box">
             <div class="s-label">Payment Received</div>
             <div class="s-value">{{ formatIndianCurrency($reportData['totalReceived'] ?? 0) }}</div>
         </div>
-        <div class="stat-box s-red">
+        <div class="stat-box">
             <div class="s-label">Pending Recovery</div>
             <div class="s-value">{{ formatIndianCurrency($reportData['totalPending'] ?? 0) }}</div>
         </div>
     </div>
 
-    <div class="section-label"><i class="fa-solid fa-wheat-awn" style="color:#059669;"></i> Crop Sales &amp; Agricultural Incomes Register</div>
+    <div class="section-label"><i class="fa-solid fa-wheat-awn" style="color:#000000;"></i> Crop Sales &amp; Agricultural Incomes Register</div>
     <table>
         <thead>
             <tr>
@@ -158,19 +158,19 @@
         <tbody>
             @forelse($reportData['incomes'] ?? [] as $i => $inc)
             <tr>
-                <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
+                <td class="c" style="color:#000000;">{{ $i+1 }}</td>
                 <td style="white-space:nowrap;">{{ $inc->income_date ? \Carbon\Carbon::parse($inc->income_date)->format('d M Y') : '—' }}</td>
                 <td>
                     <strong>{{ $inc->crop_name ?? ($inc->income_type ?? 'Agricultural Income') }}</strong>
                     @if(!empty($inc->quantity))
-                        <div style="font-size:7.5px; color:#64748B;">Qty: {{ $inc->quantity }} {{ $inc->unit ?? 'Kgs' }}</div>
+                        <div style="font-size:7.5px; color:#444444;">Qty: {{ $inc->quantity }} {{ $inc->unit ?? 'Kgs' }}</div>
                     @endif
                 </td>
                 <td>{{ $inc->farm->farm_name ?? '—' }}</td>
                 <td>{{ $inc->customer->name ?? ($inc->buyer_name ?? '—') }}</td>
-                <td class="r" style="font-weight:700;">{{ formatIndianCurrency($inc->total_amount ?? 0) }}</td>
-                <td class="r" style="color:#059669; font-weight:700;">{{ formatIndianCurrency($inc->payment_received ?? 0) }}</td>
-                <td class="r" style="color:{{ ($inc->pending_amount ?? 0) > 0 ? '#DC2626' : '#94A3B8' }};">
+                <td class="r" style="font-weight:700; color:#000000;">{{ formatIndianCurrency($inc->total_amount ?? 0) }}</td>
+                <td class="r" style="color:#000000; font-weight:700;">{{ formatIndianCurrency($inc->payment_received ?? 0) }}</td>
+                <td class="r" style="color:#000000; font-weight:700;">
                     {{ ($inc->pending_amount ?? 0) > 0 ? formatIndianCurrency($inc->pending_amount) : '—' }}
                 </td>
                 <td class="c">
@@ -180,16 +180,16 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="9" class="c" style="padding:24px; color:#64748B;">No crop income records found.</td></tr>
+            <tr><td colspan="9" class="c" style="padding:24px; color:#444444;">No crop income records found.</td></tr>
             @endforelse
         </tbody>
         @if(isset($reportData['incomes']) && $reportData['incomes']->count() > 0)
         <tfoot>
             <tr class="double-total">
                 <td colspan="5" class="r">CROP INCOME TOTALS:</td>
-                <td class="r" style="font-size:10px;">{{ formatIndianCurrency($reportData['totalAmount'] ?? 0) }}</td>
-                <td class="r" style="color:#059669; font-size:10px;">{{ formatIndianCurrency($reportData['totalReceived'] ?? 0) }}</td>
-                <td class="r" style="color:#DC2626; font-size:10px;">{{ formatIndianCurrency($reportData['totalPending'] ?? 0) }}</td>
+                <td class="r" style="font-size:10px; color:#000000;">{{ formatIndianCurrency($reportData['totalAmount'] ?? 0) }}</td>
+                <td class="r" style="color:#000000; font-size:10px;">{{ formatIndianCurrency($reportData['totalReceived'] ?? 0) }}</td>
+                <td class="r" style="color:#000000; font-size:10px;">{{ formatIndianCurrency($reportData['totalPending'] ?? 0) }}</td>
                 <td></td>
             </tr>
         </tfoot>
@@ -199,21 +199,21 @@
 {{-- ── 3. EXPENSE TYPE ── --}}
 @elseif($rType === 'expense')
     <div class="stat-row">
-        <div class="stat-box s-red">
+        <div class="stat-box">
             <div class="s-label">Total Farming Outlay</div>
             <div class="s-value">{{ formatIndianCurrency($reportData['totalAmount'] ?? 0) }}</div>
         </div>
-        <div class="stat-box s-green">
+        <div class="stat-box">
             <div class="s-label">Settled / Paid Amount</div>
             <div class="s-value">{{ formatIndianCurrency($reportData['paidAmount'] ?? 0) }}</div>
         </div>
-        <div class="stat-box s-amber">
+        <div class="stat-box">
             <div class="s-label">Pending / Unpaid Bills</div>
             <div class="s-value">{{ formatIndianCurrency($reportData['pendingAmount'] ?? 0) }}</div>
         </div>
     </div>
 
-    <div class="section-label"><i class="fa-solid fa-tractor" style="color:#DC2626;"></i> Agricultural Input &amp; Site Expenditure Ledger</div>
+    <div class="section-label"><i class="fa-solid fa-tractor" style="color:#000000;"></i> Agricultural Input &amp; Site Expenditure Ledger</div>
     <table>
         <thead>
             <tr>
@@ -230,24 +230,24 @@
         <tbody>
             @forelse($reportData['expenses'] ?? [] as $i => $exp)
             <tr>
-                <td class="c" style="color:#64748B;">{{ $i+1 }}</td>
+                <td class="c" style="color:#000000;">{{ $i+1 }}</td>
                 <td style="white-space:nowrap;">{{ $exp->expense_date ? \Carbon\Carbon::parse($exp->expense_date)->format('d M Y') : '—' }}</td>
                 <td><strong>{{ $exp->title ?? 'Farm Input' }}</strong></td>
                 <td>{{ $exp->category ?: 'General' }}</td>
                 <td>{{ $exp->farm->farm_name ?? '—' }}</td>
                 <td>{{ $exp->vendor->name ?? ($exp->labour->name ?? ($exp->paid_to ?? '—')) }}</td>
                 <td class="c"><span class="badge">{{ ucfirst($exp->payment_mode ?: 'Cash') }}</span></td>
-                <td class="r" style="font-weight:700; color:#DC2626;">{{ formatIndianCurrency($exp->amount ?? 0) }}</td>
+                <td class="r" style="font-weight:700; color:#000000;">{{ formatIndianCurrency($exp->amount ?? 0) }}</td>
             </tr>
             @empty
-            <tr><td colspan="8" class="c" style="padding:24px; color:#64748B;">No agriculture expense vouchers recorded.</td></tr>
+            <tr><td colspan="8" class="c" style="padding:24px; color:#444444;">No agriculture expense vouchers recorded.</td></tr>
             @endforelse
         </tbody>
         @if(isset($reportData['expenses']) && $reportData['expenses']->count() > 0)
         <tfoot>
             <tr class="double-total">
                 <td colspan="7" class="r">TOTAL FARM EXPENDITURE:</td>
-                <td class="r" style="color:#DC2626; font-size:10px;">{{ formatIndianCurrency($reportData['totalAmount'] ?? 0) }}</td>
+                <td class="r" style="color:#000000; font-size:10px;">{{ formatIndianCurrency($reportData['totalAmount'] ?? 0) }}</td>
             </tr>
         </tfoot>
         @endif

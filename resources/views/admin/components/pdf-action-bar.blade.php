@@ -18,12 +18,12 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+        background: #0F172A;
         color: #FFFFFF;
         padding: 10px 24px;
         margin: 0 0 20px 0;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
-        border-bottom: 2.5px solid #D97706;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        border-bottom: 2px solid #000000;
     }
     .pdf-bar-brand {
         display: flex;
@@ -47,6 +47,7 @@
         width: auto;
         object-fit: contain;
         display: block;
+        filter: grayscale(100%) contrast(120%);
     }
     .pdf-bar-title {
         font-size: 13.5px;
@@ -57,9 +58,9 @@
     .pdf-bar-badge {
         font-size: 9.5px;
         font-weight: 700;
-        background: rgba(217, 119, 6, 0.2);
-        color: #FBBF24;
-        border: 1px solid rgba(245, 158, 11, 0.4);
+        background: rgba(255, 255, 255, 0.15);
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.35);
         padding: 2px 7px;
         border-radius: 4px;
         text-transform: uppercase;
@@ -100,22 +101,26 @@
         color: #FFFFFF;
     }
     .btn-pdf-download {
-        background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+        background: #1E293B;
         color: #FFFFFF;
-        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+        border: 1px solid #475569;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
     .btn-pdf-download:hover {
-        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-        box-shadow: 0 6px 16px rgba(217, 119, 6, 0.45);
+        background: #334155;
+        border-color: #64748B;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
     }
     .btn-pdf-print {
-        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+        background: #000000;
         color: #FFFFFF;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        border: 1px solid #334155;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
     }
     .btn-pdf-print:hover {
-        background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
+        background: #1E293B;
+        border-color: #475569;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
     }
 
     @media print {

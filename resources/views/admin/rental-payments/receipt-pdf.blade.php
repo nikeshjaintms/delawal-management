@@ -86,30 +86,30 @@
     <tbody>
         <tr>
             <td>Monthly Base Rent Amount ({{ $rentalPayment->payment_month ?? '' }} {{ $rentalPayment->payment_year ?? '' }})</td>
-            <td class="r" style="font-weight:600; color:#1E3A8A;">{{ formatIndianCurrency($rtAmt) }}</td>
+            <td class="r" style="font-weight:700; color:#000000;">{{ formatIndianCurrency($rtAmt) }}</td>
         </tr>
         @if($mtAmt > 0)
         <tr>
             <td>Society Maintenance &amp; Common Utility Charges</td>
-            <td class="r" style="font-weight:600;">{{ formatIndianCurrency($mtAmt) }}</td>
+            <td class="r" style="font-weight:600; color:#000000;">{{ formatIndianCurrency($mtAmt) }}</td>
         </tr>
         @endif
-        <tr style="background:#F8FAFC; font-weight:700;">
+        <tr style="background:#F3F4F6; font-weight:700;">
             <td>Total Billed Demand</td>
-            <td class="r">{{ formatIndianCurrency($totDue) }}</td>
+            <td class="r" style="color:#000000;">{{ formatIndianCurrency($totDue) }}</td>
         </tr>
-        <tr style="background:#F0FDF4; font-weight:800; color:#059669;">
+        <tr style="background:#FFFFFF; font-weight:800; color:#000000;">
             <td>Amount Realized / Paid (Credit)</td>
-            <td class="r" style="color:#059669;">{{ formatIndianCurrency($pdAmt) }}</td>
+            <td class="r" style="color:#000000; font-weight:800;">{{ formatIndianCurrency($pdAmt) }}</td>
         </tr>
         <tr class="double-total">
             <td><strong>Remaining Balance Due for this Billing Period</strong></td>
-            <td class="r" style="color:{{ $balAmt > 0 ? '#DC2626' : '#10B981' }}; font-size:11px;"><strong>{{ formatIndianCurrency($balAmt) }}</strong></td>
+            <td class="r" style="color:#000000; font-size:11px;"><strong>{{ formatIndianCurrency($balAmt) }}</strong></td>
         </tr>
     </tbody>
 </table>
 
-<div style="margin-top:10px; font-size:8.5px; color:#64748B;">
+<div style="margin-top:10px; font-size:8.5px; color:#000000;">
     <strong>Amount in Words:</strong> {{ numberToWordsIndian($pdAmt) }}
 </div>
 

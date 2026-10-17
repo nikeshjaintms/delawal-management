@@ -90,13 +90,12 @@
 @endphp
 @if(count($chips) > 0)
 <div class="filter-criteria-bar">
-    <span style="font-weight:700; color:#475569;"><i class="fa-solid fa-filter" style="font-size:7.5px;"></i> Filter Criteria:</span>
+    <span style="font-weight:700; color:#000000;"><i class="fa-solid fa-filter" style="font-size:7.5px; color:#000000;"></i> Filter Criteria:</span>
     @foreach($chips as $lbl => $val)
         <span class="filter-chip">{{ $lbl }}: <strong>{{ $val }}</strong></span>
     @endforeach
 </div>
 @endif
-
 
 <style>
     .delawala-pdf-header {
@@ -105,7 +104,7 @@
         align-items: flex-start;
         padding-bottom: 12px;
         margin-bottom: 14px;
-        border-bottom: 1.5px solid #0F172A;
+        border-bottom: 2px solid #000000;
         gap: 16px;
         font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
         width: 100%;
@@ -134,6 +133,8 @@
         object-fit: contain;
         display: block;
         image-rendering: -webkit-optimize-contrast;
+        filter: grayscale(100%) contrast(120%) !important;
+        -webkit-filter: grayscale(100%) contrast(120%) !important;
     }
     .dph-company-details {
         display: flex;
@@ -144,14 +145,14 @@
     .dph-company-name {
         font-size: 18px;
         font-weight: 800;
-        color: #0F172A;
+        color: #000000;
         letter-spacing: 0.3px;
         line-height: 1.15;
         text-transform: uppercase;
     }
     .dph-trade-sub {
         font-size: 9px;
-        color: #334155;
+        color: #333333;
         font-weight: 700;
         letter-spacing: 0.5px;
         text-transform: uppercase;
@@ -160,14 +161,14 @@
     }
     .dph-address-line {
         font-size: 8.5px;
-        color: #475569;
+        color: #444444;
         display: flex;
         align-items: center;
         gap: 4px;
         line-height: 1.35;
     }
     .dph-address-line i {
-        color: #0F172A;
+        color: #000000;
         font-size: 8px;
     }
     .dph-badges-row {
@@ -182,8 +183,8 @@
         align-items: center;
         gap: 4px;
         background: #FFFFFF;
-        color: #1E293B;
-        border: 1px solid #CBD5E1;
+        color: #000000;
+        border: 1px solid #000000;
         padding: 2px 7px;
         border-radius: 4px;
         font-size: 8.5px;
@@ -192,7 +193,7 @@
     }
     .dph-gst-badge strong, .dph-info-badge strong {
         font-weight: 700;
-        color: #0F172A;
+        color: #000000;
     }
     .dph-right {
         text-align: right;
@@ -209,7 +210,7 @@
     .dph-doc-title {
         font-size: 16px;
         font-weight: 900;
-        color: #0F172A;
+        color: #000000;
         letter-spacing: 0.3px;
         line-height: 1.15;
         text-transform: uppercase;
@@ -219,34 +220,36 @@
     .dph-doc-sub {
         font-size: 8.5px;
         font-weight: 600;
-        color: #64748B;
+        color: #444444;
         margin-bottom: 3px;
         word-break: break-word;
     }
     .dph-meta-item {
         font-size: 9px;
-        color: #1E293B;
+        color: #000000;
         line-height: 1.35;
         white-space: nowrap;
     }
     .dph-meta-lbl {
-        color: #475569;
+        color: #444444;
         font-weight: 600;
     }
     .dph-meta-item strong {
-        color: #0F172A;
+        color: #000000;
         font-weight: 700;
     }
 
     @media print {
         .delawala-pdf-header {
-            border-bottom: 1.5px solid #000000 !important;
+            border-bottom: 2px solid #000000 !important;
             background: #FFFFFF !important;
         }
         .dph-logo {
             max-height: 70px !important;
             max-width: 135px !important;
             object-fit: contain !important;
+            filter: grayscale(100%) contrast(120%) !important;
+            -webkit-filter: grayscale(100%) contrast(120%) !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }

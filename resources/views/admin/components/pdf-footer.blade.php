@@ -20,11 +20,11 @@
     .delawala-pdf-footer {
         margin-top: 20px;
         padding-top: 6px;
-        border-top: 1px solid #CBD5E1;
+        border-top: 1.5px solid #000000;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        color: #64748B;
+        color: #333333;
         font-size: 8px;
         font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
         line-height: 1.4;
@@ -33,26 +33,32 @@
     .delawala-pdf-footer .dpf-left {
         display: flex;
         align-items: center;
-        font-weight: 600;
-        color: #475569;
+        font-weight: 700;
+        color: #000000;
     }
     .delawala-pdf-footer .dpf-center {
         text-align: center;
-        color: #64748B;
+        color: #333333;
         font-size: 8px;
+        font-weight: 600;
     }
     .delawala-pdf-footer .dpf-right {
         text-align: right;
-        color: #475569;
+        color: #333333;
         font-weight: 600;
     }
 
     @media print {
         .delawala-pdf-footer {
-            border-top: 1px solid #000000 !important;
-            color: #333333 !important;
+            border-top: 1.5px solid #000000 !important;
+            color: #000000 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+        }
+        .delawala-pdf-footer .dpf-left,
+        .delawala-pdf-footer .dpf-center,
+        .delawala-pdf-footer .dpf-right {
+            color: #000000 !important;
         }
     }
 </style>

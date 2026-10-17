@@ -49,7 +49,7 @@
 {{-- ── 1. MONTHLY CASH FLOW SUMMARY (PROGRESSION) ── --}}
 @if(isset($monthlyRows) && count($monthlyRows) > 0)
 <div class="section-label">
-    <i class="fa-solid fa-chart-line" style="color:#2563EB;"></i> Monthly Cash Flow Breakdown
+    <i class="fa-solid fa-chart-line" style="color:#000000;"></i> Monthly Cash Flow Breakdown
 </div>
 <table>
     <thead>
@@ -67,18 +67,18 @@
         @foreach($monthlyRows as $mi => $m)
         @php $runningCumulative += ($m['net'] ?? 0); @endphp
         <tr>
-            <td class="c" style="color:#64748B;">{{ $mi + 1 }}</td>
+            <td class="c" style="color:#000000;">{{ $mi + 1 }}</td>
             <td><strong>{{ \Carbon\Carbon::parse($m['month'] . '-01')->format('F Y') }}</strong></td>
-            <td class="r" style="color:#059669; font-weight:700;">+ {{ formatIndianCurrency($m['inflow'] ?? 0) }}</td>
-            <td class="r" style="color:#DC2626; font-weight:700;">− {{ formatIndianCurrency($m['outflow'] ?? 0) }}</td>
-            <td class="r" style="font-weight:800; color:{{ ($m['net'] ?? 0) >= 0 ? '#059669' : '#DC2626' }};">
+            <td class="r" style="color:#000000; font-weight:700;">+ {{ formatIndianCurrency($m['inflow'] ?? 0) }}</td>
+            <td class="r" style="color:#000000; font-weight:700;">− {{ formatIndianCurrency($m['outflow'] ?? 0) }}</td>
+            <td class="r" style="font-weight:800; color:#000000;">
                 {{ formatIndianCurrency($m['net'] ?? 0) }}
             </td>
             <td class="c">
                 @if(($m['net'] ?? 0) >= 0)
-                    <span class="badge" style="background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0;">Surplus</span>
+                    <span class="badge badge-success">Surplus</span>
                 @else
-                    <span class="badge" style="background:#FEF2F2; color:#991B1B; border:1px solid #FECACA;">Deficit</span>
+                    <span class="badge badge-danger">Deficit</span>
                 @endif
             </td>
         </tr>
@@ -87,9 +87,9 @@
     <tfoot>
         <tr class="double-total">
             <td colspan="2" class="r">CUMULATIVE PERIOD TOTAL:</td>
-            <td class="r" style="color:#059669; font-size:9.5px;">+ {{ formatIndianCurrency($totalInflow ?? 0) }}</td>
-            <td class="r" style="color:#DC2626; font-size:9.5px;">− {{ formatIndianCurrency($totalOutflow ?? 0) }}</td>
-            <td class="r" style="color:{{ ($netCashFlow ?? 0) >= 0 ? '#059669' : '#DC2626' }}; font-size:10px;">
+            <td class="r" style="color:#000000; font-size:9.5px;">+ {{ formatIndianCurrency($totalInflow ?? 0) }}</td>
+            <td class="r" style="color:#000000; font-size:9.5px;">− {{ formatIndianCurrency($totalOutflow ?? 0) }}</td>
+            <td class="r" style="color:#000000; font-size:10px;">
                 {{ formatIndianCurrency($netCashFlow ?? 0) }}
             </td>
             <td></td>
@@ -100,7 +100,7 @@
 
 {{-- ── 2. DETAILED CASH & BANK REGISTER (CHRONOLOGICAL) ── --}}
 <div class="section-label" style="margin-top:14px;">
-    <i class="fa-solid fa-book-journal-whills" style="color:#0F172A;"></i> Detailed Cash &amp; Bank Ledger (All Inflows &amp; Outflows)
+    <i class="fa-solid fa-book-journal-whills" style="color:#000000;"></i> Detailed Cash &amp; Bank Ledger (All Inflows &amp; Outflows)
 </div>
 <table>
     <thead>
@@ -124,7 +124,7 @@
             $runningBalance += $isReceipt ? $amt : -$amt;
         @endphp
         <tr>
-            <td class="c" style="color:#64748B;">{{ $i + 1 }}</td>
+            <td class="c" style="color:#000000;">{{ $i + 1 }}</td>
             <td style="white-space:nowrap;">{{ $tx['date'] ? \Carbon\Carbon::parse($tx['date'])->format('d M Y') : '—' }}</td>
             <td>
                 <strong>{{ $tx['particular'] ?? '—' }}</strong>
@@ -133,19 +133,19 @@
                 <span class="badge">{{ $tx['section'] ?? ($isReceipt ? 'Receipt' : 'Payment') }}</span>
             </td>
             <td class="c">{{ ucfirst($tx['payment_mode'] ?: 'Cash') }}</td>
-            <td class="r" style="color:{{ $isReceipt ? '#059669' : '#CBD5E1' }}; font-weight:{{ $isReceipt ? '700' : 'normal' }};">
+            <td class="r" style="color:#000000; font-weight:{{ $isReceipt ? '700' : 'normal' }};">
                 {{ $isReceipt ? formatIndianCurrency($amt) : '—' }}
             </td>
-            <td class="r" style="color:{{ !$isReceipt ? '#DC2626' : '#CBD5E1' }}; font-weight:{{ !$isReceipt ? '700' : 'normal' }};">
+            <td class="r" style="color:#000000; font-weight:{{ !$isReceipt ? '700' : 'normal' }};">
                 {{ !$isReceipt ? formatIndianCurrency($amt) : '—' }}
             </td>
-            <td class="r" style="font-weight:700; color:{{ $runningBalance >= 0 ? '#059669' : '#DC2626' }};">
+            <td class="r" style="font-weight:700; color:#000000;">
                 {{ formatIndianCurrency($runningBalance) }}
             </td>
         </tr>
         @empty
         <tr>
-            <td colspan="8" class="c" style="padding:24px; color:#64748B;">No cash transactions recorded for the selected period.</td>
+            <td colspan="8" class="c" style="padding:24px; color:#000000;">No cash transactions recorded for the selected period.</td>
         </tr>
         @endforelse
     </tbody>
@@ -153,9 +153,9 @@
     <tfoot>
         <tr class="double-total">
             <td colspan="5" class="r">NET FLOW TOTALS:</td>
-            <td class="r" style="color:#059669; font-size:10px;">{{ formatIndianCurrency($totalInflow ?? 0) }}</td>
-            <td class="r" style="color:#DC2626; font-size:10px;">{{ formatIndianCurrency($totalOutflow ?? 0) }}</td>
-            <td class="r" style="color:{{ ($netCashFlow ?? 0) >= 0 ? '#059669' : '#DC2626' }}; font-size:10.5px;">
+            <td class="r" style="color:#000000; font-size:10px;">{{ formatIndianCurrency($totalInflow ?? 0) }}</td>
+            <td class="r" style="color:#000000; font-size:10px;">{{ formatIndianCurrency($totalOutflow ?? 0) }}</td>
+            <td class="r" style="color:#000000; font-size:10.5px;">
                 {{ formatIndianCurrency($netCashFlow ?? 0) }}
             </td>
         </tr>
