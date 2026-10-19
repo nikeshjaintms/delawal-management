@@ -127,8 +127,10 @@
             flex-shrink: 0;
             display: block;
             image-rendering: -webkit-optimize-contrast;
-            filter: grayscale(100%) contrast(120%) !important;
-            -webkit-filter: grayscale(100%) contrast(120%) !important;
+            filter: none !important;
+            -webkit-filter: none !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
         .inv-firm-name {
             font-size: 16px;
@@ -432,8 +434,8 @@
                 max-height: 70px !important;
                 max-width: 135px !important;
                 object-fit: contain !important;
-                filter: grayscale(100%) contrast(120%) !important;
-                -webkit-filter: grayscale(100%) contrast(120%) !important;
+                filter: none !important;
+                -webkit-filter: none !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }

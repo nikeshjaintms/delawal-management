@@ -66,15 +66,31 @@
         color: #000000 !important;
     }
 
-    /* High-contrast Black & White filter for all company logos, photos, and digital signatures */
-    .delawala-printable-area img,
-    .invoice-print-sheet img,
-    #delawala-printable-area img,
-    .dph-logo,
-    .inv-logo-img,
-    #invSignImg {
+    /* High-contrast Black & White filter for digital signatures and user photos */
+    .delawala-sig-img,
+    #delawalaSigImg,
+    #invSignImg,
+    .inv-sign-img {
         filter: grayscale(100%) contrast(120%) !important;
         -webkit-filter: grayscale(100%) contrast(120%) !important;
+    }
+
+    /* Preserve original luxury golden colors for the company logo in all PDF views */
+    .dph-logo,
+    .inv-logo-img,
+    .dph-logo-wrap img,
+    .inv-brand-left img,
+    .pdf-bar-logo-wrap img,
+    img.dph-logo,
+    img.inv-logo-img,
+    #delawala-printable-area .dph-logo,
+    #delawala-printable-area .inv-logo-img,
+    .delawala-printable-area .dph-logo,
+    .delawala-printable-area .inv-logo-img {
+        filter: none !important;
+        -webkit-filter: none !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     /* Neutralize any inline colored backgrounds to pure white/light gray */
@@ -159,9 +175,15 @@
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
-        .delawala-printable-area img, .invoice-print-sheet img, #delawala-printable-area img {
+        .delawala-sig-img, #delawalaSigImg, #invSignImg, .inv-sign-img {
             filter: grayscale(100%) contrast(120%) !important;
             -webkit-filter: grayscale(100%) contrast(120%) !important;
+        }
+        .dph-logo, .inv-logo-img, .dph-logo-wrap img, .inv-brand-left img, img.dph-logo, img.inv-logo-img {
+            filter: none !important;
+            -webkit-filter: none !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
     }
 

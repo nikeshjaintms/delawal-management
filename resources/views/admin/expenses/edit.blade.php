@@ -319,6 +319,83 @@ textarea.form-control { resize: vertical; min-height: 80px; }
             <input type="hidden" name="expense_subcategory" id="expense_subcategory" value="{{ old('expense_subcategory', $expense->expense_subcategory) }}">
         </div>
 
+        {{-- Category Quick Chips for Personal --}}
+        <div id="personal-category-chips" style="{{ $currType === 'Personal' ? '' : 'display: none;' }} margin-bottom: 22px;">
+            <label class="form-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                <i class="fa-solid fa-user-tag text-purple" style="color: #A855F7 !important;"></i>
+                <span>Quick Personal Expense Categories:</span>
+                <span class="opt">(Click to directly fetch category &amp; title)</span>
+            </label>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                @php
+                    $personalChips = [
+                        ['cat' => 'Personal Drawings / Partner Withdrawal', 'icon' => 'fa-wallet'],
+                        ['cat' => 'Household & Groceries', 'icon' => 'fa-basket-shopping'],
+                        ['cat' => 'Food & Dining', 'icon' => 'fa-utensils'],
+                        ['cat' => 'Fuel & Travel', 'icon' => 'fa-gas-pump'],
+                        ['cat' => 'Medical & Healthcare', 'icon' => 'fa-heart-pulse'],
+                        ['cat' => 'Mobile & Internet Bills', 'icon' => 'fa-mobile-screen'],
+                        ['cat' => 'Personal Shopping & Clothing', 'icon' => 'fa-bag-shopping'],
+                        ['cat' => 'Vehicle Maintenance (Personal)', 'icon' => 'fa-car'],
+                        ['cat' => 'Education & Fees', 'icon' => 'fa-graduation-cap'],
+                        ['cat' => 'Insurance & Investments', 'icon' => 'fa-shield-halved'],
+                        ['cat' => 'ATM / Cash Withdrawal', 'icon' => 'fa-money-bill-transfer'],
+                        ['cat' => 'Home Maintenance & Utility', 'icon' => 'fa-house'],
+                        ['cat' => 'Gifts, Donations & Charity', 'icon' => 'fa-hand-holding-heart'],
+                        ['cat' => 'Other Personal Expenses', 'icon' => 'fa-user-tag'],
+                    ];
+                    $currentSubCat = old('expense_subcategory', $expense->expense_subcategory);
+                @endphp
+                @foreach($personalChips as $chip)
+                    <button type="button" class="personal-chip-btn"
+                            onclick="setPersonalCategory('{{ $chip['cat'] }}')"
+                            style="background: {{ $currentSubCat == $chip['cat'] ? '#9333EA' : 'rgba(30, 41, 59, 0.70)' }}; border: 1px solid {{ $currentSubCat == $chip['cat'] ? '#C084FC' : 'rgba(255, 255, 255, 0.12)' }}; color: #E2E8F0; padding: 6px 12px; border-radius: 20px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .2s ease;">
+                        <i class="fa-solid {{ $chip['icon'] }}" style="color: #C084FC;"></i>
+                        <span>{{ $chip['cat'] }}</span>
+                    </button>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Category Quick Chips for General --}}
+        <div id="general-category-chips" style="{{ $currType === 'General' ? '' : 'display: none;' }} margin-bottom: 22px;">
+            <label class="form-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                <i class="fa-solid fa-briefcase text-emerald" style="color: #10B981 !important;"></i>
+                <span>Quick General &amp; Office Expense Categories:</span>
+                <span class="opt">(Click to directly fetch category &amp; title)</span>
+            </label>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                @php
+                    $generalChips = [
+                        ['cat' => 'Office Rent & Maintenance', 'icon' => 'fa-building-columns'],
+                        ['cat' => 'Staff Salary & Wages', 'icon' => 'fa-users-gear'],
+                        ['cat' => 'Tea, Coffee & Refreshments', 'icon' => 'fa-mug-hot'],
+                        ['cat' => 'Electricity & Utility Bills', 'icon' => 'fa-bolt'],
+                        ['cat' => 'Stationery & Office Supplies', 'icon' => 'fa-pen-ruler'],
+                        ['cat' => 'Internet, Wi-Fi & IT Software', 'icon' => 'fa-network-wired'],
+                        ['cat' => 'Legal & Professional Fees', 'icon' => 'fa-scale-balanced'],
+                        ['cat' => 'Audit & Accounting Fees', 'icon' => 'fa-file-invoice-dollar'],
+                        ['cat' => 'Advertising & Marketing', 'icon' => 'fa-bullhorn'],
+                        ['cat' => 'Office Cleaning & Housekeeping', 'icon' => 'fa-broom'],
+                        ['cat' => 'Courier & Postage', 'icon' => 'fa-paper-plane'],
+                        ['cat' => 'Bank Charges & Fees', 'icon' => 'fa-receipt'],
+                        ['cat' => 'Taxes, GST & Govt Fees', 'icon' => 'fa-landmark'],
+                        ['cat' => 'Staff Travel & Conveyance', 'icon' => 'fa-car-side'],
+                        ['cat' => 'Other General Expenses', 'icon' => 'fa-tags'],
+                    ];
+                    $currentGeneralSubCat = old('expense_subcategory', $expense->expense_subcategory);
+                @endphp
+                @foreach($generalChips as $chip)
+                    <button type="button" class="general-chip-btn"
+                            onclick="setGeneralCategory('{{ $chip['cat'] }}')"
+                            style="background: {{ $currentGeneralSubCat == $chip['cat'] ? '#059669' : 'rgba(30, 41, 59, 0.70)' }}; border: 1px solid {{ $currentGeneralSubCat == $chip['cat'] ? '#34D399' : 'rgba(255, 255, 255, 0.12)' }}; color: #E2E8F0; padding: 6px 12px; border-radius: 20px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .2s ease;">
+                        <i class="fa-solid {{ $chip['icon'] }}" style="color: #34D399;"></i>
+                        <span>{{ $chip['cat'] }}</span>
+                    </button>
+                @endforeach
+            </div>
+        </div>
+
         {{-- Section 1: Classification & Hierarchy --}}
         <div class="form-section" id="section-classification">
             <div class="section-title"><i class="fa-solid fa-sitemap"></i> <span id="section-classification-title">{{ $currType === 'Rental' ? '1. Rental Property & Agreement Allocation' : ($currType === 'Property' ? '1. Property Expense Classification' : '1. Expense Classification & Allocation') }}</span></div>
@@ -381,8 +458,8 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                 {{-- Project --}}
                 <div class="form-group" id="project-field-wrapper" style="{{ in_array($currType, ['Rental', 'Property']) ? 'display:none;' : '' }}">
                     <label class="form-label" for="project_id">Project <span class="opt">(Optional - Project-wise Expense / Filter)</span></label>
-                    <select name="project_id" id="project_id" class="form-control @error('project_id') is-invalid @enderror">
-                        <option value="">— All Projects / General —</option>
+                    <select name="project_id" id="project_id" class="form-control @error('project_id') is-invalid @enderror" onchange="handleProjectChange(this)">
+                        <option value="">— Select Project —</option>
                         @if(isset($projects))
                             @foreach($projects as $proj)
                                 <option value="{{ $proj->id }}"
@@ -399,16 +476,18 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                 {{-- Property / Unit Multi-Select --}}
                 <div class="form-group" id="property-field-wrapper" style="{{ in_array($currType, ['Rental', 'Property']) ? 'grid-column: 1 / -1;' : '' }}">
                     <label class="form-label" for="property_ids" id="property-label">
-                        <span id="property-label-text">{{ $currType === 'Rental' ? 'Rental Property / Unit' : 'Property' }}</span>
-                        <span class="opt" id="property-label-opt">{{ $currType === 'Rental' ? '(Selecting a property auto-fetches Tenant & Agreement)' : '(Multi-Select Enabled)' }}</span>
+                        <span id="property-label-text">{{ $currType === 'Rental' ? 'Rental Property' : ($currType === 'Project' ? 'Plot / Unit' : 'Property') }}</span>
+                        <span class="opt" id="property-label-opt">{{ $currType === 'Rental' ? '(Selecting a property auto-fetches Tenant & Agreement)' : ($currType === 'Project' ? '(Filtered by Selected Project)' : '(Multi-Select Enabled)') }}</span>
                     </label>
                     @php
                         $existingPropIds = $expense->relationLoaded('properties') && $expense->properties->isNotEmpty()
                             ? $expense->properties->pluck('id')->toArray()
                             : ($expense->property_id ? [$expense->property_id] : []);
                         $selectedPropIds = (array) old('property_ids', $existingPropIds);
+                        $rentedIds = $rentedPropertyIds ?? \App\Models\Property::where('status', 'rented')->pluck('id')->toArray();
+                        $initPlaceholder = $currType === 'Rental' ? 'Search and select rental property...' : ($currType === 'Project' ? (!empty($selectedProjectId) ? 'Search and select plot / unit...' : '— Select a Project to view plots —') : 'Search and select property...');
                     @endphp
-                    <select name="property_ids[]" id="property_ids" class="form-control select2-multi @error('property_ids') is-invalid @enderror" multiple data-placeholder="{{ $currType === 'Rental' ? 'Search and select property / unit...' : 'Search and select property...' }}">
+                    <select name="property_ids[]" id="property_ids" class="form-control select2-multi @error('property_ids') is-invalid @enderror" multiple data-placeholder="{{ $initPlaceholder }}">
                         @if(isset($properties))
                             @foreach($properties as $prop)
                                 @php
@@ -416,10 +495,13 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                                     $codeStr = $prop->property_code ? ' (' . $prop->property_code . ')' : '';
                                     $displayName = $cleanName . $codeStr;
                                     $firmSuffix = $prop->firm ? ' [' . $prop->firm->firm_name . ']' : '';
+                                    $isRented = in_array($prop->id, $rentedIds) || $prop->status === 'rented' || in_array($prop->id, $selectedPropIds);
                                 @endphp
                                 <option value="{{ $prop->id }}"
                                         data-project-id="{{ $prop->project_id ?? '' }}"
                                         data-firm-id="{{ $prop->firm_id ?? '' }}"
+                                        data-is-rented="{{ $isRented ? '1' : '0' }}"
+                                        data-is-pm="{{ $prop->property_master_id ? '1' : '0' }}"
                                         data-project="{{ $prop->project->project_name ?? ($prop->project->propertyMaster->property_name ?? '') }}"
                                         {{ in_array($prop->id, $selectedPropIds) ? 'selected' : '' }}>
                                     {{ $displayName }}{{ $firmSuffix }}
@@ -567,6 +649,129 @@ textarea.form-control { resize: vertical; min-height: 80px; }
                             </select>
                             <span class="form-hint">Current reimbursement stage.</span>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Personal Connection & Direct Fetch Card --}}
+            <div id="personal-connection-card" style="{{ $currType === 'Personal' ? '' : 'display:none;' }} margin-top: 20px; background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(168, 85, 247, 0.35); border-radius: 18px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(168, 85, 247, 0.25); color: #C084FC; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: #FFFFFF;">Personal Account &amp; Payee Allocation</h4>
+                            <p style="margin: 2px 0 0; font-size: 12px; color: #94A3B8;">Directly auto-fetched from logged-in user profile &amp; partner accounts</p>
+                        </div>
+                    </div>
+                    @php
+                        $selectedPayee = old('paid_to', $expense->paid_to ?? (auth()->user() ? auth()->user()->name : 'Personal'));
+                    @endphp
+                    <div id="personal-sync-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #D8B4FE;">
+                        <i class="fa-solid fa-circle-check" style="color: #A855F7;"></i>
+                        <span id="personal-status-text">Directly Auto-Fetched: {{ $selectedPayee }}</span>
+                    </div>
+                </div>
+
+                <div class="form-row" style="margin-bottom: 0;">
+                    {{-- Person / Payee Auto-Select --}}
+                    <div class="form-group">
+                        <label class="form-label" for="personal_person_select">Personal Payee / Account <span class="opt">(Auto-Fetched)</span></label>
+                        <select id="personal_person_select" class="form-control" onchange="handlePersonalPersonChange(this)">
+                            @if(auth()->check())
+                                <option value="{{ auth()->user()->name }}" {{ $selectedPayee == auth()->user()->name ? 'selected' : '' }}>
+                                    👤 {{ auth()->user()->name }} (Current User / Self)
+                                </option>
+                            @endif
+                            @foreach(\App\Models\User::where('status', 'active')->where('id', '!=', auth()->id())->get() as $u)
+                                <option value="{{ $u->name }}" {{ $selectedPayee == $u->name ? 'selected' : '' }}>
+                                    👤 {{ $u->name }} (Partner / Staff)
+                                </option>
+                            @endforeach
+                            @if(!empty($selectedPayee) && auth()->user()?->name !== $selectedPayee && !\App\Models\User::where('name', $selectedPayee)->exists())
+                                <option value="{{ $selectedPayee }}" selected>
+                                    👤 {{ $selectedPayee }} (Payee)
+                                </option>
+                            @endif
+                        </select>
+                    </div>
+
+                    {{-- Optional Property Allocation --}}
+                    @php
+                        $linkedPropertyId = old('personal_property_id', $expense->properties->first()?->id ?? null);
+                    @endphp
+                    <div class="form-group">
+                        <label class="form-label" for="personal_property_id">Linked Property <span class="opt">(Optional - Direct Property Link)</span></label>
+                        <select name="personal_property_id" id="personal_property_id" class="form-control" onchange="handlePersonalPropertyChange(this)">
+                            <option value="">— No Property / Personal Direct Expense —</option>
+                            @if(isset($properties))
+                                @foreach($properties->whereNotNull('property_master_id') as $p)
+                                    @php
+                                        $pClean = preg_replace('/\s*\(Entire Property\)$/i', '', $p->property_name);
+                                    @endphp
+                                    <option value="{{ $p->id }}" data-firm-id="{{ $p->firm_id }}" data-name="{{ $pClean }}" {{ $linkedPropertyId == $p->id ? 'selected' : '' }}>
+                                        🏢 {{ $pClean }} {{ $p->property_code ? '('.$p->property_code.')' : '' }}
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {{-- General Connection & Direct Fetch Card --}}
+            <div id="general-connection-card" style="{{ $currType === 'General' ? '' : 'display:none;' }} margin-top: 20px; background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 18px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(16, 185, 129, 0.25); color: #34D399; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                            <i class="fa-solid fa-briefcase"></i>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: #FFFFFF;">General Office &amp; Firm Allocation</h4>
+                            <p style="margin: 2px 0 0; font-size: 12px; color: #94A3B8;">Directly auto-fetched from company overhead &amp; office cost centers</p>
+                        </div>
+                    </div>
+                    <div id="general-sync-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #6EE7B7;">
+                        <i class="fa-solid fa-circle-check" style="color: #10B981;"></i>
+                        <span id="general-status-text">Directly Auto-Fetched: General Overhead</span>
+                    </div>
+                </div>
+
+                <div class="form-row" style="margin-bottom: 0;">
+                    {{-- Department / Cost Center Auto-Select --}}
+                    <div class="form-group">
+                        <label class="form-label" for="general_department_select">Office Department / Cost Center <span class="opt">(Auto-Fetched)</span></label>
+                        <select id="general_department_select" class="form-control" onchange="handleGeneralDeptChange(this)">
+                            <option value="Head Office / Main Branch" selected>🏢 Head Office / Main Branch</option>
+                            <option value="Accounts & Finance">💼 Accounts &amp; Finance</option>
+                            <option value="Administration & HR">👥 Administration &amp; HR</option>
+                            <option value="Sales & Marketing">📈 Sales &amp; Marketing</option>
+                            <option value="Legal & Compliance">⚖️ Legal &amp; Compliance</option>
+                            <option value="Site Operations Support">🛠️ Site Operations Support</option>
+                            <option value="Pantry & Hospitality">☕ Pantry &amp; Hospitality</option>
+                        </select>
+                    </div>
+
+                    {{-- Optional Property / Office Location Allocation --}}
+                    @php
+                        $linkedGenPropId = old('general_property_id', $expense->properties->first()?->id ?? null);
+                    @endphp
+                    <div class="form-group">
+                        <label class="form-label" for="general_property_id">Office Location / Property <span class="opt">(Optional - Direct Link)</span></label>
+                        <select name="general_property_id" id="general_property_id" class="form-control" onchange="handleGeneralPropertyChange(this)">
+                            <option value="">— Central Office / No Property —</option>
+                            @if(isset($properties))
+                                @foreach($properties->whereNotNull('property_master_id') as $p)
+                                    @php
+                                        $pClean = preg_replace('/\s*\(Entire Property\)$/i', '', $p->property_name);
+                                    @endphp
+                                    <option value="{{ $p->id }}" data-firm-id="{{ $p->firm_id }}" data-name="{{ $pClean }}" {{ $linkedGenPropId == $p->id ? 'selected' : '' }}>
+                                        🏢 {{ $pClean }} {{ $p->property_code ? '('.$p->property_code.')' : '' }}
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
                     </div>
                 </div>
             </div>
@@ -812,6 +1017,221 @@ function setRentalCategory(catName) {
     });
 }
 
+function setPersonalCategory(catName) {
+    const catSelect = document.getElementById('expense_category');
+    const subInput = document.getElementById('expense_subcategory');
+    const titleInput = document.getElementById('expense_title');
+    const paidToInput = document.getElementById('paid_to');
+    const personSelect = document.getElementById('personal_person_select');
+    const propSelect = document.getElementById('personal_property_id');
+
+    if (subInput) subInput.value = catName;
+
+    // Direct auto-select category
+    if (catSelect) {
+        let opt = Array.from(catSelect.options).find(o => o.value.toLowerCase() === 'personal' || o.value.toLowerCase() === catName.toLowerCase());
+        if (!opt) {
+            opt = document.createElement('option');
+            opt.value = catName;
+            opt.textContent = catName;
+            const newOpt = catSelect.querySelector('option[value="__new__"]');
+            if (newOpt) catSelect.insertBefore(opt, newOpt);
+            else catSelect.appendChild(opt);
+        }
+        catSelect.value = opt.value;
+        if (window.updateCategoryDeleteButton) updateCategoryDeleteButton();
+    }
+
+    const currentPerson = (personSelect && personSelect.value) ? personSelect.value : '{{ auth()->user() ? auth()->user()->name : "Self" }}';
+    
+    // Auto populate Paid To if empty
+    if (paidToInput && !paidToInput.value) {
+        paidToInput.value = currentPerson;
+    }
+
+    // Auto generate informative title if not edited
+    if (titleInput && (!titleInput.value || titleInput.dataset.userEdited !== 'true')) {
+        let propName = '';
+        if (propSelect && propSelect.value) {
+            const opt = propSelect.options[propSelect.selectedIndex];
+            propName = opt ? (opt.getAttribute('data-name') || opt.textContent.trim()) : '';
+        }
+        titleInput.value = propName ? `${catName} - ${propName} (${currentPerson})` : `${catName} (${currentPerson})`;
+    }
+
+    // Highlight selected personal chip
+    document.querySelectorAll('.personal-chip-btn').forEach(btn => {
+        if (btn.innerText.includes(catName)) {
+            btn.style.background = '#9333EA';
+            btn.style.borderColor = '#C084FC';
+            btn.style.color = '#FFFFFF';
+        } else {
+            btn.style.background = 'rgba(30, 41, 59, 0.70)';
+            btn.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+            btn.style.color = '#E2E8F0';
+        }
+    });
+}
+
+function handlePersonalPersonChange(select) {
+    if (!select) return;
+    const person = select.value;
+    const paidToInput = document.getElementById('paid_to');
+    const badgeText = document.getElementById('personal-status-text');
+    const titleInput = document.getElementById('expense_title');
+    const subInput = document.getElementById('expense_subcategory');
+    const propSelect = document.getElementById('personal_property_id');
+
+    if (paidToInput) {
+        paidToInput.value = person;
+    }
+
+    if (badgeText) {
+        badgeText.textContent = 'Directly Auto-Fetched: ' + person;
+    }
+
+    if (titleInput && (!titleInput.value || titleInput.dataset.userEdited !== 'true')) {
+        const catName = (subInput && subInput.value) ? subInput.value : 'Personal Expense';
+        let propName = '';
+        if (propSelect && propSelect.value) {
+            const opt = propSelect.options[propSelect.selectedIndex];
+            propName = opt ? (opt.getAttribute('data-name') || opt.textContent.trim()) : '';
+        }
+        titleInput.value = propName ? `${catName} - ${propName} (${person})` : `${catName} (${person})`;
+    }
+}
+
+function handlePersonalPropertyChange(select) {
+    if (!select) return;
+    const selectedOpt = select.options[select.selectedIndex];
+    const firmId = selectedOpt ? selectedOpt.getAttribute('data-firm-id') : null;
+    const propName = selectedOpt ? (selectedOpt.getAttribute('data-name') || '') : '';
+    const titleInput = document.getElementById('expense_title');
+    const subInput = document.getElementById('expense_subcategory');
+    const personSelect = document.getElementById('personal_person_select');
+
+    // Auto sync firm if property has a linked firm
+    if (firmId) {
+        const firmSelect = document.getElementById('firm_ids') || document.querySelector('[name="firm_id"]');
+        if (firmSelect) {
+            if (firmSelect.multiple && window.jQuery && $.fn.select2) {
+                $(firmSelect).val([String(firmId)]).trigger('change.select2');
+            } else if (!firmSelect.value) {
+                firmSelect.value = firmId;
+                if (window.jQuery && $.fn.select2) $(firmSelect).trigger('change.select2');
+            }
+        }
+    }
+
+    if (titleInput && (!titleInput.value || titleInput.dataset.userEdited !== 'true')) {
+        const catName = (subInput && subInput.value) ? subInput.value : 'Personal Expense';
+        const person = (personSelect && personSelect.value) ? personSelect.value : '{{ auth()->user() ? auth()->user()->name : "Self" }}';
+        titleInput.value = propName ? `${catName} - ${propName} (${person})` : `${catName} (${person})`;
+    }
+}
+
+function setGeneralCategory(catName) {
+    const catSelect = document.getElementById('expense_category');
+    const subInput = document.getElementById('expense_subcategory');
+    const titleInput = document.getElementById('expense_title');
+    const deptSelect = document.getElementById('general_department_select');
+    const propSelect = document.getElementById('general_property_id');
+
+    if (subInput) subInput.value = catName;
+
+    // Direct auto-select category
+    if (catSelect) {
+        let opt = Array.from(catSelect.options).find(o => o.value.toLowerCase() === 'general' || o.value.toLowerCase() === catName.toLowerCase());
+        if (!opt) {
+            opt = document.createElement('option');
+            opt.value = catName;
+            opt.textContent = catName;
+            const newOpt = catSelect.querySelector('option[value="__new__"]');
+            if (newOpt) catSelect.insertBefore(opt, newOpt);
+            else catSelect.appendChild(opt);
+        }
+        catSelect.value = opt.value;
+        if (window.updateCategoryDeleteButton) updateCategoryDeleteButton();
+    }
+
+    const currentDept = (deptSelect && deptSelect.value) ? deptSelect.value : 'Head Office';
+    
+    // Auto generate informative title
+    if (titleInput && (!titleInput.value || titleInput.dataset.userEdited !== 'true')) {
+        let propName = '';
+        if (propSelect && propSelect.value) {
+            const opt = propSelect.options[propSelect.selectedIndex];
+            propName = opt ? (opt.getAttribute('data-name') || opt.textContent.trim()) : '';
+        }
+        titleInput.value = propName ? `${catName} - ${propName}` : `${catName} (${currentDept})`;
+    }
+
+    // Highlight selected general chip
+    document.querySelectorAll('.general-chip-btn').forEach(btn => {
+        if (btn.innerText.includes(catName)) {
+            btn.style.background = '#059669';
+            btn.style.borderColor = '#34D399';
+            btn.style.color = '#FFFFFF';
+        } else {
+            btn.style.background = 'rgba(30, 41, 59, 0.70)';
+            btn.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+            btn.style.color = '#E2E8F0';
+        }
+    });
+}
+
+function handleGeneralDeptChange(select) {
+    if (!select) return;
+    const dept = select.value;
+    const badgeText = document.getElementById('general-status-text');
+    const titleInput = document.getElementById('expense_title');
+    const subInput = document.getElementById('expense_subcategory');
+    const propSelect = document.getElementById('general_property_id');
+
+    if (badgeText) {
+        badgeText.textContent = 'Directly Auto-Fetched: ' + dept;
+    }
+
+    if (titleInput && (!titleInput.value || titleInput.dataset.userEdited !== 'true')) {
+        const catName = (subInput && subInput.value) ? subInput.value : 'General Expense';
+        let propName = '';
+        if (propSelect && propSelect.value) {
+            const opt = propSelect.options[propSelect.selectedIndex];
+            propName = opt ? (opt.getAttribute('data-name') || opt.textContent.trim()) : '';
+        }
+        titleInput.value = propName ? `${catName} - ${propName}` : `${catName} (${dept})`;
+    }
+}
+
+function handleGeneralPropertyChange(select) {
+    if (!select) return;
+    const selectedOpt = select.options[select.selectedIndex];
+    const firmId = selectedOpt ? selectedOpt.getAttribute('data-firm-id') : null;
+    const propName = selectedOpt ? (selectedOpt.getAttribute('data-name') || '') : '';
+    const titleInput = document.getElementById('expense_title');
+    const subInput = document.getElementById('expense_subcategory');
+    const deptSelect = document.getElementById('general_department_select');
+
+    // Auto sync firm if property has a linked firm
+    if (firmId) {
+        const firmSelect = document.getElementById('firm_ids') || document.querySelector('[name="firm_id"]');
+        if (firmSelect) {
+            if (firmSelect.multiple && window.jQuery && $.fn.select2) {
+                $(firmSelect).val([String(firmId)]).trigger('change.select2');
+            } else if (!firmSelect.value) {
+                firmSelect.value = firmId;
+                if (window.jQuery && $.fn.select2) $(firmSelect).trigger('change.select2');
+            }
+        }
+    }
+
+    if (titleInput && (!titleInput.value || titleInput.dataset.userEdited !== 'true')) {
+        const catName = (subInput && subInput.value) ? subInput.value : 'General Expense';
+        const dept = (deptSelect && deptSelect.value) ? deptSelect.value : 'Head Office';
+        titleInput.value = propName ? `${catName} - ${propName}` : `${catName} (${dept})`;
+    }
+}
+
 function handleRentalAgreementChange(select) {
     const selectedOpt = select.options[select.selectedIndex];
     if (!selectedOpt || !selectedOpt.value) {
@@ -1005,7 +1425,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const allProjectOptions = projectSelect ? Array.from(projectSelect.querySelectorAll('option')).slice(1) : [];
-    const allPropOptions    = propSelect ? Array.from(propSelect.querySelectorAll('option')) : [];
+    window.allPropOptions = propSelect ? Array.from(propSelect.querySelectorAll('option')) : [];
 
     // Paid to vendor auto-link
     if (paidToInput) {
@@ -1044,7 +1464,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Filter Projects
         if (projectSelect) {
-            projectSelect.innerHTML = '<option value="">— All Projects / General —</option>';
+            projectSelect.innerHTML = '<option value="">— Select Project —</option>';
             let projCount = 0;
             allProjectOptions.forEach(opt => {
                 const optFirmId = String(opt.getAttribute('data-firm-id') || '');
@@ -1061,57 +1481,112 @@ document.addEventListener('DOMContentLoaded', function() {
         filterPropertiesByProject();
     }
 
+    function handleProjectChange(select) {
+        const projEl = select || document.getElementById('project_id');
+        if (projEl && projEl.value) {
+            const selectedOpt = projEl.options[projEl.selectedIndex];
+            const projFirmId = selectedOpt ? selectedOpt.getAttribute('data-firm-id') : null;
+            if (projFirmId) {
+                const firmSelect = document.getElementById('firm_ids') || document.querySelector('[name="firm_id"]');
+                if (firmSelect) {
+                    if (firmSelect.multiple && window.jQuery && $.fn.select2) {
+                        const curFirms = $(firmSelect).val() || [];
+                        if (curFirms.length > 0 && !curFirms.includes(String(projFirmId))) {
+                            $(firmSelect).val([...curFirms, String(projFirmId)]).trigger('change.select2');
+                        }
+                    }
+                }
+            }
+        }
+        filterPropertiesByProject();
+    }
+    window.handleProjectChange = handleProjectChange;
+
     function filterPropertiesByProject() {
-        if (!propSelect) return;
-        const selectedProjectId = projectSelect ? projectSelect.value : '';
+        const propEl = document.getElementById('property_ids') || document.getElementById('property_id');
+        if (!propEl) return;
+        const projEl = document.getElementById('project_id');
+        const selectedProjectId = projEl ? projEl.value : '';
         const selectedFirmIds   = getSelectedFirmIds();
         const typeInput         = document.getElementById('expense_type_input');
         const currentType       = typeInput ? typeInput.value : 'Property';
         const isPropertyExpense = (currentType === 'Property');
+        const isRentalExpense   = (currentType === 'Rental');
+
+        if (!window.allPropOptions || window.allPropOptions.length === 0) {
+            window.allPropOptions = Array.from(propEl.querySelectorAll('option'));
+        }
+        const sourceOptions = window.allPropOptions;
 
         let currentPropVals = [];
-        if (window.jQuery && $.fn.select2 && $(propSelect).hasClass('select2-hidden-accessible')) {
-            currentPropVals = $(propSelect).val() || [];
+        if (window.jQuery && $.fn.select2 && $(propEl).hasClass('select2-hidden-accessible')) {
+            currentPropVals = $(propEl).val() || [];
         } else {
-            currentPropVals = Array.from(propSelect.selectedOptions).map(o => o.value);
+            currentPropVals = Array.from(propEl.selectedOptions).map(o => o.value);
         }
         if (!Array.isArray(currentPropVals)) {
             currentPropVals = currentPropVals ? [currentPropVals] : [];
         }
 
         // Destroy existing Select2 before updating DOM options
-        if (window.jQuery && $.fn.select2 && $(propSelect).hasClass('select2-hidden-accessible')) {
-            $(propSelect).select2('destroy');
+        if (window.jQuery && $.fn.select2 && $(propEl).hasClass('select2-hidden-accessible')) {
+            $(propEl).select2('destroy');
         }
 
-        propSelect.innerHTML = '';
+        propEl.innerHTML = '';
 
         let validSelected = [];
-        allPropOptions.forEach(opt => {
+        sourceOptions.forEach(opt => {
             const optProjId = String(opt.getAttribute('data-project-id') || '');
             const optFirmId = String(opt.getAttribute('data-firm-id') || '');
+            const isRented  = opt.getAttribute('data-is-rented') === '1';
+            const isPm      = opt.getAttribute('data-is-pm') === '1';
 
             const firmMatch = selectedFirmIds.length === 0 || selectedFirmIds.includes(optFirmId) || !optFirmId;
-            const projMatch = isPropertyExpense || !selectedProjectId || optProjId === String(selectedProjectId);
+            const isAlreadySaved = currentPropVals.includes(opt.value);
 
-            if (firmMatch && projMatch) {
+            let typeMatch = false;
+            if (isRentalExpense) {
+                // Rental Expense: only Main Properties that are rented (or already saved on this expense)
+                typeMatch = ((isPm && isRented) || isAlreadySaved) && firmMatch;
+            } else if (isPropertyExpense) {
+                // Property Expense: only Main Properties (or already saved on this expense)
+                typeMatch = (isPm || isAlreadySaved) && firmMatch;
+            } else {
+                // Project Expense: Whichever project is selected, show its plots!
+                if (selectedProjectId) {
+                    typeMatch = (!isPm && (optProjId === String(selectedProjectId))) || isAlreadySaved;
+                } else {
+                    typeMatch = isAlreadySaved;
+                }
+            }
+
+            if (typeMatch) {
                 const newOpt = opt.cloneNode(true);
                 if (currentPropVals.includes(newOpt.value)) {
                     newOpt.selected = true;
                     validSelected.push(newOpt.value);
                 }
-                propSelect.appendChild(newOpt);
+                propEl.appendChild(newOpt);
             }
         });
 
-        const ph = isPropertyExpense ? "Search and select property..." : "Search and select property / unit...";
+        let ph = "Search and select property...";
+        if (isRentalExpense) {
+            ph = "Search and select rental property...";
+        } else if (isPropertyExpense) {
+            ph = "Search and select property...";
+        } else {
+            ph = selectedProjectId ? "Search and select plot / unit..." : "— Select a Project to view plots —";
+        }
+
         if (window.jQuery && $.fn.select2) {
-            $(propSelect).select2({
+            $(propEl).select2({
                 placeholder: ph,
                 allowClear: true,
                 width: '100%'
             });
-            $(propSelect).val(validSelected).trigger('change.select2');
+            $(propEl).val(validSelected).trigger('change.select2');
         }
     }
 
@@ -1122,7 +1597,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (projectSelect) {
-        projectSelect.addEventListener('change', filterPropertiesByProject);
+        $(projectSelect).on('change', function() { handleProjectChange(this); });
+        projectSelect.addEventListener('change', function() { handleProjectChange(this); });
     }
 
     if (propSelect) {
@@ -1136,6 +1612,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (isRental) {
                     fetchRentalInfoForProperty(firstVal);
                 }
+            } else if (isRental) {
+                updateRentalSnapshot(null);
+                const badgeText = document.getElementById('rental-status-text');
+                if (badgeText) badgeText.textContent = 'Select a Property to Auto-Fetch Details';
             }
         });
     }
@@ -1209,21 +1689,30 @@ function selectExpenseType(type) {
     const propWrapper = document.getElementById('property-field-wrapper');
     const rentalCard = document.getElementById('rental-connection-card');
     const rentalChips = document.getElementById('rental-category-chips');
+    const personalCard = document.getElementById('personal-connection-card');
+    const personalChips = document.getElementById('personal-category-chips');
+    const generalCard = document.getElementById('general-connection-card');
+    const generalChips = document.getElementById('general-category-chips');
     const titleEl = document.getElementById('section-classification-title');
     const propLabel = document.getElementById('property-label-text');
     const propOpt = document.getElementById('property-label-opt');
+    const projSelect = document.getElementById('project_id');
 
     if (type === 'Rental') {
         if (row) row.style.display = 'grid';
         if (projWrapper) {
             projWrapper.style.display = 'none';
-            if (projectSelect) projectSelect.value = '';
+            if (projSelect) projSelect.value = '';
         }
         if (propWrapper) propWrapper.style.gridColumn = '1 / -1';
         if (rentalCard) rentalCard.style.display = 'block';
         if (rentalChips) rentalChips.style.display = 'block';
+        if (personalCard) personalCard.style.display = 'none';
+        if (personalChips) personalChips.style.display = 'none';
+        if (generalCard) generalCard.style.display = 'none';
+        if (generalChips) generalChips.style.display = 'none';
         if (titleEl) titleEl.textContent = '1. Rental Property & Agreement Allocation';
-        if (propLabel) propLabel.textContent = 'Rental Property / Unit';
+        if (propLabel) propLabel.textContent = 'Rental Property';
         if (propOpt) propOpt.textContent = '(Selecting a property auto-fetches Tenant & Agreement)';
 
         if (window.filterPropertiesByProject) {
@@ -1245,9 +1734,13 @@ function selectExpenseType(type) {
         if (propWrapper) propWrapper.style.gridColumn = '';
         if (rentalCard) rentalCard.style.display = 'none';
         if (rentalChips) rentalChips.style.display = 'none';
+        if (personalCard) personalCard.style.display = 'none';
+        if (personalChips) personalChips.style.display = 'none';
+        if (generalCard) generalCard.style.display = 'none';
+        if (generalChips) generalChips.style.display = 'none';
         if (titleEl) titleEl.textContent = '1. Project Expense Classification';
-        if (propLabel) propLabel.textContent = 'Property / Unit';
-        if (propOpt) propOpt.textContent = '(Optional - Filtered by Project)';
+        if (propLabel) propLabel.textContent = 'Plot / Unit';
+        if (propOpt) propOpt.textContent = '(Filtered by Selected Project)';
 
         if (window.filterPropertiesByProject) {
             window.filterPropertiesByProject();
@@ -1256,11 +1749,15 @@ function selectExpenseType(type) {
         if (row) row.style.display = 'grid';
         if (projWrapper) {
             projWrapper.style.display = 'none';
-            if (projectSelect) projectSelect.value = '';
+            if (projSelect) projSelect.value = '';
         }
         if (propWrapper) propWrapper.style.gridColumn = '1 / -1';
         if (rentalCard) rentalCard.style.display = 'none';
         if (rentalChips) rentalChips.style.display = 'none';
+        if (personalCard) personalCard.style.display = 'none';
+        if (personalChips) personalChips.style.display = 'none';
+        if (generalCard) generalCard.style.display = 'none';
+        if (generalChips) generalChips.style.display = 'none';
         if (titleEl) titleEl.textContent = '1. Property Expense Classification';
         if (propLabel) propLabel.textContent = 'Property';
         if (propOpt) propOpt.textContent = '(Multi-Select Enabled)';
@@ -1272,12 +1769,62 @@ function selectExpenseType(type) {
         if (row) row.style.display = 'none';
         if (rentalCard) rentalCard.style.display = 'none';
         if (rentalChips) rentalChips.style.display = 'none';
-        if (titleEl) titleEl.textContent = '1. General Expense Classification';
+        if (personalCard) personalCard.style.display = 'none';
+        if (personalChips) personalChips.style.display = 'none';
+        if (generalCard) generalCard.style.display = 'block';
+        if (generalChips) generalChips.style.display = 'block';
+        if (titleEl) titleEl.textContent = '1. General Expense Allocation & Classification';
+
+        // Auto select 'General' category
+        const catSelect = document.getElementById('expense_category');
+        if (catSelect && !catSelect.value) {
+            let opt = Array.from(catSelect.options).find(o => o.value.toLowerCase() === 'general');
+            if (opt) {
+                catSelect.value = opt.value;
+                if (window.updateCategoryDeleteButton) updateCategoryDeleteButton();
+            }
+        }
+
+        // Auto set default title
+        const titleInput = document.getElementById('expense_title');
+        if (titleInput && (!titleInput.value || titleInput.dataset.userEdited !== 'true')) {
+            const deptSelect = document.getElementById('general_department_select');
+            const dept = (deptSelect && deptSelect.value) ? deptSelect.value : 'Head Office';
+            titleInput.value = 'General Expense - ' + dept;
+        }
     } else if (type === 'Personal') {
         if (row) row.style.display = 'none';
         if (rentalCard) rentalCard.style.display = 'none';
         if (rentalChips) rentalChips.style.display = 'none';
-        if (titleEl) titleEl.textContent = '1. Personal Expense Classification';
+        if (generalCard) generalCard.style.display = 'none';
+        if (generalChips) generalChips.style.display = 'none';
+        if (personalCard) personalCard.style.display = 'block';
+        if (personalChips) personalChips.style.display = 'block';
+        if (titleEl) titleEl.textContent = '1. Personal Expense Allocation & Classification';
+
+        // Auto select 'Personal' category
+        const catSelect = document.getElementById('expense_category');
+        if (catSelect && !catSelect.value) {
+            let opt = Array.from(catSelect.options).find(o => o.value.toLowerCase() === 'personal');
+            if (opt) {
+                catSelect.value = opt.value;
+                if (window.updateCategoryDeleteButton) updateCategoryDeleteButton();
+            }
+        }
+
+        // Auto populate Paid To with current user / default person
+        const paidToInput = document.getElementById('paid_to');
+        const personSelect = document.getElementById('personal_person_select');
+        const defaultPerson = (personSelect && personSelect.value) ? personSelect.value : '{{ auth()->user() ? auth()->user()->name : "Self" }}';
+        if (paidToInput && !paidToInput.value) {
+            paidToInput.value = defaultPerson;
+        }
+
+        // Auto set default title
+        const titleInput = document.getElementById('expense_title');
+        if (titleInput && (!titleInput.value || titleInput.dataset.userEdited !== 'true')) {
+            titleInput.value = 'Personal Expense - ' + defaultPerson;
+        }
     }
 }
 

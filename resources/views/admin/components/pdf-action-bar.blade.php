@@ -52,7 +52,8 @@
         width: auto;
         object-fit: contain;
         display: block;
-        filter: grayscale(100%) contrast(120%);
+        filter: none !important;
+        -webkit-filter: none !important;
     }
     .pdf-bar-title {
         font-size: 13.5px;

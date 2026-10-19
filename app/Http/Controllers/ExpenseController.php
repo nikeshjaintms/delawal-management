@@ -73,7 +73,13 @@ class ExpenseController extends Controller
             );
         }
 
-        $propQuery = Property::with(['project.propertyMaster', 'firm', 'propertyMaster'])->orderBy('property_name');
+        $propQuery = Property::with(['project.propertyMaster', 'firm', 'propertyMaster'])
+            ->where(function ($q) {
+                $q->whereNull('property_master_id')
+                  ->orWhere('property_name', 'like', '%(Entire Property)%')
+                  ->orWhere('property_code', 'like', '%-ENTIRE%');
+            })
+            ->orderBy('property_name');
         $catQuery = ExpenseCategory::where('status', 'active')->orderBy('name');
         $projQuery = Project::with('propertyMaster')->orderBy('project_name');
         $vendorQuery = Vendor::where('status', 'active')->orderBy('name');
@@ -116,6 +122,46 @@ class ExpenseController extends Controller
             $tenantsQuery->where('firm_id', $firmId);
         }
 
+        // Collect all property IDs that are currently rented or have active rental agreements
+        $directRentedIds = Property::where('status', 'rented')
+            ->pluck('id')
+            ->merge(
+                \App\Models\Rental::where(function($q) {
+                    $q->where('rental_status', 'active')
+                      ->orWhereNull('rental_status');
+                })->whereNotNull('property_id')->pluck('property_id')
+            )
+            ->merge(
+                \Illuminate\Support\Facades\DB::table('rental_property')
+                    ->join('rentals', 'rental_property.rental_id', '=', 'rentals.id')
+                    ->where(function($q) {
+                        $q->where('rentals.rental_status', 'active')
+                          ->orWhereNull('rentals.rental_status');
+                    })
+                    ->pluck('rental_property.property_id')
+            )
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // Map any rented plot of a PropertyMaster to the PropertyMaster Entire Property record
+        $rentedPmIds = Property::whereIn('id', $directRentedIds)
+            ->whereNotNull('property_master_id')
+            ->pluck('property_master_id')
+            ->unique()
+            ->toArray();
+
+        $pmEntireRentedIds = Property::whereIn('property_master_id', $rentedPmIds)
+            ->where(function($q) {
+                $q->where('property_name', 'like', '%(Entire Property)%')
+                  ->orWhere('property_code', 'like', '%-ENTIRE%')
+                  ->orWhereNull('unit_no');
+            })
+            ->pluck('id')
+            ->toArray();
+
+        $rentedPropertyIds = array_values(array_unique(array_merge($directRentedIds, $pmEntireRentedIds)));
+
         return [
             'firms' => $firms,
             'projects' => $projQuery->get(),
@@ -127,6 +173,7 @@ class ExpenseController extends Controller
             'tenants' => $tenantsQuery->get(),
             'rentalCategories' => Expense::RENTAL_CATEGORIES,
             'recoveryStatuses' => Expense::RECOVERY_STATUSES,
+            'rentedPropertyIds' => $rentedPropertyIds,
         ];
     }
 
@@ -439,6 +486,12 @@ class ExpenseController extends Controller
         $tenantId = $request->input('tenant_id') ?: null;
 
         $propertyIds = $request->input('property_ids', (array) ($request->property_id ? [$request->property_id] : []));
+        if (empty($propertyIds) && $request->filled('personal_property_id')) {
+            $propertyIds = [$request->input('personal_property_id')];
+        }
+        if (empty($propertyIds) && $request->filled('general_property_id')) {
+            $propertyIds = [$request->input('general_property_id')];
+        }
         $propertyIds = array_filter((array) $propertyIds);
         $primaryPropertyId = reset($propertyIds) ?: null;
 
@@ -642,6 +695,12 @@ class ExpenseController extends Controller
         $tenantId = $request->input('tenant_id') ?: null;
 
         $propertyIds = $request->input('property_ids', (array) ($request->property_id ? [$request->property_id] : []));
+        if (empty($propertyIds) && $request->filled('personal_property_id')) {
+            $propertyIds = [$request->input('personal_property_id')];
+        }
+        if (empty($propertyIds) && $request->filled('general_property_id')) {
+            $propertyIds = [$request->input('general_property_id')];
+        }
         $propertyIds = array_filter((array) $propertyIds);
         $primaryPropertyId = reset($propertyIds) ?: null;
 
@@ -1599,8 +1658,26 @@ class ExpenseController extends Controller
             return response()->json(['success' => false, 'message' => 'Property not found.'], 404);
         }
 
+        $targetPropertyIds = [$propertyId];
+        if ($property->property_master_id) {
+            $plotIds = Property::where('property_master_id', $property->property_master_id)->pluck('id')->toArray();
+            $targetPropertyIds = array_unique(array_merge($targetPropertyIds, $plotIds));
+
+            $projIds = \App\Models\Project::where('property_id', $property->property_master_id)
+                ->orWhereHas('propertyMasters', fn($pm) => $pm->where('property_masters.id', $property->property_master_id))
+                ->pluck('id')
+                ->toArray();
+            if (!empty($projIds)) {
+                $projPlotIds = Property::whereIn('project_id', $projIds)->pluck('id')->toArray();
+                $targetPropertyIds = array_unique(array_merge($targetPropertyIds, $projPlotIds));
+            }
+        }
+
         $rentals = \App\Models\Rental::with(['tenant', 'firm'])
-            ->where('property_id', $propertyId)
+            ->where(function ($q) use ($targetPropertyIds) {
+                $q->whereIn('property_id', $targetPropertyIds)
+                  ->orWhereHas('properties', fn($p) => $p->whereIn('properties.id', $targetPropertyIds));
+            })
             ->orderByRaw("CASE WHEN rental_status = 'active' THEN 1 ELSE 2 END")
             ->orderByDesc('id')
             ->get();
