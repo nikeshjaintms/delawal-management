@@ -67,8 +67,68 @@ textarea.form-control { resize: vertical; min-height: 85px; }
     font-size: 14px; font-weight: 600; transition: all .2s ease;
 }
 .btn-outline:hover { background: rgba(255, 255, 255, 0.10) !important; color: #FFFFFF !important; }
-.deal-flow-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; }
-@media(max-width: 768px) { .deal-flow-grid { grid-template-columns: 1fr; gap: 12px; } }
+/* ── Luxury Input Groups for Brokerage ── */
+.input-luxury-group {
+    display: flex;
+    align-items: stretch;
+    background: rgba(16, 22, 34, 0.65);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+.input-luxury-group:focus-within {
+    border-color: #60A5FA !important;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25) !important;
+}
+.input-luxury-group.border-emerald { border-color: rgba(16, 185, 129, 0.40); }
+.input-luxury-group.border-emerald:focus-within { border-color: #10B981 !important; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25) !important; }
+.input-luxury-group.border-blue { border-color: rgba(59, 130, 246, 0.40); }
+.input-luxury-group.border-blue:focus-within { border-color: #3B82F6 !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important; }
+.input-luxury-group.border-amber { border-color: rgba(245, 158, 11, 0.40); }
+.input-luxury-group.border-amber:focus-within { border-color: #F59E0B !important; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25) !important; }
+.input-luxury-group.border-purple { border-color: rgba(167, 139, 250, 0.40); }
+.input-luxury-group.border-purple:focus-within { border-color: #8B5CF6 !important; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25) !important; }
+
+.input-luxury-group.bg-readonly {
+    background: rgba(10, 15, 29, 0.85);
+}
+
+.input-luxury-addon {
+    padding: 0 13px;
+    font-weight: 800;
+    font-size: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-right: 1px solid rgba(255, 255, 255, 0.10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    flex-shrink: 0;
+}
+.input-luxury-addon.text-emerald { color: #34D399; background: rgba(16, 185, 129, 0.15); }
+.input-luxury-addon.text-blue    { color: #60A5FA; background: rgba(59, 130, 246, 0.15); }
+.input-luxury-addon.text-amber   { color: #FBBF24; background: rgba(245, 158, 11, 0.15); }
+.input-luxury-addon.text-purple  { color: #C4B5FD; background: rgba(167, 139, 250, 0.15); }
+
+.input-luxury-group input {
+    flex: 1;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 10px 14px !important;
+    color: #FFFFFF !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    outline: none !important;
+    width: 100%;
+}
+.input-luxury-group input::placeholder {
+    color: #64748B !important;
+    font-weight: 500;
+}
 </style>
 
 <div class="crud-header">
@@ -624,78 +684,142 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label" for="broker_id">
-                        <i class="fa-solid fa-user-tie" style="color: #A78BFA;"></i> Registered Broker (Optional)
-                    </label>
-                    <select name="broker_id" id="broker_id" class="form-control @error('broker_id') is-invalid @enderror" onchange="handleSaleBrokerChange(this)">
-                        <option value="">-- Select Registered Broker --</option>
-                        @foreach($brokers as $broker)
-                            <option value="{{ $broker->id }}" 
-                                     data-name="{{ $broker->name }}"
-                                     data-commission="{{ $broker->commission_percentage ?? 0 }}"
-                                     {{ old('broker_id', $propertySale->broker_id) == $broker->id ? 'selected' : '' }}>
-                                {{ $broker->name }} — {{ $broker->mobile }} {{ $broker->commission_percentage ? '(' . $broker->commission_percentage . '%)' : '' }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div class="form-hint" style="color: #94A3B8;">Select an existing broker from system or leave empty.</div>
-                    @error('broker_id') <div class="text-error">{{ $message }}</div> @enderror
-                </div>
-
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label" for="sale_broker_name">
-                        <i class="fa-solid fa-user-tag" style="color: #A78BFA;"></i> Custom / Unregistered Broker Name
-                    </label>
-                    <input type="text" name="broker_name" id="sale_broker_name" 
-                           value="{{ old('broker_name', $propertySale->broker_name ?? ($propertySale->broker->name ?? '')) }}" 
-                           class="form-control @error('broker_name') is-invalid @enderror" 
-                           placeholder="e.g. Ramesh Patel / Direct Agent"
-                           oninput="handleSaleBrokerNameInput(this)">
-                    <div class="form-hint" style="color: #DDD6FE;">Auto-populates from selected broker or type any new name.</div>
-                    @error('broker_name') <div class="text-error">{{ $message }}</div> @enderror
+            <!-- ================================================================
+                 BROKER & BROKERAGE DETAILS
+            ================================================================ -->
+            <div class="form-group full-width" style="margin-top: 18px; margin-bottom: 6px;">
+                <div style="font-size: 13px; font-weight: 800; color: #A78BFA; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid rgba(255, 255, 255, 0.10); padding-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <span><i class="fa-solid fa-user-tie"></i> Broker &amp; Brokerage Details</span>
+                    <span style="font-size: 11px; color: #C4B5FD; text-transform: none; font-weight: 500;">Optional — Fill if a Broker was involved in this sale</span>
                 </div>
             </div>
 
-            <!-- Broker Commission Section -->
-            <div id="sale_broker_commission_box" style="{{ ($propertySale->broker_id || $propertySale->broker_name || old('broker_id') || old('broker_name')) ? 'display:block;' : 'display:none;' }} background: rgba(167, 139, 250, 0.08); border: 1.5px solid rgba(167, 139, 250, 0.3); border-radius: 14px; padding: 18px; margin-top: 14px;">
-                <div style="font-size: 13.5px; font-weight: 800; color: #C4B5FD; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-hand-holding-dollar" style="color: #A78BFA;"></i> Broker &amp; Commission Payment Details
-                    </div>
-                    <span style="font-size: 11.5px; color: #DDD6FE; font-weight: normal;">(Auto-calculates brokerage &amp; links commission)</span>
-                </div>
-                
-                {{-- Row 1: Commission Type, Rate, Total, Paid, Due --}}
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 14px;">
+            <div class="form-group full-width" style="background: linear-gradient(135deg, rgba(167, 139, 250, 0.08) 0%, rgba(139, 92, 246, 0.03) 100%); border: 1.5px solid rgba(167, 139, 250, 0.30); border-radius: 14px; padding: 18px; margin-bottom: 10px;">
+                <!-- Row 1: Broker Selection, Broker Name, Broker Mobile, Broker Notes -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px;">
+                    <!-- Broker Select -->
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" style="color: #DDD6FE;">Commission Type</label>
-                        <select name="broker_commission_type" id="sale_broker_comm_type" class="form-control" onchange="recalcSaleBrokerage()">
-                            <option value="percentage" {{ old('broker_commission_type', $propertySale->broker_commission_type ?? 'percentage') === 'percentage' ? 'selected' : '' }}>Percentage (%)</option>
-                            <option value="fixed" {{ old('broker_commission_type', $propertySale->broker_commission_type) === 'fixed' ? 'selected' : '' }}>Fixed Amount (₹)</option>
+                        <label class="form-label" style="color: #DDD6FE; font-weight: 700;">
+                            <i class="fa-solid fa-address-book"></i> Select Registered Broker
+                        </label>
+                        <select name="broker_id" id="broker_id" class="form-control @error('broker_id') is-invalid @enderror" onchange="handleSaleBrokerChange(this)">
+                            <option value="">— Direct / No Registered Broker —</option>
+                            @if(isset($brokers))
+                                @foreach($brokers as $broker)
+                                    <option value="{{ $broker->id }}" 
+                                            data-name="{{ $broker->name }}"
+                                            data-mobile="{{ $broker->mobile ?: $broker->phone }}"
+                                            data-phone="{{ $broker->mobile ?: $broker->phone }}"
+                                            data-commission="{{ $broker->commission_percentage ?? 0 }}"
+                                            {{ old('broker_id', $propertySale->broker_id) == $broker->id ? 'selected' : '' }}>
+                                        {{ $broker->name }} {{ ($broker->mobile ?: $broker->phone) ? '(' . ($broker->mobile ?: $broker->phone) . ')' : '' }} {{ $broker->commission_percentage ? '— ' . $broker->commission_percentage . '%' : '' }}
+                                    </option>
+                                @endforeach
+                            @endif
                         </select>
+                        <div class="form-hint" style="color: #94A3B8; font-size: 11px; margin-top: 4px;">Select an existing broker or leave empty.</div>
+                        @error('broker_id') <div class="text-error">{{ $message }}</div> @enderror
                     </div>
+
+                    <!-- Manual / Custom Broker Name -->
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" style="color: #DDD6FE;">Commission Rate / Value</label>
-                        <input type="number" step="0.01" name="broker_commission_rate" id="sale_broker_comm_rate" value="{{ old('broker_commission_rate', $propertySale->broker_commission_rate) }}" class="form-control" placeholder="e.g. 2.0" oninput="recalcSaleBrokerage()">
+                        <label class="form-label" style="color: #DDD6FE;">Broker / Agent Name</label>
+                        <input type="text" name="broker_name" id="sale_broker_name" 
+                               value="{{ old('broker_name', $propertySale->broker_name ?? ($propertySale->broker->name ?? '')) }}" 
+                               class="form-control @error('broker_name') is-invalid @enderror" 
+                               placeholder="e.g. Ramesh Patel" 
+                               oninput="handleSaleBrokerNameInput(this)">
+                        <div class="form-hint" style="color: #C4B5FD; font-size: 11px; margin-top: 4px;">Auto-populates from selected broker or type new.</div>
+                        @error('broker_name') <div class="text-error">{{ $message }}</div> @enderror
                     </div>
+
+                    <!-- Broker Mobile Number (Unregistered or Registered) -->
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" style="color: #A78BFA; font-weight: 700;">Total Commission (₹)</label>
-                        <input type="number" step="0.01" name="broker_commission_amount" id="sale_broker_comm_amount" value="{{ old('broker_commission_amount', $propertySale->broker_commission_amount) }}" class="form-control" placeholder="0.00" oninput="recalcSaleBrokerageDue()">
+                        <label class="form-label" style="color: #DDD6FE;"><i class="fa-solid fa-phone"></i> Broker Mobile No.</label>
+                        <input type="text" name="broker_mobile" id="sale_broker_mobile" 
+                               value="{{ old('broker_mobile', $propertySale->broker_mobile ?? ($propertySale->broker->mobile ?? '')) }}" 
+                               class="form-control @error('broker_mobile') is-invalid @enderror" 
+                               placeholder="e.g. 9876543210">
+                        <div class="form-hint" style="color: #C4B5FD; font-size: 11px; margin-top: 4px;">Contact number for unregistered broker.</div>
+                        @error('broker_mobile') <div class="text-error">{{ $message }}</div> @enderror
                     </div>
+
+                    <!-- Broker Notes / Contact -->
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" style="color: #34D399; font-weight: 700;">Commission Paid (₹)</label>
-                        <input type="number" step="0.01" name="broker_commission_paid" id="sale_broker_comm_paid" value="{{ old('broker_commission_paid', $propertySale->broker_commission_paid ?? 0) }}" class="form-control" placeholder="0.00" oninput="recalcSaleBrokerageDue()">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" style="color: #FBBF24; font-weight: 700;">Commission Due (₹)</label>
-                        <input type="number" step="0.01" name="broker_commission_due" id="sale_broker_comm_due" value="{{ old('broker_commission_due', $propertySale->broker_commission_due ?? 0) }}" class="form-control" placeholder="0.00" readonly style="background: rgba(0,0,0,0.20);">
+                        <label class="form-label" style="color: #DDD6FE;">Broker Notes / Terms</label>
+                        <input type="text" name="broker_notes" id="sale_broker_notes" 
+                               value="{{ old('broker_notes', $propertySale->broker_notes) }}" 
+                               class="form-control @error('broker_notes') is-invalid @enderror" 
+                               placeholder="e.g. 1% commission on registry">
+                        <div class="form-hint" style="color: #C4B5FD; font-size: 11px; margin-top: 4px;">e.g. Terms, payout condition.</div>
+                        @error('broker_notes') <div class="text-error">{{ $message }}</div> @enderror
                     </div>
                 </div>
 
-                {{-- Row 2: Payment Mode, Payment Date, Commission Status, Broker Notes --}}
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; padding-top: 12px; border-top: 1px dashed rgba(167, 139, 250, 0.25);">
+                <!-- Row 2: Commission Type, Rate, Total Amount, Paid Amount -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(167, 139, 250, 0.25);">
+                    <!-- Commission Type & Rate -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="color: #DDD6FE; font-weight: 700;">
+                            <i class="fa-solid fa-percent"></i> Commission Type &amp; Rate
+                        </label>
+                        <div style="display: grid; grid-template-columns: 105px 1fr; gap: 8px;">
+                            <select name="broker_commission_type" id="sale_broker_comm_type" class="form-control" onchange="recalcSaleBrokerage()">
+                                <option value="percentage" {{ old('broker_commission_type', $propertySale->broker_commission_type ?? 'percentage') === 'percentage' ? 'selected' : '' }}>% Rate</option>
+                                <option value="fixed" {{ old('broker_commission_type', $propertySale->broker_commission_type) === 'fixed' ? 'selected' : '' }}>Fixed ₹</option>
+                            </select>
+                            <div class="input-luxury-group border-purple">
+                                <input type="number" step="0.01" name="broker_commission_rate" id="sale_broker_comm_rate" value="{{ old('broker_commission_rate', $propertySale->broker_commission_rate) }}" placeholder="Rate" oninput="recalcSaleBrokerage()">
+                                <span class="input-luxury-addon text-purple" id="saleCommRateSuffix" style="border-right: none; border-left: 1px solid rgba(255,255,255,0.10);">{{ old('broker_commission_type', $propertySale->broker_commission_type) === 'fixed' ? '₹' : '%' }}</span>
+                            </div>
+                        </div>
+                        <small style="color: #C4B5FD; font-size: 11.5px; margin-top: 4px; display: block;">e.g. 1% or 2% of sale price</small>
+                        @error('broker_commission_rate') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- Total Brokerage Amount -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="color: #A78BFA; font-weight: 700;">
+                            <i class="fa-solid fa-coins"></i> Total Brokerage Amount (₹)
+                        </label>
+                        <div class="input-luxury-group border-purple">
+                            <span class="input-luxury-addon text-purple">₹</span>
+                            <input type="number" step="0.01" name="broker_commission_amount" id="sale_broker_comm_amount" value="{{ old('broker_commission_amount', $propertySale->broker_commission_amount) }}" placeholder="0.00" oninput="recalcSaleBrokerageFromAmount()">
+                        </div>
+                        <small style="color: #C4B5FD; font-size: 11.5px; margin-top: 4px; display: block;">Total commission to be paid</small>
+                        @error('broker_commission_amount') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- Brokerage Paid Amount -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="color: #34D399; font-weight: 700;">
+                            <i class="fa-solid fa-circle-check"></i> Brokerage Paid (₹)
+                        </label>
+                        <div class="input-luxury-group border-emerald">
+                            <span class="input-luxury-addon text-emerald">₹</span>
+                            <input type="number" step="0.01" name="broker_commission_paid" id="sale_broker_comm_paid" value="{{ old('broker_commission_paid', $propertySale->broker_commission_paid ?? 0) }}" placeholder="0.00" oninput="recalcSaleBrokerageDue()">
+                        </div>
+                        <small style="color: #A7F3D0; font-size: 11.5px; margin-top: 4px; display: block;">Amount given to broker</small>
+                        @error('broker_commission_paid') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <!-- Row 3: Brokerage Balance & Mode -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 14px;">
+                    <!-- Brokerage Due Balance -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="color: #FBBF24; font-weight: 700;">
+                            <i class="fa-solid fa-hand-holding-dollar"></i> Brokerage Due (₹)
+                        </label>
+                        <div class="input-luxury-group border-amber bg-readonly">
+                            <span class="input-luxury-addon text-amber">₹</span>
+                            <input type="number" step="0.01" name="broker_commission_due" id="sale_broker_comm_due" value="{{ old('broker_commission_due', $propertySale->broker_commission_due ?? 0) }}" placeholder="0.00" readonly>
+                        </div>
+                        <small style="color: #FDE68A; font-size: 11.5px; margin-top: 4px; display: block;">Auto-calculated (Total - Paid)</small>
+                        @error('broker_commission_due') <div class="text-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    <!-- Brokerage Payment Mode -->
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label" style="color: #DDD6FE;">Broker Payment Mode</label>
                         <select name="broker_commission_payment_mode" id="sale_broker_payment_mode" class="form-control">
@@ -706,24 +830,27 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                             <option value="UPI" {{ old('broker_commission_payment_mode', $propertySale->broker_commission_payment_mode) === 'UPI' ? 'selected' : '' }}>📱 UPI (GPay/PhonePe)</option>
                             <option value="Other" {{ old('broker_commission_payment_mode', $propertySale->broker_commission_payment_mode) === 'Other' ? 'selected' : '' }}>✨ Other</option>
                         </select>
+                        @error('broker_commission_payment_mode') <div class="text-error">{{ $message }}</div> @enderror
                     </div>
+
+                    <!-- Broker Payment Date -->
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label" style="color: #34D399; font-weight: 700;">
                             <i class="fa-regular fa-calendar-days"></i> Broker Payment Date
                         </label>
                         <input type="date" name="broker_commission_payment_date" id="sale_broker_payment_date" value="{{ old('broker_commission_payment_date', $propertySale->broker_commission_payment_date ? $propertySale->broker_commission_payment_date->format('Y-m-d') : '') }}" class="form-control">
+                        @error('broker_commission_payment_date') <div class="text-error">{{ $message }}</div> @enderror
                     </div>
+
+                    <!-- Broker Payment Status -->
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" style="color: #DDD6FE;">Commission Status</label>
+                        <label class="form-label" style="color: #DDD6FE;">Broker Commission Status</label>
                         <select name="broker_commission_status" id="sale_broker_comm_status" class="form-control" style="font-weight: 700;">
                             <option value="unpaid" {{ old('broker_commission_status', $propertySale->broker_commission_status ?? 'unpaid') === 'unpaid' ? 'selected' : '' }}>Unpaid (0%)</option>
-                            <option value="partial" {{ old('broker_commission_status', $propertySale->broker_commission_status) === 'partial' ? 'selected' : '' }}>Partial Paid</option>
-                            <option value="paid" {{ old('broker_commission_status', $propertySale->broker_commission_status) === 'paid' ? 'selected' : '' }}>Full Paid (100%)</option>
+                            <option value="partial" {{ old('broker_commission_status', $propertySale->broker_commission_status) === 'partial' ? 'selected' : '' }}>Partial</option>
+                            <option value="paid" {{ old('broker_commission_status', $propertySale->broker_commission_status) === 'paid' ? 'selected' : '' }}>Paid (100% Full)</option>
                         </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" style="color: #DDD6FE;">Broker Notes / Terms</label>
-                        <input type="text" name="broker_notes" id="sale_broker_notes" value="{{ old('broker_notes', $propertySale->broker_notes) }}" class="form-control" placeholder="e.g. 1% commission on registry">
+                        @error('broker_commission_status') <div class="text-error">{{ $message }}</div> @enderror
                     </div>
                 </div>
             </div>
@@ -1757,43 +1884,35 @@ function handleSaleSellerNameInput(input) {
 }
 
 function handleSaleBrokerChange(select) {
-    const box = document.getElementById('sale_broker_commission_box');
+    if (!select) return;
+    const opt = select.options[select.selectedIndex];
+    const nameInput = document.getElementById('sale_broker_name');
+    const mobileInput = document.getElementById('sale_broker_mobile');
     const rateInput = document.getElementById('sale_broker_comm_rate');
     const typeSelect = document.getElementById('sale_broker_comm_type');
-    const brokerNameInput = document.getElementById('sale_broker_name');
 
-    if (select && select.value) {
-        if (box) box.style.display = 'block';
-        const opt = select.options[select.selectedIndex];
-        const bName = opt ? opt.getAttribute('data-name') : '';
-        const comm = opt ? opt.getAttribute('data-commission') : null;
+    if (select.value && opt) {
+        const name = opt.getAttribute('data-name');
+        const mobile = opt.getAttribute('data-mobile') || opt.getAttribute('data-phone');
+        const comm = opt.getAttribute('data-commission');
 
-        if (brokerNameInput && bName) {
-            brokerNameInput.value = bName;
+        if (name && nameInput) {
+            nameInput.value = name;
+        }
+        if (mobile && mobileInput) {
+            mobileInput.value = mobile;
         }
 
-        if (comm && parseFloat(comm) > 0 && rateInput && (!rateInput.value || parseFloat(rateInput.value) === 0)) {
+        if (comm && parseFloat(comm) > 0 && rateInput) {
             rateInput.value = comm;
             if (typeSelect) typeSelect.value = 'percentage';
-        }
-    } else {
-        if (brokerNameInput && !brokerNameInput.value.trim()) {
-            if (box) box.style.display = 'none';
         }
     }
     recalcSaleBrokerage();
 }
 
 function handleSaleBrokerNameInput(input) {
-    const box = document.getElementById('sale_broker_commission_box');
-    const brokerSelect = document.getElementById('broker_id');
-    if (input && input.value.trim().length > 0) {
-        if (box) box.style.display = 'block';
-    } else {
-        if (!brokerSelect || !brokerSelect.value) {
-            if (box) box.style.display = 'none';
-        }
-    }
+    // Custom / Unregistered Broker name entered
 }
 
 function recalcSaleBrokerage() {
@@ -1801,12 +1920,17 @@ function recalcSaleBrokerage() {
     const typeSelect = document.getElementById('sale_broker_comm_type');
     const rateInput = document.getElementById('sale_broker_comm_rate');
     const amountInput = document.getElementById('sale_broker_comm_amount');
+    const suffix = document.getElementById('saleCommRateSuffix');
 
     if (!typeSelect || !rateInput || !amountInput) return;
 
     const saleAmount = parseFloat(saleAmountInput ? saleAmountInput.value : 0) || 0;
     const type = typeSelect.value;
     const rate = parseFloat(rateInput.value) || 0;
+
+    if (suffix) {
+        suffix.innerText = (type === 'percentage') ? '%' : '₹';
+    }
 
     if (type === 'percentage') {
         if (saleAmount > 0 && rate > 0) {
@@ -1819,6 +1943,10 @@ function recalcSaleBrokerage() {
         }
     }
 
+    recalcSaleBrokerageDue();
+}
+
+function recalcSaleBrokerageFromAmount() {
     recalcSaleBrokerageDue();
 }
 

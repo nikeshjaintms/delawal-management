@@ -260,6 +260,7 @@ class PropertySaleController extends Controller
             'seller_name' => 'nullable|string|max:255',
             'broker_id' => 'nullable|exists:brokers,id',
             'broker_name' => 'nullable|string|max:255',
+            'broker_mobile' => 'nullable|string|max:25',
             'broker_commission_type' => 'nullable|in:percentage,fixed',
             'broker_commission_rate' => 'nullable|numeric|min:0',
             'broker_commission_amount' => 'nullable|numeric|min:0',
@@ -313,6 +314,7 @@ class PropertySaleController extends Controller
         // Broker commission calculation
         $brokerId = $request->broker_id ?: null;
         $brokerName = $request->filled('broker_name') ? $request->broker_name : ($brokerId ? (\App\Models\Broker::find($brokerId)?->name) : null);
+        $brokerMobile = $request->filled('broker_mobile') ? $request->broker_mobile : ($brokerId ? (\App\Models\Broker::find($brokerId)?->mobile) : null);
         $brokerCommType = $request->broker_commission_type ?: 'percentage';
         $brokerCommRate = $request->filled('broker_commission_rate') ? floatval($request->broker_commission_rate) : null;
         $brokerCommAmount = $request->filled('broker_commission_amount') ? floatval($request->broker_commission_amount) : 0.0;
@@ -344,6 +346,7 @@ class PropertySaleController extends Controller
             'seller_name' => $sellerName,
             'broker_id' => $brokerId,
             'broker_name' => $brokerName,
+            'broker_mobile' => $brokerMobile,
             'purchase_date' => $request->purchase_date,
             'purchase_cost' => $request->filled('purchase_cost') ? (float) $request->purchase_cost : null,
             'property_expenses' => $request->filled('property_expenses') ? (float) $request->property_expenses : null,
@@ -498,6 +501,7 @@ class PropertySaleController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'broker_id' => 'nullable|exists:brokers,id',
             'broker_name' => 'nullable|string|max:255',
+            'broker_mobile' => 'nullable|string|max:25',
             'broker_commission_type' => 'nullable|in:percentage,fixed',
             'broker_commission_rate' => 'nullable|numeric|min:0',
             'broker_commission_amount' => 'nullable|numeric|min:0',
@@ -562,6 +566,7 @@ class PropertySaleController extends Controller
         // Broker commission calculation
         $brokerId = $request->filled('broker_id') ? $request->broker_id : ($request->has('broker_id') ? null : $propertySale->broker_id);
         $brokerName = $request->filled('broker_name') ? $request->broker_name : ($brokerId ? ($propertySale->broker_id == $brokerId ? ($propertySale->broker_name ?: \App\Models\Broker::find($brokerId)?->name) : (\App\Models\Broker::find($brokerId)?->name ?? null)) : null);
+        $brokerMobile = $request->filled('broker_mobile') ? $request->broker_mobile : ($brokerId ? ($propertySale->broker_id == $brokerId ? ($propertySale->broker_mobile ?: \App\Models\Broker::find($brokerId)?->mobile) : (\App\Models\Broker::find($brokerId)?->mobile ?? null)) : ($request->has('broker_mobile') ? null : $propertySale->broker_mobile));
         $brokerCommType = $request->filled('broker_commission_type') ? $request->broker_commission_type : ($propertySale->broker_commission_type ?? 'percentage');
         $brokerCommRate = $request->filled('broker_commission_rate') ? floatval($request->broker_commission_rate) : ($request->has('broker_commission_rate') ? null : $propertySale->broker_commission_rate);
         $brokerCommAmount = $request->filled('broker_commission_amount') ? floatval($request->broker_commission_amount) : ($propertySale->broker_commission_amount ?? 0.0);
@@ -596,6 +601,7 @@ class PropertySaleController extends Controller
             'seller_name' => $sellerName,
             'broker_id' => $brokerId,
             'broker_name' => $brokerName,
+            'broker_mobile' => $brokerMobile,
             'purchase_date' => $request->purchase_date,
             'purchase_cost' => $request->filled('purchase_cost') ? (float) $request->purchase_cost : null,
             'property_expenses' => $request->filled('property_expenses') ? (float) $request->property_expenses : null,

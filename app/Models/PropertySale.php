@@ -16,6 +16,7 @@ class PropertySale extends Model
         'seller_name',
         'broker_id',
         'broker_name',
+        'broker_mobile',
         'purchase_date',
         'purchase_cost',
         'property_expenses',

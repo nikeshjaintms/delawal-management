@@ -269,8 +269,11 @@
             <div class="detail-label"><i class="fa-solid fa-user-tie"></i> Broker &amp; Commission</div>
             @if($propertySale->broker || $propertySale->broker_name)
                 <div class="detail-value" style="color: #C4B5FD;">{{ $propertySale->broker->name ?? $propertySale->broker_name }}</div>
-                @if($propertySale->broker && $propertySale->broker->mobile)
-                    <div style="font-size:12px; color:#CBD5E1; margin-top:4px;">{{ $propertySale->broker->mobile }}</div>
+                @php
+                    $brokerMobile = ($propertySale->broker && $propertySale->broker->mobile) ? $propertySale->broker->mobile : $propertySale->broker_mobile;
+                @endphp
+                @if($brokerMobile)
+                    <div style="font-size:12px; color:#CBD5E1; margin-top:4px;"><i class="fa-solid fa-phone" style="font-size:11px;"></i> {{ $brokerMobile }}</div>
                 @endif
                 @if(($propertySale->broker_commission_amount ?? 0) > 0 || ($propertySale->broker_commission_paid ?? 0) > 0)
                     <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.15); font-size: 12px;">
