@@ -80,8 +80,8 @@
 <table>
     <thead>
         <tr>
-            <th style="width:24px;" class="c">#</th>
-            <th style="width:75px;">Voucher No.</th>
+            <th style="width:38px; min-width:38px; white-space:nowrap;" class="c">#</th>
+            <th style="width:85px; white-space:nowrap;">Voucher No.</th>
             <th style="width:70px;">Date</th>
             <th>Expense Particulars & Title</th>
             <th>Category / Account Head</th>
@@ -108,8 +108,8 @@
             $status = $e->approval_status ?: ($e->status ?: 'Approved');
         @endphp
         <tr>
-            <td class="c" style="color:#64748B;">{{ $i + 1 }}</td>
-            <td style="font-weight:700; color:#1E3A8A;">EXP-{{ str_pad($e->id, 5, '0', STR_PAD_LEFT) }}</td>
+            <td class="c" style="color:#64748B; white-space:nowrap;">{{ $i + 1 }}</td>
+            <td style="font-weight:700; color:#1E3A8A; white-space:nowrap;">EXP-{{ str_pad($e->id, 5, '0', STR_PAD_LEFT) }}</td>
             <td style="white-space:nowrap; color:#475569;">{{ $e->expense_date ? \Carbon\Carbon::parse($e->expense_date)->format('d-M-Y') : '—' }}</td>
             <td>
                 <strong>{{ $e->expense_title ?: ($e->title ?: 'Expense Voucher') }}</strong>

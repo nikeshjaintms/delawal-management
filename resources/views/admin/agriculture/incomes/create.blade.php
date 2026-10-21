@@ -71,6 +71,175 @@ select.form-control-glass option { background: #0F172A !important; color: #FFFFF
     display: inline-flex; align-items: center; gap: 10px;
 }
 .btn-submit:hover { background: #059669 !important; transform: translateY(-2px); box-shadow: 0 8px 26px rgba(16, 185, 129, 0.55); }
+
+/* ── Modern Multi-Firm Ownership Selector UI ── */
+.firm-ownership-wrapper {
+    background: rgba(10, 15, 28, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 20px 22px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.25);
+    margin-bottom: 12px;
+}
+.firm-ownership-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.firm-ownership-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.firm-ownership-label {
+    font-size: 14px;
+    font-weight: 800;
+    color: #FFFFFF !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.2px;
+    margin: 0;
+}
+.firm-ownership-label i {
+    color: #34D399;
+    font-size: 14px;
+}
+.firm-ownership-sub {
+    font-size: 12px;
+    color: #94A3B8;
+    font-weight: 500;
+}
+.firm-ownership-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.btn-firm-action {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #CBD5E1;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+.btn-firm-action:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+.firm-chips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 12px;
+}
+.firm-chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.70);
+    border: 1.5px solid rgba(255, 255, 255, 0.10);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+}
+.firm-chip:hover {
+    background: rgba(20, 30, 55, 0.85);
+    border-color: rgba(52, 211, 153, 0.45);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+.firm-chip.is-selected {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.08) 100%);
+    border-color: #10B981;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+.firm-chip input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+.firm-chip-indicator {
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    background: rgba(15, 23, 42, 0.90);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: transparent;
+    font-size: 11px;
+    transition: all 0.2s ease;
+}
+.firm-chip:hover .firm-chip-indicator {
+    border-color: #34D399;
+}
+.firm-chip.is-selected .firm-chip-indicator {
+    background: #10B981;
+    border-color: #10B981;
+    color: #FFFFFF;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.65);
+}
+.firm-chip-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+}
+.firm-chip-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #E2E8F0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s ease;
+}
+.firm-chip.is-selected .firm-chip-name {
+    color: #FFFFFF;
+}
+.firm-chip-sub {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94A3B8;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.firm-chip.is-selected .firm-chip-sub {
+    color: #6EE7B7;
+}
+.firm-error-msg {
+    margin-top: 10px;
+    color: #F87171;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 </style>
 
 <div class="form-header">
@@ -87,20 +256,52 @@ select.form-control-glass option { background: #0F172A !important; color: #FFFFF
 
         @if(auth()->user() && auth()->user()->isAdmin())
         <div class="section-divider"><i class="fa-solid fa-building"></i> Company / Multi-Firm Setup</div>
-        <div class="form-grid">
-            <div class="form-group full-width">
-                <label class="form-label">Firm Ownership <span class="req">*</span></label>
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    @foreach($firms as $f)
-                        <label style="display: flex; align-items: center; gap: 8px; color: #FFFFFF; font-size: 14px; cursor: pointer;">
-                            <input type="checkbox" name="firm_ids[]" value="{{ $f->id }}" 
-                                {{ (is_array(old('firm_ids')) && in_array($f->id, old('firm_ids'))) || $loop->first ? 'checked' : '' }}
-                                style="width: 17px; height: 17px; accent-color: #10B981;">
-                            {{ $f->firm_name }}
-                        </label>
-                    @endforeach
+        
+        <div class="firm-ownership-wrapper">
+            <div class="firm-ownership-header">
+                <div class="firm-ownership-title-group">
+                    <label class="firm-ownership-label">
+                        <i class="fa-solid fa-building-circle-check"></i>
+                        <span>Firm Ownership</span>
+                        <span class="req">*</span>
+                    </label>
+                    <span class="firm-ownership-sub">Select the operating firm(s) that own or share this entry</span>
+                </div>
+                <div class="firm-ownership-actions">
+                    <button type="button" class="btn-firm-action" onclick="toggleAllFirms(true)">
+                        <i class="fa-solid fa-check-double"></i> Select All
+                    </button>
+                    <button type="button" class="btn-firm-action" onclick="toggleAllFirms(false)">
+                        <i class="fa-solid fa-xmark"></i> Clear
+                    </button>
                 </div>
             </div>
+
+            <div class="firm-chips-grid">
+                @foreach($firms as $f)
+                    @php
+                        $isSelected = (is_array(old('firm_ids')) && in_array($f->id, old('firm_ids'))) || (!old('firm_ids') && $loop->first);
+                    @endphp
+                    <label class="firm-chip {{ $isSelected ? 'is-selected' : '' }}">
+                        <input type="checkbox" name="firm_ids[]" value="{{ $f->id }}"
+                            {{ $isSelected ? 'checked' : '' }}
+                            class="firm-checkbox"
+                            onchange="updateFirmChip(this)">
+                        <span class="firm-chip-indicator">
+                            <i class="fa-solid fa-check"></i>
+                        </span>
+                        <span class="firm-chip-content">
+                            <span class="firm-chip-name">{{ $f->firm_name }}</span>
+                            @if(!empty($f->city))
+                                <span class="firm-chip-sub"><i class="fa-solid fa-location-dot"></i> {{ $f->city }}</span>
+                            @endif
+                        </span>
+                    </label>
+                @endforeach
+            </div>
+            @error('firm_ids')
+                <div class="firm-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</div>
+            @enderror
         </div>
         @endif
 
@@ -297,5 +498,26 @@ function calcIncome() {
 }
 
 document.addEventListener('DOMContentLoaded', calcIncome);
+
+function updateFirmChip(input) {
+    const chip = input.closest('.firm-chip');
+    if (chip) {
+        if (input.checked) {
+            chip.classList.add('is-selected');
+        } else {
+            chip.classList.remove('is-selected');
+        }
+    }
+}
+
+function toggleAllFirms(selectAll) {
+    const wrapper = document.querySelector('.firm-ownership-wrapper');
+    if (!wrapper) return;
+    const checkboxes = wrapper.querySelectorAll('.firm-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = selectAll;
+        updateFirmChip(cb);
+    });
+}
 </script>
 @endsection

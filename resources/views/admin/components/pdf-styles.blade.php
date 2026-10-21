@@ -286,6 +286,24 @@
         font-variant-numeric: tabular-nums;
         font-feature-settings: "tnum";
     }
+    /* ── Serial Number (#) Column Safety ── */
+    /* Prevents numbers like 10, 11, 20 from vertically wrapping / breaking digits across two lines */
+    thead th.c:first-child,
+    tbody td.c:first-child,
+    table th:first-child.c,
+    table td:first-child.c,
+    table thead th:first-child,
+    th.sr-col, td.sr-col,
+    th.c-sr, td.c-sr {
+        width: 38px !important;
+        min-width: 38px !important;
+        white-space: nowrap !important;
+        word-break: keep-all !important;
+        overflow-wrap: normal !important;
+        padding-left: 3px !important;
+        padding-right: 3px !important;
+        text-align: center !important;
+    }
     tbody tr {
         background: #FFFFFF !important;
         page-break-inside: avoid;
