@@ -712,6 +712,134 @@
     .amt-strong { font-weight: 800; color: #FFFFFF; font-size: 13.5px; }
     .amt-green  { color: #34D399; }
 
+    /* Payments Date & Direct Filter Toolbar */
+    .payment-filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+    }
+    .payment-filter-presets {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .pf-preset-btn {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #CBD5E1;
+        padding: 5px 11px;
+        border-radius: 8px;
+        font-size: 11.5px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        user-select: none;
+    }
+    .pf-preset-btn:hover {
+        background: rgba(59, 130, 246, 0.22);
+        border-color: rgba(96, 165, 250, 0.45);
+        color: #FFFFFF;
+        transform: translateY(-1px);
+    }
+    .pf-preset-btn.active {
+        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+        border-color: #60A5FA;
+        color: #FFFFFF;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+    .payment-date-form {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .pdf-input-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11.5px;
+        color: #94A3B8;
+        font-weight: 700;
+    }
+    .pdf-date-input {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        color: #FFFFFF;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 11.5px;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        color-scheme: dark;
+    }
+    .pdf-date-input:focus {
+        border-color: #38BDF8;
+        box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+    }
+    .pdf-btn-filter {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: #FFFFFF;
+        border: 1px solid rgba(52, 211, 153, 0.4);
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-size: 11.5px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: transform 0.15s, box-shadow 0.15s;
+        box-shadow: 0 3px 10px rgba(16, 185, 129, 0.25);
+    }
+    .pdf-btn-filter:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+    }
+    .pdf-btn-reset {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #CBD5E1;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 11.5px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s ease;
+    }
+    .pdf-btn-reset:hover {
+        background: rgba(255, 255, 255, 0.18);
+        color: #FFFFFF;
+    }
+    .payment-loading-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.72);
+        backdrop-filter: blur(3px);
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #38BDF8;
+        font-size: 13.5px;
+        font-weight: 700;
+        gap: 8px;
+        border-radius: 12px;
+    }
+
     .status-summary-item { margin-bottom: 16px; text-decoration: none; display: block; }
     .status-summary-header { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px; }
     .status-pct { font-size: 11.5px; color: #94A3B8; font-weight: 600; }
@@ -1215,6 +1343,124 @@
         document.getElementById('dashboardFilterForm').submit();
     }
 
+    function applyPaymentPreset(preset) {
+        var presetInput = document.getElementById('paymentPresetInput');
+        if (presetInput) presetInput.value = preset;
+
+        var fromInput = document.getElementById('paymentFromDate');
+        var toInput = document.getElementById('paymentToDate');
+
+        var today = new Date();
+        function pad2(n) { return (n < 10 ? '0' : '') + n; }
+        function formatDateStr(d) {
+            return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+        }
+
+        if (preset === 'today') {
+            var str = formatDateStr(today);
+            if (fromInput) fromInput.value = str;
+            if (toInput) toInput.value = str;
+        } else if (preset === 'yesterday') {
+            var yest = new Date(today.getTime() - 86400000);
+            var str = formatDateStr(yest);
+            if (fromInput) fromInput.value = str;
+            if (toInput) toInput.value = str;
+        } else if (preset === 'this_week') {
+            var dayOfWeek = today.getDay();
+            var diffToMon = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
+            var monday = new Date(today.getTime() + diffToMon * 86400000);
+            var sunday = new Date(monday.getTime() + 6 * 86400000);
+            if (fromInput) fromInput.value = formatDateStr(monday);
+            if (toInput) toInput.value = formatDateStr(sunday);
+        } else if (preset === 'this_month') {
+            var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            var lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            if (fromInput) fromInput.value = formatDateStr(firstDay);
+            if (toInput) toInput.value = formatDateStr(lastDay);
+        } else if (preset === 'direct') {
+            if (fromInput) fromInput.value = '';
+            if (toInput) toInput.value = '';
+        }
+
+        document.querySelectorAll('.pf-preset-btn').forEach(function(b) {
+            b.classList.remove('active');
+            if (b.getAttribute('data-preset') === preset) {
+                b.classList.add('active');
+            }
+        });
+
+        fetchDashboardPayments();
+    }
+
+    function resetPaymentDateFilter() {
+        applyPaymentPreset('direct');
+    }
+
+    function handlePaymentFilterSubmit(e) {
+        if (e && e.preventDefault) e.preventDefault();
+        var presetInput = document.getElementById('paymentPresetInput');
+        if (presetInput) presetInput.value = 'custom';
+        document.querySelectorAll('.pf-preset-btn').forEach(function(b) {
+            b.classList.remove('active');
+        });
+        fetchDashboardPayments();
+        return false;
+    }
+
+    function fetchDashboardPayments() {
+        var overlay = document.getElementById('paymentLoadingOverlay');
+        if (overlay) overlay.style.display = 'flex';
+
+        var form = document.getElementById('paymentDateFilterForm');
+        var url = '{{ route("dashboard") }}';
+        var params = new URLSearchParams();
+
+        if (form) {
+            var formData = new FormData(form);
+            formData.forEach(function(value, key) {
+                if (value) params.append(key, value);
+            });
+        }
+        params.set('ajax_action', 'filter_payments');
+
+        fetch(url + '?' + params.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(function(res) {
+            if (!res.ok) throw new Error('Network error');
+            return res.json();
+        })
+        .then(function(data) {
+            if (overlay) overlay.style.display = 'none';
+            if (data.status === 'success') {
+                var tbody = document.getElementById('dashboardPaymentsTbody');
+                if (tbody) tbody.innerHTML = data.html;
+
+                var statusBadge = document.getElementById('paymentStatusBadge');
+                if (statusBadge) {
+                    statusBadge.textContent = data.label;
+                    statusBadge.className = 'ds-badge ' + (data.is_filtered ? 'success' : 'info');
+                }
+
+                var totalBadge = document.getElementById('paymentTotalBadge');
+                if (totalBadge) {
+                    if (data.is_filtered) {
+                        totalBadge.textContent = 'Total: ₹' + data.total_amount;
+                        totalBadge.style.display = 'inline-block';
+                    } else {
+                        totalBadge.style.display = 'none';
+                    }
+                }
+            }
+        })
+        .catch(function(err) {
+            if (overlay) overlay.style.display = 'none';
+            if (form) form.submit();
+        });
+    }
 
     </script>
 
@@ -2002,15 +2248,79 @@
             </div>
 
             <!-- Recent Payments -->
-            <div class="section-card">
-                <div class="section-header">
+            <div class="section-card" id="recentPaymentsCard">
+                <div class="section-header" style="flex-wrap: wrap; gap: 10px;">
                     <div class="section-title">
                         <div class="section-title-icon ik-green"><i class="fa-solid fa-receipt"></i></div>
-                        Recent Payments {{ $filterType !== 'all' ? '(Filtered)' : '' }}
+                        <div>
+                            <span>Recent Payments</span>
+                            <span id="paymentStatusBadge" class="ds-badge {{ !empty($paymentIsFiltered) ? 'success' : 'info' }}" style="margin-left: 8px; font-size: 11px;">
+                                {{ $paymentLabel ?? (!empty($paymentIsFiltered) ? 'Filtered' : 'Direct') }}
+                            </span>
+                        </div>
                     </div>
-                    <a href="{{ route('payments.index') }}" class="btn-view-all">View All <i class="fa-solid fa-arrow-right"></i></a>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span id="paymentTotalBadge" class="amt-strong amt-green" style="{{ !empty($paymentIsFiltered) ? 'display: inline-block;' : 'display: none;' }} background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); padding: 4px 10px; border-radius: 8px; font-size: 12px;">
+                            Total: ₹{{ number_format($paymentTotalAmount ?? 0, 2) }}
+                        </span>
+                        <a href="{{ route('payments.index') }}" class="btn-view-all">View All <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
                 </div>
-                <div class="table-container">
+
+                <!-- Date & Direct Filter Toolbar for Payments -->
+                <div class="payment-filter-bar">
+                    <!-- Quick Presets -->
+                    <div class="payment-filter-presets">
+                        <button type="button" class="pf-preset-btn {{ (empty($paymentIsFiltered) || ($paymentPreset ?? 'direct') === 'direct') ? 'active' : '' }}" data-preset="direct" onclick="applyPaymentPreset('direct')" title="Direct / Recent Payments (Default View)">
+                            <i class="fa-solid fa-bolt"></i> Direct (Recent)
+                        </button>
+                        <button type="button" class="pf-preset-btn {{ ($paymentPreset ?? '') === 'today' ? 'active' : '' }}" data-preset="today" onclick="applyPaymentPreset('today')">
+                            Today
+                        </button>
+                        <button type="button" class="pf-preset-btn {{ ($paymentPreset ?? '') === 'yesterday' ? 'active' : '' }}" data-preset="yesterday" onclick="applyPaymentPreset('yesterday')">
+                            Yesterday
+                        </button>
+                        <button type="button" class="pf-preset-btn {{ ($paymentPreset ?? '') === 'this_week' ? 'active' : '' }}" data-preset="this_week" onclick="applyPaymentPreset('this_week')">
+                            This Week
+                        </button>
+                        <button type="button" class="pf-preset-btn {{ ($paymentPreset ?? '') === 'this_month' ? 'active' : '' }}" data-preset="this_month" onclick="applyPaymentPreset('this_month')">
+                            This Month
+                        </button>
+                    </div>
+
+                    <!-- Manual Date Range Inputs Form -->
+                    <form id="paymentDateFilterForm" method="GET" action="{{ route('dashboard') }}" class="payment-date-form" onsubmit="return handlePaymentFilterSubmit(event)">
+                        <!-- Keep existing dashboard context filters -->
+                        <input type="hidden" name="filter_type" value="{{ $filterType ?? 'all' }}">
+                        @if(request('property_master_id'))
+                            <input type="hidden" name="property_master_id" value="{{ request('property_master_id') }}">
+                        @endif
+                        @if(request('project_id'))
+                            <input type="hidden" name="project_id" value="{{ request('project_id') }}">
+                        @endif
+                        <input type="hidden" name="payment_preset" id="paymentPresetInput" value="{{ $paymentPreset ?? 'direct' }}">
+
+                        <div class="pdf-input-group">
+                            <label><i class="fa-regular fa-calendar"></i> From:</label>
+                            <input type="date" name="payment_from_date" id="paymentFromDate" class="pdf-date-input" value="{{ $paymentFromDate ?? '' }}">
+                        </div>
+                        <div class="pdf-input-group">
+                            <label><i class="fa-regular fa-calendar"></i> To:</label>
+                            <input type="date" name="payment_to_date" id="paymentToDate" class="pdf-date-input" value="{{ $paymentToDate ?? '' }}">
+                        </div>
+                        <button type="submit" class="pdf-btn-filter" title="Apply Manual Date Filter">
+                            <i class="fa-solid fa-filter"></i> Filter
+                        </button>
+                        <button type="button" class="pdf-btn-reset" onclick="resetPaymentDateFilter()" title="View Direct / All Recent Payments">
+                            <i class="fa-solid fa-rotate-left"></i> Direct
+                        </button>
+                    </form>
+                </div>
+
+                <div class="table-container" style="position: relative;">
+                    <div id="paymentLoadingOverlay" class="payment-loading-overlay" style="display: none;">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Loading payments...
+                    </div>
                     <table class="erp-table">
                         <thead>
                             <tr>
@@ -2021,20 +2331,8 @@
                                 <th>Mode</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @forelse($recentPayments as $payment)
-                                <tr>
-                                    <td>{{ $payment->payment_date ? \Carbon\Carbon::parse($payment->payment_date)->format('d M Y') : '-' }}</td>
-                                    <td><strong>{{ $payment->customer->name ?? '-' }}</strong></td>
-                                    <td>{{ $payment->property->name ?? $payment->property->property_name ?? '-' }}</td>
-                                    <td class="amt-strong amt-green">₹{{ number_format($payment->payment_amount, 2) }}</td>
-                                    <td><span class="ds-badge info">{{ $payment->payment_mode ?? 'Direct' }}</span></td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" style="text-align: center;">No payments recorded yet.</td>
-                                </tr>
-                            @endforelse
+                        <tbody id="dashboardPaymentsTbody">
+                            @include('admin.components.dashboard-payments-rows')
                         </tbody>
                     </table>
                 </div>

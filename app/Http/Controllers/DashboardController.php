@@ -27,6 +27,11 @@ class DashboardController extends Controller
     {
         Property::syncAllStatuses();
 
+        // ── AJAX Payment Filter Handler ───────────────────────────
+        if ($request->ajax() && $request->get('ajax_action') === 'filter_payments') {
+            return $this->ajaxFilterPayments($request);
+        }
+
         // ══════════════════════════════════════════════════════════
         //  FIRM SESSION DASHBOARD
         // ══════════════════════════════════════════════════════════
@@ -156,7 +161,8 @@ class DashboardController extends Controller
             $totalPendingAmt  = $salePending + $bookingPending;
 
             $recentCustomers  = Customer::latest()->limit(5)->get();
-            $recentPayments   = !empty($plotIds) ? Payment::with(['customer', 'property'])->whereIn('property_id', $plotIds)->latest()->limit(5)->get() : collect();
+            $paymentData      = $this->getPaymentsForDashboard($request, null, $plotIds);
+            $recentPayments   = $paymentData['payments'];
             $recentSalesList  = $salesList->sortByDesc('created_at')->take(8);
             $recentPurchasesList = !empty($plotIds) ? StockInward::with(['material', 'project', 'contractor'])->whereIn('property_id', $plotIds)->latest()->limit(8)->get() : collect();
             $recentExpensesList  = !empty($plotIds) ? Expense::with(['property', 'project'])->whereIn('property_id', $plotIds)->latest('expense_date')->limit(8)->get() : collect();
@@ -229,7 +235,8 @@ class DashboardController extends Controller
             $totalPendingAmt  = $salePending + $bookingPending;
 
             $recentCustomers     = Customer::latest()->limit(5)->get();
-            $recentPayments      = !empty($plotIds) ? Payment::with(['customer', 'property'])->whereIn('property_id', $plotIds)->latest()->limit(5)->get() : collect();
+            $paymentData         = $this->getPaymentsForDashboard($request, null, $plotIds);
+            $recentPayments      = $paymentData['payments'];
             $recentSalesList     = $salesList->sortByDesc('created_at')->take(8);
             $recentPurchasesList = StockInward::with(['material', 'project', 'contractor'])->where('project_id', $selectedProject->id)->latest()->limit(8)->get();
             $recentExpensesList  = Expense::with(['property', 'project'])->where('project_id', $selectedProject->id)->latest('expense_date')->limit(8)->get();
@@ -278,7 +285,8 @@ class DashboardController extends Controller
             $totalPendingAmt     = $salePending + $bookingPending;
 
             $recentCustomers     = Customer::latest()->limit(5)->get();
-            $recentPayments      = Payment::with(['customer', 'property'])->latest()->limit(5)->get();
+            $paymentData         = $this->getPaymentsForDashboard($request, null, null);
+            $recentPayments      = $paymentData['payments'];
 
             // Purchases breakdown (Land acquisitions + Material purchases)
             $totalLandPurchases     = PropertyMaster::sum('purchase_price') ?: 0;
@@ -313,13 +321,21 @@ class DashboardController extends Controller
                 ->get();
         }
 
+        $paymentFromDate    = $paymentData['from_date'];
+        $paymentToDate      = $paymentData['to_date'];
+        $paymentPreset      = $paymentData['preset'];
+        $paymentIsFiltered  = $paymentData['is_filtered'];
+        $paymentTotalAmount = $paymentData['total_amount'];
+        $paymentLabel       = $paymentData['label'];
+
         return view('admin.dashboard', compact(
             'propertyMastersList', 'projectsList', 'filterType', 'flowType', 'selectedPropertyMaster', 'selectedProject', 'filteredPlots',
             'totalFirms', 'activeFirms', 'inactiveFirms', 'totalUsers', 'activeUsers',
             'totalCustomers', 'totalProperties', 'availableProperties', 'bookedProperties',
             'soldProperties', 'rentedProperties', 'totalBookings', 'portfolioVal', 'totalReceivedAmt',
             'totalExpenses', 'netProfit', 'totalPendingAmt', 'recentCustomers',
-            'recentPayments', 'totalProjects', 'activeProjects',
+            'recentPayments', 'paymentData', 'paymentFromDate', 'paymentToDate', 'paymentPreset', 'paymentIsFiltered', 'paymentTotalAmount', 'paymentLabel',
+            'totalProjects', 'activeProjects',
             'totalSalesRevenue', 'totalSalesPurchaseCost', 'totalSalesGrossProfit',
             'totalSalesCommission', 'totalSalesProfit', 'salesProfitMargin', 'totalSoldUnitsCount',
             'totalPurchases', 'totalLandPurchases', 'totalLandPurchaseCount', 'totalMaterialPurchases',
@@ -479,7 +495,8 @@ class DashboardController extends Controller
                                  })->where('status', '!=', 'cancelled')->sum('remaining_amount') ?: 0) : 0);
 
             $recentCustomers     = Customer::where('firm_id', $firmId)->latest()->limit(5)->get();
-            $recentPayments      = !empty($plotIds) ? Payment::with(['customer', 'property'])->where('firm_id', $firmId)->whereIn('property_id', $plotIds)->latest()->limit(5)->get() : collect();
+            $paymentData         = $this->getPaymentsForDashboard($request, $firmId, $plotIds);
+            $recentPayments      = $paymentData['payments'];
             $recentSalesList     = $salesList->sortByDesc('created_at')->take(8);
             $recentPurchasesList = !empty($plotIds) ? StockInward::where('firm_id', $firmId)->with(['material', 'project', 'contractor'])->whereIn('property_id', $plotIds)->latest()->limit(8)->get() : collect();
             $recentExpensesList  = !empty($plotIds) ? Expense::where('firm_id', $firmId)->with(['property', 'project'])->whereIn('property_id', $plotIds)->latest('expense_date')->limit(8)->get() : collect();
@@ -550,7 +567,8 @@ class DashboardController extends Controller
                                  })->where('status', '!=', 'cancelled')->sum('remaining_amount') ?: 0) : 0);
 
             $recentCustomers     = Customer::where('firm_id', $firmId)->latest()->limit(5)->get();
-            $recentPayments      = !empty($plotIds) ? Payment::with(['customer', 'property'])->where('firm_id', $firmId)->whereIn('property_id', $plotIds)->latest()->limit(5)->get() : collect();
+            $paymentData         = $this->getPaymentsForDashboard($request, $firmId, $plotIds);
+            $recentPayments      = $paymentData['payments'];
             $recentSalesList     = $salesList->sortByDesc('created_at')->take(8);
             $recentPurchasesList = StockInward::where('firm_id', $firmId)->with(['material', 'project', 'contractor'])->where('project_id', $selectedProject->id)->latest()->limit(8)->get();
             $recentExpensesList  = Expense::where('firm_id', $firmId)->with(['property', 'project'])->where('project_id', $selectedProject->id)->latest('expense_date')->limit(8)->get();
@@ -598,8 +616,8 @@ class DashboardController extends Controller
             $netProfit           = $totalReceivedAmt - $totalExpenses;
 
             $recentCustomers = Customer::where('firm_id', $firmId)->latest()->limit(5)->get();
-            $recentPayments  = Payment::with(['customer', 'property'])
-                ->where('firm_id', $firmId)->latest()->limit(5)->get();
+            $paymentData     = $this->getPaymentsForDashboard($request, $firmId, null);
+            $recentPayments  = $paymentData['payments'];
 
             // Purchases breakdown
             $totalLandPurchases     = PropertyMaster::where('firm_id', $firmId)->sum('purchase_price') ?: 0;
@@ -634,6 +652,13 @@ class DashboardController extends Controller
                 ->get();
         }
 
+        $paymentFromDate    = $paymentData['from_date'];
+        $paymentToDate      = $paymentData['to_date'];
+        $paymentPreset      = $paymentData['preset'];
+        $paymentIsFiltered  = $paymentData['is_filtered'];
+        $paymentTotalAmount = $paymentData['total_amount'];
+        $paymentLabel       = $paymentData['label'];
+
         return view('admin.firm-dashboard', compact(
             'propertyMastersList', 'projectsList', 'filterType', 'flowType', 'selectedPropertyMaster', 'selectedProject', 'filteredPlots',
             'totalCustomers', 'newCustomersMonth',
@@ -646,10 +671,153 @@ class DashboardController extends Controller
             'totalPurchases', 'totalLandPurchases', 'totalLandPurchaseCount', 'totalMaterialPurchases',
             'totalLoans', 'totalLoanAmount', 'pendingLoanAmt',
             'totalMaterials', 'lowStockCount', 'outStockCount',
-            'recentCustomers', 'recentPayments', 'totalProjects', 'activeProjects',
+            'recentCustomers', 'recentPayments', 'paymentData', 'paymentFromDate', 'paymentToDate', 'paymentPreset', 'paymentIsFiltered', 'paymentTotalAmount', 'paymentLabel',
+            'totalProjects', 'activeProjects',
             'totalSalesRevenue', 'totalSalesPurchaseCost', 'totalSalesGrossProfit',
             'totalSalesCommission', 'totalSalesProfit', 'salesProfitMargin', 'totalSoldUnitsCount',
             'recentSalesList', 'recentPurchasesList', 'recentExpensesList'
         ));
+    }
+
+    /**
+     * AJAX endpoint to filter dashboard payments without full page reload.
+     */
+    public function ajaxFilterPayments(Request $request)
+    {
+        $firmId = (session('login_type') === 'firm' && session('firm_id')) ? (int)session('firm_id') : null;
+        $plotIds = null;
+        $filterType = $request->get('filter_type', 'all');
+
+        if ($filterType === 'property' && $request->filled('property_master_id')) {
+            $pmId = (int)$request->property_master_id;
+            $q = Property::where('property_master_id', $pmId)->whereNull('project_id');
+            if ($firmId) $q->where('firm_id', $firmId);
+            $plotIds = $q->pluck('id')->toArray();
+        } elseif ($filterType === 'project' && $request->filled('project_id')) {
+            $prjId = (int)$request->project_id;
+            $q = Property::where('project_id', $prjId)->whereNull('property_master_id');
+            if ($firmId) $q->where('firm_id', $firmId);
+            $plotIds = $q->pluck('id')->toArray();
+        }
+
+        $paymentData = $this->getPaymentsForDashboard($request, $firmId, $plotIds);
+
+        $html = view('admin.components.dashboard-payments-rows', [
+            'recentPayments'     => $paymentData['payments'],
+            'paymentIsFiltered'  => $paymentData['is_filtered'],
+            'paymentTotalAmount' => $paymentData['total_amount'],
+        ])->render();
+
+        return response()->json([
+            'status'       => 'success',
+            'html'         => $html,
+            'total_amount' => number_format($paymentData['total_amount'], 2),
+            'count'        => $paymentData['count'],
+            'is_filtered'  => $paymentData['is_filtered'],
+            'from_date'    => $paymentData['from_date'],
+            'to_date'      => $paymentData['to_date'],
+            'preset'       => $paymentData['preset'],
+            'label'        => $paymentData['label'],
+        ]);
+    }
+
+    /**
+     * Fetch payments for the dashboard with optional manual date filter or direct recent view.
+     *
+     * @param Request $request
+     * @param int|null $firmId
+     * @param array|null $plotIds
+     * @return array
+     */
+    private function getPaymentsForDashboard(Request $request, ?int $firmId = null, ?array $plotIds = null): array
+    {
+        if (is_array($plotIds) && empty($plotIds)) {
+            return [
+                'payments'     => collect(),
+                'total_amount' => 0.0,
+                'is_filtered'  => false,
+                'from_date'    => null,
+                'to_date'      => null,
+                'preset'       => 'direct',
+                'label'        => 'Direct (Recent Payments)',
+                'count'        => 0,
+            ];
+        }
+
+        $preset   = $request->get('payment_preset', 'direct');
+        $fromDate = $request->get('payment_from_date');
+        $toDate   = $request->get('payment_to_date');
+
+        if ($preset === 'today') {
+            $fromDate = now()->toDateString();
+            $toDate   = now()->toDateString();
+            $label    = 'Today (' . now()->format('d M Y') . ')';
+        } elseif ($preset === 'yesterday') {
+            $fromDate = now()->subDay()->toDateString();
+            $toDate   = now()->subDay()->toDateString();
+            $label    = 'Yesterday (' . now()->subDay()->format('d M Y') . ')';
+        } elseif ($preset === 'this_week') {
+            $fromDate = now()->startOfWeek()->toDateString();
+            $toDate   = now()->endOfWeek()->toDateString();
+            $label    = 'This Week (' . now()->startOfWeek()->format('d M') . ' - ' . now()->endOfWeek()->format('d M Y') . ')';
+        } elseif ($preset === 'this_month') {
+            $fromDate = now()->startOfMonth()->toDateString();
+            $toDate   = now()->endOfMonth()->toDateString();
+            $label    = 'This Month (' . now()->format('M Y') . ')';
+        } elseif ($preset === 'last_month') {
+            $fromDate = now()->subMonth()->startOfMonth()->toDateString();
+            $toDate   = now()->subMonth()->endOfMonth()->toDateString();
+            $label    = 'Last Month (' . now()->subMonth()->format('M Y') . ')';
+        } elseif ($preset === 'this_year') {
+            $fromDate = now()->startOfYear()->toDateString();
+            $toDate   = now()->endOfYear()->toDateString();
+            $label    = 'This Year (' . now()->format('Y') . ')';
+        } elseif (!empty($fromDate) || !empty($toDate)) {
+            $preset   = 'custom';
+            $labelFrom = $fromDate ? \Carbon\Carbon::parse($fromDate)->format('d M Y') : 'Start';
+            $labelTo   = $toDate ? \Carbon\Carbon::parse($toDate)->format('d M Y') : 'Today';
+            $label    = "Date Range ({$labelFrom} - {$labelTo})";
+        } else {
+            $preset   = 'direct';
+            $label    = 'Direct (Recent Payments)';
+        }
+
+        $isFiltered = ($preset !== 'direct');
+
+        $query = Payment::with(['customer', 'property']);
+
+        if ($firmId) {
+            $query->where('firm_id', $firmId);
+        }
+
+        if (is_array($plotIds)) {
+            $query->whereIn('property_id', $plotIds);
+        }
+
+        if (!empty($fromDate)) {
+            $query->whereDate('payment_date', '>=', $fromDate);
+        }
+        if (!empty($toDate)) {
+            $query->whereDate('payment_date', '<=', $toDate);
+        }
+
+        if ($isFiltered) {
+            $totalAmount = (float) (clone $query)->sum('payment_amount');
+            $payments = $query->orderBy('payment_date', 'desc')->orderBy('id', 'desc')->limit(50)->get();
+        } else {
+            $totalAmount = (float) (clone $query)->sum('payment_amount');
+            $payments = $query->orderBy('payment_date', 'desc')->orderBy('id', 'desc')->limit(10)->get();
+        }
+
+        return [
+            'payments'     => $payments,
+            'total_amount' => $totalAmount,
+            'is_filtered'  => $isFiltered,
+            'from_date'    => $fromDate,
+            'to_date'      => $toDate,
+            'preset'       => $preset,
+            'label'        => $label,
+            'count'        => $payments->count(),
+        ];
     }
 }
