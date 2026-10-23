@@ -729,7 +729,7 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                                class="form-control @error('broker_name') is-invalid @enderror" 
                                placeholder="e.g. Ramesh Patel" 
                                oninput="handleSaleBrokerNameInput(this)">
-                        <div class="form-hint" style="color: #C4B5FD; font-size: 11px; margin-top: 4px;">Auto-populates from selected broker or type new.</div>
+                        <div class="form-hint" style="color: #C4B5FD; font-size: 11px; margin-top: 4px;">Auto-populates from selected broker or type unregistered broker (auto-registers to Brokers &amp; Commission).</div>
                         @error('broker_name') <div class="text-error">{{ $message }}</div> @enderror
                     </div>
 
@@ -1912,7 +1912,24 @@ function handleSaleBrokerChange(select) {
 }
 
 function handleSaleBrokerNameInput(input) {
-    // Custom / Unregistered Broker name entered
+    const brokerSelect = document.getElementById('broker_id');
+    if (!brokerSelect) return;
+    const typed = (input.value || '').trim().toLowerCase();
+    if (!typed) {
+        return;
+    }
+    let matched = false;
+    for (let opt of brokerSelect.options) {
+        if (opt.value && opt.getAttribute('data-name')?.trim().toLowerCase() === typed) {
+            brokerSelect.value = opt.value;
+            matched = true;
+            break;
+        }
+    }
+    if (!matched && brokerSelect.value) {
+        // User typed a new/unregistered broker name
+        brokerSelect.value = '';
+    }
 }
 
 function recalcSaleBrokerage() {

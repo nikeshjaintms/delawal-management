@@ -123,6 +123,11 @@ class PropertySale extends Model
         return $this->belongsTo(Broker::class);
     }
 
+    public function brokerCommission()
+    {
+        return $this->hasOne(BrokerCommission::class, 'property_sale_id');
+    }
+
     public function payments()
     {
         return $this->hasMany(Payment::class, 'property_sale_id')->latest('payment_date')->latest('id');

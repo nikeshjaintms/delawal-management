@@ -207,14 +207,35 @@ class BookingController extends Controller
         $submittedPropIds = array_values(array_filter($submittedPropIds));
         $primaryPropId = !empty($submittedPropIds) ? $submittedPropIds[0] : $request->property_id;
 
+        $brokerId = $request->broker_id ?: null;
+        $brokerName = $request->broker_name ?: null;
+        if (!$brokerId && $request->filled('broker_name')) {
+            $bName = trim($request->broker_name);
+            $existingB = \App\Models\Broker::whereRaw('LOWER(name) = ?', [strtolower($bName)])
+                ->where(function ($q) use ($firmId) {
+                    $q->where('firm_id', $firmId)
+                      ->orWhereHas('firms', fn($fq) => $fq->where('firms.id', $firmId));
+                })->first();
+            if (!$existingB) {
+                $existingB = \App\Models\Broker::create([
+                    'firm_id' => $firmId,
+                    'name'    => $bName,
+                    'status'  => 'active',
+                ]);
+                $existingB->syncFirms([$firmId]);
+            }
+            $brokerId = $existingB->id;
+            $brokerName = $existingB->name;
+        }
+
         $booking = Booking::create([
             'firm_id'          => $firmId,
             'property_id'      => $primaryPropId,
             'customer_id'      => $request->customer_id,
             'seller_id'        => $request->seller_id ?: null,
             'seller_name'      => $request->seller_name ?: null,
-            'broker_id'        => $request->broker_id ?: null,
-            'broker_name'      => $request->broker_name ?: null,
+            'broker_id'        => $brokerId,
+            'broker_name'      => $brokerName,
             'booking_type'     => $request->booking_type ?: 'booking',
             'booking_date'     => $request->booking_date,
             'total_amount'     => $request->total_amount,
@@ -309,14 +330,35 @@ class BookingController extends Controller
             $oldPropIds = [$booking->property_id];
         }
 
+        $brokerId = $request->filled('broker_id') ? $request->broker_id : ($request->has('broker_id') ? null : $booking->broker_id);
+        $brokerName = $request->filled('broker_name') ? $request->broker_name : ($request->has('broker_name') ? null : $booking->broker_name);
+        if (!$brokerId && $request->filled('broker_name')) {
+            $bName = trim($request->broker_name);
+            $existingB = \App\Models\Broker::whereRaw('LOWER(name) = ?', [strtolower($bName)])
+                ->where(function ($q) use ($firmId) {
+                    $q->where('firm_id', $firmId)
+                      ->orWhereHas('firms', fn($fq) => $fq->where('firms.id', $firmId));
+                })->first();
+            if (!$existingB) {
+                $existingB = \App\Models\Broker::create([
+                    'firm_id' => $firmId,
+                    'name'    => $bName,
+                    'status'  => 'active',
+                ]);
+                $existingB->syncFirms([$firmId]);
+            }
+            $brokerId = $existingB->id;
+            $brokerName = $existingB->name;
+        }
+
         $booking->update([
             'firm_id'          => $firmId,
             'property_id'      => $primaryPropId,
             'customer_id'      => $request->customer_id,
             'seller_id'        => $request->seller_id ?: null,
             'seller_name'      => $request->seller_name ?: null,
-            'broker_id'        => $request->broker_id ?: null,
-            'broker_name'      => $request->broker_name ?: null,
+            'broker_id'        => $brokerId,
+            'broker_name'      => $brokerName,
             'booking_type'     => $request->booking_type ?: 'booking',
             'booking_date'     => $request->booking_date,
             'total_amount'     => $request->total_amount,

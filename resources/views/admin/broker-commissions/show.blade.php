@@ -152,18 +152,26 @@
             <th>Associated Customer</th>
             <td>{{ $commission->customer->name ?? '-' }}</td>
         </tr>
+        @if($commission->booking_id)
         <tr>
             <th>Associated Booking</th>
             <td>
-                @if($commission->booking_id)
-                    <a href="{{ route('bookings.show', $commission->booking_id) }}" style="color:#60A5FA; text-decoration:none; font-weight:700;">
-                        Booking #{{ $commission->booking_id }}
-                    </a>
-                @else
-                    -
-                @endif
+                <a href="{{ route('bookings.show', $commission->booking_id) }}" style="color:#60A5FA; text-decoration:none; font-weight:700;">
+                    <i class="fa-solid fa-bookmark"></i> Booking #{{ $commission->booking_id }}
+                </a>
             </td>
         </tr>
+        @endif
+        @if($commission->property_sale_id)
+        <tr>
+            <th>Associated Property Sale</th>
+            <td>
+                <a href="{{ route('property-sales.show', $commission->property_sale_id) }}" style="color:#38BDF8; text-decoration:none; font-weight:700;">
+                    <i class="fa-solid fa-file-contract"></i> Property Sale Agreement #{{ $commission->property_sale_id }} {{ $commission->propertySale?->invoice_no ? '(' . $commission->propertySale->invoice_no . ')' : '' }}
+                </a>
+            </td>
+        </tr>
+        @endif
         <tr>
             <th>Commission Type</th>
             <td>{{ ucfirst($commission->commission_type) }}</td>

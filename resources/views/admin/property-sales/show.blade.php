@@ -300,6 +300,13 @@
                                 Note: {{ $propertySale->broker_notes }}
                             </div>
                         @endif
+                        @if($propertySale->brokerCommission)
+                            <div style="margin-top: 7px;">
+                                <a href="{{ route('broker-commissions.show', $propertySale->brokerCommission->id) }}" style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: #38BDF8; text-decoration: none; padding: 3px 8px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px;">
+                                    <i class="fa-solid fa-coins"></i> View Broker Commission #{{ $propertySale->brokerCommission->id }} &rarr;
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 @endif
             @else

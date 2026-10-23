@@ -116,7 +116,7 @@ class BrokerCommissionController extends Controller
             ->sum('commission_amount');
 
         // Query with filters
-        $query = BrokerCommission::with(['firm', 'broker', 'property.propertyMaster', 'property.project.propertyMaster', 'customer', 'booking']);
+        $query = BrokerCommission::with(['firm', 'broker', 'property.propertyMaster', 'property.project.propertyMaster', 'customer', 'booking', 'propertySale']);
 
         if (!$isAdmin) {
             $query->where('firm_id', $firmId);
@@ -141,6 +141,9 @@ class BrokerCommissionController extends Controller
                     $cq->where('name', 'like', '%' . $search . '%');
                 })->orWhereHas('firm', function ($fq) use ($search) {
                     $fq->where('firm_name', 'like', '%' . $search . '%');
+                })->orWhereHas('propertySale', function ($psq) use ($search) {
+                    $psq->where('invoice_no', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%');
                 });
             });
         }
@@ -242,7 +245,7 @@ class BrokerCommissionController extends Controller
 
     public function show($id)
     {
-        $commission = BrokerCommission::with(['firm', 'broker', 'property', 'customer', 'booking', 'creator'])
+        $commission = BrokerCommission::with(['firm', 'broker', 'property', 'customer', 'booking', 'propertySale', 'creator'])
             ->findOrFail($id);
 
         $this->authorise($commission);
@@ -299,6 +302,25 @@ class BrokerCommissionController extends Controller
             'status'            => $request->status ?? 'active',
         ]);
 
+        if ($commission->property_sale_id) {
+            $sale = \App\Models\PropertySale::find($commission->property_sale_id);
+            if ($sale) {
+                $saleStatus = match ($request->payment_status) {
+                    'paid'    => 'paid',
+                    'partial' => 'partial',
+                    default   => 'unpaid',
+                };
+                $sale->updateQuietly([
+                    'broker_id'                       => $request->broker_id,
+                    'broker_commission_type'           => $request->commission_type,
+                    'broker_commission_rate'           => ($request->commission_type === 'percentage') ? $request->commission_value : null,
+                    'broker_commission_amount'         => $request->commission_amount,
+                    'broker_commission_status'         => $saleStatus,
+                    'broker_commission_payment_date'   => $request->payment_date,
+                ]);
+            }
+        }
+
         if ($request->filled('firm_ids') && is_array($request->firm_ids)) {
             $commission->syncFirms($request->firm_ids);
         }
@@ -330,7 +352,7 @@ class BrokerCommissionController extends Controller
 
     private function getFilteredData(Request $request)
     {
-        $query = BrokerCommission::with(['firm', 'broker', 'property', 'customer', 'booking']);
+        $query = BrokerCommission::with(['firm', 'broker', 'property', 'customer', 'booking', 'propertySale']);
 
         $user = Auth::user();
         $isAdmin = $user && $user->isAdmin();
@@ -353,6 +375,9 @@ class BrokerCommissionController extends Controller
                     $cq->where('name', 'like', '%' . $search . '%');
                 })->orWhereHas('firm', function ($fq) use ($search) {
                     $fq->where('firm_name', 'like', '%' . $search . '%');
+                })->orWhereHas('propertySale', function ($psq) use ($search) {
+                    $psq->where('invoice_no', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%');
                 });
             });
         }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Broker;
+use App\Models\BrokerCommission;
 use App\Models\Customer;
 use App\Models\Firm;
 use App\Models\Payment;
@@ -130,6 +131,163 @@ class PropertySaleController extends Controller
                 }
             }
         }
+    }
+
+    /**
+     * Resolve existing registered broker or register a new broker if unregistered.
+     */
+    private function resolveOrCreateBroker(?int $brokerId, ?string $brokerName, ?string $brokerMobile, int $firmId, ?float $commissionPercentage = null, ?int $projectId = null): ?Broker
+    {
+        $brokerName = trim((string) $brokerName);
+        $brokerMobile = trim((string) $brokerMobile);
+        $cleanMobile = null;
+        if ($brokerMobile !== '') {
+            $digits = preg_replace('/[^0-9]/', '', $brokerMobile);
+            if (strlen($digits) === 10) {
+                $cleanMobile = $digits;
+            } elseif (strlen($digits) > 10) {
+                $cleanMobile = substr($digits, -10);
+            }
+        }
+
+        // 1. If explicit broker_id provided
+        if ($brokerId) {
+            $broker = Broker::find($brokerId);
+            if ($broker) {
+                $updates = [];
+                if ($cleanMobile && empty($broker->mobile)) {
+                    $updates['mobile'] = $cleanMobile;
+                }
+                if ($commissionPercentage && empty($broker->commission_percentage)) {
+                    $updates['commission_percentage'] = $commissionPercentage;
+                }
+                if (!empty($updates)) {
+                    $broker->update($updates);
+                }
+                $broker->syncFirms([$firmId]);
+                return $broker;
+            }
+        }
+
+        // 2. If no broker_id, but broker_name is given (Unregistered Broker)
+        if (empty($brokerName)) {
+            return null;
+        }
+
+        // Check if matching broker already exists by mobile or name
+        $existing = null;
+        if ($cleanMobile) {
+            $existing = Broker::where('mobile', $cleanMobile)->first();
+        }
+        if (!$existing) {
+            $existing = Broker::whereRaw('LOWER(name) = ?', [strtolower($brokerName)])
+                ->where(function ($q) use ($firmId) {
+                    $q->where('firm_id', $firmId)
+                      ->orWhereHas('firms', fn($fq) => $fq->where('firms.id', $firmId));
+                })->first();
+        }
+
+        if ($existing) {
+            $updates = [];
+            if ($cleanMobile && empty($existing->mobile)) {
+                $updates['mobile'] = $cleanMobile;
+            }
+            if ($commissionPercentage && empty($existing->commission_percentage)) {
+                $updates['commission_percentage'] = $commissionPercentage;
+            }
+            if (!empty($updates)) {
+                $existing->update($updates);
+            }
+            $existing->syncFirms([$firmId]);
+            return $existing;
+        }
+
+        // 3. Register the new broker into the 'brokers' table
+        $newBroker = Broker::create([
+            'firm_id'               => $firmId,
+            'project_id'            => $projectId,
+            'name'                  => $brokerName,
+            'mobile'                => $cleanMobile ?: null,
+            'commission_percentage' => $commissionPercentage,
+            'status'                => 'active',
+        ]);
+
+        $newBroker->syncFirms([$firmId]);
+
+        return $newBroker;
+    }
+
+    /**
+     * Create or sync BrokerCommission record linked to this PropertySale.
+     */
+    private function syncBrokerCommission(PropertySale $sale): ?BrokerCommission
+    {
+        // If no broker is set and no commission amount was entered, remove any stale commission
+        if (!$sale->broker_id && (float)($sale->broker_commission_amount ?? 0) <= 0) {
+            BrokerCommission::where('property_sale_id', $sale->id)->delete();
+            return null;
+        }
+
+        $brokerId = $sale->broker_id;
+        if (!$brokerId && $sale->broker_name) {
+            $b = $this->resolveOrCreateBroker(null, $sale->broker_name, $sale->broker_mobile, (int)$sale->firm_id);
+            if ($b) {
+                $brokerId = $b->id;
+                $sale->updateQuietly(['broker_id' => $brokerId]);
+            }
+        }
+
+        if (!$brokerId) {
+            return null;
+        }
+
+        // Map payment status from PropertySale ('unpaid', 'partial', 'paid') to BrokerCommission ('pending', 'partial', 'paid')
+        $commPaymentStatus = match (strtolower((string) $sale->broker_commission_status)) {
+            'paid'    => 'paid',
+            'partial' => 'partial',
+            default   => 'pending',
+        };
+
+        $commType = in_array($sale->broker_commission_type, ['percentage', 'fixed']) ? $sale->broker_commission_type : 'percentage';
+        $commValue = ($commType === 'percentage') ? (float)($sale->broker_commission_rate ?? 0) : (float)($sale->broker_commission_amount ?? 0);
+        $commAmount = (float)($sale->broker_commission_amount ?? 0);
+
+        if ($commAmount <= 0 && $commType === 'percentage' && $commValue > 0 && (float)$sale->sale_amount > 0) {
+            $commAmount = round(((float)$sale->sale_amount * $commValue) / 100, 2);
+        }
+
+        $paymentDate = $sale->broker_commission_payment_date 
+            ? $sale->broker_commission_payment_date->format('Y-m-d') 
+            : ($sale->sale_date ? $sale->sale_date->format('Y-m-d') : now()->toDateString());
+
+        $remarks = $sale->broker_notes 
+            ?: ('Property Sale: ' . ($sale->property_names ?: 'Property #' . $sale->property_id));
+
+        $commission = BrokerCommission::updateOrCreate(
+            ['property_sale_id' => $sale->id],
+            [
+                'firm_id'           => $sale->firm_id,
+                'broker_id'         => $brokerId,
+                'property_id'       => $sale->property_id,
+                'customer_id'       => $sale->customer_id,
+                'booking_id'        => null,
+                'property_sale_id'  => $sale->id,
+                'commission_type'   => $commType,
+                'commission_value'  => $commValue,
+                'commission_amount' => $commAmount,
+                'payment_status'    => $commPaymentStatus,
+                'payment_date'      => $paymentDate,
+                'remarks'           => $remarks,
+                'status'            => 'active',
+                'created_by'        => Auth::id() ?: session('user_id'),
+            ]
+        );
+
+        if ($sale->firm_id) {
+            $commission->syncFirms([$sale->firm_id]);
+        }
+
+        return $commission;
     }
 
     public function index(Request $request)
@@ -311,14 +469,11 @@ class PropertySaleController extends Controller
         $sellerId = $request->seller_id ?: null;
         $sellerName = $request->filled('seller_name') ? $request->seller_name : ($sellerId ? (\App\Models\Seller::find($sellerId)?->name) : null);
 
-        // Broker commission calculation
-        $brokerId = $request->broker_id ?: null;
-        $brokerName = $request->filled('broker_name') ? $request->broker_name : ($brokerId ? (\App\Models\Broker::find($brokerId)?->name) : null);
-        $brokerMobile = $request->filled('broker_mobile') ? $request->broker_mobile : ($brokerId ? (\App\Models\Broker::find($brokerId)?->mobile) : null);
+        // Broker commission calculation & unregistered broker resolution
         $brokerCommType = $request->broker_commission_type ?: 'percentage';
         $brokerCommRate = $request->filled('broker_commission_rate') ? floatval($request->broker_commission_rate) : null;
         $brokerCommAmount = $request->filled('broker_commission_amount') ? floatval($request->broker_commission_amount) : 0.0;
-        if (($brokerId || $brokerName) && $brokerCommType === 'percentage' && $brokerCommRate && $brokerCommAmount == 0 && $saleAmount > 0) {
+        if ($brokerCommType === 'percentage' && $brokerCommRate && $brokerCommAmount == 0 && $saleAmount > 0) {
             $brokerCommAmount = round(($saleAmount * $brokerCommRate) / 100, 2);
         }
         $brokerCommPaid = $request->filled('broker_commission_paid') ? floatval($request->broker_commission_paid) : 0.0;
@@ -337,6 +492,20 @@ class PropertySaleController extends Controller
                 $brokerCommStatus = 'unpaid';
             }
         }
+
+        // Unregistered / Registered Broker resolution
+        $firstProp = Property::find($request->property_id);
+        $resolvedBroker = $this->resolveOrCreateBroker(
+            $request->filled('broker_id') ? (int) $request->broker_id : null,
+            $request->broker_name,
+            $request->broker_mobile,
+            (int) $request->firm_id,
+            $brokerCommRate,
+            $firstProp?->project_id
+        );
+        $brokerId = $resolvedBroker?->id;
+        $brokerName = $request->filled('broker_name') ? $request->broker_name : ($resolvedBroker?->name ?? null);
+        $brokerMobile = $request->filled('broker_mobile') ? $request->broker_mobile : ($resolvedBroker?->mobile ?? null);
 
         $sale = PropertySale::create([
             'firm_id' => $request->firm_id,
@@ -380,6 +549,9 @@ class PropertySaleController extends Controller
 
         $this->updatePropertyStatus($sale, $submittedPropIds);
 
+        // Sync to BrokerCommission table
+        $this->syncBrokerCommission($sale);
+
         // Record initial booking payment if booking_amount > 0
         if ($bookingAmount > 0) {
             Payment::create([
@@ -420,6 +592,7 @@ class PropertySaleController extends Controller
             'properties.propertyMaster',
             'customer',
             'broker',
+            'brokerCommission',
             'payments',
         ]);
 
@@ -563,14 +736,11 @@ class PropertySaleController extends Controller
         $sellerId = $request->filled('seller_id') ? $request->seller_id : ($request->has('seller_id') ? null : $propertySale->seller_id);
         $sellerName = $request->filled('seller_name') ? $request->seller_name : ($sellerId ? ($propertySale->seller_id == $sellerId ? ($propertySale->seller_name ?: \App\Models\Seller::find($sellerId)?->name) : (\App\Models\Seller::find($sellerId)?->name ?? null)) : null);
 
-        // Broker commission calculation
-        $brokerId = $request->filled('broker_id') ? $request->broker_id : ($request->has('broker_id') ? null : $propertySale->broker_id);
-        $brokerName = $request->filled('broker_name') ? $request->broker_name : ($brokerId ? ($propertySale->broker_id == $brokerId ? ($propertySale->broker_name ?: \App\Models\Broker::find($brokerId)?->name) : (\App\Models\Broker::find($brokerId)?->name ?? null)) : null);
-        $brokerMobile = $request->filled('broker_mobile') ? $request->broker_mobile : ($brokerId ? ($propertySale->broker_id == $brokerId ? ($propertySale->broker_mobile ?: \App\Models\Broker::find($brokerId)?->mobile) : (\App\Models\Broker::find($brokerId)?->mobile ?? null)) : ($request->has('broker_mobile') ? null : $propertySale->broker_mobile));
+        // Broker commission calculation & unregistered broker resolution
         $brokerCommType = $request->filled('broker_commission_type') ? $request->broker_commission_type : ($propertySale->broker_commission_type ?? 'percentage');
         $brokerCommRate = $request->filled('broker_commission_rate') ? floatval($request->broker_commission_rate) : ($request->has('broker_commission_rate') ? null : $propertySale->broker_commission_rate);
         $brokerCommAmount = $request->filled('broker_commission_amount') ? floatval($request->broker_commission_amount) : ($propertySale->broker_commission_amount ?? 0.0);
-        if (($brokerId || $brokerName) && $brokerCommType === 'percentage' && $brokerCommRate && ($brokerCommAmount == 0 || $request->filled('broker_commission_rate')) && $saleAmount > 0) {
+        if ($brokerCommType === 'percentage' && $brokerCommRate && ($brokerCommAmount == 0 || $request->filled('broker_commission_rate')) && $saleAmount > 0) {
             $brokerCommAmount = round(($saleAmount * $brokerCommRate) / 100, 2);
         }
         $brokerCommPaid = $request->filled('broker_commission_paid') ? floatval($request->broker_commission_paid) : ($propertySale->broker_commission_paid ?? 0.0);
@@ -589,6 +759,24 @@ class PropertySaleController extends Controller
                 $brokerCommStatus = 'unpaid';
             }
         }
+
+        // Unregistered / Registered Broker resolution
+        $inputBrokerId = $request->filled('broker_id') ? (int) $request->broker_id : ($request->has('broker_id') ? null : $propertySale->broker_id);
+        $inputBrokerName = $request->filled('broker_name') ? $request->broker_name : ($request->has('broker_name') ? null : $propertySale->broker_name);
+        $inputBrokerMobile = $request->filled('broker_mobile') ? $request->broker_mobile : ($request->has('broker_mobile') ? null : $propertySale->broker_mobile);
+
+        $firstProp = Property::find($request->property_id);
+        $resolvedBroker = $this->resolveOrCreateBroker(
+            $inputBrokerId,
+            $inputBrokerName,
+            $inputBrokerMobile,
+            (int) $request->firm_id,
+            $brokerCommRate,
+            $firstProp?->project_id
+        );
+        $brokerId = $resolvedBroker?->id;
+        $brokerName = $inputBrokerName ?: ($resolvedBroker?->name ?? null);
+        $brokerMobile = $inputBrokerMobile ?: ($resolvedBroker?->mobile ?? null);
 
         // Collect old properties to release removed ones
         $oldPropIds = $propertySale->all_properties->pluck('id')->toArray();
@@ -639,6 +827,9 @@ class PropertySaleController extends Controller
         }
 
         $this->updatePropertyStatus($propertySale, $submittedPropIds);
+
+        // Sync to BrokerCommission table
+        $this->syncBrokerCommission($propertySale);
 
         return redirect()->route('property-sales.index')->with('success', 'Sales agreement updated successfully.');
     }
@@ -804,6 +995,7 @@ class PropertySaleController extends Controller
             }
         }
 
+        BrokerCommission::where('property_sale_id', $propertySale->id)->delete();
         $propertySale->properties()->detach();
         $propertySale->delete();
 

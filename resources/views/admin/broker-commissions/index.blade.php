@@ -311,6 +311,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                                     {{ $c->property->property_name }} ({{ $c->property->property_code }})
                                 </div>
                             @endif
+                            @if($c->property_sale_id)
+                                <div style="font-size: 11px; margin-top: 4px;">
+                                    <a href="{{ route('property-sales.show', $c->property_sale_id) }}" style="color: #38BDF8; font-weight: 700; text-decoration: none;" title="View Property Sale Agreement">
+                                        <i class="fa-solid fa-file-contract"></i> Sale #{{ $c->property_sale_id }} {{ $c->propertySale?->invoice_no ? '(' . $c->propertySale->invoice_no . ')' : '' }}
+                                    </a>
+                                </div>
+                            @elseif($c->booking_id)
+                                <div style="font-size: 11px; margin-top: 4px;">
+                                    <a href="{{ route('bookings.show', $c->booking_id) }}" style="color: #A78BFA; font-weight: 700; text-decoration: none;" title="View Booking">
+                                        <i class="fa-solid fa-bookmark"></i> Booking #{{ $c->booking_id }}
+                                    </a>
+                                </div>
+                            @endif
                         </td>
                         <td>{{ $c->customer->name ?? '-' }}</td>
                         <td>

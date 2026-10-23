@@ -14,6 +14,7 @@ class BrokerCommission extends Model
         'property_id',
         'customer_id',
         'booking_id',
+        'property_sale_id',
         'commission_type',
         'commission_value',
         'commission_amount',
@@ -24,10 +25,11 @@ class BrokerCommission extends Model
         'created_by',
     ];
 
-    public function firm()       { return $this->belongsTo(Firm::class); }
-    public function broker()     { return $this->belongsTo(Broker::class); }
-    public function property()   { return $this->belongsTo(Property::class); }
-    public function customer()   { return $this->belongsTo(Customer::class); }
-    public function booking()    { return $this->belongsTo(Booking::class); }
-    public function creator()    { return $this->belongsTo(User::class, 'created_by'); }
+    public function firm()         { return $this->belongsTo(Firm::class); }
+    public function broker()       { return $this->belongsTo(Broker::class); }
+    public function property()     { return $this->belongsTo(Property::class); }
+    public function customer()     { return $this->belongsTo(Customer::class); }
+    public function booking()      { return $this->belongsTo(Booking::class); }
+    public function propertySale() { return $this->belongsTo(PropertySale::class, 'property_sale_id'); }
+    public function creator()      { return $this->belongsTo(User::class, 'created_by'); }
 }
