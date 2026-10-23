@@ -795,18 +795,28 @@ class DashboardController extends Controller
         }
 
         if (!empty($fromDate)) {
-            $query->whereDate('payment_date', '>=', $fromDate);
+            $query->where(function($q) use ($fromDate) {
+                $q->whereDate('payment_date', '>=', $fromDate)
+                  ->orWhere(function($sub) use ($fromDate) {
+                      $sub->whereNull('payment_date')->whereDate('created_at', '>=', $fromDate);
+                  });
+            });
         }
         if (!empty($toDate)) {
-            $query->whereDate('payment_date', '<=', $toDate);
+            $query->where(function($q) use ($toDate) {
+                $q->whereDate('payment_date', '<=', $toDate)
+                  ->orWhere(function($sub) use ($toDate) {
+                      $sub->whereNull('payment_date')->whereDate('created_at', '<=', $toDate);
+                  });
+            });
         }
 
         if ($isFiltered) {
             $totalAmount = (float) (clone $query)->sum('payment_amount');
-            $payments = $query->orderBy('payment_date', 'desc')->orderBy('id', 'desc')->limit(50)->get();
+            $payments = $query->orderByRaw('COALESCE(payment_date, DATE(created_at)) DESC')->orderBy('id', 'desc')->limit(50)->get();
         } else {
             $totalAmount = (float) (clone $query)->sum('payment_amount');
-            $payments = $query->orderBy('payment_date', 'desc')->orderBy('id', 'desc')->limit(10)->get();
+            $payments = $query->orderByRaw('COALESCE(payment_date, DATE(created_at)) DESC')->orderBy('id', 'desc')->limit(10)->get();
         }
 
         return [
