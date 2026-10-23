@@ -913,6 +913,60 @@ class PropertySaleController extends Controller
         return redirect()->back()->with('success', 'Installment payment of ₹' . number_format($newPaymentAmt, 2) . ' recorded successfully.');
     }
 
+    public function storeBrokerPayment(Request $request, PropertySale $propertySale)
+    {
+        $user = Auth::user();
+        $isAdmin = $user && $user->isAdmin();
+        $firmId = $user ? $user->firm_id : session('firm_id');
+
+        if (!$isAdmin && $propertySale->firm_id != $firmId) {
+            abort(403);
+        }
+
+        $commTotal = (float) ($propertySale->broker_commission_amount ?? 0);
+        $currentPaid = (float) ($propertySale->broker_commission_paid ?? 0);
+        $currentDue = max(0.0, round($commTotal - $currentPaid, 2));
+
+        $validated = $request->validate([
+            'broker_payment_amount' => 'required|numeric|min:0.01',
+            'broker_payment_date'   => 'required|date',
+            'broker_payment_mode'   => 'required|string|max:100',
+            'broker_payment_notes'  => 'nullable|string|max:1000',
+        ]);
+
+        $payAmount = (float) $validated['broker_payment_amount'];
+        $newPaid = round($currentPaid + $payAmount, 2);
+        $newDue = max(0.0, round($commTotal - $newPaid, 2));
+
+        $status = 'unpaid';
+        if ($commTotal > 0) {
+            if ($newPaid >= $commTotal) {
+                $status = 'paid';
+            } elseif ($newPaid > 0) {
+                $status = 'partial';
+            }
+        }
+
+        $newNotes = $propertySale->broker_notes;
+        $dateStr = \Carbon\Carbon::parse($validated['broker_payment_date'])->format('d M Y');
+        $entryNote = "[{$dateStr}] Paid ₹" . number_format($payAmount, 2) . " via " . $validated['broker_payment_mode'] . (!empty($validated['broker_payment_notes']) ? " ({$validated['broker_payment_notes']})" : "");
+        $newNotes = $newNotes ? ($newNotes . "\n" . $entryNote) : $entryNote;
+
+        $propertySale->update([
+            'broker_commission_paid'         => $newPaid,
+            'broker_commission_due'          => $newDue,
+            'broker_commission_status'        => $status,
+            'broker_commission_payment_mode' => $validated['broker_payment_mode'],
+            'broker_commission_payment_date' => $validated['broker_payment_date'],
+            'broker_notes'                   => $newNotes,
+        ]);
+
+        // Sync to BrokerCommission table
+        $this->syncBrokerCommission($propertySale);
+
+        return redirect()->back()->with('success', 'Broker payment of ₹' . number_format($payAmount, 2) . ' recorded successfully. Remaining Due: ₹' . number_format($newDue, 2));
+    }
+
     public function updatePayment(Request $request, PropertySale $propertySale, Payment $payment)
     {
         $user = Auth::user();

@@ -285,6 +285,19 @@
                             <span style="color: #34D399;">Paid: ₹{{ number_format($propertySale->broker_commission_paid ?? 0, 2) }}</span> | 
                             <span style="color: #FBBF24;">Due: ₹{{ number_format($propertySale->broker_commission_due ?? 0, 2) }}</span>
                         </div>
+                        @if(($propertySale->broker_commission_due ?? 0) > 0)
+                            <div style="margin-top: 6px;">
+                                <button type="button" onclick="openBrokerPaymentModal()" style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: #FFFFFF; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border: 1px solid #FBBF24; padding: 4px 10px; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);">
+                                    <i class="fa-solid fa-hand-holding-dollar"></i> Pay Broker Due (₹{{ number_format($propertySale->broker_commission_due, 2) }})
+                                </button>
+                            </div>
+                        @elseif(($propertySale->broker_commission_paid ?? 0) > 0 && ($propertySale->broker_commission_paid ?? 0) >= ($propertySale->broker_commission_amount ?? 0))
+                            <div style="margin-top: 6px;">
+                                <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #34D399; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 2px 8px; border-radius: 6px;">
+                                    <i class="fa-solid fa-circle-check"></i> Broker Fully Paid (100%)
+                                </span>
+                            </div>
+                        @endif
                         @if($propertySale->broker_commission_payment_mode || $propertySale->broker_commission_payment_date)
                             <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">
                                 @if($propertySale->broker_commission_payment_mode)
@@ -936,12 +949,86 @@
     </div>
 </div>
 
+{{-- Record Broker Payment Modal --}}
+<div class="modal-overlay" id="brokerPaymentModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-hand-holding-dollar" style="color: #F59E0B;"></i> Record Broker Commission Payment</h3>
+            <button type="button" class="modal-close-btn" onclick="closeBrokerPaymentModal()">&times;</button>
+        </div>
+        <form method="POST" action="{{ route('property-sales.broker-payment.store', $propertySale->id) }}">
+            @csrf
+            
+            <div style="background: rgba(167, 139, 250, 0.10); border: 1px solid rgba(167, 139, 250, 0.25); border-radius: 12px; padding: 14px; margin-bottom: 18px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span style="color: #DDD6FE;">Broker:</span>
+                    <strong style="color: #FFFFFF;">{{ $propertySale->broker->name ?? $propertySale->broker_name }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span style="color: #DDD6FE;">Total Commission:</span>
+                    <strong style="color: #A78BFA;">₹ {{ number_format($propertySale->broker_commission_amount ?? 0, 2) }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span style="color: #DDD6FE;">Already Paid:</span>
+                    <strong style="color: #34D399;">₹ {{ number_format($propertySale->broker_commission_paid ?? 0, 2) }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; padding-top: 4px; border-top: 1px dashed rgba(255,255,255,0.15);">
+                    <span style="color: #FBBF24; font-weight: 700;">Remaining Due:</span>
+                    <strong style="color: #FBBF24; font-size: 15px;">₹ {{ number_format($propertySale->broker_commission_due ?? 0, 2) }}</strong>
+                </div>
+            </div>
+
+            <div class="m-form-row">
+                <div class="m-form-group">
+                    <label class="m-form-label">Payment Amount (₹) <span style="color:#EF4444;">*</span></label>
+                    <input type="number" step="0.01" min="0.01" max="{{ $propertySale->broker_commission_due ?? 0 }}" name="broker_payment_amount" class="m-form-control" value="{{ $propertySale->broker_commission_due ?? '' }}" required placeholder="0.00">
+                </div>
+                <div class="m-form-group">
+                    <label class="m-form-label">Payment Date <span style="color:#EF4444;">*</span></label>
+                    <input type="date" name="broker_payment_date" class="m-form-control" value="{{ date('Y-m-d') }}" required>
+                </div>
+            </div>
+
+            <div class="m-form-row">
+                <div class="m-form-group">
+                    <label class="m-form-label">Payment Mode <span style="color:#EF4444;">*</span></label>
+                    <select name="broker_payment_mode" class="m-form-control" required>
+                        <option value="Cash">Cash</option>
+                        <option value="Bank Transfer / RTGS">Bank Transfer / NEFT / RTGS</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="UPI">UPI / GPay / PhonePe</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="m-form-group">
+                    <label class="m-form-label">Ref / Cheque No. / Notes</label>
+                    <input type="text" name="broker_payment_notes" class="m-form-control" placeholder="e.g. Paid in cash / Cheque #123456">
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button type="button" class="btn-outline" onclick="closeBrokerPaymentModal()">Cancel</button>
+                <button type="submit" class="btn-pay-record" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important; border: 1px solid #FBBF24 !important;">
+                    <i class="fa-solid fa-check"></i> Record Broker Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openRecordPaymentModal() {
     document.getElementById('recordPaymentModal').classList.add('active');
 }
 function closeRecordPaymentModal() {
     document.getElementById('recordPaymentModal').classList.remove('active');
+}
+
+function openBrokerPaymentModal() {
+    document.getElementById('brokerPaymentModal').classList.add('active');
+}
+function closeBrokerPaymentModal() {
+    document.getElementById('brokerPaymentModal').classList.remove('active');
 }
 
 function openEditPaymentModal(btn) {
@@ -971,6 +1058,7 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeRecordPaymentModal();
         closeEditPaymentModal();
+        closeBrokerPaymentModal();
     }
 });
 document.getElementById('recordPaymentModal')?.addEventListener('click', function(e) {
@@ -978,6 +1066,9 @@ document.getElementById('recordPaymentModal')?.addEventListener('click', functio
 });
 document.getElementById('editPaymentModal')?.addEventListener('click', function(e) {
     if (e.target === this) closeEditPaymentModal();
+});
+document.getElementById('brokerPaymentModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeBrokerPaymentModal();
 });
 </script>
 @endsection

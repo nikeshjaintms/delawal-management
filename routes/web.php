@@ -139,6 +139,7 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
     Route::get('property-sales/export-pdf', [PropertySaleController::class, 'exportPdf'])->name('property-sales.pdf')->middleware(['permission:property_sales_view']);
     Route::get('property-sales/{propertySale}/pdf', [PropertySaleController::class, 'downloadPdf'])->name('property-sales.receipt-pdf')->middleware(['permission:property_sales_view']);
     Route::post('property-sales/{propertySale}/payments', [PropertySaleController::class, 'storePayment'])->name('property-sales.payments.store')->middleware(['permission:property_sales_view']);
+    Route::post('property-sales/{propertySale}/broker-payment', [PropertySaleController::class, 'storeBrokerPayment'])->name('property-sales.broker-payment.store')->middleware(['permission:property_sales_view']);
     Route::put('property-sales/{propertySale}/payments/{payment}', [PropertySaleController::class, 'updatePayment'])->name('property-sales.payments.update')->middleware(['permission:property_sales_view']);
     Route::delete('property-sales/{propertySale}/payments/{payment}', [PropertySaleController::class, 'destroyPayment'])->name('property-sales.payments.destroy')->middleware(['permission:property_sales_view']);
     Route::resource('property-sales', PropertySaleController::class)->middleware(['permission:property_sales_view']);
