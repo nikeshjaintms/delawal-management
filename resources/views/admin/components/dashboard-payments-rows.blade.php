@@ -4,8 +4,11 @@
             <div style="font-weight: 700; color: #FFFFFF;">
                 {{ $payment->payment_date ? \Carbon\Carbon::parse($payment->payment_date)->format('d M Y') : '-' }}
             </div>
-            @if($payment->created_at && (!$payment->payment_date || \Carbon\Carbon::parse($payment->payment_date)->toDateString() !== $payment->created_at->toDateString()))
-                <small style="color: #64748B; font-size: 10px;">Rec: {{ $payment->created_at->format('d M') }}</small>
+            @if($payment->created_at)
+                <small style="color: #94A3B8; font-size: 11px; display: inline-flex; align-items: center; gap: 3px; margin-top: 3px;" title="Recorded in system on {{ $payment->created_at->format('d M Y, h:i A') }}">
+                    <i class="fa-regular fa-clock" style="font-size: 10px; color: #38BDF8;"></i>
+                    Rec: <strong style="color: #CBD5E1;">{{ $payment->created_at->format('d M') }}</strong>
+                </small>
             @endif
         </td>
         <td>

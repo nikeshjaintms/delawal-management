@@ -324,6 +324,7 @@ class DashboardController extends Controller
         $paymentFromDate    = $paymentData['from_date'];
         $paymentToDate      = $paymentData['to_date'];
         $paymentPreset      = $paymentData['preset'];
+        $paymentDateType    = $paymentData['payment_date_type'];
         $paymentIsFiltered  = $paymentData['is_filtered'];
         $paymentTotalAmount = $paymentData['total_amount'];
         $paymentLabel       = $paymentData['label'];
@@ -334,7 +335,7 @@ class DashboardController extends Controller
             'totalCustomers', 'totalProperties', 'availableProperties', 'bookedProperties',
             'soldProperties', 'rentedProperties', 'totalBookings', 'portfolioVal', 'totalReceivedAmt',
             'totalExpenses', 'netProfit', 'totalPendingAmt', 'recentCustomers',
-            'recentPayments', 'paymentData', 'paymentFromDate', 'paymentToDate', 'paymentPreset', 'paymentIsFiltered', 'paymentTotalAmount', 'paymentLabel',
+            'recentPayments', 'paymentData', 'paymentFromDate', 'paymentToDate', 'paymentPreset', 'paymentDateType', 'paymentIsFiltered', 'paymentTotalAmount', 'paymentLabel',
             'totalProjects', 'activeProjects',
             'totalSalesRevenue', 'totalSalesPurchaseCost', 'totalSalesGrossProfit',
             'totalSalesCommission', 'totalSalesProfit', 'salesProfitMargin', 'totalSoldUnitsCount',
@@ -655,6 +656,7 @@ class DashboardController extends Controller
         $paymentFromDate    = $paymentData['from_date'];
         $paymentToDate      = $paymentData['to_date'];
         $paymentPreset      = $paymentData['preset'];
+        $paymentDateType    = $paymentData['payment_date_type'];
         $paymentIsFiltered  = $paymentData['is_filtered'];
         $paymentTotalAmount = $paymentData['total_amount'];
         $paymentLabel       = $paymentData['label'];
@@ -671,7 +673,7 @@ class DashboardController extends Controller
             'totalPurchases', 'totalLandPurchases', 'totalLandPurchaseCount', 'totalMaterialPurchases',
             'totalLoans', 'totalLoanAmount', 'pendingLoanAmt',
             'totalMaterials', 'lowStockCount', 'outStockCount',
-            'recentCustomers', 'recentPayments', 'paymentData', 'paymentFromDate', 'paymentToDate', 'paymentPreset', 'paymentIsFiltered', 'paymentTotalAmount', 'paymentLabel',
+            'recentCustomers', 'recentPayments', 'paymentData', 'paymentFromDate', 'paymentToDate', 'paymentPreset', 'paymentDateType', 'paymentIsFiltered', 'paymentTotalAmount', 'paymentLabel',
             'totalProjects', 'activeProjects',
             'totalSalesRevenue', 'totalSalesPurchaseCost', 'totalSalesGrossProfit',
             'totalSalesCommission', 'totalSalesProfit', 'salesProfitMargin', 'totalSoldUnitsCount',
@@ -709,15 +711,16 @@ class DashboardController extends Controller
         ])->render();
 
         return response()->json([
-            'status'       => 'success',
-            'html'         => $html,
-            'total_amount' => number_format($paymentData['total_amount'], 2),
-            'count'        => $paymentData['count'],
-            'is_filtered'  => $paymentData['is_filtered'],
-            'from_date'    => $paymentData['from_date'],
-            'to_date'      => $paymentData['to_date'],
-            'preset'       => $paymentData['preset'],
-            'label'        => $paymentData['label'],
+            'status'            => 'success',
+            'html'              => $html,
+            'total_amount'      => number_format($paymentData['total_amount'], 2),
+            'count'             => $paymentData['count'],
+            'is_filtered'       => $paymentData['is_filtered'],
+            'from_date'         => $paymentData['from_date'],
+            'to_date'           => $paymentData['to_date'],
+            'preset'            => $paymentData['preset'],
+            'payment_date_type' => $paymentData['payment_date_type'],
+            'label'             => $paymentData['label'],
         ]);
     }
 
@@ -747,31 +750,32 @@ class DashboardController extends Controller
         $preset   = $request->get('payment_preset', 'direct');
         $fromDate = $request->get('payment_from_date');
         $toDate   = $request->get('payment_to_date');
+        $dateType = $request->get('payment_date_type', 'any');
 
         if ($preset === 'today') {
-            $fromDate = now()->toDateString();
-            $toDate   = now()->toDateString();
-            $label    = 'Today (' . now()->format('d M Y') . ')';
+            $fromDate = $request->get('payment_from_date') ?: now()->toDateString();
+            $toDate   = $request->get('payment_to_date') ?: now()->toDateString();
+            $label    = 'Today (' . \Carbon\Carbon::parse($fromDate)->format('d M Y') . ')';
         } elseif ($preset === 'yesterday') {
-            $fromDate = now()->subDay()->toDateString();
-            $toDate   = now()->subDay()->toDateString();
-            $label    = 'Yesterday (' . now()->subDay()->format('d M Y') . ')';
+            $fromDate = $request->get('payment_from_date') ?: now()->subDay()->toDateString();
+            $toDate   = $request->get('payment_to_date') ?: now()->subDay()->toDateString();
+            $label    = 'Yesterday (' . \Carbon\Carbon::parse($fromDate)->format('d M Y') . ')';
         } elseif ($preset === 'this_week') {
-            $fromDate = now()->startOfWeek()->toDateString();
-            $toDate   = now()->endOfWeek()->toDateString();
-            $label    = 'This Week (' . now()->startOfWeek()->format('d M') . ' - ' . now()->endOfWeek()->format('d M Y') . ')';
+            $fromDate = $request->get('payment_from_date') ?: now()->startOfWeek()->toDateString();
+            $toDate   = $request->get('payment_to_date') ?: now()->endOfWeek()->toDateString();
+            $label    = 'This Week (' . \Carbon\Carbon::parse($fromDate)->format('d M') . ' - ' . \Carbon\Carbon::parse($toDate)->format('d M Y') . ')';
         } elseif ($preset === 'this_month') {
-            $fromDate = now()->startOfMonth()->toDateString();
-            $toDate   = now()->endOfMonth()->toDateString();
-            $label    = 'This Month (' . now()->format('M Y') . ')';
+            $fromDate = $request->get('payment_from_date') ?: now()->startOfMonth()->toDateString();
+            $toDate   = $request->get('payment_to_date') ?: now()->endOfMonth()->toDateString();
+            $label    = 'This Month (' . \Carbon\Carbon::parse($fromDate)->format('M Y') . ')';
         } elseif ($preset === 'last_month') {
-            $fromDate = now()->subMonth()->startOfMonth()->toDateString();
-            $toDate   = now()->subMonth()->endOfMonth()->toDateString();
-            $label    = 'Last Month (' . now()->subMonth()->format('M Y') . ')';
+            $fromDate = $request->get('payment_from_date') ?: now()->subMonth()->startOfMonth()->toDateString();
+            $toDate   = $request->get('payment_to_date') ?: now()->subMonth()->endOfMonth()->toDateString();
+            $label    = 'Last Month (' . \Carbon\Carbon::parse($fromDate)->format('M Y') . ')';
         } elseif ($preset === 'this_year') {
-            $fromDate = now()->startOfYear()->toDateString();
-            $toDate   = now()->endOfYear()->toDateString();
-            $label    = 'This Year (' . now()->format('Y') . ')';
+            $fromDate = $request->get('payment_from_date') ?: now()->startOfYear()->toDateString();
+            $toDate   = $request->get('payment_to_date') ?: now()->endOfYear()->toDateString();
+            $label    = 'This Year (' . \Carbon\Carbon::parse($fromDate)->format('Y') . ')';
         } elseif (!empty($fromDate) || !empty($toDate)) {
             $preset   = 'custom';
             $labelFrom = $fromDate ? \Carbon\Carbon::parse($fromDate)->format('d M Y') : 'Start';
@@ -794,40 +798,47 @@ class DashboardController extends Controller
             $query->whereIn('property_id', $plotIds);
         }
 
-        if (!empty($fromDate)) {
-            $query->where(function($q) use ($fromDate) {
-                $q->whereDate('payment_date', '>=', $fromDate)
-                  ->orWhere(function($sub) use ($fromDate) {
-                      $sub->whereNull('payment_date')->whereDate('created_at', '>=', $fromDate);
-                  });
-            });
-        }
-        if (!empty($toDate)) {
-            $query->where(function($q) use ($toDate) {
-                $q->whereDate('payment_date', '<=', $toDate)
-                  ->orWhere(function($sub) use ($toDate) {
-                      $sub->whereNull('payment_date')->whereDate('created_at', '<=', $toDate);
-                  });
-            });
+        if ($isFiltered && (!empty($fromDate) || !empty($toDate))) {
+            if ($dateType === 'record') {
+                // Filter strictly by recorded date in system (created_at)
+                if (!empty($fromDate)) $query->whereDate('created_at', '>=', $fromDate);
+                if (!empty($toDate))   $query->whereDate('created_at', '<=', $toDate);
+            } elseif ($dateType === 'payment') {
+                // Filter strictly by cheque/payment transaction date (payment_date)
+                if (!empty($fromDate)) $query->whereDate('payment_date', '>=', $fromDate);
+                if (!empty($toDate))   $query->whereDate('payment_date', '<=', $toDate);
+            } else {
+                // Default ('any'): Match if payment_date is in range OR recorded date (created_at) is in range
+                $query->where(function($q) use ($fromDate, $toDate) {
+                    $q->where(function($sub) use ($fromDate, $toDate) {
+                        if (!empty($fromDate)) $sub->whereDate('payment_date', '>=', $fromDate);
+                        if (!empty($toDate))   $sub->whereDate('payment_date', '<=', $toDate);
+                    })->orWhere(function($sub) use ($fromDate, $toDate) {
+                        if (!empty($fromDate)) $sub->whereDate('created_at', '>=', $fromDate);
+                        if (!empty($toDate))   $sub->whereDate('created_at', '<=', $toDate);
+                    });
+                });
+            }
         }
 
         if ($isFiltered) {
             $totalAmount = (float) (clone $query)->sum('payment_amount');
-            $payments = $query->orderByRaw('COALESCE(payment_date, DATE(created_at)) DESC')->orderBy('id', 'desc')->limit(50)->get();
+            $payments = $query->orderBy('id', 'desc')->limit(50)->get();
         } else {
             $totalAmount = (float) (clone $query)->sum('payment_amount');
-            $payments = $query->orderByRaw('COALESCE(payment_date, DATE(created_at)) DESC')->orderBy('id', 'desc')->limit(10)->get();
+            $payments = $query->orderBy('id', 'desc')->limit(10)->get();
         }
 
         return [
-            'payments'     => $payments,
-            'total_amount' => $totalAmount,
-            'is_filtered'  => $isFiltered,
-            'from_date'    => $fromDate,
-            'to_date'      => $toDate,
-            'preset'       => $preset,
-            'label'        => $label,
-            'count'        => $payments->count(),
+            'payments'          => $payments,
+            'total_amount'      => $totalAmount,
+            'is_filtered'       => $isFiltered,
+            'from_date'         => $fromDate,
+            'to_date'           => $toDate,
+            'preset'            => $preset,
+            'payment_date_type' => $dateType,
+            'label'             => $label,
+            'count'             => $payments->count(),
         ];
     }
 }

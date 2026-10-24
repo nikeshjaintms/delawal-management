@@ -1393,6 +1393,8 @@
     }
 
     function resetPaymentDateFilter() {
+        var dt = document.getElementById('paymentDateType');
+        if (dt) dt.value = 'any';
         applyPaymentPreset('direct');
     }
 
@@ -2297,8 +2299,16 @@
                         @endif
                         @if(request('project_id'))
                             <input type="hidden" name="project_id" value="{{ request('project_id') }}">
-                        @endif
                         <input type="hidden" name="payment_preset" id="paymentPresetInput" value="{{ $paymentPreset ?? 'direct' }}">
+
+                        <div class="pdf-input-group">
+                            <label><i class="fa-solid fa-layer-group"></i> Filter By:</label>
+                            <select name="payment_date_type" id="paymentDateType" class="pdf-date-input" onchange="fetchDashboardPayments()" style="cursor: pointer; padding: 4px 6px;">
+                                <option value="any" {{ ($paymentDateType ?? 'any') === 'any' ? 'selected' : '' }}>Record OR Payment Date</option>
+                                <option value="record" {{ ($paymentDateType ?? '') === 'record' ? 'selected' : '' }}>Record Date (Rec:)</option>
+                                <option value="payment" {{ ($paymentDateType ?? '') === 'payment' ? 'selected' : '' }}>Payment Date</option>
+                            </select>
+                        </div>
 
                         <div class="pdf-input-group">
                             <label><i class="fa-regular fa-calendar"></i> From:</label>
