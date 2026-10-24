@@ -64,7 +64,7 @@
             <i class="fa-solid fa-chart-line"></i> Total in Selected Period ({{ $recentPayments->count() }} Payments)
         </td>
         <td class="amt-strong" style="color: #10B981; font-size: 14px; padding: 10px 14px; white-space: nowrap;">
-            ₹{{ number_format($paymentTotalAmount, 2) }}
+            ₹{{ number_format($paymentTotalAmount ?? 0, 2) }}
         </td>
         <td style="padding: 10px 14px;">
             <span class="ds-badge success">Filtered</span>

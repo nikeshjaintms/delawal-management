@@ -2045,6 +2045,7 @@
                         @endif
                         @if(request('project_id'))
                             <input type="hidden" name="project_id" value="{{ request('project_id') }}">
+                        @endif
                         <input type="hidden" name="payment_preset" id="paymentPresetInput" value="{{ $paymentPreset ?? 'direct' }}">
 
                         <div class="pdf-input-group">

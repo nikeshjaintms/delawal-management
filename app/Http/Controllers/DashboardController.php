@@ -741,9 +741,10 @@ class DashboardController extends Controller
                 'is_filtered'  => false,
                 'from_date'    => null,
                 'to_date'      => null,
-                'preset'       => 'direct',
-                'label'        => 'Direct (Recent Payments)',
-                'count'        => 0,
+                'preset'            => 'direct',
+                'payment_date_type' => 'any',
+                'label'             => 'Direct (Recent Payments)',
+                'count'             => 0,
             ];
         }
 
