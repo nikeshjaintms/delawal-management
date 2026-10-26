@@ -1453,7 +1453,7 @@
             @elseif($filterType === 'project' && $selectedProject)
                 {{ $selectedProject->project_name }} — Financials &amp; Profit Analysis
             @else
-                Sales &amp; Profit Performance (Lidhi Price - Sell Price = Profit)
+                Sales &amp; Profit Performance
             @endif
         </h3>
         <div class="kpi-section-divider"></div>
