@@ -120,7 +120,7 @@ class LoanReportController extends Controller
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            fputcsv($handle, ['Delawala Properties & Management - Loan Report']);
+            fputcsv($handle, [getActiveFirmName() . ' - Loan Report']);
             fputcsv($handle, ['Generated on', date('d M Y, h:i A')]);
             fputcsv($handle, []);
 

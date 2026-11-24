@@ -52,7 +52,7 @@
         <div class="info-row"><span class="info-label">Scheme Name:</span><span class="info-val"><strong>{{ $project->project_name }}</strong></span></div>
         <div class="info-row"><span class="info-label">Scheme Code:</span><span class="info-val">{{ $project->project_code ?: '—' }}</span></div>
         <div class="info-row"><span class="info-label">Development Type:</span><span class="info-val">{{ ucfirst($project->project_type ?: 'Plotted Development') }}</span></div>
-        <div class="info-row"><span class="info-label">Managing Firm:</span><span class="info-val">{{ $project->firm->firm_name ?? 'Delawala Infrastructure' }}</span></div>
+        <div class="info-row"><span class="info-label">Managing Firm:</span><span class="info-val">{{ $project->firm->firm_name ?? '—' }}</span></div>
         <div class="info-row"><span class="info-label">Development Status:</span><span class="info-val"><span class="badge badge-success">{{ ucfirst($project->status ?: 'Active') }}</span></span></div>
     </div>
     <div class="grid-col">

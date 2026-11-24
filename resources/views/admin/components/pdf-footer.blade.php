@@ -2,10 +2,12 @@
     $footerNote = $note ?? 'Confidential & Proprietary • Delawala Management ERP';
     $footerDate = $date ?? now()->format('d M Y, h:i A');
     $skipSignature = $skipSignature ?? false;
-    $activeFirm = $firm ?? ($reportFirm ?? (session('login_type') === 'firm' && session('firm_id') ? \App\Models\Firm::find(session('firm_id')) : \App\Models\Firm::first()));
-    $firmDisplayName = $activeFirm->firm_name ?? 'DELAWALA PROPERTIES';
+    $activeFirm = getActiveFirm($firm ?? ($reportFirm ?? null));
+    $firmDisplayName = $activeFirm->firm_name ?? 'COMPANY';
     $firmCity = $activeFirm->city ?? 'Bharuch';
     $firmGst = !empty($activeFirm->gst_no) ? (' &bull; GSTIN: ' . $activeFirm->gst_no) : '';
+    $hideFooterNote = $hideFooterNote ?? false;
+    $hideFooterFirm = $hideFooterFirm ?? false;
 @endphp
 
 @if(!$skipSignature && (!isset($hasCustomAuthBlock) || !$hasCustomAuthBlock))
@@ -14,10 +16,14 @@
 
 <div class="delawala-pdf-footer">
     <div class="dpf-left">
-        <span>{{ $footerNote }}</span>
+        @if(!empty($footerNote) && !$hideFooterNote)
+            <span>{{ $footerNote }}</span>
+        @endif
     </div>
     <div class="dpf-center">
-        <span>{{ strtoupper($firmDisplayName) }}{!! $firmGst !!} &bull; {{ $firmCity }}</span>
+        @if(!$hideFooterFirm)
+            <span>{{ strtoupper($firmDisplayName) }}{!! $firmGst !!} &bull; {{ $firmCity }}</span>
+        @endif
     </div>
     <div class="dpf-right">
         <span>Generated: {{ $footerDate }}</span>

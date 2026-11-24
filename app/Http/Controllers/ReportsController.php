@@ -756,7 +756,7 @@ class ReportsController extends Controller
             $h = fopen('php://output', 'w');
             fprintf($h, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            fputcsv($h, ['DELAWALA PROPERTIES - PROFIT & LOSS STATEMENT (ACCOUNTING METHOD)']);
+            fputcsv($h, [strtoupper(getActiveFirmName()) . ' - PROFIT & LOSS STATEMENT (ACCOUNTING METHOD)']);
             fputcsv($h, ['Generated on', date('d M Y, h:i A')]);
             if ($request->filled('from_date') || $request->filled('to_date')) {
                 $fromDisplay = $request->filled('from_date') ? \Carbon\Carbon::parse($request->from_date)->format('d M Y') : 'All time';
@@ -1557,7 +1557,7 @@ class ReportsController extends Controller
             $h = fopen('php://output', 'w');
             fprintf($h, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            fputcsv($h, ['Delawala Properties & Management - Sales Accounting Report']);
+            fputcsv($h, [getActiveFirmName() . ' - Sales Accounting Report']);
             fputcsv($h, ['Generated on', date('d M Y, h:i A')]);
             if ($request->filled('from_date') || $request->filled('to_date')) {
                 $fromDisplay = $request->filled('from_date') ? \Carbon\Carbon::parse($request->from_date)->format('d M Y') : 'All time';
@@ -2410,7 +2410,7 @@ class ReportsController extends Controller
             $h = fopen('php://output', 'w');
             fprintf($h, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            fputcsv($h, ['Delawala Properties & Management - Payment Report (' . ucfirst($paymentType) . ')']);
+            fputcsv($h, [getActiveFirmName() . ' - Payment Report (' . ucfirst($paymentType) . ')']);
             fputcsv($h, ['Generated on', date('d M Y, h:i A')]);
             if ($request->filled('from_date') || $request->filled('to_date')) {
                 $fromDisplay = $request->filled('from_date') ? \Carbon\Carbon::parse($request->from_date)->format('d M Y') : 'All time';
@@ -2571,7 +2571,7 @@ class ReportsController extends Controller
             $h = fopen('php://output', 'w');
             fprintf($h, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            fputcsv($h, ['Delawala Properties & Management - Rental Report']);
+            fputcsv($h, [getActiveFirmName() . ' - Rental Report']);
             fputcsv($h, ['Generated on', date('d M Y, h:i A')]);
             if ($request->filled('from_date') || $request->filled('to_date')) {
                 $fromDisplay = $request->filled('from_date') ? \Carbon\Carbon::parse($request->from_date)->format('d M Y') : 'All time';
@@ -2796,7 +2796,7 @@ class ReportsController extends Controller
             $h = fopen('php://output', 'w');
             fprintf($h, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            fputcsv($h, ['Delawala Properties & Management - Inventory Report']);
+            fputcsv($h, [getActiveFirmName() . ' - Inventory Report']);
             fputcsv($h, ['Generated on', date('d M Y, h:i A')]);
             if ($request->filled('from_date') || $request->filled('to_date')) {
                 $fromDisplay = $request->filled('from_date') ? \Carbon\Carbon::parse($request->from_date)->format('d M Y') : 'All time';

@@ -56,7 +56,7 @@
     </div>
     <div class="grid-col">
         <div class="col-heading"><i class="fa-solid fa-warehouse"></i> Inventory Thresholds &amp; Firm</div>
-        <div class="info-row"><span class="info-label">Affiliated Firm:</span><span class="info-val">{{ $material->firm->firm_name ?? 'Delawala Infrastructure' }}</span></div>
+        <div class="info-row"><span class="info-label">Affiliated Firm:</span><span class="info-val">{{ $material->firm->firm_name ?? '—' }}</span></div>
         <div class="info-row"><span class="info-label">Reorder Level (Min):</span><span class="info-val">{{ $material->minimum_stock ?? ($material->min_stock ?? 10) }} {{ $material->unit ?: 'Units' }}</span></div>
         <div class="info-row"><span class="info-label">Inventory Health:</span><span class="info-val">
             @if($stk <= 0)

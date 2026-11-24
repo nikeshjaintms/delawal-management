@@ -84,7 +84,7 @@
             <td><strong>{{ $p->project_name }}</strong></td>
             <td><span class="badge badge-info">{{ $p->project_code ?: '—' }}</span></td>
             <td>{{ $p->display_address ?: ($p->city ?: 'Dahegam, Bharuch') }}</td>
-            <td>{{ $p->firm->firm_name ?? 'Delawala Infrastructure' }}</td>
+            <td>{{ $p->firm->firm_name ?? '—' }}</td>
             <td class="r" style="font-weight:600;">{{ number_format($u) }}</td>
             <td class="r" style="color:#059669; font-weight:700;">{{ number_format($av) }}</td>
             <td class="r" style="color:#B45309; font-weight:700;">{{ number_format($bs) }}</td>

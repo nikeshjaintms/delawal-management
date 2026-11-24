@@ -1038,12 +1038,13 @@ class InvoiceController extends Controller
                 $paidAmt = min((float) $sale->booking_amount, $grandTotal);
                 $balAmt = max(0, $grandTotal - $paidAmt);
 
-                $firmGst = $activeFirm?->gst_number ?: ($activeFirm?->gst_no ?: '24CUBPD0770R1ZI');
-                $firmTitle = $activeFirm?->firm_name ?: 'Delawala Infra Co.';
+                $firmGst = $activeFirm?->gst_number ?: ($activeFirm?->gst_no ?: null);
+                $firmTitle = $activeFirm?->firm_name ?: 'Authorized Company';
 
+                $gstSuffix = $firmGst ? " (GSTIN: {$firmGst})" : "";
                 $terms = $isGst
-                    ? "1. Official Tax Invoice issued by {$firmTitle} (GSTIN: {$firmGst}).\n2. Subject to Dahegam / Bharuch Jurisdiction."
-                    : "1. Official Commercial Invoice / Bill issued by {$firmTitle}.\n2. Subject to Dahegam / Bharuch Jurisdiction.";
+                    ? "1. Official Tax Invoice issued by {$firmTitle}{$gstSuffix}.\n2. Subject to Bharuch Jurisdiction."
+                    : "1. Official Commercial Invoice / Bill issued by {$firmTitle}.\n2. Subject to Bharuch Jurisdiction.";
 
                 $notesPrefix = $isGst ? 'Auto-generated GST Tax Invoice' : 'Auto-generated Non-GST Invoice';
 
@@ -1160,12 +1161,13 @@ class InvoiceController extends Controller
                 $paidAmt = min((float) $booking->booking_amount, $grandTotal);
                 $balAmt = max(0, $grandTotal - $paidAmt);
 
-                $firmGst = $activeFirm?->gst_number ?: ($activeFirm?->gst_no ?: '24CUBPD0770R1ZI');
-                $firmTitle = $activeFirm?->firm_name ?: 'Delawala Infra Co.';
+                $firmGst = $activeFirm?->gst_number ?: ($activeFirm?->gst_no ?: null);
+                $firmTitle = $activeFirm?->firm_name ?: 'Authorized Company';
 
+                $gstSuffix = $firmGst ? " (GSTIN: {$firmGst})" : "";
                 $terms = $isGst
-                    ? "1. Official Tax Invoice issued by {$firmTitle} (GSTIN: {$firmGst}).\n2. Subject to Dahegam / Bharuch Jurisdiction."
-                    : "1. Official Commercial Invoice / Bill issued by {$firmTitle}.\n2. Subject to Dahegam / Bharuch Jurisdiction.";
+                    ? "1. Official Tax Invoice issued by {$firmTitle}{$gstSuffix}.\n2. Subject to Bharuch Jurisdiction."
+                    : "1. Official Commercial Invoice / Bill issued by {$firmTitle}.\n2. Subject to Bharuch Jurisdiction.";
 
                 $notesPrefix = $isGst ? 'Auto-generated GST Tax Invoice' : 'Auto-generated Non-GST Invoice';
 
@@ -1261,12 +1263,13 @@ class InvoiceController extends Controller
                     $grandTotal = $subtotal;
                 }
 
-                $firmGst = $activeFirm?->gst_number ?: ($activeFirm?->gst_no ?: '24CUBPD0770R1ZI');
-                $firmTitle = $activeFirm?->firm_name ?: 'Delawala Infra Co.';
+                $firmGst = $activeFirm?->gst_number ?: ($activeFirm?->gst_no ?: null);
+                $firmTitle = $activeFirm?->firm_name ?: 'Authorized Company';
 
+                $gstSuffix = $firmGst ? " (GSTIN: {$firmGst})" : "";
                 $terms = $isGst
-                    ? "1. Official Rent Tax Invoice issued by {$firmTitle} (GSTIN: {$firmGst}).\n2. Subject to Dahegam / Bharuch Jurisdiction."
-                    : "1. Official Rent Invoice / Bill issued by {$firmTitle}.\n2. Subject to Dahegam / Bharuch Jurisdiction.";
+                    ? "1. Official Rent Tax Invoice issued by {$firmTitle}{$gstSuffix}.\n2. Subject to Bharuch Jurisdiction."
+                    : "1. Official Rent Invoice / Bill issued by {$firmTitle}.\n2. Subject to Bharuch Jurisdiction.";
 
                 $notesPrefix = $isGst ? 'Auto-generated GST Rent Invoice' : 'Auto-generated Non-GST Rent Invoice';
 

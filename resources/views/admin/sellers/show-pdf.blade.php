@@ -67,7 +67,7 @@
         <div class="col-heading"><i class="fa-solid fa-location-dot"></i> Address & Registration</div>
         <div class="info-row"><span class="info-label">Address:</span><span class="info-val">{{ $seller->address ?: 'Dahegam, Bharuch' }}</span></div>
         <div class="info-row"><span class="info-label">City / State:</span><span class="info-val">{{ $seller->city ?: 'Dahegam' }}, {{ $seller->state ?: 'Gujarat' }}</span></div>
-        <div class="info-row"><span class="info-label">Acquiring Firm:</span><span class="info-val">{{ $seller->firm->firm_name ?? 'Delawala Infrastructure' }}</span></div>
+        <div class="info-row"><span class="info-label">Acquiring Firm:</span><span class="info-val">{{ $seller->firm->firm_name ?? '—' }}</span></div>
         <div class="info-row"><span class="info-label">Status:</span><span class="info-val"><span class="badge badge-success">{{ strtoupper($seller->status ?: 'ACTIVE') }}</span></span></div>
     </div>
 </div>

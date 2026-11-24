@@ -127,7 +127,7 @@ class StockReportController extends Controller
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             // Report Header
-            fputcsv($handle, ['Delawala Properties & Management - Current Stock Report']);
+            fputcsv($handle, [getActiveFirmName() . ' - Current Stock Report']);
             fputcsv($handle, ['Generated on', date('d M Y, h:i A')]);
             fputcsv($handle, []); // Blank row
 

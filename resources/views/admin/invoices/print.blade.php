@@ -39,19 +39,35 @@
         }
     }
 
-    $activeFirm = $invoice->firm ?? (\App\Models\Firm::first());
-    $firmDisplayName = $activeFirm->firm_name ?? 'DELAWALA PROPERTIES';
-    $firmGstNo = $activeFirm->gst_no ?? '24CUBPD0770R1ZI';
-    $firmAddress = $activeFirm->address ?? 'Ground Floor, FF Sri No. 116, Mhan Plaza, Dattlegam Road, Dahegam, Dahegam, Bharuch';
-    $firmCity = $activeFirm->city ?? 'Dahegam, Bharuch';
-    $firmState = $activeFirm->state ?? 'Gujarat';
-    $firmPin = $activeFirm->pincode ?? '392012';
-    $firmOwner = $activeFirm->owner_name ?? 'DELAWALA ZAFAR';
-    $firmPhone = $activeFirm->mobile ?? '9999999999';
-    $firmBank = $activeFirm->bank_name ?? 'Bank of Baroda';
+    $activeFirm = $invoice->firm ?? (session('firm_id') ? \App\Models\Firm::find(session('firm_id')) : \App\Models\Firm::first());
+    $firmDisplayName = $activeFirm->firm_name ?? '';
+    $firmGstNo = !empty($activeFirm?->gst_no) ? $activeFirm->gst_no : null;
+    $firmAddress = $activeFirm->address ?? '';
+    $firmCity = $activeFirm->city ?? '';
+    $firmState = $activeFirm->state ?? '';
+    $firmPin = $activeFirm->pincode ?? '';
+    $firmOwner = $activeFirm->owner_name ?? '';
+    $firmPhone = $activeFirm->mobile ?? '';
+    $firmBank = $activeFirm->bank_name ?? '';
     $firmAcc = $activeFirm->account_number ?? ($activeFirm->bank_account_no ?? '—');
     $firmIfsc = $activeFirm->ifsc_code ?? ($activeFirm->bank_ifsc ?? '—');
-    $firmBranch = $activeFirm->branch_name ?? ($activeFirm->bank_branch ?? 'Dahegam Branch');
+    $firmBranch = $activeFirm->branch_name ?? ($activeFirm->bank_branch ?? '');
+
+    // Clean address to avoid duplicate city / state
+    $addrParts = [];
+    if (!empty($firmAddress)) {
+        $addrParts[] = $firmAddress;
+    }
+    if (!empty($firmCity) && !str_contains(strtolower($firmAddress), strtolower($firmCity))) {
+        $addrParts[] = $firmCity;
+    }
+    if (!empty($firmState) && !str_contains(strtolower($firmAddress), strtolower($firmState))) {
+        $addrParts[] = $firmState;
+    }
+    $fullAddress = implode(', ', $addrParts);
+    if (!empty($firmPin)) {
+        $fullAddress .= ' - ' . $firmPin;
+    }
 
     $activePaymentMode = $invoice->payment_mode
         ?: ($invoice->payments->first()?->payment_mode
@@ -527,19 +543,29 @@
             <div>
                 <div class="inv-firm-name">{{ $firmDisplayName }}</div>
                 <div class="inv-firm-sub">Real Estate &bull; Construction &bull; Infrastructure Management</div>
+                @if(!empty($fullAddress))
                 <div class="inv-firm-addr">
-                    {{ $firmAddress }}, {{ $firmCity }}, {{ $firmState }} - {{ $firmPin }}
+                    {{ $fullAddress }}
                 </div>
+                @endif
                 <div class="inv-firm-meta">
-                    <span class="inv-meta-pill"><strong>GSTIN:</strong> {{ $firmGstNo }}</span>
-                    <span class="inv-meta-pill"><strong>State:</strong> {{ $firmState }} (24)</span>
+                    @if(!empty($firmGstNo))
+                        <span class="inv-meta-pill"><strong>GSTIN:</strong> {{ $firmGstNo }}</span>
+                    @endif
+                    @if(!empty($firmState))
+                        <span class="inv-meta-pill"><strong>State:</strong> {{ $firmState }} (24)</span>
+                    @endif
                 </div>
+                @if(!empty($firmOwner) || !empty($firmPhone))
                 <div class="inv-firm-meta" style="margin-top: 3px;">
-                    <span class="inv-meta-pill"><strong>Proprietor:</strong> {{ $firmOwner }}</span>
-                    @if($firmPhone)
+                    @if(!empty($firmOwner))
+                        <span class="inv-meta-pill"><strong>Proprietor:</strong> {{ $firmOwner }}</span>
+                    @endif
+                    @if(!empty($firmPhone))
                         <span class="inv-meta-pill"><strong>Tel:</strong> {{ $firmPhone }}</span>
                     @endif
                 </div>
+                @endif
             </div>
         </div>
         <div class="inv-title-col">
@@ -750,7 +776,7 @@
                 @if(!empty($invoice->terms_conditions))
                     <div style="white-space: pre-line;">{{ $invoice->terms_conditions }}</div>
                 @else
-                    <div style="margin-bottom:2px;">1. Official Tax Invoice issued by {{ $firmDisplayName }} (GSTIN: {{ $firmGstNo }}).</div>
+                    <div style="margin-bottom:2px;">1. Official Tax Invoice issued by {{ $firmDisplayName }}{{ !empty($firmGstNo) ? ' (GSTIN: ' . $firmGstNo . ')' : '' }}.</div>
                     <div>2. Subject to Dahegam / Bharuch Jurisdiction.</div>
                 @endif
             </div>

@@ -448,8 +448,8 @@ class PropertyController extends Controller
             $contextProject = \App\Models\Project::with('firm')->find($request->project_id);
         }
 
-        $sampleFirm = $contextProject?->firm?->firm_name ?? ($firms->first()?->firm_name ?? 'Delawala Builders');
-        $sampleProject = $contextProject?->project_name ?? ($projects->first()?->project_name ?? 'Delawala Residency');
+        $sampleFirm = $contextProject?->firm?->firm_name ?? getActiveFirmName(null, 'Sample Firm');
+        $sampleProject = $contextProject?->project_name ?? ($projects->first()?->project_name ?? 'Sample Project');
         $sampleType = $propertyTypes->first()?->name ?? 'Plot';
 
         // If PhpSpreadsheet is installed, generate full multi-sheet XLSX template
@@ -744,7 +744,7 @@ class PropertyController extends Controller
             'city'          => ['city', 'town'],
             'address'       => ['address', 'addr'],
             'size_unit'     => ['sizeunit', 'measurementunit', 'areatype', 'areauom', 'uom', 'unittype'],
-            'size'          => ['size', 'area', 'plotsize', 'plotarea', 'sizearea', 'size/area', 'sqft', 'areainsqft', 'areainsqyd', 'carpetarea', 'builtuparea', 'superarea', 'dimensionsize', 'dimension', 'sqyards', 'sqmeter', 'acre', 'bigha', 'plotareainsqft'],
+            'size'          => ['size', 'area', 'plotsize', 'plotarea', 'sizearea', 'size/area', 'sqft','sq.ft', 'areainsqft', 'areainsqyd', 'carpetarea', 'builtuparea', 'superarea', 'dimensionsize', 'dimension', 'sqyards', 'sqmeter', 'acre', 'bigha', 'plotareainsqft'],
             'purchase_rate' => ['purchaserate', 'buyrate', 'originalpurchaserate', 'rate', 'costrate', 'batchrate', 'purchaserateperunit', 'purchaserateinr', 'purchaserate(inr)', 'purchaserate(₹)', 'purchaserate₹'],
             'price'         => ['price', 'sellingprice', 'price(inr)', 'priceinr', 'askingprice', 'saleprice', 'amount', 'cost', 'value', 'expectedprice', 'sellingprice(₹)', 'sellingprice₹'],
             'unit_no'       => ['unitno', 'unitnumber', 'plotno', 'flatno', 'unit#', 'plot#', 'plotunitno'],

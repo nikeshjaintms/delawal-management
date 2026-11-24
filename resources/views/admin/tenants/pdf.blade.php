@@ -63,7 +63,7 @@
             <td>{{ $t->mobile ?: '—' }}</td>
             <td>{{ $t->email ?: '—' }}</td>
             <td style="color:#1E3A8A; font-weight:600;">{{ $t->id_proof_no ?: '—' }}</td>
-            <td>{{ $t->firm->firm_name ?? 'Delawala Infrastructure' }}</td>
+            <td>{{ $t->firm->firm_name ?? '—' }}</td>
             <td>{{ $t->city ?: 'Dahegam' }}</td>
             <td>{{ $t->address ?: '—' }}</td>
             <td class="c"><span class="badge badge-success">{{ ucfirst($t->status ?? 'Active') }}</span></td>

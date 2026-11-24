@@ -1,6 +1,6 @@
 @php
-    $activeFirm = $firm ?? ($reportFirm ?? (session('login_type') === 'firm' && session('firm_id') ? \App\Models\Firm::find(session('firm_id')) : \App\Models\Firm::first()));
-    $firmDisplayName = $activeFirm->firm_name ?? 'Delawala Infrastructure & Properties';
+    $activeFirm = getActiveFirm($firm ?? ($reportFirm ?? null));
+    $firmDisplayName = $activeFirm->firm_name ?? 'Authorized Firm';
     
     // Check specific signature passed in or fallback to firm digital signature
     $sigUrl = $signatureUrl ?? ($activeFirm?->digital_signature_url ?? null);

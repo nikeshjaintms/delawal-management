@@ -159,7 +159,7 @@ class IncomeController extends Controller
         $callback = function () use ($records) {
             $h = fopen('php://output', 'w');
             fprintf($h, chr(0xEF) . chr(0xBB) . chr(0xBF));
-            fputcsv($h, ['Delawala Properties & Management - Income Report']);
+            fputcsv($h, [getActiveFirmName() . ' - Income Report']);
             fputcsv($h, ['Generated on', date('d M Y, h:i A')]);
             fputcsv($h, []);
             fputcsv($h, ['Sr', 'Firm', 'Property Name', 'Property Type', 'Date', 'Income Type', 'Received From', 'Amount', 'Payment Mode', 'Status']);

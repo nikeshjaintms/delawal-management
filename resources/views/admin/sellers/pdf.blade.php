@@ -127,7 +127,7 @@
             <td>{{ $s->mobile ?: ($s->phone ?: '—') }}</td>
             <td><strong style="font-family:monospace; letter-spacing:0.4px;">{{ $s->pan_no ?: '—' }}</strong></td>
             <td>{{ $s->email ?: '—' }}</td>
-            <td>{{ $s->firm->firm_name ?? 'Delawala Infrastructure' }}</td>
+            <td>{{ $s->firm->firm_name ?? '—' }}</td>
             <td>{{ $s->city ?: 'Dahegam' }}</td>
             <td>{{ $s->address ?: '—' }}</td>
             <td class="c">

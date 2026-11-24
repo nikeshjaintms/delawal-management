@@ -83,7 +83,7 @@
             <td class="r" style="color:#1E3A8A; font-weight:600;">{{ formatIndianCurrency($rate, 2, false) }}</td>
             <td class="r" style="font-weight:700; color:#059669;">{{ number_format($stk, 2) }}</td>
             <td class="r" style="font-weight:700; color:#0F172A;">{{ formatIndianCurrency($val, 2, false) }}</td>
-            <td>{{ $m->firm->firm_name ?? 'Delawala Infrastructure' }}</td>
+            <td>{{ $m->firm->firm_name ?? '—' }}</td>
             <td class="c">
                 @if(($m->status ?? 'active') === 'active')
                     <span class="badge badge-success">Active</span>

@@ -975,6 +975,12 @@ class ProjectController extends Controller
                 $columnMap['plot_code'] = $colIdx;
             } elseif (!isset($columnMap['description']) && (str_contains($norm, 'desc') || str_contains($norm, 'note') || str_contains($norm, 'remark'))) {
                 $columnMap['description'] = $colIdx;
+            } elseif (!isset($columnMap['city']) && str_contains($norm, 'city')) {
+                $columnMap['city'] = $colIdx;
+            } elseif (!isset($columnMap['location']) && (str_contains($norm, 'loc') || str_contains($norm, 'landmark'))) {
+                $columnMap['location'] = $colIdx;
+            } elseif (!isset($columnMap['address']) && (str_contains($norm, 'addr'))) {
+                $columnMap['address'] = $colIdx;
             }
         }
 
@@ -1046,17 +1052,50 @@ class ProjectController extends Controller
                 $rawStatus = $getCol('status');
                 $rawType = $getCol('property_type');
                 $rawDesc = $getCol('description');
+                $rawCity = $getCol('city');
+                $rawLocation = $getCol('location');
+                $rawAddress = $getCol('address');
 
                 // 1. Determine Unit No & Plot Name
-                $cleanUnit = $rawUnit !== '' ? $rawUnit : (string) $currentNextSeq++;
+                $cleanUnit = $rawUnit;
+                if ($cleanUnit === '') {
+                    if (!empty($rawCode) && preg_match('/(?:P|PL|PLOT|UNIT)[\-_]?(\d+)/i', $rawCode, $cm)) {
+                        $cleanUnit = $cm[1];
+                    } elseif (!empty($rawName) && preg_match('/(?:plot|unit|shop|flat|house|no\.?)\s*([A-Za-z0-9\-]+)/i', $rawName, $nm)) {
+                        $cleanUnit = $nm[1];
+                    } else {
+                        $cleanUnit = (string) $currentNextSeq++;
+                    }
+                }
                 $plotName = $rawName !== '' ? $rawName : ('Plot ' . $cleanUnit);
 
-                // 2. Numeric Size
+                // 2. Numeric Size & Unit Extraction (Supports decimals without trailing dot issues)
+                $rawSize = str_replace(["\xc2\xa0", '&nbsp;'], ' ', $rawSize);
+                $rawUnitType = str_replace(["\xc2\xa0", '&nbsp;'], ' ', $rawUnitType);
+
                 $size = null;
+                $detectedUnit = null;
+
                 if ($rawSize !== '') {
-                    $cleanedSize = preg_replace('/[^0-9.]/', '', $rawSize);
-                    if (is_numeric($cleanedSize) && (float) $cleanedSize > 0) {
-                        $size = round((float) $cleanedSize, 2);
+                    $lowerSize = strtolower($rawSize);
+                    if (preg_match('/(sq\.?\s*ft|sqft|square\s*feet|sq\s*feet|feet|ft)/i', $lowerSize)) {
+                        $detectedUnit = 'sq.ft';
+                    } elseif (preg_match('/(sq\.?\s*yd|sqyd|sq\.?\s*yard|square\s*yard|gaj|var)/i', $lowerSize)) {
+                        $detectedUnit = 'sq.yard';
+                    } elseif (preg_match('/(sq\.?\s*mt|sqm|sq\.?\s*meter|square\s*meter|meter|mtr)/i', $lowerSize)) {
+                        $detectedUnit = 'sq.meter';
+                    } elseif (preg_match('/(acre|acres)/i', $lowerSize)) {
+                        $detectedUnit = 'acre';
+                    } elseif (preg_match('/(bigha|vigha)/i', $lowerSize)) {
+                        $detectedUnit = 'bigha';
+                    }
+
+                    $cleanSizeStr = str_replace(',', '', $rawSize);
+                    if (preg_match('/(?:\d+(?:\.\d+)?|\.\d+)/', $cleanSizeStr, $sizeMatches)) {
+                        $parsedFloat = (float) $sizeMatches[0];
+                        if ($parsedFloat > 0) {
+                            $size = round($parsedFloat, 2);
+                        }
                     }
                 }
 
@@ -1072,7 +1111,11 @@ class ProjectController extends Controller
                         $sizeUnit = 'acre';
                     } elseif (str_contains($normU, 'bigha') || str_contains($normU, 'vigha')) {
                         $sizeUnit = 'bigha';
+                    } elseif (in_array(strtolower($rawUnitType), ['sq.ft', 'sq.yard', 'sq.meter', 'acre', 'bigha'])) {
+                        $sizeUnit = strtolower($rawUnitType);
                     }
+                } elseif ($detectedUnit) {
+                    $sizeUnit = $detectedUnit;
                 }
 
                 // 4. Facing
@@ -1087,12 +1130,18 @@ class ProjectController extends Controller
                 // 5. Rates & Prices
                 $rateVal = 0.0;
                 if ($rawPurchaseRate !== '') {
-                    $rateVal = (float) preg_replace('/[^0-9.]/', '', $rawPurchaseRate);
+                    $cleanR = str_replace(',', '', $rawPurchaseRate);
+                    if (preg_match('/(?:\d+(?:\.\d+)?|\.\d+)/', $cleanR, $rm)) {
+                        $rateVal = (float) $rm[0];
+                    }
                 }
 
                 $priceVal = 0.0;
                 if ($rawPrice !== '') {
-                    $priceVal = (float) preg_replace('/[^0-9.]/', '', $rawPrice);
+                    $cleanP = str_replace(',', '', $rawPrice);
+                    if (preg_match('/(?:\d+(?:\.\d+)?|\.\d+)/', $cleanP, $pm)) {
+                        $priceVal = (float) $pm[0];
+                    }
                 }
                 if ($priceVal <= 0 && $rateVal > 0) {
                     $priceVal = $rateVal;
@@ -1110,14 +1159,32 @@ class ProjectController extends Controller
                         $status = 'rented';
                     } elseif (in_array($normS, ['blocked', 'block', 'inactive', 'unavailable'])) {
                         $status = 'inactive';
+                    } elseif (in_array($normS, ['available', 'open', 'free', 'vacant'])) {
+                        $status = 'available';
                     }
                 }
 
                 // 7. Property Type ID
                 $propertyTypeId = $defaultTypeId;
-                if (!empty($rawType)) {
+                $inferredType = $rawType;
+                if (empty($inferredType)) {
+                    $combinedText = strtolower($plotName . ' ' . $rawCode);
+                    if (str_contains($combinedText, 'shop') || str_contains($combinedText, 'showroom') || str_contains($combinedText, 'store')) {
+                        $inferredType = 'Shop';
+                    } elseif (str_contains($combinedText, 'office')) {
+                        $inferredType = 'Office';
+                    } elseif (str_contains($combinedText, 'flat') || str_contains($combinedText, 'apartment')) {
+                        $inferredType = 'Flat';
+                    } elseif (str_contains($combinedText, 'house') || str_contains($combinedText, 'villa') || str_contains($combinedText, 'bungalow')) {
+                        $inferredType = 'House';
+                    } elseif (str_contains($combinedText, 'plot')) {
+                        $inferredType = 'Plot';
+                    }
+                }
+
+                if (!empty($inferredType)) {
                     $ptObj = PropertyType::withoutGlobalScopes()->firstOrCreate(
-                        ['name' => ucwords(trim($rawType))],
+                        ['name' => ucwords(trim($inferredType))],
                         ['status' => 'active']
                     );
                     if ($firmId && method_exists($ptObj, 'firms')) {
@@ -1136,35 +1203,72 @@ class ProjectController extends Controller
                     $cleanNum = preg_replace('/[^A-Za-z0-9]/', '', (string)$cleanUnit);
                     $plotCode = 'P-' . $cleanNum;
                 } else {
-                    $plotCode = 'P-' . ($r - $dataStartRowIndex + 1);
+                    $plotCode = 'P-' . ($i - $dataStartRowIndex + 1);
                 }
 
                 // 9. Description
                 $description = $rawDesc !== '' ? $rawDesc : ('Imported via Excel under ' . $project->project_name);
 
-                $plot = Property::create([
-                    'firm_id' => $firmId,
-                    'project_id' => $project->id,
-                    'property_master_id' => null,
-                    'property_type_id' => $propertyTypeId,
-                    'property_name' => $plotName,
-                    'property_code' => $plotCode,
-                    'unit_no' => (string) $cleanUnit,
-                    'size' => $size,
-                    'size_unit' => $sizeUnit,
-                    'facing' => $facing,
-                    'location' => $project->address,
-                    'city' => $project->city,
-                    'address' => $project->address,
-                    'purchase_rate' => $rateVal,
-                    'purchase_date' => date('Y-m-d'),
-                    'price' => $priceVal,
-                    'status' => $status,
-                    'description' => $description,
-                ]);
+                // 10. Update existing property if already exists in this project, or create new
+                $existing = Property::where('project_id', $project->id)
+                    ->where(function ($q) use ($plotCode, $rawCode, $cleanUnit, $plotName) {
+                        $q->where('property_code', $plotCode);
+                        if (!empty($rawCode)) {
+                            $q->orWhere('property_code', $rawCode);
+                        }
+                        if (!empty($cleanUnit)) {
+                            $q->orWhere('unit_no', (string) $cleanUnit);
+                        }
+                        if (!empty($plotName)) {
+                            $q->orWhere('property_name', $plotName);
+                        }
+                    })
+                    ->first();
 
-                $createdCount++;
-                $createdPlots[] = $plot;
+                if ($existing) {
+                    $existing->update([
+                        'firm_id' => $firmId,
+                        'property_type_id' => $propertyTypeId,
+                        'property_name' => $plotName,
+                        'property_code' => $plotCode,
+                        'unit_no' => (string) $cleanUnit,
+                        'size' => $size,
+                        'size_unit' => $sizeUnit,
+                        'facing' => $facing ?: $existing->facing,
+                        'location' => $rawLocation ?: ($project->address ?: $existing->location),
+                        'city' => $rawCity ?: ($project->city ?: $existing->city),
+                        'address' => $rawAddress ?: ($project->address ?: $existing->address),
+                        'purchase_rate' => $rateVal > 0 ? $rateVal : $existing->purchase_rate,
+                        'price' => $priceVal > 0 ? $priceVal : $existing->price,
+                        'status' => $status ?: $existing->status,
+                        'description' => $description ?: $existing->description,
+                    ]);
+                    $createdCount++;
+                    $createdPlots[] = $existing;
+                } else {
+                    $plot = Property::create([
+                        'firm_id' => $firmId,
+                        'project_id' => $project->id,
+                        'property_master_id' => null,
+                        'property_type_id' => $propertyTypeId,
+                        'property_name' => $plotName,
+                        'property_code' => $plotCode,
+                        'unit_no' => (string) $cleanUnit,
+                        'size' => $size,
+                        'size_unit' => $sizeUnit,
+                        'facing' => $facing,
+                        'location' => $rawLocation ?: $project->address,
+                        'city' => $rawCity ?: $project->city,
+                        'address' => $rawAddress ?: $project->address,
+                        'purchase_rate' => $rateVal,
+                        'purchase_date' => date('Y-m-d'),
+                        'price' => $priceVal,
+                        'status' => $status,
+                        'description' => $description,
+                    ]);
+                    $createdCount++;
+                    $createdPlots[] = $plot;
+                }
             }
         });
 

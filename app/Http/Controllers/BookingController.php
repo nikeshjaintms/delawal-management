@@ -498,7 +498,10 @@ class BookingController extends Controller
             'properties.propertyType',
             'properties.project',
             'properties.propertyMaster',
-            'customer',
+            'customer.bookings.properties.propertyType',
+            'customer.bookings.properties.project',
+            'customer.bookings.property.propertyType',
+            'customer.bookings.property.project',
             'seller',
             'broker',
             'paymentMode'

@@ -52,7 +52,7 @@
         <div class="info-row"><span class="info-label">Survey / Khasra No:</span><span class="info-val">{{ $activeProp->survey_number ?: '—' }}</span></div>
         <div class="info-row"><span class="info-label">Registered Address:</span><span class="info-val">{{ $activeProp->address ?: 'Dahegam Road, Bharuch' }}</span></div>
         <div class="info-row"><span class="info-label">City / State:</span><span class="info-val">{{ $activeProp->city ?: 'Dahegam' }}, Gujarat</span></div>
-        <div class="info-row"><span class="info-label">Affiliated Firm:</span><span class="info-val">{{ $activeProp->firm->firm_name ?? 'Delawala Infrastructure' }}</span></div>
+        <div class="info-row"><span class="info-label">Affiliated Firm:</span><span class="info-val">{{ $activeProp->firm->firm_name ?? '—' }}</span></div>
     </div>
 </div>
 

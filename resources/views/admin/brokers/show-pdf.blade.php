@@ -74,7 +74,7 @@
         <div class="col-heading"><i class="fa-solid fa-location-dot"></i> Address & Registration</div>
         <div class="info-row"><span class="info-label">Address:</span><span class="info-val">{{ $broker->address ?: 'Dahegam, Bharuch' }}</span></div>
         <div class="info-row"><span class="info-label">City:</span><span class="info-val">{{ $broker->city ?: 'Dahegam' }}</span></div>
-        <div class="info-row"><span class="info-label">Firm Link:</span><span class="info-val">{{ $broker->firm->firm_name ?? 'Delawala Infrastructure' }}</span></div>
+        <div class="info-row"><span class="info-label">Firm Link:</span><span class="info-val">{{ $broker->firm->firm_name ?? '—' }}</span></div>
         <div class="info-row"><span class="info-label">Status:</span><span class="info-val"><span class="badge badge-success">{{ strtoupper($broker->status ?: 'ACTIVE') }}</span></span></div>
     </div>
 </div>

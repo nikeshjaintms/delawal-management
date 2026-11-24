@@ -419,7 +419,7 @@ class BrokerCommissionController extends Controller
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM
 
-            fputcsv($handle, ['Delawala Properties & Management - Broker Commissions Report']);
+            fputcsv($handle, [getActiveFirmName() . ' - Broker Commissions Report']);
             fputcsv($handle, ['Generated on', date('d M Y, h:i A')]);
             fputcsv($handle, []);
 

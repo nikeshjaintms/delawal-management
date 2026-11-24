@@ -1,10 +1,22 @@
 @php
-    $pageTitle = $title ?? ($pdfTitle ?? 'Delawala Management Document');
+    $pageTitle = $title ?? ($pdfTitle ?? 'Document');
     $fileName = $fileName ?? (\Illuminate\Support\Str::slug($pageTitle) . '-' . date('Ymd-Hi'));
     $orientation = $orientation ?? 'portrait';
-    $barFirm = $firm ?? ($reportFirm ?? (session('login_type') === 'firm' && session('firm_id') ? \App\Models\Firm::find(session('firm_id')) : \App\Models\Firm::first()));
+    $barFirm = getActiveFirm($firm ?? ($reportFirm ?? null));
     $hasBarSig = $barFirm?->hasDigitalSignature() ?? false;
     $barSigUrl = $barFirm?->digital_signature_url;
+    $barFirmName = $barFirm->firm_name ?? 'PDF Document';
+
+    $barCustomLogo = null;
+    if (!empty($barFirm?->firm_logo)) {
+        if (file_exists(public_path('storage/' . $barFirm->firm_logo))) {
+            $barCustomLogo = asset('storage/' . $barFirm->firm_logo);
+        } elseif (file_exists(public_path($barFirm->firm_logo))) {
+            $barCustomLogo = asset($barFirm->firm_logo);
+        } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists($barFirm->firm_logo)) {
+            $barCustomLogo = \Illuminate\Support\Facades\Storage::disk('public')->url($barFirm->firm_logo);
+        }
+    }
 @endphp
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -153,20 +165,22 @@
 <div class="delawala-pdf-toolbar no-print">
     <div class="pdf-bar-brand">
         <div class="pdf-bar-logo-wrap">
-            @if(file_exists(public_path('images/logo 1.png')))
-                <img src="{{ asset('images/logo 1.png') }}?v={{ filemtime(public_path('images/logo 1.png')) }}" alt="Delawala Properties">
+            @if($barCustomLogo)
+                <img src="{{ $barCustomLogo }}" alt="{{ $barFirmName }}">
+            @elseif(file_exists(public_path('images/logo 1.png')))
+                <img src="{{ asset('images/logo 1.png') }}?v={{ filemtime(public_path('images/logo 1.png')) }}" alt="{{ $barFirmName }}">
             @elseif(file_exists(public_path('images/pdf-logo.png')))
-                <img src="{{ asset('images/pdf-logo.png') }}?v={{ filemtime(public_path('images/pdf-logo.png')) }}" alt="Delawala Properties">
+                <img src="{{ asset('images/pdf-logo.png') }}?v={{ filemtime(public_path('images/pdf-logo.png')) }}" alt="{{ $barFirmName }}">
             @elseif(file_exists(public_path('assets/logos/logo 1.png')))
-                <img src="{{ asset('assets/logos/logo 1.png') }}?v={{ filemtime(public_path('assets/logos/logo 1.png')) }}" alt="Delawala Properties">
+                <img src="{{ asset('assets/logos/logo 1.png') }}?v={{ filemtime(public_path('assets/logos/logo 1.png')) }}" alt="{{ $barFirmName }}">
             @else
-                <img src="{{ asset('images/logo.png') }}" alt="Delawala Properties">
+                <img src="{{ asset('images/logo.png') }}" alt="{{ $barFirmName }}">
             @endif
         </div>
         <div>
             <div class="pdf-bar-title">{{ $pageTitle }}</div>
         </div>
-        <span class="pdf-bar-badge">Delawala PDF</span>
+        <span class="pdf-bar-badge">{{ $barFirmName }}</span>
     </div>
     
     <div class="pdf-bar-actions">

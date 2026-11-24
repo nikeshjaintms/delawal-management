@@ -51,7 +51,7 @@
         <div class="col-heading"><i class="fa-solid fa-location-dot"></i> Address & Registration</div>
         <div class="info-row"><span class="info-label">Registered Address:</span><span class="info-val">{{ $tenant->address ?: 'Dahegam, Bharuch' }}</span></div>
         <div class="info-row"><span class="info-label">City:</span><span class="info-val">{{ $tenant->city ?: 'Dahegam' }}</span></div>
-        <div class="info-row"><span class="info-label">Affiliated Firm:</span><span class="info-val">{{ $tenant->firm->firm_name ?? 'Delawala Infrastructure' }}</span></div>
+        <div class="info-row"><span class="info-label">Affiliated Firm:</span><span class="info-val">{{ $tenant->firm->firm_name ?? '—' }}</span></div>
         <div class="info-row"><span class="info-label">Enrolled On:</span><span class="info-val">{{ $tenant->created_at ? $tenant->created_at->format('d M Y') : '—' }}</span></div>
     </div>
 </div>

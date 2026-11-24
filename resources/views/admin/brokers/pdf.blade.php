@@ -61,7 +61,7 @@
             <td><strong>{{ $b->name }}</strong></td>
             <td>{{ $b->mobile ?: '—' }}</td>
             <td>{{ $b->email ?: '—' }}</td>
-            <td>{{ $b->firm->firm_name ?? 'Delawala Infrastructure' }}</td>
+            <td>{{ $b->firm->firm_name ?? '—' }}</td>
             <td class="r" style="font-weight:700; color:#1E3A8A;">{{ $b->commission_rate ? ($b->commission_rate . '%') : 'Standard %' }}</td>
             <td>{{ $b->city ?: ($b->address ?: 'Dahegam') }}</td>
             <td class="c"><span class="badge badge-success">{{ ucfirst($b->status ?? 'Active') }}</span></td>

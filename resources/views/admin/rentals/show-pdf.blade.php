@@ -91,7 +91,7 @@
 @php $hasCustomAuthBlock = true; @endphp
 @include('admin.components.pdf-signature', [
     'leftRole' => 'Tenant Signature',
-    'rightRole' => 'Authorized Signatory / ' . ($rntFirm->firm_name ?? 'Delawala Infrastructure'),
+    'rightRole' => 'Authorized Signatory / ' . ($rntFirm->firm_name ?? getActiveFirmName()),
     'firm' => $rental->firm ?: ($rental->property?->project?->firm)
 ])
 

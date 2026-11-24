@@ -3,9 +3,12 @@
     $docSubtitle    = $subtitle ?? null;
     $docDate        = $date ?? now()->format('d M Y, h:i A');
     $isBw           = $isBw ?? true;
-    $activeFirm     = $firm ?? ($reportFirm ?? (session('login_type') === 'firm' && session('firm_id') ? \App\Models\Firm::find(session('firm_id')) : \App\Models\Firm::first()));
+    $activeFirm     = getActiveFirm($firm ?? ($reportFirm ?? null));
+    $projectName    = $projectName ?? null;
+    $hideState      = $hideState ?? false;
+    $hideOwner      = $hideOwner ?? false;
     
-    $firmDisplayName = $activeFirm->firm_name ?? 'DELAWALA PROPERTIES';
+    $firmDisplayName = $activeFirm->firm_name ?? 'COMPANY';
     $firmGstNo       = !empty($activeFirm?->gst_no) ? $activeFirm->gst_no : null;
     $firmAddress     = $activeFirm->address ?? '';
     $firmCity        = $activeFirm->city ?? '';
@@ -68,23 +71,32 @@
             @else
                 <div class="dph-trade-sub">Real Estate &bull; Construction &bull; Infrastructure Management</div>
             @endif
+            @if(!empty($projectName))
+            <div class="dph-project-highlight">
+                <i class="fa-solid fa-city"></i>
+                <span class="dph-proj-tag">PROJECT:</span>
+                <span class="dph-proj-name">{{ $projectName }}</span>
+            </div>
+            @endif
             @if(!empty($fullAddress))
             <div class="dph-address-line">
                 <i class="fa-solid fa-location-dot"></i>
                 <span>{{ $fullAddress }}</span>
             </div>
             @endif
+            @if(!empty($firmGstNo) || (!empty($firmState) && !$hideState))
             <div class="dph-badges-row">
                 @if(!empty($firmGstNo))
                     <span class="dph-gst-badge"><strong>GSTIN:</strong> {{ $firmGstNo }}</span>
                 @endif
-                @if(!empty($firmState))
+                @if(!empty($firmState) && !$hideState)
                     <span class="dph-info-badge"><strong>State:</strong> {{ $firmState }} (24)</span>
                 @endif
             </div>
-            @if(!empty($firmOwner) || !empty($firmPhone))
+            @endif
+            @if((!empty($firmOwner) && !$hideOwner) || !empty($firmPhone))
             <div class="dph-badges-row" style="margin-top: 3px;">
-                @if(!empty($firmOwner))
+                @if(!empty($firmOwner) && !$hideOwner)
                     <span class="dph-info-badge"><strong>Proprietor:</strong> {{ $firmOwner }}</span>
                 @endif
                 @if(!empty($firmPhone))
@@ -205,6 +217,37 @@
         text-transform: uppercase;
         margin-top: 1px;
         margin-bottom: 2px;
+    }
+    .dph-project-highlight {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #000000 !important;
+        color: #FFFFFF !important;
+        padding: 3px 9px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        margin: 2px 0 3px 0;
+        width: fit-content;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .dph-project-highlight * {
+        color: #FFFFFF !important;
+    }
+    .dph-project-highlight .dph-proj-tag {
+        font-size: 8.5px;
+        font-weight: 800;
+        color: #D1D5DB !important;
+        letter-spacing: 0.8px;
+    }
+    .dph-project-highlight .dph-proj-name {
+        font-size: 11.5px;
+        font-weight: 800;
+        color: #FFFFFF !important;
     }
     .dph-address-line {
         font-size: 8.5px;

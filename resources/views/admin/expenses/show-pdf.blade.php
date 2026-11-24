@@ -74,7 +74,7 @@
         </div>
         <div class="info-row">
             <span class="info-label">Disbursing Firm:</span>
-            <span class="info-val">{{ $expense->firm->firm_name ?? 'Delawala Infrastructure' }}</span>
+            <span class="info-val">{{ $expense->firm->firm_name ?? '—' }}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Payment Account:</span>
@@ -121,7 +121,7 @@
 @php $hasCustomAuthBlock = true; @endphp
 @include('admin.components.pdf-signature', [
     'leftRole' => 'Receiver / Payee Signature',
-    'rightRole' => 'Authorized Signatory / ' . ($expense->firm->firm_name ?? 'Delawala Infrastructure'),
+    'rightRole' => 'Authorized Signatory / ' . ($expense->firm->firm_name ?? getActiveFirmName()),
     'firm' => $expense->firm ?: ($expense->project?->firm)
 ])
 
