@@ -870,7 +870,7 @@ class ProjectController extends Controller
         $headerRowIndex = 0;
         $dataStartRowIndex = 1;
         $knownHeaderKeywords = [
-            'unit', 'plot', 'size', 'area', 'sqft', 'sqyd', 'facing', 'rate', 'price',
+            'unit', 'plot', 'size', 'area', 'sqft', 'sq.ft', 'sqyd', 'facing', 'rate', 'price',
             'type', 'code', 'name', 'status', 'city', 'location', 'address', 'floor', 'amount'
         ];
 
@@ -1046,17 +1046,36 @@ class ProjectController extends Controller
                 $rawStatus = $getCol('status');
                 $rawType = $getCol('property_type');
                 $rawDesc = $getCol('description');
+                $rawCity = $getCol('city');
+                $rawLocation = $getCol('location');
+                $rawAddress = $getCol('address');
 
                 // 1. Determine Unit No & Plot Name
                 $cleanUnit = $rawUnit !== '' ? $rawUnit : (string) $currentNextSeq++;
                 $plotName = $rawName !== '' ? $rawName : ('Plot ' . $cleanUnit);
 
-                // 2. Numeric Size
+                // 2. Numeric Size & Unit Extraction
                 $size = null;
+                $detectedUnit = null;
                 if ($rawSize !== '') {
-                    $cleanedSize = preg_replace('/[^0-9.]/', '', $rawSize);
-                    if (is_numeric($cleanedSize) && (float) $cleanedSize > 0) {
-                        $size = round((float) $cleanedSize, 2);
+                    $lowerSize = strtolower($rawSize);
+                    if (preg_match('/(sq\.?\s*ft|sqft|square\s*feet|sq\s*feet|feet|ft)/i', $lowerSize)) {
+                        $detectedUnit = 'sq.ft';
+                    } elseif (preg_match('/(sq\.?\s*yd|sqyd|sq\.?\s*yard|square\s*yard|gaj|var)/i', $lowerSize)) {
+                        $detectedUnit = 'sq.yard';
+                    } elseif (preg_match('/(sq\.?\s*mt|sqm|sq\.?\s*meter|square\s*meter|meter|mtr)/i', $lowerSize)) {
+                        $detectedUnit = 'sq.meter';
+                    } elseif (preg_match('/(acre|acres)/i', $lowerSize)) {
+                        $detectedUnit = 'acre';
+                    } elseif (preg_match('/(bigha|vigha)/i', $lowerSize)) {
+                        $detectedUnit = 'bigha';
+                    }
+
+                    if (preg_match('/(?:\d+(?:\.\d+)?|\.\d+)/', str_replace(',', '', $rawSize), $sizeMatches)) {
+                        $numericVal = (float) $sizeMatches[0];
+                        if ($numericVal > 0) {
+                            $size = round($numericVal, 2);
+                        }
                     }
                 }
 
@@ -1073,6 +1092,8 @@ class ProjectController extends Controller
                     } elseif (str_contains($normU, 'bigha') || str_contains($normU, 'vigha')) {
                         $sizeUnit = 'bigha';
                     }
+                } elseif ($detectedUnit) {
+                    $sizeUnit = $detectedUnit;
                 }
 
                 // 4. Facing
@@ -1087,12 +1108,16 @@ class ProjectController extends Controller
                 // 5. Rates & Prices
                 $rateVal = 0.0;
                 if ($rawPurchaseRate !== '') {
-                    $rateVal = (float) preg_replace('/[^0-9.]/', '', $rawPurchaseRate);
+                    if (preg_match('/(?:\d+(?:\.\d+)?|\.\d+)/', str_replace(',', '', $rawPurchaseRate), $rateMatches)) {
+                        $rateVal = (float) $rateMatches[0];
+                    }
                 }
 
                 $priceVal = 0.0;
                 if ($rawPrice !== '') {
-                    $priceVal = (float) preg_replace('/[^0-9.]/', '', $rawPrice);
+                    if (preg_match('/(?:\d+(?:\.\d+)?|\.\d+)/', str_replace(',', '', $rawPrice), $priceMatches)) {
+                        $priceVal = (float) $priceMatches[0];
+                    }
                 }
                 if ($priceVal <= 0 && $rateVal > 0) {
                     $priceVal = $rateVal;
@@ -1136,7 +1161,7 @@ class ProjectController extends Controller
                     $cleanNum = preg_replace('/[^A-Za-z0-9]/', '', (string)$cleanUnit);
                     $plotCode = 'P-' . $cleanNum;
                 } else {
-                    $plotCode = 'P-' . ($r - $dataStartRowIndex + 1);
+                    $plotCode = 'P-' . ($i - $dataStartRowIndex + 1);
                 }
 
                 // 9. Description
@@ -1153,9 +1178,9 @@ class ProjectController extends Controller
                     'size' => $size,
                     'size_unit' => $sizeUnit,
                     'facing' => $facing,
-                    'location' => $project->address,
-                    'city' => $project->city,
-                    'address' => $project->address,
+                    'location' => $rawLocation ?: ($project->address ?: $project->location),
+                    'city' => $rawCity ?: $project->city,
+                    'address' => $rawAddress ?: $project->address,
                     'purchase_rate' => $rateVal,
                     'purchase_date' => date('Y-m-d'),
                     'price' => $priceVal,

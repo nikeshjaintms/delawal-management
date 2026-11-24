@@ -575,19 +575,47 @@ class PropertyController extends Controller
 
         // Fallback: Stream universal CSV Template compatible with Excel
         $csvHeaders = [
-            'Firm Name', 'Project Name*', 'Property Type*', 'Property Code*', 'Property Name*',
-            'Property Status*', 'Location', 'City', 'Address', 'Size', 'Size Unit',
-            'Price (INR)', 'Unit No', 'Floor No', 'Facing', 'Description', 'Image Filename'
+            'Firm Name',
+            'Project Name*',
+            'Property Type*',
+            'Property Code*',
+            'Property Name*',
+            'Property Status*',
+            'Location',
+            'City',
+            'Address',
+            'Size',
+            'Size Unit',
+            'Price (INR)',
+            'Unit No',
+            'Floor No',
+            'Facing',
+            'Description',
+            'Image Filename'
         ];
         $csvSample = [
-            $sampleFirm, $sampleProject, $sampleType, 'DEL-PLOT-001', 'Plot No. 1',
-            'available', 'Zadeshwar Road', 'Bharuch', 'Plot No 1, Near NH8, Bharuch',
-            '1200', 'sq.ft', '2500000', 'P-01', 'Ground', 'East', 'Prime location corner plot', 'plot-001.jpg'
+            $sampleFirm,
+            $sampleProject,
+            $sampleType,
+            'DEL-PLOT-001',
+            'Plot No. 1',
+            'available',
+            'Zadeshwar Road',
+            'Bharuch',
+            'Plot No 1, Near NH8, Bharuch',
+            '1200',
+            'sq.ft',
+            '2500000',
+            'P-01',
+            'Ground',
+            'East',
+            'Prime location corner plot',
+            'plot-001.jpg'
         ];
 
         return response()->streamDownload(function () use ($csvHeaders, $csvSample) {
             $out = fopen('php://output', 'w');
-            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM so Excel opens it with proper encoding
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM so Excel opens it with proper encoding
             fputcsv($out, $csvHeaders);
             fputcsv($out, $csvSample);
             fclose($out);
@@ -881,7 +909,7 @@ class PropertyController extends Controller
             $location = isset($columnMap['location']) ? trim((string) ($rowData[$columnMap['location']] ?? '')) : null;
             $city = isset($columnMap['city']) ? trim((string) ($rowData[$columnMap['city']] ?? '')) : null;
             $address = isset($columnMap['address']) ? trim((string) ($rowData[$columnMap['address']] ?? '')) : null;
-            
+
             // Size & Size Unit Parsing with Smart Extraction
             $rawSize = isset($columnMap['size']) ? trim((string) ($rowData[$columnMap['size']] ?? '')) : '';
             $rawSizeUnit = isset($columnMap['size_unit']) ? trim((string) ($rowData[$columnMap['size_unit']] ?? '')) : '';
@@ -906,9 +934,8 @@ class PropertyController extends Controller
                     $detectedUnit = 'bigha';
                 }
 
-                $cleanSize = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawSize));
-                if ($cleanSize !== '' && is_numeric($cleanSize)) {
-                    $size = (float) $cleanSize;
+                if (preg_match('/(?:\d+(?:\.\d+)?|\.\d+)/', str_replace(',', '', $rawSize), $sizeMatches)) {
+                    $size = (float) $sizeMatches[0];
                 }
             }
 
@@ -1098,9 +1125,9 @@ class PropertyController extends Controller
             // Step D: Default to "Plot", "Residential", "House" or first available PropertyType
             if (empty($typeInput)) {
                 $defaultPt = $propertyTypes->first(fn($pt) => strtolower(trim($pt->name)) === 'plot')
-                    ?: ($propertyTypes->first(fn($pt) => strtolower(trim($pt->name)) === 'residential') 
-                    ?: ($propertyTypes->first(fn($pt) => strtolower(trim($pt->name)) === 'house') 
-                    ?: $propertyTypes->first()));
+                    ?: ($propertyTypes->first(fn($pt) => strtolower(trim($pt->name)) === 'residential')
+                        ?: ($propertyTypes->first(fn($pt) => strtolower(trim($pt->name)) === 'house')
+                            ?: $propertyTypes->first()));
                 $typeInput = $defaultPt ? $defaultPt->name : 'Plot';
             }
 
@@ -1460,8 +1487,17 @@ class PropertyController extends Controller
                         ];
 
                         $optionalFields = [
-                            'location', 'city', 'address', 'size', 'size_unit',
-                            'purchase_rate', 'price', 'unit_no', 'floor_no', 'facing', 'description'
+                            'location',
+                            'city',
+                            'address',
+                            'size',
+                            'size_unit',
+                            'purchase_rate',
+                            'price',
+                            'unit_no',
+                            'floor_no',
+                            'facing',
+                            'description'
                         ];
 
                         foreach ($optionalFields as $field) {

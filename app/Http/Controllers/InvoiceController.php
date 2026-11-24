@@ -793,6 +793,8 @@ class InvoiceController extends Controller
             'creator'
         ]);
 
+  
+
         $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
 
         return view('admin.invoices.print', compact('invoice', 'paymentModes'));
@@ -1421,7 +1423,7 @@ class InvoiceController extends Controller
             'notes' => $request->notes ?: ("Direct 1-Click Invoice generated for " . $firmTitle),
         ]);
 
-        $desc = $request->item_description ?: (match($type) {
+        $desc = $request->item_description ?: (match ($type) {
             'sale' => 'Property Development & Plot Sale Consideration',
             'rental' => 'Monthly Property Lease & Rent',
             'contractor' => 'Contractor & Labour Charges',
@@ -1429,7 +1431,7 @@ class InvoiceController extends Controller
             default => 'General Commercial Goods & Services Consideration'
         });
 
-        $hsnCode = match($type) {
+        $hsnCode = match ($type) {
             'sale', 'contractor' => '9954',
             'rental' => '9972',
             default => '9983',
@@ -1491,9 +1493,9 @@ class InvoiceController extends Controller
 
                 // Fetch pending / recent property sales, bookings, rentals of this firm
                 $propertySales = PropertySale::with(['customer', 'property.project'])
-                    ->where(function($q) use ($firm) {
+                    ->where(function ($q) use ($firm) {
                         $q->where('firm_id', $firm->id)
-                          ->orWhereHas('property.project', fn($pq) => $pq->where('firm_id', $firm->id));
+                            ->orWhereHas('property.project', fn($pq) => $pq->where('firm_id', $firm->id));
                     })
                     ->latest()
                     ->take(30)
@@ -1506,9 +1508,9 @@ class InvoiceController extends Controller
                     ]);
 
                 $bookings = Booking::with(['customer', 'property.project'])
-                    ->where(function($q) use ($firm) {
+                    ->where(function ($q) use ($firm) {
                         $q->where('firm_id', $firm->id)
-                          ->orWhereHas('property.project', fn($pq) => $pq->where('firm_id', $firm->id));
+                            ->orWhereHas('property.project', fn($pq) => $pq->where('firm_id', $firm->id));
                     })
                     ->latest()
                     ->take(30)
@@ -1521,9 +1523,9 @@ class InvoiceController extends Controller
                     ]);
 
                 $rentals = Rental::with(['tenant', 'property.project'])
-                    ->where(function($q) use ($firm) {
+                    ->where(function ($q) use ($firm) {
                         $q->where('firm_id', $firm->id)
-                          ->orWhereHas('property.project', fn($pq) => $pq->where('firm_id', $firm->id));
+                            ->orWhereHas('property.project', fn($pq) => $pq->where('firm_id', $firm->id));
                     })
                     ->latest()
                     ->take(30)

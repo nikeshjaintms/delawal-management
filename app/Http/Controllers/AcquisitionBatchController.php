@@ -599,9 +599,8 @@ class AcquisitionBatchController extends Controller
                     $detectedUnit = 'bigha';
                 }
 
-                $cleanSize = preg_replace('/[^\d.]/', '', str_replace(',', '', $rawSize));
-                if ($cleanSize !== '' && is_numeric($cleanSize)) {
-                    $size = (float)$cleanSize;
+                if (preg_match('/(?:\d+(?:\.\d+)?|\.\d+)/', str_replace(',', '', $rawSize), $sizeMatches)) {
+                    $size = (float) $sizeMatches[0];
                 }
             }
 
