@@ -59,7 +59,10 @@
         <div class="col-heading"><i class="fa-solid fa-location-dot"></i> Site Location &amp; Metrics</div>
         <div class="info-row"><span class="info-label">Site Address:</span><span class="info-val">{{ $project->display_address ?: ($project->address ?: 'Dahegam Road, Bharuch') }}</span></div>
         <div class="info-row"><span class="info-label">City / Taluka:</span><span class="info-val">{{ $project->city ?: 'Dahegam, Bharuch' }}</span></div>
-        <div class="info-row"><span class="info-label">Total Plotted Area:</span><span class="info-val">{{ number_format($totalArea ?? 0, 2) }} Sq.Yd / Units</span></div>
+        @php
+            $predominantUnit = $project->properties->first(fn($p) => !empty($p->size_unit))?->size_unit ?? ($project->area_unit ?? 'Sq.Ft');
+        @endphp
+        <div class="info-row"><span class="info-label">Total Plotted Area:</span><span class="info-val">{{ number_format($totalArea ?? 0, 2) }} {{ strtoupper($predominantUnit) }} / Units</span></div>
         <div class="info-row"><span class="info-label">Booked &amp; Sold Units:</span><span class="info-val" style="color:#B45309; font-weight:700;">{{ ($bookedPlots ?? 0) + ($soldPlots ?? 0) }} Units</span></div>
         <div class="info-row"><span class="info-label">Available for Allotment:</span><span class="info-val" style="color:#059669; font-weight:700;">{{ $availablePlots ?? 0 }} Units</span></div>
     </div>
@@ -120,7 +123,7 @@
             <td><strong style="color:#1E3A8A;">{{ $plot->unit_no ?: ($plot->property_code ?: '—') }}</strong></td>
             <td>{{ $plot->property_name }}</td>
             <td>{{ ucfirst($plot->propertyType->name ?? ($plot->property_type ?? 'Plot')) }}</td>
-            <td class="r" style="color:#475569;">{{ $plot->size ? ($plot->size . ' ' . ($plot->area_unit ?: 'Sq.Yd')) : ($plot->area ? ($plot->area . ' Sq.Ft') : '—') }}</td>
+            <td class="r" style="color:#475569;">{{ $plot->size ? ($plot->size . ' ' . ($plot->size_unit ?: ($plot->area_unit ?: 'Sq.Ft'))) : ($plot->area ? ($plot->area . ' Sq.Ft') : '—') }}</td>
             <td class="r" style="font-weight:700; color:#0F172A;">{{ formatIndianCurrency($plot->price ?? 0, 2, false) }}</td>
             <td class="c">
                 @if($plot->status === 'available')
@@ -146,6 +149,6 @@
 </table>
 @endif
 
-@include('admin.components.pdf-footer')
+@include('admin.components.pdf-footer', ['firm' => $project->firm ?? null])
 </body>
 </html>

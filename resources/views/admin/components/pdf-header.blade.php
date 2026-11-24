@@ -6,20 +6,50 @@
     $activeFirm     = $firm ?? ($reportFirm ?? (session('login_type') === 'firm' && session('firm_id') ? \App\Models\Firm::find(session('firm_id')) : \App\Models\Firm::first()));
     
     $firmDisplayName = $activeFirm->firm_name ?? 'DELAWALA PROPERTIES';
-    $firmGstNo       = $activeFirm->gst_no ?? '24CUBPD0770R1ZI';
-    $firmAddress     = $activeFirm->address ?? 'Ground Floor, FF Sri No. 116, Mhan Plaza, Dattlegam Road, Dahegam, Dahegam, Bharuch';
-    $firmCity        = $activeFirm->city ?? 'Dahegam, Bharuch';
-    $firmState       = $activeFirm->state ?? 'Gujarat';
-    $firmPin         = $activeFirm->pincode ?? '392012';
-    $firmOwner       = $activeFirm->owner_name ?? 'DELAWALA ZAFAR';
-    $firmPhone       = $activeFirm->mobile ?? '9999999999';
+    $firmGstNo       = !empty($activeFirm?->gst_no) ? $activeFirm->gst_no : null;
+    $firmAddress     = $activeFirm->address ?? '';
+    $firmCity        = $activeFirm->city ?? '';
+    $firmState       = $activeFirm->state ?? '';
+    $firmPin         = $activeFirm->pincode ?? '';
+    $firmOwner       = $activeFirm->owner_name ?? '';
+    $firmPhone       = $activeFirm->mobile ?? '';
+
+    // Clean address to avoid duplicate city / state
+    $addrParts = [];
+    if (!empty($firmAddress)) {
+        $addrParts[] = $firmAddress;
+    }
+    if (!empty($firmCity) && !str_contains(strtolower($firmAddress), strtolower($firmCity))) {
+        $addrParts[] = $firmCity;
+    }
+    if (!empty($firmState) && !str_contains(strtolower($firmAddress), strtolower($firmState))) {
+        $addrParts[] = $firmState;
+    }
+    $fullAddress = implode(', ', $addrParts);
+    if (!empty($firmPin)) {
+        $fullAddress .= ' - ' . $firmPin;
+    }
+
+    // Determine custom logo for the active firm
+    $customLogo = null;
+    if (!empty($activeFirm?->firm_logo)) {
+        if (file_exists(public_path('storage/' . $activeFirm->firm_logo))) {
+            $customLogo = asset('storage/' . $activeFirm->firm_logo);
+        } elseif (file_exists(public_path($activeFirm->firm_logo))) {
+            $customLogo = asset($activeFirm->firm_logo);
+        } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists($activeFirm->firm_logo)) {
+            $customLogo = \Illuminate\Support\Facades\Storage::disk('public')->url($activeFirm->firm_logo);
+        }
+    }
 @endphp
 
 <div id="delawala-printable-area" class="delawala-printable-area">
 <div class="delawala-pdf-header">
     <div class="dph-left">
         <div class="dph-logo-wrap">
-            @if(file_exists(public_path('images/logo 1.png')))
+            @if($customLogo)
+                <img src="{{ $customLogo }}" alt="{{ $firmDisplayName }}" class="dph-logo" onerror="this.style.display='none';">
+            @elseif(file_exists(public_path('images/logo 1.png')))
                 <img src="{{ asset('images/logo 1.png') }}?v={{ filemtime(public_path('images/logo 1.png')) }}" alt="{{ $firmDisplayName }}" class="dph-logo" onerror="this.style.display='none';">
             @elseif(file_exists(public_path('images/pdf-logo.png')))
                 <img src="{{ asset('images/pdf-logo.png') }}?v={{ filemtime(public_path('images/pdf-logo.png')) }}" alt="{{ $firmDisplayName }}" class="dph-logo" onerror="this.style.display='none';">
@@ -31,21 +61,37 @@
         </div>
         <div class="dph-company-details">
             <div class="dph-company-name">{{ $firmDisplayName }}</div>
-            <div class="dph-trade-sub">Delawala Infra Co. &bull; Real Estate &amp; Infrastructure</div>
+            @if(!empty($firmTradeSub))
+                <div class="dph-trade-sub">{!! $firmTradeSub !!}</div>
+            @elseif(str_contains(strtolower($firmDisplayName), 'delawala'))
+                <div class="dph-trade-sub">Delawala Infra Co. &bull; Real Estate &amp; Infrastructure</div>
+            @else
+                <div class="dph-trade-sub">Real Estate &bull; Construction &bull; Infrastructure Management</div>
+            @endif
+            @if(!empty($fullAddress))
             <div class="dph-address-line">
                 <i class="fa-solid fa-location-dot"></i>
-                <span>{{ $firmAddress }}, {{ $firmCity }}, {{ $firmState }} - {{ $firmPin }}</span>
+                <span>{{ $fullAddress }}</span>
             </div>
+            @endif
             <div class="dph-badges-row">
-                <span class="dph-gst-badge"><strong>GSTIN:</strong> {{ $firmGstNo }}</span>
-                <span class="dph-info-badge"><strong>State:</strong> {{ $firmState }} (24)</span>
+                @if(!empty($firmGstNo))
+                    <span class="dph-gst-badge"><strong>GSTIN:</strong> {{ $firmGstNo }}</span>
+                @endif
+                @if(!empty($firmState))
+                    <span class="dph-info-badge"><strong>State:</strong> {{ $firmState }} (24)</span>
+                @endif
             </div>
+            @if(!empty($firmOwner) || !empty($firmPhone))
             <div class="dph-badges-row" style="margin-top: 3px;">
-                <span class="dph-info-badge"><strong>Proprietor:</strong> {{ $firmOwner }}</span>
-                @if($firmPhone)
+                @if(!empty($firmOwner))
+                    <span class="dph-info-badge"><strong>Proprietor:</strong> {{ $firmOwner }}</span>
+                @endif
+                @if(!empty($firmPhone))
                     <span class="dph-info-badge"><strong>Tel:</strong> {{ $firmPhone }}</span>
                 @endif
             </div>
+            @endif
         </div>
     </div>
     <div class="dph-right">

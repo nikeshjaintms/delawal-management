@@ -2,10 +2,14 @@
     $footerNote = $note ?? 'Confidential & Proprietary • Delawala Management ERP';
     $footerDate = $date ?? now()->format('d M Y, h:i A');
     $skipSignature = $skipSignature ?? false;
+    $activeFirm = $firm ?? ($reportFirm ?? (session('login_type') === 'firm' && session('firm_id') ? \App\Models\Firm::find(session('firm_id')) : \App\Models\Firm::first()));
+    $firmDisplayName = $activeFirm->firm_name ?? 'DELAWALA PROPERTIES';
+    $firmCity = $activeFirm->city ?? 'Bharuch';
+    $firmGst = !empty($activeFirm->gst_no) ? (' &bull; GSTIN: ' . $activeFirm->gst_no) : '';
 @endphp
 
 @if(!$skipSignature && (!isset($hasCustomAuthBlock) || !$hasCustomAuthBlock))
-    @include('admin.components.pdf-signature')
+    @include('admin.components.pdf-signature', ['firm' => $activeFirm])
 @endif
 
 <div class="delawala-pdf-footer">
@@ -13,7 +17,7 @@
         <span>{{ $footerNote }}</span>
     </div>
     <div class="dpf-center">
-        <span>DELAWALA INFRA CO. &bull; GSTIN: 24CUBPD0770R1ZI &bull; Dahegam, Bharuch</span>
+        <span>{{ strtoupper($firmDisplayName) }}{!! $firmGst !!} &bull; {{ $firmCity }}</span>
     </div>
     <div class="dpf-right">
         <span>Generated: {{ $footerDate }}</span>
