@@ -781,14 +781,14 @@
                     <span class="inv-lbl">Address:</span>
                     <span class="inv-val">{{ $invoice->recipient_address ?? '—' }}</span>
                 </div>
-                <div class="inv-row">
+                <!-- <div class="inv-row">
                     <span class="inv-lbl">GSTIN / UIN:</span>
                     <span class="inv-val">{{ $invoice->recipient_gstin ?: 'Unregistered (B2C)' }}</span>
-                </div>
-                <div class="inv-row">
+                </div> -->
+                <!-- <div class="inv-row">
                     <span class="inv-lbl">State &amp; Code:</span>
-                    <span class="inv-val">{{ $invoice->recipient_state ?? 'Gujarat' }} (24)</span>
-                </div>
+                    <span class="inv-val">{{ $invoice->recipient_state ?? 'Gujarat' }}</span>
+                </div> -->
             </div>
         </div>
 
