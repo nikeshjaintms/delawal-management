@@ -306,7 +306,119 @@
     resize: vertical;
     min-height: 70px;
 }
+.inv-unit-chip-dark {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(96, 165, 250, 0.35);
+    color: #93C5FD;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+.inv-unit-chip-dark strong {
+    color: #FFFFFF;
+    font-weight: 700;
+}
 </style>
+
+@php
+    $projectName = $invoice->project->project_name ?? null;
+    $linkedBooking = null;
+    $linkedSale = $invoice->propertySale ?? null;
+    $allBookedProps = collect();
+
+    try {
+        if (!empty($invoice->notes) && preg_match('/BK-(\d+)/i', $invoice->notes, $m)) {
+            $linkedBooking = \App\Models\Booking::with(['properties.project', 'property.project', 'customer'])->find($m[1]);
+        }
+        if (!$linkedBooking && !empty($invoice->notes) && preg_match('/Booking Code:\s*([^\s\r\n,]+)/i', $invoice->notes, $m)) {
+            $linkedBooking = \App\Models\Booking::where('booking_code', trim($m[1]))->with(['properties.project', 'property.project', 'customer'])->first();
+        }
+        if (!$linkedBooking && $invoice->customer_id) {
+            $bkQuery = \App\Models\Booking::where('customer_id', $invoice->customer_id)
+                ->whereNotIn('status', ['cancelled'])
+                ->with(['properties.project', 'property.project', 'customer']);
+            if ($invoice->project_id) {
+                $bkQuery->where(function($q) use ($invoice) {
+                    $q->whereHas('properties', fn($p) => $p->where('project_id', $invoice->project_id))
+                      ->orWhereHas('property', fn($p) => $p->where('project_id', $invoice->project_id));
+                });
+            }
+            $linkedBooking = $bkQuery->latest()->first();
+        }
+
+        if (!$linkedSale && $invoice->property_sale_id) {
+            $linkedSale = \App\Models\PropertySale::with(['properties.project', 'property.project', 'customer'])->find($invoice->property_sale_id);
+        }
+        if (!$linkedSale && !$linkedBooking && $invoice->customer_id) {
+            $saleQuery = \App\Models\PropertySale::where('customer_id', $invoice->customer_id)
+                ->where('sale_status', '!=', 'cancelled')
+                ->with(['properties.project', 'property.project', 'customer']);
+            if ($invoice->project_id) {
+                $saleQuery->where(function($q) use ($invoice) {
+                    $q->whereHas('properties', fn($p) => $p->where('project_id', $invoice->project_id))
+                      ->orWhereHas('property', fn($p) => $p->where('project_id', $invoice->project_id));
+                });
+            }
+            $linkedSale = $saleQuery->latest()->first();
+        }
+
+        if ($linkedBooking) {
+            $allBookedProps = $linkedBooking->all_properties;
+            if ($allBookedProps->isEmpty() && $linkedBooking->property) {
+                $allBookedProps = collect([$linkedBooking->property]);
+            }
+        } elseif ($linkedSale) {
+            $allBookedProps = $linkedSale->all_properties;
+            if ($allBookedProps->isEmpty() && $linkedSale->property) {
+                $allBookedProps = collect([$linkedSale->property]);
+            }
+        }
+
+        if ($invoice->customer_id) {
+            $customerAllProps = collect();
+            $custBookings = \App\Models\Booking::where('customer_id', $invoice->customer_id)
+                ->whereNotIn('status', ['cancelled'])
+                ->with(['properties.project', 'property.project'])
+                ->get();
+            foreach ($custBookings as $cb) {
+                foreach ($cb->all_properties as $prop) {
+                    if (!$invoice->project_id || $prop->project_id == $invoice->project_id) {
+                        $customerAllProps->push($prop);
+                    }
+                }
+            }
+            $custSales = \App\Models\PropertySale::where('customer_id', $invoice->customer_id)
+                ->where('sale_status', '!=', 'cancelled')
+                ->with(['properties.project', 'property.project'])
+                ->get();
+            foreach ($custSales as $cs) {
+                foreach ($cs->all_properties as $prop) {
+                    if (!$invoice->project_id || $prop->project_id == $invoice->project_id) {
+                        $customerAllProps->push($prop);
+                    }
+                }
+            }
+            $customerAllProps = $customerAllProps->unique('id')->values();
+            if ($customerAllProps->isNotEmpty() && ($allBookedProps->isEmpty() || $customerAllProps->count() > $allBookedProps->count())) {
+                $allBookedProps = $customerAllProps;
+            }
+        }
+
+        if (empty($projectName) && $allBookedProps->isNotEmpty()) {
+            $pNames = $allBookedProps->map(fn($p) => $p->project?->project_name)->filter()->unique()->values();
+            if ($pNames->isNotEmpty()) {
+                $projectName = $pNames->join(', ');
+            }
+        }
+    } catch (\Throwable $e) {
+        // Fallback safely
+    }
+@endphp
 
 {{-- Breadcrumbs & Header --}}
 <div class="breadcrumb-nav">
@@ -335,6 +447,13 @@
         <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn-primary-custom">
             <i class="fa-solid fa-pen-to-square"></i> Edit
         </a>
+        <form action="{{ route('invoices.destroy', $invoice->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('Are you sure you want to delete Invoice {{ $invoice->invoice_no }}? This will permanently remove this invoice and its recorded payment transactions. The original booking and property reservations will remain completely intact.');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn-secondary-custom" style="background: rgba(239, 68, 68, 0.2) !important; border-color: rgba(239, 68, 68, 0.45) !important; color: #F87171 !important;">
+                <i class="fa-solid fa-trash-can"></i> Delete
+            </button>
+        </form>
         <a href="{{ route('invoices.index') }}" class="btn-secondary-custom">
             <i class="fa-solid fa-arrow-left"></i> Back
         </a>
@@ -403,6 +522,16 @@
                     <div class="addr-text">
                         <div>Code: <code class="code-chip">{{ $invoice->project->project_code }}</code></div>
                         <div>Type: {{ ucfirst($invoice->project->project_type ?: 'Plotted Development') }}</div>
+                        @if($allBookedProps->count() > 1)
+                            <div style="margin-top: 4px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                                <span style="font-size: 11px; color: #94A3B8; font-weight: 600;">Booked Units ({{ $allBookedProps->count() }}):</span>
+                                @foreach($allBookedProps as $p)
+                                    <span class="inv-unit-chip-dark" style="font-size: 10px; padding: 1px 6px;">
+                                        <strong>{{ $p->property_name }}</strong>
+                                    </span>
+                                @endforeach
+                            </div>
+                        @endif
                         <div>{{ $invoice->project->display_address }}</div>
                     </div>
                 @else
@@ -428,16 +557,62 @@
                 </thead>
                 <tbody>
                     @foreach($invoice->items as $i => $item)
+                        @php
+                            $displayDesc = $item->item_description;
+                            $itemQty = $item->quantity;
+                            if ($allBookedProps->count() > 1 && (
+                                str_contains(strtolower($displayDesc), 'booking') ||
+                                str_contains(strtolower($displayDesc), 'property') ||
+                                str_contains(strtolower($displayDesc), 'plot') ||
+                                str_contains(strtolower($displayDesc), 'unit') ||
+                                str_contains(strtolower($displayDesc), 'sale')
+                            )) {
+                                $allUnitNames = $allBookedProps->pluck('property_name')->filter()->join(', ');
+                                $matchesAll = true;
+                                foreach ($allBookedProps as $bp) {
+                                    if (!str_contains($displayDesc, $bp->property_name)) {
+                                        $matchesAll = false;
+                                        break;
+                                    }
+                                }
+                                if (!$matchesAll) {
+                                    if (preg_match('/^(.*?(?:for|Reservation for|Consideration for)\s+)(.*?)((\s*[\(\[].*?[\)\]])?)$/i', $displayDesc, $m)) {
+                                        $displayDesc = $m[1] . $allUnitNames . ($m[3] ?: ($projectName ? " ({$projectName})" : ''));
+                                    } else {
+                                        $displayDesc = "Property Booking & Reservation for " . $allUnitNames . ($projectName ? " ({$projectName})" : '');
+                                    }
+                                }
+                                if ((float)$itemQty <= 1.0) {
+                                    $itemQty = $allBookedProps->count();
+                                }
+                            }
+                        @endphp
                         <tr>
                             <td style="color: #64748B; font-weight: 700;">{{ $i + 1 }}</td>
                             <td>
-                                <div style="font-weight: 700; color: #FFFFFF;">{{ $item->item_description }}</div>
-                                <span class="badge-inv badge-general" style="font-size: 10px; padding: 2px 6px; margin-top: 3px;">
-                                    {{ ucfirst(str_replace('_', ' ', $item->item_type)) }}
-                                </span>
+                                <div style="font-weight: 700; color: #FFFFFF; font-size: 13.5px;">{{ $displayDesc }}</div>
+                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 5px;">
+                                    <span class="badge-inv badge-general" style="font-size: 10px; padding: 2px 6px;">
+                                        {{ ucfirst(str_replace('_', ' ', $item->item_type)) }}
+                                    </span>
+                                    @if($allBookedProps->count() > 1)
+                                        @foreach($allBookedProps as $p)
+                                            <span class="inv-unit-chip-dark">
+                                                <i class="fa-solid fa-layer-group" style="font-size: 9px;"></i>
+                                                <strong>{{ $p->property_name }}</strong>
+                                                @if(!empty($p->unit_no))
+                                                    <span style="opacity: 0.8; font-size: 9.5px;">(#{{ $p->unit_no }})</span>
+                                                @endif
+                                                @if(!empty($p->type))
+                                                    <span style="opacity: 0.8; font-size: 9.5px;">• {{ ucfirst($p->type) }}</span>
+                                                @endif
+                                            </span>
+                                        @endforeach
+                                    @endif
+                                </div>
                             </td>
                             <td style="color: #94A3B8; font-size: 12px;">{{ $item->hsn_sac_code ?: '—' }}</td>
-                            <td style="text-align: right; font-weight: 600;">{{ number_format($item->quantity, 2) }} {{ $item->unit }}</td>
+                            <td style="text-align: right; font-weight: 600;">{{ number_format($itemQty, 2) }} {{ $item->unit }}</td>
                             <td style="text-align: right; font-weight: 600;">₹{{ number_format($item->unit_price, 2) }}</td>
                             <td style="text-align: right; color: #FBBF24;">{{ $item->discount_amount > 0 ? '₹' . number_format($item->discount_amount, 2) : '—' }}</td>
                             <td style="text-align: right; font-weight: 800; color: #FFFFFF;">₹{{ number_format($item->total_price, 2) }}</td>
