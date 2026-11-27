@@ -117,10 +117,7 @@ $otherBookings = \App\Models\Booking::where('customer_id', $booking->customer_id
                 <span class="info-label">Mobile Number:</span>
                 <span class="info-val">{{ $booking->customer->mobile ?: ($booking->customer->phone ?? '—') }}</span>
             </div>
-            <div class="info-row">
-                <span class="info-label">Seller / Owner:</span>
-                <span class="info-val">{{ $booking->effective_seller_name ?: 'Direct Property' }}</span>
-            </div>
+
             <div class="info-row">
                 <span class="info-label">Sourcing Broker:</span>
                 <span class="info-val">{{ $booking->effective_broker_name ?: 'Direct Deal' }}</span>
