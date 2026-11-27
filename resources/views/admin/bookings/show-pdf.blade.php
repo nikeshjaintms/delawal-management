@@ -136,7 +136,7 @@ $otherBookings = \App\Models\Booking::where('customer_id', $booking->customer_id
                     <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
                         @foreach($allProps as $p)
                         <span class="prop-chip">
-                            <strong>{{ $p->property_name }}</strong>@if($p->unit_no)<span style="font-size: 8.5px; opacity: 0.8;">(#{{ $p->unit_no }})</span>@endif
+                            <strong>{{ $p->property_name }}</strong>
                         </span>
                         @endforeach
                     </div>
