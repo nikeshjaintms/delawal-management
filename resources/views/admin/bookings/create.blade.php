@@ -424,41 +424,6 @@ textarea.form-control { resize: vertical; min-height: 85px; }
 
         <div class="form-row">
             <div class="form-group" style="flex: 1;">
-                <label class="form-label" for="seller_id">
-                    <i class="fa-solid fa-user-tie" style="color: #60A5FA;"></i> Registered Seller (Optional)
-                </label>
-                <select name="seller_id" id="seller_id" class="form-control @error('seller_id') is-invalid @enderror" onchange="handleBookingSellerChange(this)">
-                    <option value="">-- Select Registered Seller --</option>
-                    @if(isset($sellers))
-                        @foreach($sellers as $seller)
-                            <option value="{{ $seller->id }}" 
-                                    data-name="{{ $seller->name }}"
-                                    {{ old('seller_id') == $seller->id ? 'selected' : '' }}>
-                                {{ $seller->name }} {{ ($seller->mobile ?: $seller->phone) ? '— ' . ($seller->mobile ?: $seller->phone) : '' }}
-                            </option>
-                        @endforeach
-                    @endif
-                </select>
-                <div class="form-hint" style="color: #94A3B8;">Select an existing seller from system or leave empty.</div>
-                @error('seller_id') <div class="text-error">{{ $message }}</div> @enderror
-            </div>
-
-            <div class="form-group" style="flex: 1;">
-                <label class="form-label" for="booking_seller_name">
-                    <i class="fa-solid fa-user-tag" style="color: #93C5FD;"></i> Custom / Unregistered Seller Name
-                </label>
-                <input type="text" name="seller_name" id="booking_seller_name" 
-                       value="{{ old('seller_name') }}" 
-                       class="form-control @error('seller_name') is-invalid @enderror" 
-                       placeholder="e.g. Mukeshbhai Patel / Land Owner"
-                       oninput="handleBookingSellerNameInput(this)">
-                <div class="form-hint" style="color: #BFDBFE;">Auto-populates from selected property or type any new name.</div>
-                @error('seller_name') <div class="text-error">{{ $message }}</div> @enderror
-            </div>
-        </div>
-
-        <div class="form-row">
-            <div class="form-group" style="flex: 1;">
                 <label class="form-label" for="broker_id">
                     <i class="fa-solid fa-user-tie" style="color: #A78BFA;"></i> Registered Broker (Optional)
                 </label>
@@ -726,21 +691,9 @@ textarea.form-control { resize: vertical; min-height: 85px; }
         discountValueInput.addEventListener('input', () => calculateAmounts());
         bookingAmountInput.addEventListener('input', () => calculateAmounts());
 
-        // Seller and Broker handling
-        window.handleBookingSellerChange = function(select) {
-            const sellerNameInput = document.getElementById('booking_seller_name');
-            if (select && select.value) {
-                const opt = select.options[select.selectedIndex];
-                const sName = opt ? opt.getAttribute('data-name') : '';
-                if (sellerNameInput && sName) {
-                    sellerNameInput.value = sName;
-                }
-            }
-        };
-
-        window.handleBookingSellerNameInput = function(input) {
-            // custom seller name handler
-        };
+        // Broker handling
+        window.handleBookingSellerChange = function(select) {};
+        window.handleBookingSellerNameInput = function(input) {};
 
         window.handleBookingBrokerChange = function(select) {
             const brokerNameInput = document.getElementById('booking_broker_name');
@@ -897,25 +850,12 @@ textarea.form-control { resize: vertical; min-height: 85px; }
                 }
             }
 
-            // Auto-populate Seller & Broker if available and not manually modified
-            const sellerSelect = document.getElementById('seller_id');
-            const sellerNameInput = document.getElementById('booking_seller_name');
+            // Auto-populate Broker if available and not manually modified
             const brokerSelect = document.getElementById('broker_id');
             const brokerNameInput = document.getElementById('booking_broker_name');
 
-            const optSellerId = opt.dataset.sellerId || '';
-            const optSellerName = opt.dataset.sellerName || '';
             const optBrokerId = opt.dataset.brokerId || '';
             const optBrokerName = opt.dataset.brokerName || '';
-
-            if (optSellerId && sellerSelect && (!sellerSelect.value || sellerSelect.dataset.autoFilled === '1')) {
-                sellerSelect.value = optSellerId;
-                sellerSelect.dataset.autoFilled = '1';
-                window.handleBookingSellerChange(sellerSelect);
-            } else if (optSellerName && sellerNameInput && (!sellerNameInput.value || sellerNameInput.dataset.autoFilled === '1')) {
-                sellerNameInput.value = optSellerName;
-                sellerNameInput.dataset.autoFilled = '1';
-            }
 
             if (optBrokerId && brokerSelect && (!brokerSelect.value || brokerSelect.dataset.autoFilled === '1')) {
                 brokerSelect.value = optBrokerId;
