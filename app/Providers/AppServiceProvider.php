@@ -163,6 +163,34 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
+        // ── 2b. Unified Tally Auto-Posting (Ledgers, Receipts & Booking Advances) ──
+        $tallyModels = [
+            \App\Models\Booking::class,
+            \App\Models\PropertySale::class,
+            \App\Models\Payment::class,
+            \App\Models\RentalPayment::class,
+            \App\Models\Income::class,
+            \App\Models\Expense::class,
+            \App\Models\PropertyMasterPayment::class,
+            \App\Models\PurchasePayment::class,
+            \App\Models\ContractorPayment::class,
+            \App\Models\LoanEmiSchedule::class,
+            \App\Models\LoanPayment::class,
+            \App\Models\BrokerCommission::class,
+            \App\Models\InvoicePayment::class,
+        ];
+
+        foreach ($tallyModels as $tallyClass) {
+            if (class_exists($tallyClass)) {
+                $tallyClass::saved(function ($model) {
+                    \App\Services\TallyAutoPostingService::syncModel($model);
+                });
+                $tallyClass::deleted(function ($model) {
+                    \App\Services\TallyAutoPostingService::deleteForModel($model);
+                });
+            }
+        }
+
         // ── 3. Register Global Accounting Blade Directives ──
         \Illuminate\Support\Facades\Blade::directive('currency', function ($expression) {
             return "<?php echo \\App\Helpers\\AccountingHelper::formatIndianCurrency($expression); ?>";

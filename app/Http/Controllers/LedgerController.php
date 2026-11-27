@@ -20,26 +20,54 @@ class LedgerController extends Controller
         'Rent Received', 'Loan EMI', 'Other',
     ];
 
+    private function authContext(): array
+    {
+        $user = Auth::user();
+        $isFirm = session('login_type') === 'firm' && session('firm_id');
+        $isAdmin = !$isFirm && $user && $user->isAdmin();
+        $firmId = $isFirm ? (int) session('firm_id') : ($user && $user->firm_id ? (int) $user->firm_id : null);
+
+        return [$isAdmin, $firmId];
+    }
+
     // ----------------------------------------------------------------
     // Shared dropdown data
     // ----------------------------------------------------------------
     private function dropdowns(): array
     {
-        $firmId = Auth::user()->firm_id;
-        return [
-            'properties'   => Property::with(['project.propertyMaster'])->where('firm_id', $firmId)->orderBy('property_name')->get(),
-            'customers'    => Customer::where('firm_id', $firmId)->where('status', 'active')->orderBy('name')->get(),
-            'vendors'      => Vendor::where('firm_id', $firmId)->where('status', 'active')->orderBy('name')->get(),
-            'brokers'      => Broker::where('firm_id', $firmId)->where('status', 'active')->orderBy('name')->get(),
-            'paymentModes' => PaymentMode::whereHas('firms', function($q) use ($firmId) {
+        [$isAdmin, $firmId] = $this->authContext();
+
+        $propQuery = Property::with(['project.propertyMaster'])->orderBy('property_name');
+        $custQuery = Customer::where('status', 'active')->orderBy('name');
+        $vendQuery = Vendor::where('status', 'active')->orderBy('name');
+        $brokQuery = Broker::where('status', 'active')->orderBy('name');
+        $pmQuery   = PaymentMode::where('status', 'active')->orderBy('name');
+
+        if (!$isAdmin && $firmId) {
+            $propQuery->where('firm_id', $firmId);
+            $custQuery->where('firm_id', $firmId);
+            $vendQuery->where('firm_id', $firmId);
+            $brokQuery->where('firm_id', $firmId);
+            $pmQuery->whereHas('firms', function ($q) use ($firmId) {
                 $q->where('firms.id', $firmId);
-            })->where('status', 'active')->orderBy('name')->get(),
+            });
+        }
+
+        return [
+            'properties'   => $propQuery->get(),
+            'customers'    => $custQuery->get(),
+            'vendors'      => $vendQuery->get(),
+            'brokers'      => $brokQuery->get(),
+            'paymentModes' => $pmQuery->get(),
         ];
     }
 
     private function authorise(Ledger $ledger): void
     {
-        if ($ledger->firm_id !== Auth::user()->firm_id) abort(403);
+        [$isAdmin, $firmId] = $this->authContext();
+        if (!$isAdmin && (int) $ledger->firm_id !== (int) $firmId) {
+            abort(403);
+        }
     }
 
     // ----------------------------------------------------------------
@@ -47,10 +75,14 @@ class LedgerController extends Controller
     // ----------------------------------------------------------------
     public function index(Request $request)
     {
-        $firmId = Auth::user()->firm_id;
+        [$isAdmin, $firmId] = $this->authContext();
 
-        $query = Ledger::with(['property', 'customer', 'vendor', 'broker'])
-            ->where('firm_id', $firmId);
+        $query = Ledger::with(['property', 'customer', 'vendor', 'broker', 'firm']);
+        if (!$isAdmin && $firmId) {
+            $query->where('firm_id', $firmId);
+        } elseif ($request->filled('firm_id')) {
+            $query->where('firm_id', $request->firm_id);
+        }
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -97,10 +129,11 @@ class LedgerController extends Controller
 
     public function store(LedgerRequest $request)
     {
-        
+        [$isAdmin, $firmId] = $this->authContext();
+        $resolvedFirmId = $request->input('firm_id') ?: ($firmId ?: \App\Models\Firm::value('id'));
 
         Ledger::create([
-            'firm_id'           => Auth::user()->firm_id,
+            'firm_id'           => $resolvedFirmId,
             'ledger_date'       => $request->ledger_date,
             'property_id'       => $request->property_id ?: null,
             'customer_id'       => $request->customer_id ?: null,

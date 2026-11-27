@@ -123,7 +123,11 @@ class PartnerProfitService
               ->orWhereHas('rental', fn ($rq) => $rq->where('firm_id', $firmId));
         })->sum('paid_amount');
 
-        $otherIncome = (float) Income::where('firm_id', $firmId)->sum('amount');
+        $otherIncome = (float) Income::where('firm_id', $firmId)
+            ->where(function ($q) {
+                $q->whereNull('description')->orWhere('description', 'not like', '%[AUTO:BK#%');
+            })
+            ->sum('amount');
 
         $landPaid          = (float) PropertyMasterPayment::where('firm_id', $firmId)->sum('amount');
         $expensesTotal     = (float) Expense::where('firm_id', $firmId)->sum('amount');
@@ -180,7 +184,11 @@ class PartnerProfitService
             : 0.0;
 
         $otherIncome = !empty($propIds)
-            ? (float) Income::whereIn('property_id', $propIds)->sum('amount')
+            ? (float) Income::whereIn('property_id', $propIds)
+                ->where(function ($q) {
+                    $q->whereNull('description')->orWhere('description', 'not like', '%[AUTO:BK#%');
+                })
+                ->sum('amount')
             : 0.0;
 
         $landPaid = !empty($pmIds)
@@ -263,7 +271,11 @@ class PartnerProfitService
             : 0.0;
 
         $otherIncome = !empty($propIds)
-            ? (float) Income::whereIn('property_id', $propIds)->sum('amount')
+            ? (float) Income::whereIn('property_id', $propIds)
+                ->where(function ($q) {
+                    $q->whereNull('description')->orWhere('description', 'not like', '%[AUTO:BK#%');
+                })
+                ->sum('amount')
             : 0.0;
 
         $landPaid = (float) PropertyMasterPayment::where('property_master_id', $pm->id)->sum('amount');

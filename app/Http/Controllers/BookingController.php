@@ -259,6 +259,7 @@ class BookingController extends Controller
         }
 
         $this->updatePropertyStatus($booking, $submittedPropIds);
+        \App\Services\TallyAutoPostingService::syncModel($booking->fresh());
 
         // Save broker commission if broker selected and value entered
         if ($booking->broker_id && $request->filled('commission_value')) {
@@ -382,6 +383,7 @@ class BookingController extends Controller
         }
 
         $this->updatePropertyStatus($booking, $submittedPropIds, $oldPropIds);
+        \App\Services\TallyAutoPostingService::syncModel($booking->fresh());
 
         // Save or update broker commission
         if ($booking->broker_id && $request->filled('commission_value')) {

@@ -76,6 +76,32 @@ class ReportsController extends Controller
         return $projQuery->get();
     }
 
+    /**
+     * Query active Bookings whose properties are not yet converted to an active PropertySale.
+     */
+    private function getUnconvertedBookingQuery(Request $request, $projectId = null)
+    {
+        $bkQuery = Booking::with(['customer', 'property', 'properties', 'firm'])
+            ->where('status', '!=', 'cancelled')
+            ->where(function ($q) {
+                $q->whereDoesntHave('property.sales', fn($sq) => $sq->where('sale_status', '!=', 'cancelled'))
+                  ->whereDoesntHave('property.salesList', fn($sq) => $sq->where('sale_status', '!=', 'cancelled'))
+                  ->whereDoesntHave('properties.sales', fn($sq) => $sq->where('sale_status', '!=', 'cancelled'))
+                  ->whereDoesntHave('properties.salesList', fn($sq) => $sq->where('sale_status', '!=', 'cancelled'));
+            });
+
+        $this->applyFirmScope($bkQuery, $request);
+
+        if ($projectId) {
+            $bkQuery->where(function ($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
+        }
+
+        return $bkQuery;
+    }
+
     // ---------------------------------------------------------------
     // Reports Hub — Landing Page
     // ---------------------------------------------------------------
@@ -817,18 +843,23 @@ class ReportsController extends Controller
         }
         $cashFromPayments = $payQuery->when($asOnDate, fn($q) => $q->whereDate('payment_date', '<=', $asOnDate))->sum('payment_amount');
 
-        $bkQuery = Booking::query();
-        $this->applyFirmScope($bkQuery, $request);
+        $directSaleQuery = PropertySale::where('sale_status', '!=', 'cancelled')
+            ->where('booking_amount', '>', 0)
+            ->whereDoesntHave('payments');
+        $this->applyFirmScope($directSaleQuery, $request);
         if ($projectId) {
-            $bkQuery->where(function ($q) use ($projectId) {
-                $q
-                    ->whereHas('property', fn($p) => $p->where('project_id', $projectId))
-                    ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            $directSaleQuery->where(function ($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
             });
         }
-        $cashFromBookings = $bkQuery->when($asOnDate, fn($q) => $q->whereDate('booking_date', '<=', $asOnDate))->sum('booking_amount');
+        $cashFromDirectSales = $directSaleQuery->when($asOnDate, fn($q) => $q->whereDate('sale_date', '<=', $asOnDate))->sum('booking_amount');
 
-        $cashReceived = max($cashFromPayments, $cashFromBookings);
+        $cashFromBookings = $this->getUnconvertedBookingQuery($request, $projectId)
+            ->when($asOnDate, fn($q) => $q->whereDate('booking_date', '<=', $asOnDate))
+            ->sum('booking_amount');
+
+        $cashReceived = (float) $cashFromPayments + (float) $cashFromDirectSales + (float) $cashFromBookings;
 
         $rentPayQuery = RentalPayment::query();
         $this->applyFirmScope($rentPayQuery, $request, 'firm_id', 'rental');
@@ -842,7 +873,10 @@ class ReportsController extends Controller
         }
         $rentalCashReceived = $rentPayQuery->when($asOnDate, fn($q) => $q->whereDate('payment_date', '<=', $asOnDate))->sum('paid_amount');
 
-        $incQuery = \App\Models\Income::query();
+        $incQuery = \App\Models\Income::query()
+            ->where(function ($q) {
+                $q->whereNull('description')->orWhere('description', 'not like', '%[AUTO:BK#%');
+            });
         $this->applyFirmScope($incQuery, $request);
         if ($projectId) {
             $incQuery->whereHas('property', fn($p) => $p->where('project_id', $projectId));
@@ -866,21 +900,12 @@ class ReportsController extends Controller
             ->whereIn('payment_status', ['pending', 'partial'])
             ->sum('remaining_amount');
 
-        $bkRecQuery = Booking::query();
-        $this->applyFirmScope($bkRecQuery, $request);
-        if ($projectId) {
-            $bkRecQuery->where(function ($q) use ($projectId) {
-                $q
-                    ->whereHas('property', fn($p) => $p->where('project_id', $projectId))
-                    ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
-            });
-        }
-        $receivablesFromBookings = $bkRecQuery
+        $receivablesFromBookings = $this->getUnconvertedBookingQuery($request, $projectId)
             ->when($asOnDate, fn($q) => $q->whereDate('booking_date', '<=', $asOnDate))
             ->whereIn('payment_status', ['unpaid', 'partial'])
             ->sum('remaining_amount');
 
-        $receivables = max($receivablesFromSales, $receivablesFromBookings);
+        $receivables = (float) $receivablesFromSales + (float) $receivablesFromBookings;
 
         // Inventory Stock: Available properties valuation
         $propQuery = Property::whereIn('status', ['available', 'booked']);
@@ -983,18 +1008,23 @@ class ReportsController extends Controller
         }
         $cashFromPayments = $payQuery->when($asOnDate, fn($q) => $q->whereDate('payment_date', '<=', $asOnDate))->sum('payment_amount');
 
-        $bkQuery = Booking::query();
-        $this->applyFirmScope($bkQuery, $request);
+        $directSaleQuery = PropertySale::where('sale_status', '!=', 'cancelled')
+            ->where('booking_amount', '>', 0)
+            ->whereDoesntHave('payments');
+        $this->applyFirmScope($directSaleQuery, $request);
         if ($projectId) {
-            $bkQuery->where(function ($q) use ($projectId) {
-                $q
-                    ->whereHas('property', fn($p) => $p->where('project_id', $projectId))
-                    ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            $directSaleQuery->where(function ($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
             });
         }
-        $cashFromBookings = $bkQuery->when($asOnDate, fn($q) => $q->whereDate('booking_date', '<=', $asOnDate))->sum('booking_amount');
+        $cashFromDirectSales = $directSaleQuery->when($asOnDate, fn($q) => $q->whereDate('sale_date', '<=', $asOnDate))->sum('booking_amount');
 
-        $cashReceived = max($cashFromPayments, $cashFromBookings);
+        $cashFromBookings = $this->getUnconvertedBookingQuery($request, $projectId)
+            ->when($asOnDate, fn($q) => $q->whereDate('booking_date', '<=', $asOnDate))
+            ->sum('booking_amount');
+
+        $cashReceived = (float) $cashFromPayments + (float) $cashFromDirectSales + (float) $cashFromBookings;
 
         $rentPayQuery = RentalPayment::query();
         $this->applyFirmScope($rentPayQuery, $request, 'firm_id', 'rental');
@@ -1022,21 +1052,12 @@ class ReportsController extends Controller
             ->whereIn('payment_status', ['pending', 'partial'])
             ->sum('remaining_amount');
 
-        $bkRecQuery = Booking::query();
-        $this->applyFirmScope($bkRecQuery, $request);
-        if ($projectId) {
-            $bkRecQuery->where(function ($q) use ($projectId) {
-                $q
-                    ->whereHas('property', fn($p) => $p->where('project_id', $projectId))
-                    ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
-            });
-        }
-        $receivablesFromBookings = $bkRecQuery
+        $receivablesFromBookings = $this->getUnconvertedBookingQuery($request, $projectId)
             ->when($asOnDate, fn($q) => $q->whereDate('booking_date', '<=', $asOnDate))
             ->whereIn('payment_status', ['unpaid', 'partial'])
             ->sum('remaining_amount');
 
-        $receivables = max($receivablesFromSales, $receivablesFromBookings);
+        $receivables = (float) $receivablesFromSales + (float) $receivablesFromBookings;
 
         $propQuery = Property::whereIn('status', ['available', 'booked']);
         $this->applyFirmScope($propQuery, $request);
@@ -1124,63 +1145,8 @@ class ReportsController extends Controller
         $toDate = $request->filled('to_date') ? $request->to_date : null;
         $projectId = $request->filled('filter_project') ? $request->filter_project : null;
 
-        // 1. Sales Payments
-        $payQuery = Payment::with(['customer', 'propertySale.property', 'firm']);
-        $this->applyFirmScope($payQuery, $request);
-        if ($projectId) {
-            $payQuery->where(function ($q) use ($projectId) {
-                $q
-                    ->whereHas('property', fn($p) => $p->where('project_id', $projectId))
-                    ->orWhereHas('propertySale.property', fn($p) => $p->where('project_id', $projectId))
-                    ->orWhereHas('propertySale.properties', fn($p) => $p->where('project_id', $projectId));
-            });
-        }
-        $salesPayments = $payQuery
-            ->whereNotNull('payment_date')
-            ->when($fromDate, fn($q) => $q->whereDate('payment_date', '>=', $fromDate))
-            ->when($toDate, fn($q) => $q->whereDate('payment_date', '<=', $toDate))
-            ->orderBy('payment_date')
-            ->get()
-            ->map(fn($p) => [
-                'date' => $p->payment_date,
-                'particular' => 'Sales Receipt — ' . ($p->customer?->name ?? 'Customer')
-                    . ($p->propertySale?->property?->property_name
-                        ? ' (' . $p->propertySale->property->property_name . ')'
-                        : ''),
-                'type' => 'inflow',
-                'section' => 'Sales Payment Received',
-                'payment_mode' => $p->payment_mode ?? '—',
-                'amount' => (float) $p->payment_amount,
-            ]);
-
-        // If payments table is empty, include bookings
-        if ($salesPayments->isEmpty()) {
-            $bkQuery = Booking::with(['customer', 'property', 'firm']);
-            $this->applyFirmScope($bkQuery, $request);
-            if ($projectId) {
-                $bkQuery->where(function ($q) use ($projectId) {
-                    $q
-                        ->whereHas('property', fn($p) => $p->where('project_id', $projectId))
-                        ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
-                });
-            }
-            $salesPayments = $bkQuery
-                ->whereNotNull('booking_date')
-                ->where('booking_amount', '>', 0)
-                ->when($fromDate, fn($q) => $q->whereDate('booking_date', '>=', $fromDate))
-                ->when($toDate, fn($q) => $q->whereDate('booking_date', '<=', $toDate))
-                ->orderBy('booking_date')
-                ->get()
-                ->map(fn($b) => [
-                    'date' => $b->booking_date,
-                    'particular' => 'Booking Token (' . ucfirst($b->booking_type ?? 'booking') . ') — ' . ($b->customer?->name ?? 'Customer')
-                        . ($b->property?->property_name ? ' (' . $b->property->property_name . ')' : ''),
-                    'type' => 'inflow',
-                    'section' => 'Booking Advance Received',
-                    'payment_mode' => $b->payment_mode ?? ($b->paymentMode->name ?? '—'),
-                    'amount' => (float) $b->booking_amount,
-                ]);
-        }
+        // 1. Sales Payments + Direct Sale Advances + Unconverted Booking Advances + Other Incomes
+        $salesPayments = $this->getCashFlowSalesAndBookingInflows($request, $fromDate, $toDate, $projectId, false);
 
         // 2. Rental Payments
         $rentQuery = RentalPayment::with(['rental.property', 'rental.firm']);
@@ -1297,20 +1263,17 @@ class ReportsController extends Controller
         return view('admin.reports.cash-flow-pdf', $view->getData());
     }
 
-    public function cashFlowExportExcel(Request $request)
+    private function getCashFlowSalesAndBookingInflows(Request $request, $fromDate, $toDate, $projectId, bool $exportFormat = false)
     {
-        $fromDate = $request->filled('from_date') ? $request->from_date : null;
-        $toDate = $request->filled('to_date') ? $request->to_date : null;
-        $projectId = $request->filled('filter_project') ? $request->filter_project : null;
+        $inflowLabel = $exportFormat ? 'Inflow' : 'inflow';
 
-        $payQuery = Payment::with(['customer', 'propertySale.property']);
+        $payQuery = Payment::with(['customer', 'propertySale.property', 'firm']);
         $this->applyFirmScope($payQuery, $request);
         if ($projectId) {
             $payQuery->where(function ($q) use ($projectId) {
-                $q
-                    ->whereHas('property', fn($p) => $p->where('project_id', $projectId))
-                    ->orWhereHas('propertySale.property', fn($p) => $p->where('project_id', $projectId))
-                    ->orWhereHas('propertySale.properties', fn($p) => $p->where('project_id', $projectId));
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('propertySale.property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('propertySale.properties', fn($p) => $p->where('project_id', $projectId));
             });
         }
         $salesPayments = $payQuery
@@ -1319,33 +1282,97 @@ class ReportsController extends Controller
             ->when($toDate, fn($q) => $q->whereDate('payment_date', '<=', $toDate))
             ->orderBy('payment_date')
             ->get()
-            ->map(fn($p) => ['date' => $p->payment_date,
-                'particular' => 'Sales Receipt — ' . ($p->customer?->name ?? '-'),
-                'type' => 'Inflow', 'section' => 'Sales Payment Received',
-                'payment_mode' => $p->payment_mode ?? '-', 'amount' => (float) $p->payment_amount]);
+            ->map(fn($p) => [
+                'date' => $p->payment_date,
+                'particular' => 'Sales Receipt — ' . ($p->customer?->name ?? 'Customer')
+                    . ($p->propertySale?->property?->property_name ? ' (' . $p->propertySale->property->property_name . ')' : ''),
+                'type' => $inflowLabel,
+                'section' => 'Sales Payment Received',
+                'payment_mode' => $p->payment_mode ?? '—',
+                'amount' => (float) $p->payment_amount,
+            ]);
 
-        if ($salesPayments->isEmpty()) {
-            $bkQuery = Booking::with(['customer', 'property']);
-            $this->applyFirmScope($bkQuery, $request);
-            if ($projectId) {
-                $bkQuery->where(function ($q) use ($projectId) {
-                    $q
-                        ->whereHas('property', fn($p) => $p->where('project_id', $projectId))
-                        ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
-                });
-            }
-            $salesPayments = $bkQuery
-                ->whereNotNull('booking_date')
-                ->where('booking_amount', '>', 0)
-                ->when($fromDate, fn($q) => $q->whereDate('booking_date', '>=', $fromDate))
-                ->when($toDate, fn($q) => $q->whereDate('booking_date', '<=', $toDate))
-                ->orderBy('booking_date')
-                ->get()
-                ->map(fn($b) => ['date' => $b->booking_date,
-                    'particular' => 'Booking Token — ' . ($b->customer?->name ?? '-'),
-                    'type' => 'Inflow', 'section' => 'Booking Advance Received',
-                    'payment_mode' => $b->payment_mode ?? ($b->paymentMode->name ?? '-'), 'amount' => (float) $b->booking_amount]);
+        $directSaleQuery = PropertySale::with(['customer', 'property'])
+            ->where('sale_status', '!=', 'cancelled')
+            ->where('booking_amount', '>', 0)
+            ->whereDoesntHave('payments');
+        $this->applyFirmScope($directSaleQuery, $request);
+        if ($projectId) {
+            $directSaleQuery->where(function ($q) use ($projectId) {
+                $q->whereHas('property', fn($p) => $p->where('project_id', $projectId))
+                  ->orWhereHas('properties', fn($p) => $p->where('project_id', $projectId));
+            });
         }
+        $directSaleInflows = $directSaleQuery
+            ->whereNotNull('sale_date')
+            ->when($fromDate, fn($q) => $q->whereDate('sale_date', '>=', $fromDate))
+            ->when($toDate, fn($q) => $q->whereDate('sale_date', '<=', $toDate))
+            ->orderBy('sale_date')
+            ->get()
+            ->map(fn($s) => [
+                'date' => $s->sale_date?->toDateString() ?? $s->sale_date,
+                'particular' => 'Direct Sale Advance — ' . ($s->customer?->name ?? 'Customer')
+                    . ($s->property?->property_name ? ' (' . $s->property->property_name . ')' : ''),
+                'type' => $inflowLabel,
+                'section' => 'Sales Payment Received',
+                'payment_mode' => 'Cash / Direct',
+                'amount' => (float) $s->booking_amount,
+            ]);
+
+        $bookingInflows = $this->getUnconvertedBookingQuery($request, $projectId)
+            ->whereNotNull('booking_date')
+            ->where('booking_amount', '>', 0)
+            ->when($fromDate, fn($q) => $q->whereDate('booking_date', '>=', $fromDate))
+            ->when($toDate, fn($q) => $q->whereDate('booking_date', '<=', $toDate))
+            ->orderBy('booking_date')
+            ->get()
+            ->map(fn($b) => [
+                'date' => $b->booking_date,
+                'particular' => 'Booking Token (' . ucfirst($b->booking_type ?? 'booking') . ') — ' . ($b->customer?->name ?? 'Customer')
+                    . ($b->property?->property_name ? ' (' . $b->property->property_name . ')' : ''),
+                'type' => $inflowLabel,
+                'section' => 'Booking Advance Received',
+                'payment_mode' => $b->payment_mode ?? ($b->paymentMode->name ?? '—'),
+                'amount' => (float) $b->booking_amount,
+            ]);
+
+        $incQuery = \App\Models\Income::with('paymentMode')
+            ->where('status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('description')->orWhere('description', 'not like', '%[AUTO:BK#%');
+            });
+        $this->applyFirmScope($incQuery, $request);
+        if ($projectId) {
+            $incQuery->whereHas('property', fn($p) => $p->where('project_id', $projectId));
+        }
+        $otherInflows = $incQuery
+            ->whereNotNull('income_date')
+            ->when($fromDate, fn($q) => $q->whereDate('income_date', '>=', $fromDate))
+            ->when($toDate, fn($q) => $q->whereDate('income_date', '<=', $toDate))
+            ->orderBy('income_date')
+            ->get()
+            ->map(fn($i) => [
+                'date' => $i->income_date,
+                'particular' => ($i->income_type ?: 'Income') . ' — ' . ($i->received_from ?: 'General'),
+                'type' => $inflowLabel,
+                'section' => 'Other Business Income',
+                'payment_mode' => $i->paymentMode?->name ?? 'Cash',
+                'amount' => (float) $i->amount,
+            ]);
+
+        return $salesPayments
+            ->concat($directSaleInflows)
+            ->concat($bookingInflows)
+            ->concat($otherInflows);
+    }
+
+    public function cashFlowExportExcel(Request $request)
+    {
+        $fromDate = $request->filled('from_date') ? $request->from_date : null;
+        $toDate = $request->filled('to_date') ? $request->to_date : null;
+        $projectId = $request->filled('filter_project') ? $request->filter_project : null;
+
+        $salesPayments = $this->getCashFlowSalesAndBookingInflows($request, $fromDate, $toDate, $projectId, true);
 
         $rentQuery = RentalPayment::with(['rental']);
         $this->applyFirmScope($rentQuery, $request, 'firm_id', 'rental');
@@ -1791,6 +1818,79 @@ class ReportsController extends Controller
                     },
                     'view_url' => route('property-sales.show', $ds->id),
                 ]);
+            }
+
+            // (b2) Active Booking Token Advances (unconverted bookings not yet in PropertySale)
+            $bkPayQuery = $this->getUnconvertedBookingQuery($request, $projectId)
+                ->where('booking_amount', '>', 0);
+            if ($fromDate) $bkPayQuery->whereDate('booking_date', '>=', $fromDate);
+            if ($toDate)   $bkPayQuery->whereDate('booking_date', '<=', $toDate);
+            if ($custId)   $bkPayQuery->where('customer_id', $custId);
+            if ($mode)     $bkPayQuery->where('payment_mode', $mode);
+            if (!empty($allMatchingPropIds)) {
+                $bkPayQuery->where(function ($q) use ($allMatchingPropIds) {
+                    $q->whereIn('property_id', $allMatchingPropIds)
+                      ->orWhereHas('properties', fn($p) => $p->whereIn('properties.id', $allMatchingPropIds));
+                });
+            }
+            foreach ($bkPayQuery->get() as $bk) {
+                $propNames = $bk->all_properties->pluck('property_name')->filter()->join(', ') ?: '—';
+                $items->push((object) [
+                    'id' => 'BK-' . $bk->id,
+                    'raw_id' => $bk->id,
+                    'model_type' => 'booking',
+                    'direction' => 'received',
+                    'direction_label' => 'Received',
+                    'payment_date' => $bk->booking_date,
+                    'party_name' => $bk->customer?->name ?? 'Customer',
+                    'party_sub' => $bk->customer?->mobile ? 'Mob: ' . $bk->customer->mobile : 'Booking Token Advance',
+                    'property_name' => $propNames,
+                    'particular' => 'Booking Advance (' . ucfirst($bk->booking_type ?? 'booking') . ')',
+                    'reference' => $bk->transaction_ref ?: ('BK #' . $bk->id),
+                    'payment_mode' => $bk->payment_mode ?? ($bk->paymentMode?->name ?? 'Cash'),
+                    'amount' => (float) $bk->booking_amount,
+                    'pending_amount' => (float) ($bk->remaining_amount ?? 0),
+                    'status' => ucfirst($bk->payment_status ?? 'partial'),
+                    'status_class' => 'pb-partial',
+                    'view_url' => route('bookings.show', $bk->id),
+                ]);
+            }
+
+            // (b3) Manual / Other Business Incomes
+            if (!$custId) {
+                $incPayQuery = \App\Models\Income::with(['paymentMode', 'property'])
+                    ->where('amount', '>', 0)
+                    ->where('status', 'active')
+                    ->where(function ($q) {
+                        $q->whereNull('description')->orWhere('description', 'not like', '%[AUTO:BK#%');
+                    });
+                $this->applyFirmScope($incPayQuery, $request);
+                if ($fromDate) $incPayQuery->whereDate('income_date', '>=', $fromDate);
+                if ($toDate)   $incPayQuery->whereDate('income_date', '<=', $toDate);
+                if (!empty($allMatchingPropIds)) $incPayQuery->whereIn('property_id', $allMatchingPropIds);
+                if ($projectId) $incPayQuery->whereHas('property', fn($p) => $p->where('project_id', $projectId));
+
+                foreach ($incPayQuery->get() as $inc) {
+                    $items->push((object) [
+                        'id' => 'INC-' . $inc->id,
+                        'raw_id' => $inc->id,
+                        'model_type' => 'income',
+                        'direction' => 'received',
+                        'direction_label' => 'Received',
+                        'payment_date' => $inc->income_date,
+                        'party_name' => $inc->received_from ?: 'Other Income',
+                        'party_sub' => $inc->income_type ?: 'Business Income',
+                        'property_name' => $inc->property?->property_name ?? '—',
+                        'particular' => 'Income — ' . ($inc->income_type ?: 'Other'),
+                        'reference' => $inc->reference_no ?: ('INC #' . $inc->id),
+                        'payment_mode' => $inc->paymentMode?->name ?? 'Cash',
+                        'amount' => (float) $inc->amount,
+                        'pending_amount' => 0.0,
+                        'status' => 'Received',
+                        'status_class' => 'pb-paid',
+                        'view_url' => route('incomes.show', $inc->id),
+                    ]);
+                }
             }
 
             // (c) Rental Income Payments (if not filtering specific customer)

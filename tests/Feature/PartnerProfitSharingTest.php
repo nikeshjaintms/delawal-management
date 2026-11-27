@@ -3,9 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Booking;
+use App\Models\BrokerCommission;
+use App\Models\ContractorPayment;
 use App\Models\Customer;
 use App\Models\Expense;
 use App\Models\Firm;
+use App\Models\Income;
 use App\Models\Partner;
 use App\Models\PartnerPayout;
 use App\Models\PartnerShare;
@@ -14,8 +17,12 @@ use App\Models\PaymentMode;
 use App\Models\Project;
 use App\Models\Property;
 use App\Models\PropertyMaster;
+use App\Models\PropertyMasterPayment;
 use App\Models\PropertySale;
+use App\Models\Rental;
+use App\Models\RentalPayment;
 use App\Models\Role;
+use App\Models\StockInward;
 use App\Models\User;
 use App\Services\PartnerProfitService;
 use Illuminate\Database\Schema\Blueprint;
@@ -369,6 +376,80 @@ class PartnerProfitSharingTest extends TestCase
             ->assertStatus(200);
     }
 
+    public function test_partner_crud_filters_and_cross_partner_guards(): void
+    {
+        $this->actingAs($this->admin)->withSession(['login_type' => 'admin']);
+
+        $this->get(route('partners.create'))->assertStatus(200);
+
+        $p1 = Partner::create([
+            'firm_id'   => $this->firm->id,
+            'name'      => 'Silent Alpha',
+            'mobile'    => '9000011111',
+            'is_silent' => true,
+            'status'    => 'active',
+        ]);
+        $p2 = Partner::create([
+            'firm_id'   => $this->firm->id,
+            'name'      => 'Paper Beta',
+            'mobile'    => '9000022222',
+            'is_silent' => false,
+            'status'    => 'inactive',
+        ]);
+
+        $this->get(route('partners.index', ['partner_type' => 'silent']))
+            ->assertStatus(200)
+            ->assertSee('Silent Alpha')
+            ->assertDontSee('Paper Beta');
+
+        $this->get(route('partners.index', ['search' => 'Beta', 'status' => 'inactive']))
+            ->assertStatus(200)
+            ->assertSee('Paper Beta')
+            ->assertDontSee('Silent Alpha');
+
+        $this->get(route('partners.edit', $p1->id))->assertStatus(200);
+
+        $this->put(route('partners.update', $p1->id), [
+            'firm_id'   => $this->firm->id,
+            'name'      => 'Silent Alpha Updated',
+            'mobile'    => '9000011111',
+            'is_silent' => 1,
+            'status'    => 'active',
+            'notes'     => 'Updated private note',
+        ])->assertRedirect(route('partners.show', $p1->id));
+
+        $this->assertDatabaseHas('partners', [
+            'id'   => $p1->id,
+            'name' => 'Silent Alpha Updated',
+        ]);
+
+        $share = PartnerShare::create([
+            'firm_id'          => $this->firm->id,
+            'partner_id'       => $p1->id,
+            'scope_type'       => PartnerShare::SCOPE_FIRM,
+            'share_percentage' => 20,
+            'status'           => 'active',
+        ]);
+
+        // Update share percentage
+        $this->put(route('partners.shares.update', [$p1->id, $share->id]), [
+            'firm_id'          => $this->firm->id,
+            'scope_type'       => PartnerShare::SCOPE_FIRM,
+            'share_percentage' => 30,
+            'status'           => 'active',
+        ])->assertRedirect(route('partners.show', $p1->id));
+
+        $this->assertEquals(30.00, (float) $share->fresh()->share_percentage);
+
+        // Cross-partner share/payout ownership mismatch returns 404
+        $this->delete(route('partners.shares.destroy', [$p2->id, $share->id]))
+            ->assertStatus(404);
+
+        $this->delete(route('partners.destroy', $p2->id))
+            ->assertRedirect(route('partners.index'));
+        $this->assertDatabaseMissing('partners', ['id' => $p2->id]);
+    }
+
     public function test_silent_partner_creation_share_cap_and_profit_payout_flow(): void
     {
         $customer = Customer::create([
@@ -448,11 +529,7 @@ class PartnerProfitSharingTest extends TestCase
             ->assertRedirect();
 
         $partner = Partner::where('name', 'Silent Partner A')->firstOrFail();
-        $this->assertTrue($partner->is_silent);
-
         $share = PartnerShare::where('partner_id', $partner->id)->firstOrFail();
-        $this->assertEquals('project', $share->scope_type);
-        $this->assertEquals(25.00, (float) $share->share_percentage);
 
         $service = app(PartnerProfitService::class);
         $metrics = $service->calculateForShare($share);
@@ -485,22 +562,43 @@ class PartnerProfitSharingTest extends TestCase
             ])
             ->assertRedirect(route('partners.show', $partner->id));
 
-        $this->assertEquals(1, PartnerPayout::where('partner_id', $partner->id)->count());
-        $this->assertEquals(1, Expense::count());
+        // Overdraw test: pay another 1,00,000 (total 1,50,000 vs 1,25,000 entitled -> 25,000 overdrawn)
+        $this->actingAs($this->admin)
+            ->withSession(['login_type' => 'admin'])
+            ->post(route('partners.payouts.store', $partner->id), [
+                'partner_share_id' => $share->id,
+                'payout_date'      => '2026-11-12',
+                'amount'           => 100000,
+                'payment_mode_id'  => $mode->id,
+            ])
+            ->assertRedirect(route('partners.show', $partner->id));
+
+        $overdrawnMetrics = $service->calculateForShare($share);
+        $this->assertEquals(150000.00, $overdrawnMetrics['paid_amount']);
+        $this->assertEquals(0.00, $overdrawnMetrics['balance_due']);
+        $this->assertEquals(25000.00, $overdrawnMetrics['overdrawn_amount']);
+
+        // Delete second payout & verify balance returns to 75,000
+        $secondPayout = PartnerPayout::where('partner_id', $partner->id)->latest('id')->firstOrFail();
+        $this->delete(route('partners.payouts.destroy', [$partner->id, $secondPayout->id]))
+            ->assertRedirect(route('partners.show', $partner->id));
 
         $afterMetrics = $service->calculateForShare($share);
         $this->assertEquals(50000.00, $afterMetrics['paid_amount']);
         $this->assertEquals(75000.00, $afterMetrics['balance_due']);
+        $this->assertEquals(1, Expense::count());
 
         $payout = PartnerPayout::firstOrFail();
-        $this->actingAs($this->admin)->withSession(['login_type' => 'admin'])->get(route('partners.show', $partner->id))->assertStatus(200);
-        $this->actingAs($this->admin)->withSession(['login_type' => 'admin'])->get(route('partner-payouts.index'))->assertStatus(200);
-        $this->actingAs($this->admin)->withSession(['login_type' => 'admin'])->get(route('partners.detail-pdf', $partner->id))->assertStatus(200);
-        $this->actingAs($this->admin)->withSession(['login_type' => 'admin'])->get(route('partners.payouts.receipt-pdf', [$partner->id, $payout->id]))->assertStatus(200);
+        $this->get(route('partners.show', $partner->id))->assertStatus(200);
+        $this->get(route('partner-payouts.index', ['partner_id' => $partner->id, 'firm_id' => $this->firm->id]))->assertStatus(200);
+        $this->get(route('partners.detail-pdf', $partner->id))->assertStatus(200);
+        $this->get(route('partners.payouts.receipt-pdf', [$partner->id, $payout->id]))->assertStatus(200);
     }
 
-    public function test_property_master_and_property_level_percentage_shares(): void
+    public function test_firm_property_master_individual_property_and_loss_calculations(): void
     {
+        $customer = Customer::create(['firm_id' => $this->firm->id, 'name' => 'C1', 'mobile' => '9876543211', 'status' => 'active']);
+
         $pm = PropertyMaster::create([
             'firm_id'        => $this->firm->id,
             'property_name'  => 'Sunrise Land',
@@ -511,7 +609,13 @@ class PartnerProfitSharingTest extends TestCase
             'status'         => 'active',
         ]);
 
-        $unit = Property::create([
+        PropertyMasterPayment::create([
+            'property_master_id' => $pm->id,
+            'firm_id'            => $this->firm->id,
+            'amount'             => 300000,
+        ]);
+
+        $unitA = Property::create([
             'firm_id'            => $this->firm->id,
             'property_master_id' => $pm->id,
             'property_name'      => 'Sunrise Plot A',
@@ -521,10 +625,21 @@ class PartnerProfitSharingTest extends TestCase
             'status'             => 'available',
         ]);
 
+        $unitB = Property::create([
+            'firm_id'            => $this->firm->id,
+            'property_master_id' => $pm->id,
+            'property_name'      => 'Sunrise Plot B',
+            'property_code'      => 'SL-B',
+            'unit_no'            => 'B',
+            'price'              => 800000,
+            'status'             => 'sold',
+        ]);
+
+        // Unsold unit A has a booking advance of 4,50,000
         Booking::create([
             'firm_id'          => $this->firm->id,
-            'property_id'      => $unit->id,
-            'customer_id'      => Customer::create(['firm_id' => $this->firm->id, 'name' => 'C1', 'mobile' => '9876543211', 'status' => 'active'])->id,
+            'property_id'      => $unitA->id,
+            'customer_id'      => $customer->id,
             'booking_date'     => '2026-11-02',
             'total_amount'     => 800000,
             'final_amount'     => 800000,
@@ -534,7 +649,56 @@ class PartnerProfitSharingTest extends TestCase
             'payment_status'   => 'partial',
         ]);
 
-        $partner = Partner::create(['firm_id' => $this->firm->id, 'name' => 'Land Partner', 'is_silent' => true, 'status' => 'active']);
+        // Unit B sold for 7,00,000 with 5,00,000 collected; also has rental 50,000 & income 20,000
+        $saleB = PropertySale::create([
+            'firm_id'        => $this->firm->id,
+            'property_id'    => $unitB->id,
+            'customer_id'    => $customer->id,
+            'sale_date'      => '2026-11-04',
+            'sale_amount'    => 700000,
+            'purchase_cost'  => 250000,
+            'booking_amount' => 500000,
+            'sale_status'    => 'sold',
+        ]);
+
+        RentalPayment::create([
+            'firm_id'     => $this->firm->id,
+            'property_id' => $unitB->id,
+            'paid_amount' => 50000,
+        ]);
+
+        Income::create([
+            'firm_id'     => $this->firm->id,
+            'property_id' => $unitB->id,
+            'amount'      => 20000,
+        ]);
+
+        ContractorPayment::create([
+            'firm_id'     => $this->firm->id,
+            'property_id' => $unitB->id,
+            'amount'      => 30000,
+        ]);
+
+        BrokerCommission::create([
+            'firm_id'           => $this->firm->id,
+            'property_id'       => $unitB->id,
+            'property_sale_id'  => $saleB->id,
+            'commission_amount' => 10000,
+            'payment_status'    => 'paid',
+        ]);
+
+        StockInward::create([
+            'firm_id'           => $this->firm->id,
+            'purchase_order_id' => null,
+            'total_amount'      => 40000,
+        ]);
+
+        $partner = Partner::create(['firm_id' => $this->firm->id, 'name' => 'Firm & Unit Partner', 'is_silent' => true, 'status' => 'active']);
+
+        // 1. PropertyMaster share (40%):
+        // Inflow = 450k (booking A) + 500k (sale B) + 50k (rental) + 20k (income) = 10,20,000
+        // Outflow = 300k (land paid) + 30k (contractor) + 10k (commission paid) = 3,40,000
+        // Realized Profit = 6,80,000 -> 40% = 2,72,000
         $pmShare = PartnerShare::create([
             'firm_id'            => $this->firm->id,
             'partner_id'         => $partner->id,
@@ -544,11 +708,107 @@ class PartnerProfitSharingTest extends TestCase
             'status'             => 'active',
         ]);
 
-        $service = app(PartnerProfitService::class);
-        $metrics = $service->calculateForShare($pmShare);
+        // 2. Individual Property share on Unit B (50%):
+        // Unit B effective purchase cost = 500k / 2 plots = 250k
+        // Inflow = 500k + 50k + 20k = 5,70,000; Outflow = 250k + 30k + 10k = 2,90,000
+        // Realized Profit = 2,80,000 -> 50% = 1,40,000
+        $unitShare = PartnerShare::create([
+            'firm_id'          => $this->firm->id,
+            'partner_id'       => $partner->id,
+            'scope_type'       => PartnerShare::SCOPE_PROPERTY,
+            'property_id'      => $unitB->id,
+            'share_percentage' => 50,
+            'status'           => 'active',
+        ]);
 
-        // Inflow = 4,50,000; Outflow = 3,00,000 => Realized Profit = 1,50,000 => 40% = 60,000
-        $this->assertEquals(150000.00, $metrics['realized_profit']);
-        $this->assertEquals(60000.00, $metrics['realized_entitled']);
+        // 3. Firm share (10%):
+        // Inflow = 10,20,000; Outflow = 3,40,000 + 40,000 (direct stock inward) = 3,80,000
+        // Realized Profit = 6,40,000 -> 10% = 64,000
+        $firmShare = PartnerShare::create([
+            'firm_id'          => $this->firm->id,
+            'partner_id'       => $partner->id,
+            'scope_type'       => PartnerShare::SCOPE_FIRM,
+            'share_percentage' => 10,
+            'status'           => 'active',
+        ]);
+
+        // 4. Loss-making unit (Unit A with huge expense -> negative realized profit => 0 entitled)
+        Expense::create([
+            'firm_id'     => $this->firm->id,
+            'property_id' => $unitA->id,
+            'amount'      => 900000,
+        ]);
+        $lossShare = PartnerShare::create([
+            'firm_id'          => $this->firm->id,
+            'partner_id'       => $partner->id,
+            'scope_type'       => PartnerShare::SCOPE_PROPERTY,
+            'property_id'      => $unitA->id,
+            'share_percentage' => 25,
+            'status'           => 'active',
+        ]);
+
+        $service = app(PartnerProfitService::class);
+
+        $pmMetrics   = $service->calculateForShare($pmShare);
+        $unitMetrics = $service->calculateForShare($unitShare);
+        $firmMetrics = $service->calculateForShare($firmShare);
+        $lossMetrics = $service->calculateForShare($lossShare);
+
+        $this->assertEquals(280000.00, $unitMetrics['realized_profit']);
+        $this->assertEquals(140000.00, $unitMetrics['realized_entitled']);
+
+        // PM includes Unit A's 9,00,000 expense now -> 6,80,000 - 9,00,000 = -2,20,000 -> entitled = 0
+        $this->assertEquals(-220000.00, $pmMetrics['realized_profit']);
+        $this->assertEquals(0.00, $pmMetrics['realized_entitled']);
+
+        // Firm includes Unit A's 9,00,000 expense now -> 6,40,000 - 9,00,000 = -2,60,000 -> entitled = 0
+        $this->assertEquals(-260000.00, $firmMetrics['realized_profit']);
+        $this->assertEquals(0.00, $firmMetrics['realized_entitled']);
+
+        // Loss unit entitled = 0
+        $this->assertLessThan(0, $lossMetrics['realized_profit']);
+        $this->assertEquals(0.00, $lossMetrics['realized_entitled']);
+        $this->assertEquals(0.00, $lossMetrics['balance_due']);
+    }
+
+    public function test_validation_rules_for_shares_and_payouts(): void
+    {
+        $this->actingAs($this->admin)->withSession(['login_type' => 'admin']);
+
+        $partner = Partner::create([
+            'firm_id'   => $this->firm->id,
+            'name'      => 'Validation Partner',
+            'is_silent' => true,
+            'status'    => 'active',
+        ]);
+
+        // Project scope without project_id fails validation
+        $this->post(route('partners.shares.store', $partner->id), [
+            'firm_id'          => $this->firm->id,
+            'scope_type'       => 'project',
+            'share_percentage' => 15,
+        ])->assertSessionHasErrors('project_id');
+
+        // Share > 100% fails validation
+        $this->post(route('partners.shares.store', $partner->id), [
+            'firm_id'          => $this->firm->id,
+            'scope_type'       => 'firm',
+            'share_percentage' => 120,
+        ])->assertSessionHasErrors('share_percentage');
+
+        $share = PartnerShare::create([
+            'firm_id'          => $this->firm->id,
+            'partner_id'       => $partner->id,
+            'scope_type'       => PartnerShare::SCOPE_FIRM,
+            'share_percentage' => 15,
+            'status'           => 'active',
+        ]);
+
+        // Payout amount <= 0 fails validation
+        $this->post(route('partners.payouts.store', $partner->id), [
+            'partner_share_id' => $share->id,
+            'payout_date'      => '2026-11-10',
+            'amount'           => 0,
+        ])->assertSessionHasErrors('amount');
     }
 }

@@ -548,6 +548,7 @@ class PropertySaleController extends Controller
         }
 
         $this->updatePropertyStatus($sale, $submittedPropIds);
+        \App\Services\TallyAutoPostingService::syncModel($sale->fresh());
 
         // Sync to BrokerCommission table
         $this->syncBrokerCommission($sale);
@@ -830,6 +831,7 @@ class PropertySaleController extends Controller
 
         // Sync to BrokerCommission table
         $this->syncBrokerCommission($propertySale);
+        \App\Services\TallyAutoPostingService::syncModel($propertySale->fresh());
 
         return redirect()->route('property-sales.index')->with('success', 'Sales agreement updated successfully.');
     }
