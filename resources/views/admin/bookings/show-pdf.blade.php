@@ -188,7 +188,6 @@
             <th class="c" style="width: 80px;">Unit No</th>
             <th style="width: 90px;">Type</th>
             <th style="width: 100px;">Area / Size</th>
-            <th class="r" style="width: 140px;">List Price (₹)</th>
         </tr>
     </thead>
     <tbody>
@@ -199,7 +198,6 @@
             <td class="c">{{ $p->unit_no ? ('#' . $p->unit_no) : '—' }}</td>
             <td>{{ $p->propertyType->name ?? 'Plot' }}</td>
             <td>{{ $p->size ? ($p->size . ' ' . ($p->size_unit ?: 'sq.ft')) : '—' }}</td>
-            <td class="r" style="font-weight: 600;">{{ $p->price ? formatIndianCurrency((float)$p->price) : '—' }}</td>
         </tr>
         @endforeach
     </tbody>

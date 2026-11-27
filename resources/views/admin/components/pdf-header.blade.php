@@ -111,7 +111,6 @@
         @if($docSubtitle)
             <div class="dph-doc-sub">{{ $docSubtitle }}</div>
         @endif
-        <div class="dph-meta-item"><span class="dph-meta-lbl">Generated:</span> <strong>{{ $docDate }}</strong></div>
         @if(isset($period) && !empty($period))
             <div class="dph-meta-item"><span class="dph-meta-lbl">Period:</span> <strong>{{ $period }}</strong></div>
         @elseif(request('from_date') || request('to_date'))
