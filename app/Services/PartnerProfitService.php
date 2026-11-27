@@ -21,7 +21,11 @@ use Illuminate\Support\Collection;
 class PartnerProfitService
 {
     /**
-     * Compute profit summary, partner entitlement, paid total, and balance payable for a share.
+     * Compute profit/cash pool summary, partner entitlement, paid total, and pool pending balance for a share.
+     *
+     * Land acquisition payments (PropertyMasterPayment / purchaseCost) are tracked separately
+     * as `land_invested` (Capital Investment) so collections from plot sales/bookings can be
+     * distributed across partners immediately (e.g. 2 Cr inflow - 60 Lac paid = 1.40 Cr pool pending).
      */
     public function calculateForShare(PartnerShare $share): array
     {
@@ -37,13 +41,15 @@ class PartnerProfitService
         $realizedProfit = $metrics['realized_profit'];
         $bookedProfit   = $metrics['booked_profit'];
 
-        // Entitled share is 0 when realized/booked profit is negative (losses are not paid out)
         $realizedEntitled = round(max(0.0, $realizedProfit) * ($pct / 100), 2);
         $bookedEntitled   = round(max(0.0, $bookedProfit) * ($pct / 100), 2);
 
         $paidAmount = (float) PartnerPayout::where('partner_share_id', $share->id)->sum('amount');
         $remainingPayable = round($realizedEntitled - $paidAmount, 2);
         $bookedRemaining  = round($bookedEntitled - $paidAmount, 2);
+
+        $poolPaidAll = $this->totalPaidForTarget($share);
+        $poolPending = round($realizedProfit - $poolPaidAll, 2);
 
         return array_merge($metrics, [
             'share_percentage'  => $pct,
@@ -54,6 +60,8 @@ class PartnerProfitService
             'balance_due'       => round(max(0.0, $remainingPayable), 2),
             'overdrawn_amount'  => round(max(0.0, -$remainingPayable), 2),
             'booked_remaining'  => $bookedRemaining,
+            'pool_paid_all'     => round($poolPaidAll, 2),
+            'pool_pending'      => $poolPending,
         ]);
     }
 
@@ -67,6 +75,30 @@ class PartnerProfitService
             $results[$share->id] = $this->calculateForShare($share);
         }
         return $results;
+    }
+
+    /**
+     * Total payouts disbursed across ALL partners for the same Firm/Project/Property target.
+     */
+    public function totalPaidForTarget(PartnerShare $share): float
+    {
+        $shareIdsQuery = PartnerShare::where('firm_id', $share->firm_id)
+            ->where('scope_type', $share->scope_type);
+
+        if ($share->scope_type === PartnerShare::SCOPE_PROJECT) {
+            $shareIdsQuery->where('project_id', $share->project_id);
+        } elseif ($share->scope_type === PartnerShare::SCOPE_PROPERTY_MASTER) {
+            $shareIdsQuery->where('property_master_id', $share->property_master_id);
+        } elseif ($share->scope_type === PartnerShare::SCOPE_PROPERTY) {
+            $shareIdsQuery->where('property_id', $share->property_id);
+        }
+
+        $shareIds = $shareIdsQuery->pluck('id');
+        if ($shareIds->isEmpty()) {
+            return 0.0;
+        }
+
+        return (float) PartnerPayout::whereIn('partner_share_id', $shareIds)->sum('amount');
     }
 
     /**
@@ -137,12 +169,12 @@ class PartnerProfitService
         $directStockInward = (float) StockInward::where('firm_id', $firmId)->whereNull('purchase_order_id')->sum('total_amount');
 
         $realizedInflow  = $saleCash + $bookingCash + $rentalCash + $otherIncome;
-        $realizedOutflow = $landPaid + $expensesTotal + $contractorPaid + $commissionPaid + $directStockInward;
+        $realizedOutflow = $expensesTotal + $contractorPaid + $commissionPaid + $directStockInward;
 
         $bookedRevenue = $saleRevenue + $rentalCash + $otherIncome;
         $bookedCost    = $saleCost + $expensesTotal + $contractorPaid + $commissionBooked + $directStockInward;
 
-        return $this->formatMetrics($realizedInflow, $realizedOutflow, $bookedRevenue, $bookedCost);
+        return $this->formatMetrics($realizedInflow, $realizedOutflow, $bookedRevenue, $bookedCost, $landPaid);
     }
 
     private function computeProjectProfit(int $projectId): array
@@ -228,12 +260,12 @@ class PartnerProfitService
             ->sum('total_amount');
 
         $realizedInflow  = $saleCash + $bookingCash + $rentalCash + $otherIncome;
-        $realizedOutflow = $landPaid + $expensesTotal + $contractorPaid + $commissionPaid + $directStockInward;
+        $realizedOutflow = $expensesTotal + $contractorPaid + $commissionPaid + $directStockInward;
 
         $bookedRevenue = $saleRevenue + $rentalCash + $otherIncome;
         $bookedCost    = $saleCost + $expensesTotal + $contractorPaid + $commissionBooked + $directStockInward;
 
-        return $this->formatMetrics($realizedInflow, $realizedOutflow, $bookedRevenue, $bookedCost);
+        return $this->formatMetrics($realizedInflow, $realizedOutflow, $bookedRevenue, $bookedCost, $landPaid);
     }
 
     private function computePropertyMasterProfit(int $propertyMasterId): array
@@ -307,12 +339,12 @@ class PartnerProfitService
         $commissionBooked = !empty($propIds) || !empty($saleIds) ? (float) (clone $commQuery)->sum('commission_amount') : 0.0;
 
         $realizedInflow  = $saleCash + $bookingCash + $rentalCash + $otherIncome;
-        $realizedOutflow = $landPaid + $expensesTotal + $contractorPaid + $commissionPaid;
+        $realizedOutflow = $expensesTotal + $contractorPaid + $commissionPaid;
 
         $bookedRevenue = $saleRevenue + $rentalCash + $otherIncome;
         $bookedCost    = $saleCost + $expensesTotal + $contractorPaid + $commissionBooked;
 
-        return $this->formatMetrics($realizedInflow, $realizedOutflow, $bookedRevenue, $bookedCost);
+        return $this->formatMetrics($realizedInflow, $realizedOutflow, $bookedRevenue, $bookedCost, $landPaid);
     }
 
     private function computePropertyProfit(int $propertyId): array
@@ -330,7 +362,6 @@ class PartnerProfitService
             })
             ->get();
 
-        // Apportion multi-property sales evenly across the plots in that sale
         $saleCash = 0.0;
         $saleRevenue = 0.0;
         foreach ($sales as $sale) {
@@ -349,7 +380,11 @@ class PartnerProfitService
               ->orWhereHas('rental.properties', fn ($rq) => $rq->where('properties.id', $propertyId));
         })->sum('paid_amount');
 
-        $otherIncome = (float) Income::where('property_id', $propertyId)->sum('amount');
+        $otherIncome = (float) Income::where('property_id', $propertyId)
+            ->where(function ($q) {
+                $q->whereNull('description')->orWhere('description', 'not like', '%[AUTO:BK#%');
+            })
+            ->sum('amount');
 
         $purchaseCost   = (float) $property->effective_purchase_cost;
         $expensesTotal  = (float) $property->total_expenses;
@@ -366,12 +401,12 @@ class PartnerProfitService
         $commissionBooked = (float) (clone $commQuery)->sum('commission_amount');
 
         $realizedInflow  = $saleCash + $bookingCash + $rentalCash + $otherIncome;
-        $realizedOutflow = $purchaseCost + $expensesTotal + $contractorPaid + $commissionPaid;
+        $realizedOutflow = $expensesTotal + $contractorPaid + $commissionPaid;
 
         $bookedRevenue = $saleRevenue + $rentalCash + $otherIncome;
         $bookedCost    = $purchaseCost + $expensesTotal + $contractorPaid + $commissionBooked;
 
-        return $this->formatMetrics($realizedInflow, $realizedOutflow, $bookedRevenue, $bookedCost);
+        return $this->formatMetrics($realizedInflow, $realizedOutflow, $bookedRevenue, $bookedCost, $purchaseCost);
     }
 
     private function saleCollectedCash(PropertySale $sale): float
@@ -427,12 +462,13 @@ class PartnerProfitService
             ->sum('booking_amount');
     }
 
-    private function formatMetrics(float $inflow, float $outflow, float $bookedRev, float $bookedCost): array
+    private function formatMetrics(float $inflow, float $outflow, float $bookedRev, float $bookedCost, float $landInvested = 0.0): array
     {
         return [
             'realized_inflow'  => round($inflow, 2),
             'realized_outflow' => round($outflow, 2),
             'realized_profit'  => round($inflow - $outflow, 2),
+            'land_invested'    => round($landInvested, 2),
             'booked_revenue'   => round($bookedRev, 2),
             'booked_cost'      => round($bookedCost, 2),
             'booked_profit'    => round($bookedRev - $bookedCost, 2),
@@ -441,6 +477,6 @@ class PartnerProfitService
 
     private function emptyMetrics(): array
     {
-        return $this->formatMetrics(0.0, 0.0, 0.0, 0.0);
+        return $this->formatMetrics(0.0, 0.0, 0.0, 0.0, 0.0);
     }
 }

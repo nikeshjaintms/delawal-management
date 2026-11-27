@@ -697,8 +697,8 @@ class PartnerProfitSharingTest extends TestCase
 
         // 1. PropertyMaster share (40%):
         // Inflow = 450k (booking A) + 500k (sale B) + 50k (rental) + 20k (income) = 10,20,000
-        // Outflow = 300k (land paid) + 30k (contractor) + 10k (commission paid) = 3,40,000
-        // Realized Profit = 6,80,000 -> 40% = 2,72,000
+        // Operating Outflow = 30k (contractor) + 10k (commission paid) = 40,000 (Land 300k tracked separately in land_invested)
+        // Distributable Pool = 9,80,000 -> 40% = 3,92,000
         $pmShare = PartnerShare::create([
             'firm_id'            => $this->firm->id,
             'partner_id'         => $partner->id,
@@ -709,9 +709,8 @@ class PartnerProfitSharingTest extends TestCase
         ]);
 
         // 2. Individual Property share on Unit B (50%):
-        // Unit B effective purchase cost = 500k / 2 plots = 250k
-        // Inflow = 500k + 50k + 20k = 5,70,000; Outflow = 250k + 30k + 10k = 2,90,000
-        // Realized Profit = 2,80,000 -> 50% = 1,40,000
+        // Inflow = 500k + 50k + 20k = 5,70,000; Operating Outflow = 30k + 10k = 40,000 (Unit purchase cost 250k in land_invested)
+        // Distributable Pool = 5,30,000 -> 50% = 2,65,000
         $unitShare = PartnerShare::create([
             'firm_id'          => $this->firm->id,
             'partner_id'       => $partner->id,
@@ -722,8 +721,8 @@ class PartnerProfitSharingTest extends TestCase
         ]);
 
         // 3. Firm share (10%):
-        // Inflow = 10,20,000; Outflow = 3,40,000 + 40,000 (direct stock inward) = 3,80,000
-        // Realized Profit = 6,40,000 -> 10% = 64,000
+        // Inflow = 10,20,000; Operating Outflow = 40k + 40k (direct stock inward) = 80,000
+        // Distributable Pool = 9,40,000 -> 10% = 94,000
         $firmShare = PartnerShare::create([
             'firm_id'          => $this->firm->id,
             'partner_id'       => $partner->id,
@@ -732,7 +731,7 @@ class PartnerProfitSharingTest extends TestCase
             'status'           => 'active',
         ]);
 
-        // 4. Loss-making unit (Unit A with huge expense -> negative realized profit => 0 entitled)
+        // 4. Loss-making unit (Unit A with huge operating expense -> negative realized profit => 0 entitled)
         Expense::create([
             'firm_id'     => $this->firm->id,
             'property_id' => $unitA->id,
@@ -754,16 +753,30 @@ class PartnerProfitSharingTest extends TestCase
         $firmMetrics = $service->calculateForShare($firmShare);
         $lossMetrics = $service->calculateForShare($lossShare);
 
-        $this->assertEquals(280000.00, $unitMetrics['realized_profit']);
-        $this->assertEquals(140000.00, $unitMetrics['realized_entitled']);
+        $this->assertEquals(530000.00, $unitMetrics['realized_profit']);
+        $this->assertEquals(265000.00, $unitMetrics['realized_entitled']);
+        $this->assertEquals(250000.00, $unitMetrics['land_invested']);
 
-        // PM includes Unit A's 9,00,000 expense now -> 6,80,000 - 9,00,000 = -2,20,000 -> entitled = 0
-        $this->assertEquals(-220000.00, $pmMetrics['realized_profit']);
-        $this->assertEquals(0.00, $pmMetrics['realized_entitled']);
+        // PM includes Unit A's 9,00,000 expense now -> 9,80,000 - 9,00,000 = 80,000 -> 40% = 32,000
+        $this->assertEquals(80000.00, $pmMetrics['realized_profit']);
+        $this->assertEquals(32000.00, $pmMetrics['realized_entitled']);
+        $this->assertEquals(300000.00, $pmMetrics['land_invested']);
 
-        // Firm includes Unit A's 9,00,000 expense now -> 6,40,000 - 9,00,000 = -2,60,000 -> entitled = 0
-        $this->assertEquals(-260000.00, $firmMetrics['realized_profit']);
-        $this->assertEquals(0.00, $firmMetrics['realized_entitled']);
+        // Firm includes Unit A's 9,00,000 expense now -> 9,40,000 - 9,00,000 = 40,000 -> 10% = 4,000
+        $this->assertEquals(40000.00, $firmMetrics['realized_profit']);
+        $this->assertEquals(4000.00, $firmMetrics['realized_entitled']);
+
+        // Pool pending test: if we pay 1,000 on Firm share, pool_pending = 40,000 - 1,000 = 39,000
+        PartnerPayout::create([
+            'firm_id'          => $this->firm->id,
+            'partner_id'       => $partner->id,
+            'partner_share_id' => $firmShare->id,
+            'payout_date'      => '2026-11-27',
+            'amount'           => 1000,
+        ]);
+        $firmAfterPay = $service->calculateForShare($firmShare);
+        $this->assertEquals(1000.00, $firmAfterPay['pool_paid_all']);
+        $this->assertEquals(39000.00, $firmAfterPay['pool_pending']);
 
         // Loss unit entitled = 0
         $this->assertLessThan(0, $lossMetrics['realized_profit']);

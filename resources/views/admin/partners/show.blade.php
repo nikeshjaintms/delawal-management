@@ -107,29 +107,30 @@
 
 <div class="kpi-section">
     <div class="kpi-card">
-        <h4>Realized Cash Share (Payable Benchmark)</h4>
+        <h4>{{ $partner->name }} Share ({{ number_format((float)$partner->shares->where('status','active')->sum('share_percentage'), 2) }}%)</h4>
         <div class="val" style="color:#FBBF24;">{{ formatIndianCurrency($totalRealizedEntitled) }}</div>
-        <div class="sub">Based on actual money collected minus costs/expenses paid</div>
+        <div class="sub">Partner's share of distributable cash ({{ formatIndianCurrency($totalPoolAvailable) }})</div>
     </div>
     <div class="kpi-card">
-        <h4>Agreement / Booked Share (Reference)</h4>
-        <div class="val" style="color:#60A5FA;">{{ formatIndianCurrency($totalBookedEntitled) }}</div>
-        <div class="sub">Includes pending customer installments on booked sales</div>
-    </div>
-    <div class="kpi-card">
-        <h4>Total Paid to Partner</h4>
+        <h4>Paid to {{ $partner->name }}</h4>
         <div class="val" style="color:#34D399;">{{ formatIndianCurrency($totalPaid) }}</div>
-        <div class="sub">{{ $partner->payouts->count() }} payout(s) recorded</div>
+        <div class="sub">
+            @if($totalOverdrawn > 0)
+                <span style="color:#FBBF24;">Overdrawn by {{ formatIndianCurrency($totalOverdrawn) }}</span>
+            @else
+                Partner balance due: <strong style="color:{{ $totalBalanceDue > 0 ? '#F87171' : '#34D399' }};">{{ formatIndianCurrency($totalBalanceDue) }}</strong>
+            @endif
+        </div>
     </div>
     <div class="kpi-card">
-        <h4>{{ $totalOverdrawn > 0 ? 'Advance / Overdrawn' : 'Remaining Profit Payable' }}</h4>
-        @if($totalOverdrawn > 0)
-            <div class="val" style="color:#FBBF24;">{{ formatIndianCurrency($totalOverdrawn) }}</div>
-            <div class="sub">Paid above realized cash profit so far</div>
-        @else
-            <div class="val" style="color:{{ $totalBalanceDue > 0 ? '#F87171' : '#34D399' }};">{{ formatIndianCurrency($totalBalanceDue) }}</div>
-            <div class="sub">Ready to distribute from realized profit</div>
-        @endif
+        <h4>Total Paid (All Partners)</h4>
+        <div class="val" style="color:#60A5FA;">{{ formatIndianCurrency($totalPoolPaidAll) }}</div>
+        <div class="sub">Total distributed across all partners on these targets</div>
+    </div>
+    <div class="kpi-card">
+        <h4>Pool Balance Pending</h4>
+        <div class="val" style="color:{{ $totalPoolPending > 0 ? '#F87171' : '#34D399' }};">{{ formatIndianCurrency($totalPoolPending) }}</div>
+        <div class="sub">Cash Pool ({{ formatIndianCurrency($totalPoolAvailable) }}) − All Paid ({{ formatIndianCurrency($totalPoolPaidAll) }})</div>
     </div>
 </div>
 
@@ -145,11 +146,11 @@
                 <tr>
                     <th>Scope &amp; Target</th>
                     <th>Share %</th>
-                    <th>Realized Cash Profit</th>
-                    <th>Partner Realized Share</th>
-                    <th>Booked Profit (Ref)</th>
-                    <th>Paid</th>
-                    <th>Balance Payable</th>
+                    <th>Distributable Pool</th>
+                    <th>This Partner Share</th>
+                    <th>This Partner Paid</th>
+                    <th>This Partner Due</th>
+                    <th>Pool Pending (After All Paid)</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -158,8 +159,9 @@
                     @php
                         $m = $shareMetrics[$share->id] ?? [
                             'realized_inflow' => 0, 'realized_outflow' => 0, 'realized_profit' => 0,
-                            'booked_profit' => 0, 'realized_entitled' => 0, 'booked_entitled' => 0,
-                            'paid_amount' => 0, 'balance_due' => 0, 'overdrawn_amount' => 0
+                            'land_invested' => 0, 'booked_profit' => 0, 'realized_entitled' => 0,
+                            'booked_entitled' => 0, 'paid_amount' => 0, 'balance_due' => 0,
+                            'overdrawn_amount' => 0, 'pool_paid_all' => 0, 'pool_pending' => 0,
                         ];
                     @endphp
                     <tr>
@@ -176,15 +178,19 @@
                                 {{ formatIndianCurrency($m['realized_profit']) }}
                             </div>
                             <div style="font-size:11px; color:#94A3B8;">
-                                In: {{ formatIndianCurrency($m['realized_inflow']) }} | Out: {{ formatIndianCurrency($m['realized_outflow']) }}
+                                In: {{ formatIndianCurrency($m['realized_inflow']) }} | Exp: {{ formatIndianCurrency($m['realized_outflow']) }}
                             </div>
+                            @if(($m['land_invested'] ?? 0) > 0)
+                                <div style="font-size:10.5px; color:#A78BFA;">
+                                    Land/Capital Invested: {{ formatIndianCurrency($m['land_invested']) }}
+                                </div>
+                            @endif
                         </td>
                         <td>
                             <div style="font-weight:800; color:#FBBF24;">{{ formatIndianCurrency($m['realized_entitled']) }}</div>
-                        </td>
-                        <td>
-                            <div style="color:#E2E8F0;">{{ formatIndianCurrency($m['booked_profit']) }}</div>
-                            <div style="font-size:11px; color:#94A3B8;">Share: {{ formatIndianCurrency($m['booked_entitled']) }}</div>
+                            @if(($m['booked_entitled'] ?? 0) > 0)
+                                <div style="font-size:11px; color:#94A3B8;">Booked Ref: {{ formatIndianCurrency($m['booked_entitled']) }}</div>
+                            @endif
                         </td>
                         <td style="color:#34D399; font-weight:800;">{{ formatIndianCurrency($m['paid_amount']) }}</td>
                         <td>
@@ -195,6 +201,14 @@
                                     {{ formatIndianCurrency($m['balance_due']) }}
                                 </span>
                             @endif
+                        </td>
+                        <td>
+                            <div style="font-weight:800; color:{{ ($m['pool_pending'] ?? 0) > 0 ? '#FBBF24' : '#34D399' }};">
+                                {{ formatIndianCurrency($m['pool_pending'] ?? 0) }}
+                            </div>
+                            <div style="font-size:11px; color:#94A3B8;">
+                                All Paid: {{ formatIndianCurrency($m['pool_paid_all'] ?? 0) }}
+                            </div>
                         </td>
                         <td>
                             <div style="display:flex; gap:6px; flex-wrap:nowrap;">

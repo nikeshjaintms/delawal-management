@@ -252,6 +252,22 @@ class PartnerController extends Controller
         $totalBalanceDue       = round(max(0.0, $totalRealizedEntitled - $totalPaid), 2);
         $totalOverdrawn        = round(max(0.0, $totalPaid - $totalRealizedEntitled), 2);
 
+        // Unique pool totals across this partner's active share targets (e.g. Inflow 2 Cr - All Partners Paid 60L = 1.40 Cr Pending)
+        $seenTargets = [];
+        $totalPoolAvailable = 0.0;
+        $totalPoolPaidAll   = 0.0;
+        foreach ($partner->shares->where('status', 'active') as $sh) {
+            $tKey = implode(':', [$sh->firm_id, $sh->scope_type, $sh->project_id, $sh->property_master_id, $sh->property_id]);
+            if (isset($seenTargets[$tKey])) {
+                continue;
+            }
+            $seenTargets[$tKey] = true;
+            $m = $shareMetrics[$sh->id] ?? [];
+            $totalPoolAvailable += (float) ($m['realized_profit'] ?? 0);
+            $totalPoolPaidAll   += (float) ($m['pool_paid_all'] ?? 0);
+        }
+        $totalPoolPending = round($totalPoolAvailable - $totalPoolPaidAll, 2);
+
         return view('admin.partners.show', array_merge(
             compact(
                 'partner',
@@ -260,7 +276,10 @@ class PartnerController extends Controller
                 'totalBookedEntitled',
                 'totalPaid',
                 'totalBalanceDue',
-                'totalOverdrawn'
+                'totalOverdrawn',
+                'totalPoolAvailable',
+                'totalPoolPaidAll',
+                'totalPoolPending'
             ),
             $this->scopeDropdowns()
         ));

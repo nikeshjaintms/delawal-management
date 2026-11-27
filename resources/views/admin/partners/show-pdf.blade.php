@@ -49,11 +49,11 @@
             <th>Firm</th>
             <th>Scope &amp; Target</th>
             <th class="r">Share %</th>
-            <th class="r">Realized Profit (₹)</th>
+            <th class="r">Cash Pool (₹)</th>
             <th class="r">Entitled Share (₹)</th>
-            <th class="r">Booked Profit Ref (₹)</th>
-            <th class="r">Paid (₹)</th>
-            <th class="r">Payable (₹)</th>
+            <th class="r">Partner Paid (₹)</th>
+            <th class="r">Partner Due (₹)</th>
+            <th class="r">Pool Pending (₹)</th>
         </tr>
     </thead>
     <tbody>
@@ -66,9 +66,9 @@
                 <td class="r"><strong>{{ number_format((float)$sh->share_percentage, 2) }}%</strong></td>
                 <td class="r">{{ formatIndianCurrency($m['realized_profit'] ?? 0, 2, false) }}</td>
                 <td class="r" style="font-weight:700;">{{ formatIndianCurrency($m['realized_entitled'] ?? 0, 2, false) }}</td>
-                <td class="r">{{ formatIndianCurrency($m['booked_entitled'] ?? 0, 2, false) }}</td>
                 <td class="r" style="color:#059669; font-weight:700;">{{ formatIndianCurrency($m['paid_amount'] ?? 0, 2, false) }}</td>
                 <td class="r" style="color:#DC2626; font-weight:700;">{{ formatIndianCurrency($m['balance_due'] ?? 0, 2, false) }}</td>
+                <td class="r" style="font-weight:700;">{{ formatIndianCurrency($m['pool_pending'] ?? 0, 2, false) }}</td>
             </tr>
         @endforeach
     </tbody>
