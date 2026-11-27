@@ -447,6 +447,7 @@
         <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn-primary-custom">
             <i class="fa-solid fa-pen-to-square"></i> Edit
         </a>
+        @if(auth()->user() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('invoice_delete')))
         <form action="{{ route('invoices.destroy', $invoice->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('Are you sure you want to delete Invoice {{ $invoice->invoice_no }}? This will permanently remove this invoice and its recorded payment transactions. The original booking and property reservations will remain completely intact.');">
             @csrf
             @method('DELETE')
@@ -454,6 +455,7 @@
                 <i class="fa-solid fa-trash-can"></i> Delete
             </button>
         </form>
+        @endif
         <a href="{{ route('invoices.index') }}" class="btn-secondary-custom">
             <i class="fa-solid fa-arrow-left"></i> Back
         </a>
@@ -600,9 +602,7 @@
                                             <span class="inv-unit-chip-dark">
                                                 <i class="fa-solid fa-layer-group" style="font-size: 9px;"></i>
                                                 <strong>{{ $p->property_name }}</strong>
-                                                @if(!empty($p->unit_no))
-                                                    <span style="opacity: 0.8; font-size: 9.5px;">(#{{ $p->unit_no }})</span>
-                                                @endif
+                                                
                                                 @if(!empty($p->type))
                                                     <span style="opacity: 0.8; font-size: 9.5px;">• {{ ucfirst($p->type) }}</span>
                                                 @endif

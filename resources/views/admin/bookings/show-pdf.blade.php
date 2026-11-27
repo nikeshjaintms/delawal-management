@@ -187,7 +187,6 @@ $otherBookings = \App\Models\Booking::where('customer_id', $booking->customer_id
             <tr>
                 <th class="c" style="width: 38px;">#</th>
                 <th>Property / Unit Name</th>
-                <th class="c" style="width: 80px;">Unit No</th>
                 <th style="width: 90px;">Type</th>
                 <th style="width: 100px;">Area / Size</th>
             </tr>
@@ -197,7 +196,6 @@ $otherBookings = \App\Models\Booking::where('customer_id', $booking->customer_id
             <tr>
                 <td class="c">{{ $idx + 1 }}</td>
                 <td><strong>{{ $p->property_name }}</strong></td>
-                <td class="c">{{ $p->unit_no ? ('#' . $p->unit_no) : '—' }}</td>
                 <td>{{ $p->propertyType->name ?? 'Plot' }}</td>
                 <td>{{ $p->size ? ($p->size . ' ' . ($p->size_unit ?: 'sq.ft')) : '—' }}</td>
             </tr>

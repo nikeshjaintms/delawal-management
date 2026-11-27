@@ -651,6 +651,11 @@ class InvoiceController extends Controller
             abort(403);
         }
 
+        $user = auth()->user();
+        if ($user && !$user->isAdmin() && !$user->hasPermission('invoice_delete')) {
+            abort(403, 'Unauthorized: You do not have permission to delete invoices.');
+        }
+
         $no = $invoice->invoice_no;
         $invoice->delete();
 

@@ -621,6 +621,7 @@
                                 <a href="{{ route('invoices.edit', $inv->id) }}" class="btn-act btn-act-edit" title="Edit Invoice">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </a>
+                                @if(auth()->user() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('invoice_delete')))
                                 <form action="{{ route('invoices.destroy', $inv->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete invoice {{ $inv->invoice_no }}?');">
                                     @csrf
                                     @method('DELETE')
@@ -628,6 +629,7 @@
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
