@@ -2784,7 +2784,7 @@
         {{-- Firm Management --}}
         @if(session('login_type') !== 'firm')
         <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link submenu-toggle" data-label="Firm Management">
+            <a href="javascript:void(0);" class="menu-link submenu-toggle {{ (str_starts_with($currentRoute ?? '', 'firm-master.') || str_starts_with($currentRoute ?? '', 'financial-years.') || str_starts_with($currentRoute ?? '', 'partners.') || str_starts_with($currentRoute ?? '', 'partner-payouts.')) ? 'parent-active' : '' }}" data-label="Firm Management">
                 <i class="fa-solid fa-building-flag"></i><span>Firm Management</span>
                 <i class="fa-solid fa-chevron-right submenu-arrow"></i>
             </a>
@@ -2799,6 +2799,18 @@
                         <i class="fa-solid fa-calendar-days"></i><span>Financial Years</span>
                     </a>
                 </li>
+                @if($authUser && $authUser->isAdmin())
+                <li class="submenu-item">
+                    <a href="{{ route('partners.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'partners.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-handshake" style="color: #FBBF24;"></i><span>Partners &amp; Profit Share</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{{ route('partner-payouts.index') }}" class="submenu-link {{ str_starts_with($currentRoute ?? '', 'partner-payouts.') ? 'active' : '' }}">
+                        <i class="fa-solid fa-money-bill-transfer" style="color: #34D399;"></i><span>Partner Payouts</span>
+                    </a>
+                </li>
+                @endif
             </ul>
         </li>
         @endif

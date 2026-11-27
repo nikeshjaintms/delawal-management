@@ -20,6 +20,7 @@ use App\Http\Controllers\InvoiceSettingController;
 use App\Http\Controllers\LedgerController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\LoanReportController;
+use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\MaterialCategoryController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\PaymentController;
@@ -339,6 +340,17 @@ Route::middleware(['erp.auth', \App\Http\Middleware\AuditLogMiddleware::class])-
         Route::resource('firm-master', FirmController::class);
         Route::resource('financial-years', FinancialYearController::class);
         Route::patch('financial-years/{financialYear}/set-active', [FinancialYearController::class, 'setActive'])->name('financial-years.set-active');
+
+        // ── Partners & Profit Sharing (Admin-Only) ───────────────────────
+        Route::get('partner-payouts', [PartnerController::class, 'payoutsIndex'])->name('partner-payouts.index');
+        Route::get('partners/{partner}/pdf', [PartnerController::class, 'downloadPdf'])->name('partners.detail-pdf');
+        Route::post('partners/{partner}/shares', [PartnerController::class, 'storeShare'])->name('partners.shares.store');
+        Route::put('partners/{partner}/shares/{share}', [PartnerController::class, 'updateShare'])->name('partners.shares.update');
+        Route::delete('partners/{partner}/shares/{share}', [PartnerController::class, 'destroyShare'])->name('partners.shares.destroy');
+        Route::post('partners/{partner}/payouts', [PartnerController::class, 'storePayout'])->name('partners.payouts.store');
+        Route::delete('partners/{partner}/payouts/{payout}', [PartnerController::class, 'destroyPayout'])->name('partners.payouts.destroy');
+        Route::get('partners/{partner}/payouts/{payout}/pdf', [PartnerController::class, 'payoutReceiptPdf'])->name('partners.payouts.receipt-pdf');
+        Route::resource('partners', PartnerController::class);
     });
 
     // ── Form & Invoice Settings (Accessible to both Admin & Firm) ───────────────────
