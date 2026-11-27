@@ -139,9 +139,6 @@ $otherBookings = \App\Models\Booking::where('customer_id', $booking->customer_id
                     </div>
                     @else
                     <strong>{{ $allProps->first()->property_name ?? ($booking->property->property_name ?? '—') }}</strong>
-                    @if(($allProps->first()->unit_no ?? $booking->property?->unit_no))
-                    <span style="font-size: 10px; color: #6B7280;">(Unit: #{{ $allProps->first()->unit_no ?? $booking->property->unit_no }})</span>
-                    @endif
                     @endif
                 </span>
             </div>

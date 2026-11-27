@@ -886,12 +886,6 @@
                                         <span class="inv-unit-chip">
                                             <i class="fa-solid fa-layer-group" style="font-size:7px;"></i>
                                             <strong>{{ $p->property_name }}</strong>
-                                            @if(!empty($p->unit_no))
-                                                <span style="font-size:7px; opacity:0.8;">(#{{ $p->unit_no }})</span>
-                                            @endif
-                                            @if(!empty($p->type))
-                                                <span style="font-size:7px; opacity:0.8;">• {{ ucfirst($p->type) }}</span>
-                                            @endif
                                         </span>
                                     @endforeach
                                 </div>
@@ -918,9 +912,6 @@
                                     <span class="inv-unit-chip">
                                         <i class="fa-solid fa-layer-group" style="font-size:7px;"></i>
                                         <strong>{{ $p->property_name }}</strong>
-                                        @if(!empty($p->unit_no))
-                                            <span style="font-size:7px; opacity:0.8;">(#{{ $p->unit_no }})</span>
-                                        @endif
                                     </span>
                                 @endforeach
                             </div>

@@ -602,10 +602,6 @@
                                             <span class="inv-unit-chip-dark">
                                                 <i class="fa-solid fa-layer-group" style="font-size: 9px;"></i>
                                                 <strong>{{ $p->property_name }}</strong>
-                                                
-                                                @if(!empty($p->type))
-                                                    <span style="opacity: 0.8; font-size: 9.5px;">• {{ ucfirst($p->type) }}</span>
-                                                @endif
                                             </span>
                                         @endforeach
                                     @endif
