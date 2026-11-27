@@ -783,14 +783,17 @@ class InvoiceController extends Controller
         $invoice->load([
             'firm',
             'project',
-            'customer',
+            'customer.bookings.properties.project',
+            'customer.bookings.property.project',
             'tenant',
             'contractor',
             'vendor',
             'items',
             'payments.paymentMode',
             'paymentMode',
-            'creator'
+            'creator',
+            'propertySale.properties.project',
+            'propertySale.property.project',
         ]);
 
   
@@ -1121,7 +1124,7 @@ class InvoiceController extends Controller
             }
 
             if ($sourceType === 'booking') {
-                $booking = Booking::with(['customer', 'property.project', 'firm'])->findOrFail($sourceId);
+                $booking = Booking::with(['customer', 'property.project', 'firm', 'properties.project'])->findOrFail($sourceId);
 
                 $existing = Invoice::where('customer_id', $booking->customer_id)
                     ->where('project_id', $booking->property?->project_id)
@@ -1138,8 +1141,15 @@ class InvoiceController extends Controller
                 $firmActualId = $activeFirm ? $activeFirm->id : ($firmId ?: 1);
                 $invoiceNo = Invoice::generateNextInvoiceNumber('sales', $firmActualId);
 
-                $propName = $booking->property->property_name ?? 'Property Unit';
-                $projName = $booking->property?->project?->project_name ?? 'Delawala Project';
+                $allProps = $booking->all_properties;
+                if ($allProps->isEmpty() && $booking->property) {
+                    $allProps = collect([$booking->property]);
+                }
+                $propNames = $allProps->isNotEmpty() 
+                    ? $allProps->pluck('property_name')->filter()->join(', ') 
+                    : ($booking->property->property_name ?? 'Property Unit');
+                $projName = $booking->property?->project?->project_name 
+                    ?? ($allProps->first()?->project?->project_name ?? 'Delawala Project');
                 $subtotal = (float) $booking->final_amount;
 
                 if ($isGst) {
@@ -1208,9 +1218,9 @@ class InvoiceController extends Controller
 
                 $invoice->items()->create([
                     'item_type' => 'booking',
-                    'item_description' => "Property Booking & Reservation for {$propName} ({$projName})",
+                    'item_description' => "Property Booking & Reservation for {$propNames} ({$projName})",
                     'hsn_sac_code' => $isGst ? '9954' : '',
-                    'quantity' => 1,
+                    'quantity' => max(1, $allProps->count()),
                     'unit' => 'Unit',
                     'unit_price' => $subtotal,
                     'discount_amount' => 0,
@@ -1659,11 +1669,18 @@ class InvoiceController extends Controller
                 ]);
 
             case 'booking':
-                $booking = Booking::with(['customer', 'property.project.firm', 'firm'])->find($id);
+                $booking = Booking::with(['customer', 'property.project.firm', 'firm', 'properties.project'])->find($id);
                 if (!$booking)
                     return response()->json(['error' => 'Booking not found'], 404);
-                $propName = $booking->property->property_name ?? 'Property Unit';
-                $projName = $booking->property?->project?->project_name ?? 'Delawala Project';
+                $allProps = $booking->all_properties;
+                if ($allProps->isEmpty() && $booking->property) {
+                    $allProps = collect([$booking->property]);
+                }
+                $propNames = $allProps->isNotEmpty() 
+                    ? $allProps->pluck('property_name')->filter()->join(', ') 
+                    : ($booking->property->property_name ?? 'Property Unit');
+                $projName = $booking->property?->project?->project_name 
+                    ?? ($allProps->first()?->project?->project_name ?? 'Delawala Project');
                 $firm = $booking->firm ?: ($booking->property?->project?->firm);
                 $firmId = $firm?->id ?? ($booking->firm_id ?? '');
                 $nextInvoiceNo = $firmId ? Invoice::generateNextInvoiceNumber('sales', $firmId) : null;
@@ -1673,14 +1690,14 @@ class InvoiceController extends Controller
                     'recipient_email' => $booking->customer->email ?? '',
                     'recipient_address' => $booking->customer->address ?? ($booking->customer->city ?? ''),
                     'recipient_gstin' => $booking->customer->gst_no ?? '',
-                    'project_id' => $booking->property?->project_id ?? '',
+                    'project_id' => $booking->property?->project_id ?? ($allProps->first()?->project_id ?? ''),
                     'firm_id' => $firmId,
                     'bank_name' => $firm->bank_name ?? '',
                     'bank_account_no' => $firm->bank_account_no ?? '',
                     'bank_ifsc' => $firm->bank_ifsc ?? '',
                     'bank_branch' => $firm->bank_branch ?? '',
                     'next_invoice_no' => $nextInvoiceNo,
-                    'item_description' => "Property Booking & Reservation for {$propName} ({$projName})",
+                    'item_description' => "Property Booking & Reservation for {$propNames} ({$projName})",
                     'hsn_sac_code' => '9954',
                     'unit_price' => (float) $booking->final_amount,
                     'paid_amount' => (float) $booking->booking_amount,
